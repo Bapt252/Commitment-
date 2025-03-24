@@ -1150,6 +1150,245 @@
     accent-color: var(--primary);
 }
 
+/* Nouveaux styles pour les onglets de profil */
+.profile-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    border-bottom: 1px solid var(--gray-200);
+    margin: var(--spacing-lg) 0;
+}
+
+.profile-tab {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--gray-600);
+    transition: var(--transition-fast);
+}
+
+.profile-tab:hover {
+    color: var(--primary);
+}
+
+.profile-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.profile-tab-content {
+    display: none;
+    padding: var(--spacing-md) 0;
+}
+
+.profile-tab-content.active {
+    display: block;
+}
+
+/* Styles pour les documents du candidat */
+.documents-list {
+    margin-bottom: var(--spacing-md);
+}
+
+.document-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--gray-50);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-sm);
+    transition: var(--transition-fast);
+}
+
+.document-item:hover {
+    background-color: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+.document-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    background-color: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.document-info {
+    flex: 1;
+}
+
+.document-name {
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+    color: var(--gray-800);
+}
+
+.document-date {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.document-action {
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+/* Styles pour les interactions */
+.interactions-list {
+    margin-bottom: var(--spacing-md);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.empty-interactions {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--gray-500);
+}
+
+.empty-interactions i {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Nouveaux styles pour les membres d'équipe */
+.team-members-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: var(--spacing-md) 0;
+    padding-right: var(--spacing-sm);
+}
+
+.team-member-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--gray-50);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-sm);
+    transition: var(--transition-fast);
+}
+
+.team-member-item:hover {
+    background-color: var(--primary-light);
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.team-member-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+}
+
+.team-member-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.team-member-info {
+    flex: 1;
+}
+
+.team-member-name {
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+    color: var(--gray-800);
+}
+
+.team-member-role {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.assigned-team-members {
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+    background-color: var(--gray-50);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-200);
+    min-height: 60px;
+}
+
+.empty-team-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-500);
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
+}
+
+.empty-team-message i {
+    font-size: 1.25rem;
+}
+
+.team-member-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: 50px;
+    margin-right: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition-fast);
+}
+
+.team-member-chip:hover {
+    background-color: var(--primary);
+    color: white;
+}
+
+.team-member-chip .remove-member {
+    background: none;
+    border: none;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: var(--transition-fast);
+}
+
+.team-member-chip:hover .remove-member {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.mt-2 {
+    margin-top: var(--spacing-sm);
+}
+
+.mt-4 {
+    margin-top: var(--spacing-lg);
+}
+
 /* Responsive */
 @media (max-width: 992px) {
     .job-offer-header {
