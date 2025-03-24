@@ -394,9 +394,7 @@
             to { opacity: 1; transform: translateX(0); }
         }
         
-        .fade-in-up {
-            animation: fadeInUp 0.5s ease-out;
-        }
+        /* Suppression de la classe fade-in-up qui causait le problème */
         
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -441,6 +439,20 @@
                 padding: 12px 20px 12px 45px;
             }
         }
+
+        /* Style spécifique pour la section de création de compte */
+        .create-account-section {
+            margin-top: 25px;
+            text-align: center;
+            padding: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .create-account-section p {
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: #4B5563;
+        }
     </style>
 </head>
 <body>
@@ -480,8 +492,8 @@
             <div class="login-content-wrapper">
                 <!-- Section formulaire de connexion -->
                 <div class="login-form-section">
-                    <h1 class="login-title fade-in-up">Bienvenue sur votre<br>Espace Entreprise</h1>
-                    <p class="login-subtitle fade-in-up">Connectez-vous pour gérer vos recrutements et trouver les meilleurs talents.</p>
+                    <h1 class="login-title">Bienvenue sur votre<br>Espace Entreprise</h1>
+                    <p class="login-subtitle">Connectez-vous pour gérer vos recrutements et trouver les meilleurs talents.</p>
                     
                     <div class="error-message" id="error-message">
                         <i class="fas fa-exclamation-circle"></i> Email ou mot de passe incorrect. Veuillez réessayer.
@@ -518,8 +530,9 @@
                         <span>ou</span>
                     </div>
                     
-                    <div class="fade-in-up" style="text-align: center;">
-                        <p style="margin-bottom: 15px;">Vous n'avez pas encore de compte ?</p>
+                    <!-- Section de création de compte modifiée -->
+                    <div class="create-account-section">
+                        <p>Vous n'avez pas encore de compte ?</p>
                         <a href="client-questionnaire.html" class="btn-modern btn-secondary-modern">Créer un compte entreprise</a>
                     </div>
                 </div>
