@@ -476,6 +476,19 @@
                         <input type="text" id="job-skills" placeholder="Ex: JavaScript, React, Node.js">
                         <small>Séparez les compétences par des virgules</small>
                     </div>
+
+                    <div class="form-group">
+                        <label>Interlocuteurs référents</label>
+                        <div class="assigned-team-members" id="job-team-members">
+                            <!-- Les membres assignés seront ajoutés dynamiquement ici -->
+                            <div class="empty-team-message">
+                                <i class="fas fa-users"></i> Aucun membre assigné pour le moment
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm mt-2" id="assign-job-member">
+                            <i class="fas fa-user-plus"></i> Assigner des membres
+                        </button>
+                    </div>
                     
                     <div class="form-actions">
                         <button type="button" class="btn" id="cancel-job-btn">Annuler</button>
@@ -563,6 +576,48 @@
                     <!-- Le contenu du profil sera ajouté dynamiquement via JavaScript -->
                 </div>
                 
+                <div class="profile-tabs">
+                    <button class="profile-tab active" data-tab="info">Informations</button>
+                    <button class="profile-tab" data-tab="interactions">Interactions</button>
+                    <button class="profile-tab" data-tab="documents">Documents</button>
+                </div>
+                
+                <div class="profile-tab-content active" data-tab-content="info">
+                    <!-- Information du candidat -->
+                </div>
+                
+                <div class="profile-tab-content" data-tab-content="interactions">
+                    <div class="interactions-list">
+                        <!-- Interactions du candidat seront ajoutées ici -->
+                        <div class="empty-interactions">
+                            <i class="fas fa-comment-slash"></i>
+                            <p>Aucune interaction pour le moment</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline btn-sm add-interaction-btn">
+                        <i class="fas fa-plus"></i> Ajouter une interaction
+                    </button>
+                </div>
+                
+                <div class="profile-tab-content" data-tab-content="documents">
+                    <div class="documents-list">
+                        <!-- Documents du candidat seront ajoutés ici -->
+                        <div class="document-item">
+                            <div class="document-icon"><i class="fas fa-file-pdf"></i></div>
+                            <div class="document-info">
+                                <div class="document-name">CV_Marie_Dupont.pdf</div>
+                                <div class="document-date">Téléchargé le 20/03/2025</div>
+                            </div>
+                            <button class="btn btn-sm btn-outline document-action">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline btn-sm add-document-btn">
+                        <i class="fas fa-plus"></i> Ajouter un document
+                    </button>
+                </div>
+                
                 <div class="profile-actions">
                     <button type="button" class="btn" id="back-to-kanban-btn">Retour</button>
                     <button type="button" class="btn btn-primary" id="contact-candidate-btn">Contacter</button>
@@ -608,9 +663,17 @@
                         </select>
                     </div>
                     
+                    <!-- Nouvelle section pour les participants internes -->
                     <div class="form-group">
-                        <label for="interview-participants">Participants (internes)</label>
-                        <input type="text" id="interview-participants" placeholder="Ex: Marie (RH), Jean (CTO)">
+                        <label>Participants internes</label>
+                        <div class="assigned-team-members" id="interview-team-members">
+                            <div class="empty-team-message">
+                                <i class="fas fa-users"></i> Aucun participant assigné
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm mt-2" id="assign-interview-participants">
+                            <i class="fas fa-user-plus"></i> Assigner des participants
+                        </button>
                     </div>
                     
                     <div class="form-group">
@@ -618,7 +681,7 @@
                         <textarea id="interview-notes" rows="3"></textarea>
                     </div>
                     
-                    <!-- Nouvelle option pour les rappels -->
+                    <!-- Option pour les rappels -->
                     <div class="form-group">
                         <label for="interview-reminders">Rappels</label>
                         <div class="checkbox-group">
@@ -685,11 +748,165 @@
                         <textarea id="event-description" rows="3"></textarea>
                     </div>
                     
+                    <div class="form-group">
+                        <label>Membres impliqués</label>
+                        <div class="assigned-team-members" id="event-team-members">
+                            <div class="empty-team-message">
+                                <i class="fas fa-users"></i> Aucun membre impliqué
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm mt-2" id="assign-event-members">
+                            <i class="fas fa-user-plus"></i> Assigner des membres
+                        </button>
+                    </div>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn" id="cancel-timeline-btn">Annuler</button>
                         <button type="submit" class="btn btn-primary">Ajouter à la timeline</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nouvelle modale pour ajouter une interaction avec un candidat -->
+    <div class="modal" id="interaction-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ajouter une interaction</h2>
+                <button class="modal-close" id="close-interaction-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="interaction-form">
+                    <input type="hidden" id="interaction-candidate-id" value="">
+                    
+                    <div class="form-group">
+                        <label for="interaction-date">Date</label>
+                        <input type="date" id="interaction-date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interaction-type">Type d'interaction</label>
+                        <select id="interaction-type" required>
+                            <option value="email">Email</option>
+                            <option value="call">Appel téléphonique</option>
+                            <option value="meeting">Rencontre</option>
+                            <option value="feedback">Retour d'entretien</option>
+                            <option value="other">Autre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interaction-subject">Sujet</label>
+                        <input type="text" id="interaction-subject" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interaction-notes">Contenu de l'interaction</label>
+                        <textarea id="interaction-notes" rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Participants internes</label>
+                        <div class="assigned-team-members" id="interaction-team-members">
+                            <div class="empty-team-message">
+                                <i class="fas fa-users"></i> Aucun participant assigné
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm mt-2" id="assign-interaction-members">
+                            <i class="fas fa-user-plus"></i> Assigner des participants
+                        </button>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="interaction-result">Résultat</label>
+                            <select id="interaction-result">
+                                <option value="positive">Positif</option>
+                                <option value="neutral" selected>Neutre</option>
+                                <option value="negative">Négatif</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="interaction-follow-up">Suivi prévu</label>
+                            <input type="date" id="interaction-follow-up">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn" id="cancel-interaction-btn">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Nouvelle modale pour sélectionner des membres de l'entreprise -->
+    <div class="modal" id="team-members-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="team-members-modal-title">Sélectionner des membres</h2>
+                <button class="modal-close" id="close-team-members-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="search-team-members" placeholder="Rechercher un membre...">
+                </div>
+                
+                <div class="team-members-list">
+                    <!-- Liste des membres d'équipe -->
+                    <div class="team-member-item">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="member-1" class="team-member-checkbox" data-member-id="1" data-member-name="Marie Durand" data-member-role="Chargée de recrutement">
+                        </div>
+                        <div class="team-member-avatar">MD</div>
+                        <div class="team-member-info">
+                            <div class="team-member-name">Marie Durand</div>
+                            <div class="team-member-role">Chargée de recrutement</div>
+                        </div>
+                    </div>
+                    
+                    <div class="team-member-item">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="member-2" class="team-member-checkbox" data-member-id="2" data-member-name="Joseph Eux" data-member-role="DAF">
+                        </div>
+                        <div class="team-member-avatar">JE</div>
+                        <div class="team-member-info">
+                            <div class="team-member-name">Joseph Eux</div>
+                            <div class="team-member-role">DAF</div>
+                        </div>
+                    </div>
+                    
+                    <div class="team-member-item">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="member-3" class="team-member-checkbox" data-member-id="3" data-member-name="Sophia Martin" data-member-role="Assistante RH">
+                        </div>
+                        <div class="team-member-avatar">SM</div>
+                        <div class="team-member-info">
+                            <div class="team-member-name">Sophia Martin</div>
+                            <div class="team-member-role">Assistante RH</div>
+                        </div>
+                    </div>
+                    
+                    <div class="team-member-item">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="member-4" class="team-member-checkbox" data-member-id="4" data-member-name="Thomas Martin" data-member-role="Directeur des Ressources Humaines">
+                        </div>
+                        <div class="team-member-avatar">TM</div>
+                        <div class="team-member-info">
+                            <div class="team-member-name">Thomas Martin</div>
+                            <div class="team-member-role">Directeur des Ressources Humaines</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions mt-4">
+                    <input type="hidden" id="team-member-target" value="">
+                    <button type="button" class="btn" id="cancel-team-members-btn">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="select-team-members-btn">Sélectionner</button>
+                </div>
             </div>
         </div>
     </div>
@@ -915,5 +1132,6 @@
     <!-- JavaScript -->
     <script src="../static/js/kanban-recruitment.js"></script>
     <script src="../static/js/recruitment-analytics.js"></script>
+    <script src="../static/js/team-management.js"></script>
 </body>
 </html>
