@@ -15,32 +15,46 @@
     
     <style>
         :root {
-            --primary: #6366F1;
-            --primary-dark: #4F46E5;
-            --secondary: #8B5CF6;
+            /* Palette de couleurs - inspirée du style du projet */
+            --primary: #7C3AED;
+            --primary-dark: #5B21B6;
+            --secondary: #A78BFA;
             --accent: #C4B5FD;
-            --light-bg: #F3F4F6;
-            --dark: #1F2937;
+            --light-bg: #F8F7F3;
+            --dark: #1A1A1A;
             --text: #4B5563;
             --cream: #FFFBF5;
             --white: #FFFFFF;
-            --purple: #6366F1;
-            --purple-dark: #4F46E5;
+            --purple: #7C3AED;
+            --purple-dark: #5B21B6;
             --purple-light: #C4B5FD;
+            --purple-glass: rgba(124, 58, 237, 0.1);
             --gray-100: #F3F4F6;
             --gray-200: #E5E7EB;
             --gray-300: #D1D5DB;
             --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --radius-sm: 0.375rem;
             --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
             --spacing-xs: 0.25rem;
             --spacing-sm: 0.5rem;
             --spacing-md: 1rem;
             --spacing-lg: 1.5rem;
             --spacing-xl: 2rem;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
             --transition: all 0.3s ease;
+            --transition-bezier: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
@@ -49,22 +63,48 @@
             padding: 0;
             color: var(--text);
             background-color: var(--light-bg);
+            font-weight: 300;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-100);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--purple-light);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--purple);
         }
 
         /* Header & Navigation */
         header {
-            background-color: #fff;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             box-shadow: var(--shadow-md);
             position: fixed;
             width: 100%;
             z-index: 1000;
             transition: var(--transition);
             height: 70px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         header.scrolled {
             box-shadow: var(--shadow-lg);
             height: 60px;
+            background-color: rgba(255, 255, 255, 0.95);
         }
 
         .container {
@@ -87,6 +127,11 @@
             position: relative;
             display: flex;
             align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
         }
 
         .logo span {
@@ -94,18 +139,29 @@
         }
 
         .logo-badge {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             background-color: var(--primary);
             color: white;
-            font-size: 0.8rem;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            margin-left: 5px;
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
             position: relative;
-            top: -8px;
-            margin-left: 2px;
+            overflow: hidden;
+        }
+
+        .logo-badge::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
         }
 
         nav ul {
@@ -125,19 +181,24 @@
             position: relative;
         }
 
-        nav a:hover, nav a.active {
-            color: var(--primary);
-        }
-
-        nav a.active::after {
+        nav a::after {
             content: '';
             position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 100%;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
             height: 2px;
-            background-color: var(--primary);
-            border-radius: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after, nav a.active::after {
+            width: 100%;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--primary);
         }
 
         .menu-toggle {
@@ -147,11 +208,18 @@
             color: var(--dark);
             font-size: 1.5rem;
             cursor: pointer;
+            z-index: 1001;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            transform: rotate(90deg);
+            color: var(--primary);
         }
 
         /* Notification bar */
         .notification-bar {
-            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             text-align: center;
             padding: 12px;
@@ -165,6 +233,24 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            overflow: hidden;
+        }
+
+        .notification-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            to {
+                left: 100%;
+            }
         }
 
         .notification-bar i {
@@ -218,7 +304,7 @@
         .company-banner::after {
             content: '';
             position: absolute;
-            bottom: -5px;
+            bottom: 0;
             left: 0;
             width: 100%;
             height: 5px;
@@ -247,7 +333,7 @@
         .company-logo {
             width: 90px;
             height: 90px;
-            border-radius: 20px;
+            border-radius: var(--radius-lg);
             background-color: var(--white);
             padding: 12px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
@@ -289,7 +375,7 @@
             gap: var(--spacing-md);
             background-color: rgba(255, 255, 255, 0.1);
             padding: 12px 20px;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
@@ -397,7 +483,7 @@
             border: 2px solid var(--purple);
             color: var(--purple);
             padding: var(--spacing-sm) var(--spacing-lg);
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -421,7 +507,7 @@
         /* Card */
         .card {
             background-color: white;
-            border-radius: 16px;
+            border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
             margin-bottom: 2rem;
             border: none;
@@ -430,7 +516,7 @@
         }
 
         .card:hover {
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-xl);
             transform: translateY(-5px);
         }
 
@@ -454,12 +540,13 @@
             width: 40px;
             height: 40px;
             background: linear-gradient(135deg, var(--purple-light) 0%, var(--purple) 100%);
-            border-radius: 10px;
+            border-radius: var(--radius);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);
         }
 
         .card-body {
@@ -472,13 +559,21 @@
             margin-bottom: 1.75rem;
             gap: 0.75rem;
             padding: 0 0.5rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .nav-tabs .nav-link {
             color: var(--text);
             border: none;
             padding: 0.9rem 1.5rem;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             font-weight: 600;
             transition: all 0.3s ease;
             position: relative;
@@ -486,6 +581,7 @@
             align-items: center;
             gap: 10px;
             background-color: var(--gray-100);
+            white-space: nowrap;
         }
 
         .nav-tabs .nav-link:hover {
@@ -496,7 +592,7 @@
 
         .nav-tabs .nav-link.active {
             color: white;
-            background-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             transform: translateY(-3px);
             box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
         }
@@ -508,7 +604,7 @@
         /* Table */
         .table-container {
             background-color: white;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             box-shadow: var(--shadow-sm);
             overflow: hidden;
             margin-bottom: 1.5rem;
@@ -544,7 +640,7 @@
         }
 
         .table tbody tr:hover {
-            background-color: rgba(99, 102, 241, 0.05);
+            background-color: var(--purple-glass);
             transform: translateX(5px);
         }
 
@@ -588,7 +684,7 @@
         /* Button styles */
         .btn {
             padding: 0.7rem 1.5rem;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             font-weight: 600;
             transition: all 0.3s ease;
             position: relative;
@@ -668,8 +764,9 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             font-weight: 600;
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);
         }
 
         .add-contact-btn i {
@@ -689,7 +786,7 @@
         /* Form controls */
         .form-control, .form-select {
             padding: 0.8rem 1.2rem;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             border: 1px solid var(--gray-300);
             transition: all 0.3s ease;
             font-size: 0.95rem;
@@ -703,7 +800,7 @@
         }
 
         .input-group {
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             overflow: hidden;
         }
 
@@ -717,7 +814,7 @@
         /* Dropdown */
         .dropdown-menu {
             border: none;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             box-shadow: var(--shadow-lg);
             padding: 0.75rem;
             animation: fadeIn 0.2s ease;
@@ -730,7 +827,7 @@
 
         .dropdown-item {
             padding: 0.6rem 1rem;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -739,7 +836,7 @@
         }
 
         .dropdown-item:hover {
-            background-color: rgba(99, 102, 241, 0.1);
+            background-color: var(--purple-glass);
             color: var(--primary);
             transform: translateX(3px);
         }
@@ -760,15 +857,15 @@
             justify-content: space-between;
             align-items: center;
             padding: 1.2rem;
-            background-color: var(--gray-100);
-            border-radius: 12px;
+            background-color: var(--white);
+            border-radius: var(--radius-md);
             margin-bottom: 0.85rem;
             transition: all 0.3s ease;
             border-left: 4px solid transparent;
+            box-shadow: var(--shadow-sm);
         }
 
         .recruitment-item:hover {
-            background-color: var(--white);
             box-shadow: var(--shadow-md);
             transform: translateY(-3px) translateX(5px);
             border-left: 4px solid var(--primary);
@@ -792,7 +889,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 10px;
+            border-radius: var(--radius);
             background-color: var(--white);
             border: 1px solid var(--gray-300);
             transition: all 0.3s ease;
@@ -815,7 +912,7 @@
             right: -320px;
             width: 300px;
             background-color: white;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             box-shadow: var(--shadow-lg);
             padding: 1.5rem;
             z-index: 10;
@@ -850,13 +947,13 @@
             gap: 0.75rem;
             margin-bottom: 0.85rem;
             padding: 0.75rem;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             background-color: var(--gray-100);
             transition: all 0.2s ease;
         }
 
         .contact-item:hover {
-            background-color: rgba(99, 102, 241, 0.1);
+            background-color: var(--purple-glass);
             transform: translateX(3px);
         }
 
@@ -865,7 +962,7 @@
             height: 40px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            border-radius: 10px;
+            border-radius: var(--radius);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -907,7 +1004,7 @@
 
         .toast {
             background-color: white;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             box-shadow: var(--shadow-lg);
             overflow: hidden;
             margin-bottom: 1rem;
@@ -942,7 +1039,7 @@
 
         .role-item {
             background-color: white;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             padding: 1.2rem;
             box-shadow: var(--shadow-sm);
             transition: all 0.3s ease;
@@ -992,8 +1089,8 @@
 
         /* Permissions info */
         .permissions-info {
-            background-color: rgba(99, 102, 241, 0.05);
-            border-radius: 12px;
+            background-color: var(--purple-glass);
+            border-radius: var(--radius-md);
             padding: 1.2rem;
             margin-bottom: 1.2rem;
             border-left: 4px solid var(--primary);
@@ -1019,16 +1116,17 @@
 
         /* Settings Form */
         .settings-form {
-            padding: 1rem;
-            background-color: var(--gray-100);
-            border-radius: 12px;
+            padding: 1.5rem;
+            background-color: var(--white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
         }
 
         .logo-preview {
             width: 150px;
             height: 150px;
             background-color: white;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1036,6 +1134,12 @@
             box-shadow: var(--shadow-sm);
             overflow: hidden;
             border: 2px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+
+        .logo-preview:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
         }
 
         .logo-preview img {
@@ -1049,23 +1153,17 @@
             animation: fadeIn 0.6s ease forwards;
         }
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        .slide-up-animation {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideUp 0.6s ease forwards;
         }
 
-        ::-webkit-scrollbar-track {
-            background: var(--gray-100);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--gray-300);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Search and filter */
@@ -1100,13 +1198,26 @@
             margin-bottom: 1.5rem;
         }
 
+        .actions-bar h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0;
+            font-weight: 600;
+        }
+
+        .actions-bar h4 i {
+            color: var(--primary);
+        }
+
         /* Empty state */
         .empty-state {
             text-align: center;
             padding: 3rem 2rem;
-            background-color: var(--gray-100);
-            border-radius: 12px;
+            background-color: var(--white);
+            border-radius: var(--radius-md);
             margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
         }
 
         .empty-state-icon {
@@ -1178,45 +1289,36 @@
             }
             
             nav {
-                position: absolute;
-                top: 70px;
+                position: fixed;
+                top: 0;
                 left: 0;
                 width: 100%;
-                background-color: white;
-                padding: 1rem;
-                box-shadow: var(--shadow-lg);
-                transform: translateY(-100%);
+                height: 100vh;
+                background-color: rgba(255, 255, 255, 0.95);
+                padding: 100px 2rem 2rem;
+                transform: translateX(-100%);
                 opacity: 0;
                 visibility: hidden;
                 transition: all 0.3s ease;
                 z-index: 999;
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
             }
             
             nav.active {
-                transform: translateY(0);
+                transform: translateX(0);
                 opacity: 1;
                 visibility: visible;
             }
             
             nav ul {
                 flex-direction: column;
-                gap: 1rem;
+                gap: 1.5rem;
+                align-items: center;
             }
             
             .company-name {
                 font-size: 1.8rem;
-            }
-            
-            .nav-tabs {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-                padding-bottom: 5px;
-            }
-            
-            .nav-tabs::-webkit-scrollbar {
-                display: none;
             }
             
             .nav-tabs .nav-link {
@@ -1295,7 +1397,7 @@
         <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
         
         <!-- En-tête de la page -->
-        <div class="page-header">
+        <div class="page-header slide-up-animation">
             <h1 class="page-title">Mon organisation</h1>
             <a href="company-dashboard.html" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
@@ -1304,7 +1406,7 @@
         </div>
         
         <!-- Section Organisation -->
-        <div class="organization-section fade-in-animation">
+        <div class="organization-section slide-up-animation">
             <div class="card">
                 <div class="card-header">
                     <div class="card-header-icon">
@@ -1337,7 +1439,7 @@
                         <!-- Onglet Équipe et Contacts -->
                         <div class="tab-pane fade show active" id="team" role="tabpanel" aria-labelledby="team-tab">
                             <div class="actions-bar">
-                                <h4><i class="fas fa-user-friends text-primary"></i> Membres de l'équipe</h4>
+                                <h4><i class="fas fa-user-friends"></i> Membres de l'équipe</h4>
                                 <button type="button" class="add-contact-btn pulse-effect" data-bs-toggle="modal" data-bs-target="#addContactModal">
                                     <i class="fas fa-plus"></i> Ajouter un contact
                                 </button>
@@ -1348,7 +1450,7 @@
                                     <i class="fas fa-search search-icon"></i>
                                     <input type="text" class="form-control" placeholder="Rechercher un membre..." id="contactSearch">
                                 </div>
-                                <select class="form-select" style="width: 200px;" id="roleFilter">
+                                <select class="form-select" style="max-width: 200px;" id="roleFilter">
                                     <option value="">Tous les rôles</option>
                                     <option value="admin">Administrateur</option>
                                     <option value="manager">Manager</option>
@@ -1810,25 +1912,6 @@
                 });
             });
             
-            // Animations au scroll
-            const animateElements = document.querySelectorAll('.fade-in-animation');
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = 1;
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, { threshold: 0.1 });
-            
-            animateElements.forEach(el => {
-                el.style.opacity = 0;
-                el.style.transform = 'translateY(20px)';
-                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                observer.observe(el);
-            });
-            
             // Recherche et filtrage
             const contactSearch = document.getElementById('contactSearch');
             const roleFilter = document.getElementById('roleFilter');
@@ -1885,6 +1968,60 @@
                     invitationForm.reset();
                 });
             }
+
+            // Effet 3D sur les cartes
+            const cards = document.querySelectorAll('.card, .role-item, .recruitment-item');
+            
+            cards.forEach(card => {
+                card.addEventListener('mousemove', function(e) {
+                    // Obtenir les coordonnées relatives de la souris par rapport à la carte
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // Calculer le centre de la carte
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    // Calculer la rotation en fonction de la position de la souris
+                    // Limiter la rotation à 3 degrés maximum
+                    const rotateY = ((x - centerX) / centerX) * 2;
+                    const rotateX = ((centerY - y) / centerY) * 2;
+                    
+                    // Appliquer les transformations
+                    this.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px)`;
+                });
+                
+                // Restaurer la position originale lorsque la souris quitte la carte
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = '';
+                });
+            });
+
+            // Ajouter la classe "active" au menu actuel
+            const currentLocation = window.location.href;
+            const menuItems = document.querySelectorAll('nav a');
+            menuItems.forEach(item => {
+                if (currentLocation.includes(item.getAttribute('href'))) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Animation au scroll
+            const animateElements = document.querySelectorAll('.slide-up-animation');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            animateElements.forEach(el => {
+                observer.observe(el);
+            });
         });
     </script>
 </body>
