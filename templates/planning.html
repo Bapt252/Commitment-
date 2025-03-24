@@ -62,6 +62,136 @@
                             <option value="all">Toutes les offres</option>
                             <!-- Les options seront ajoutées dynamiquement via JavaScript -->
                         </select>
+                        <button id="toggle-advanced-filters" class="btn btn-text">
+                            <i class="fas fa-filter"></i> Filtres avancés
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Nouveaux filtres avancés (caché par défaut) -->
+            <div id="advanced-filters" class="advanced-filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-stage">Étape du recrutement</label>
+                        <select id="filter-stage">
+                            <option value="all">Toutes les étapes</option>
+                            <option value="candidatures">Candidatures</option>
+                            <option value="pre-selection">Pré-sélection</option>
+                            <option value="entretiens">Entretiens</option>
+                            <option value="tests">Tests techniques</option>
+                            <option value="decision">Décision finale</option>
+                            <option value="embauche">Embauche</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-matching">Niveau de correspondance</label>
+                        <select id="filter-matching">
+                            <option value="all">Tous les niveaux</option>
+                            <option value="high">Élevé</option>
+                            <option value="medium">Moyen</option>
+                            <option value="low">Faible</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-date">Date</label>
+                        <select id="filter-date">
+                            <option value="all">Toutes les périodes</option>
+                            <option value="today">Aujourd'hui</option>
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois-ci</option>
+                            <option value="custom">Période personnalisée</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="custom-date-range" class="filter-row custom-date" style="display: none;">
+                    <div class="filter-group">
+                        <label for="date-from">Du</label>
+                        <input type="date" id="date-from">
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-to">Au</label>
+                        <input type="date" id="date-to">
+                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                    <button id="apply-filters" class="btn btn-primary btn-sm">Appliquer</button>
+                    <button id="reset-filters" class="btn btn-text btn-sm">Réinitialiser</button>
+                </div>
+            </div>
+            
+            <!-- Nouveau tableau de bord de statistiques (caché par défaut) -->
+            <div id="recruitment-dashboard" class="dashboard-container">
+                <div class="dashboard-header">
+                    <h2><i class="fas fa-chart-line"></i> Tableau de bord</h2>
+                    <button id="toggle-dashboard" class="btn btn-text btn-sm">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+                
+                <div class="dashboard-content">
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="stat-total-candidates">0</div>
+                                <div class="stat-label">Candidats</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="stat-interviews">0</div>
+                                <div class="stat-label">Entretiens</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="stat-hired">0</div>
+                                <div class="stat-label">Embauches</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="stat-conversion-rate">0%</div>
+                                <div class="stat-label">Taux de conversion</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-charts">
+                        <div class="chart-container">
+                            <h3>Candidatures par étape</h3>
+                            <div id="stage-distribution-chart" class="chart-placeholder">
+                                <div class="progress-chart">
+                                    <!-- Rempli dynamiquement via JS -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3>Activité récente</h3>
+                            <div id="recent-activity-chart" class="chart-placeholder">
+                                <div class="activity-timeline">
+                                    <!-- Rempli dynamiquement via JS -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -85,6 +215,14 @@
                             </div>
                             <div class="job-offer-deadline">
                                 <i class="fas fa-calendar-alt"></i> 30/04/2025
+                            </div>
+                            <div class="job-actions">
+                                <button class="btn btn-sm btn-outline view-job-stats" data-job-id="job1">
+                                    <i class="fas fa-chart-bar"></i> Statistiques
+                                </button>
+                                <button class="btn btn-sm btn-outline edit-job-btn" data-job-id="job1">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -216,6 +354,54 @@
                                 <div class="add-candidate" data-column="embauche">
                                     <i class="fas fa-plus"></i> Ajouter un candidat
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Nouvelle section timeline du recrutement -->
+                    <div class="job-timeline-container">
+                        <button class="toggle-timeline" data-target="job1-timeline">
+                            <i class="fas fa-stream"></i> Afficher la timeline du recrutement
+                        </button>
+                        <div id="job1-timeline" class="job-timeline" style="display: none;">
+                            <h4>Timeline du recrutement</h4>
+                            <div class="timeline">
+                                <!-- Timeline items will be added dynamically -->
+                                <div class="timeline-item">
+                                    <div class="timeline-date">20/03/2025</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-icon"><i class="fas fa-bullhorn"></i></div>
+                                        <div class="timeline-text">
+                                            <span class="timeline-title">Publication de l'offre d'emploi</span>
+                                            <p>Offre de Développeur Full-Stack publiée sur 3 plateformes</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-date">22/03/2025</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-icon"><i class="fas fa-user-plus"></i></div>
+                                        <div class="timeline-text">
+                                            <span class="timeline-title">3 candidatures reçues</span>
+                                            <p>Marie Dupont, Thomas Martin et Julie Lefebvre</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-date">25/03/2025</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-icon"><i class="fas fa-check"></i></div>
+                                        <div class="timeline-text">
+                                            <span class="timeline-title">2 candidats présélectionnés</span>
+                                            <p>David Bernard et Sophie Dubois</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-actions">
+                                <button class="btn btn-sm btn-outline add-timeline-event" data-job-id="job1">
+                                    <i class="fas fa-plus"></i> Ajouter un événement
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -432,11 +618,217 @@
                         <textarea id="interview-notes" rows="3"></textarea>
                     </div>
                     
+                    <!-- Nouvelle option pour les rappels -->
+                    <div class="form-group">
+                        <label for="interview-reminders">Rappels</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="reminder-24h" checked>
+                                <span>24h avant</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="reminder-1h">
+                                <span>1h avant</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="reminder-candidate" checked>
+                                <span>Envoyer au candidat</span>
+                            </label>
+                        </div>
+                    </div>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn" id="cancel-interview-btn">Annuler</button>
                         <button type="submit" class="btn btn-primary">Planifier et envoyer l'invitation</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Nouvelle modale pour ajouter un événement à la timeline -->
+    <div class="modal" id="timeline-event-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ajouter un événement</h2>
+                <button class="modal-close" id="close-timeline-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="timeline-event-form">
+                    <input type="hidden" id="timeline-job-id" value="">
+                    
+                    <div class="form-group">
+                        <label for="event-title">Titre de l'événement</label>
+                        <input type="text" id="event-title" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-date">Date</label>
+                            <input type="date" id="event-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="event-type">Type d'événement</label>
+                            <select id="event-type">
+                                <option value="publication">Publication d'offre</option>
+                                <option value="candidature">Réception de candidature</option>
+                                <option value="entretien">Entretien</option>
+                                <option value="decision">Décision</option>
+                                <option value="custom">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="event-description">Description</label>
+                        <textarea id="event-description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn" id="cancel-timeline-btn">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Ajouter à la timeline</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Nouvelle modale pour les statistiques d'une offre d'emploi -->
+    <div class="modal" id="job-stats-modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2 id="job-stats-title">Statistiques de recrutement</h2>
+                <button class="modal-close" id="close-job-stats-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="job-stats-tabs">
+                    <button class="tab-button active" data-tab="overview">Vue d'ensemble</button>
+                    <button class="tab-button" data-tab="timeline">Chronologie</button>
+                    <button class="tab-button" data-tab="candidates">Candidats</button>
+                </div>
+                
+                <div class="job-stats-content">
+                    <div class="tab-content active" id="tab-overview">
+                        <div class="stats-overview">
+                            <div class="stats-cards">
+                                <div class="stat-card">
+                                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="job-stat-candidates">6</div>
+                                        <div class="stat-label">Candidats</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card">
+                                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="job-stat-time">15j</div>
+                                        <div class="stat-label">Temps moyen</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card">
+                                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="job-stat-conversion">17%</div>
+                                        <div class="stat-label">Taux de conversion</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-charts">
+                                <div class="chart-container">
+                                    <h3>Répartition des candidats</h3>
+                                    <div class="funnel-chart">
+                                        <div class="funnel-step" style="width: 100%;">
+                                            <span class="funnel-label">Candidatures</span>
+                                            <span class="funnel-value">6</span>
+                                        </div>
+                                        <div class="funnel-step" style="width: 85%;">
+                                            <span class="funnel-label">Pré-sélection</span>
+                                            <span class="funnel-value">5</span>
+                                        </div>
+                                        <div class="funnel-step" style="width: 65%;">
+                                            <span class="funnel-label">Entretiens</span>
+                                            <span class="funnel-value">4</span>
+                                        </div>
+                                        <div class="funnel-step" style="width: 40%;">
+                                            <span class="funnel-label">Tests</span>
+                                            <span class="funnel-value">3</span>
+                                        </div>
+                                        <div class="funnel-step" style="width: 25%;">
+                                            <span class="funnel-label">Décision</span>
+                                            <span class="funnel-value">2</span>
+                                        </div>
+                                        <div class="funnel-step" style="width: 15%;">
+                                            <span class="funnel-label">Embauche</span>
+                                            <span class="funnel-value">1</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="chart-container">
+                                    <h3>Correspondance des profils</h3>
+                                    <div class="matching-chart">
+                                        <div class="matching-bar">
+                                            <div class="matching-segment high" style="width: 50%;">
+                                                <span>3</span>
+                                            </div>
+                                            <div class="matching-segment medium" style="width: 33%;">
+                                                <span>2</span>
+                                            </div>
+                                            <div class="matching-segment low" style="width: 17%;">
+                                                <span>1</span>
+                                            </div>
+                                        </div>
+                                        <div class="matching-legend">
+                                            <div class="legend-item">
+                                                <span class="legend-color high"></span>
+                                                <span class="legend-label">Élevé</span>
+                                            </div>
+                                            <div class="legend-item">
+                                                <span class="legend-color medium"></span>
+                                                <span class="legend-label">Moyen</span>
+                                            </div>
+                                            <div class="legend-item">
+                                                <span class="legend-color low"></span>
+                                                <span class="legend-label">Faible</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tab-timeline">
+                        <div class="stats-timeline">
+                            <div class="timeline">
+                                <!-- Timeline items will be filled dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tab-candidates">
+                        <div class="stats-candidates">
+                            <table class="candidates-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Étape</th>
+                                        <th>Corresp.</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Will be filled dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -453,6 +845,26 @@
             <i class="fas fa-times"></i>
         </button>
     </div>
+    
+    <!-- Nouveau système de notifications en temps réel -->
+    <div class="notifications-panel" id="notifications-panel">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <button id="close-notifications" class="btn-icon">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <!-- Sera rempli dynamiquement -->
+        </div>
+        <div class="notifications-footer">
+            <button id="mark-all-read" class="btn btn-text btn-sm">Tout marquer comme lu</button>
+        </div>
+    </div>
+    <button id="toggle-notifications" class="btn-floating notifications-toggle">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge">3</span>
+    </button>
     
     <footer id="contact">
         <div class="container">
@@ -502,5 +914,6 @@
 
     <!-- JavaScript -->
     <script src="../static/js/kanban-recruitment.js"></script>
+    <script src="../static/js/recruitment-analytics.js"></script>
 </body>
 </html>
