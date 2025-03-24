@@ -3,23 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Commitment - Planning">
-    <title>Commitment - Planning</title>
+    <meta name="description" content="Commitment - Système de Kanban pour le recrutement">
+    <title>Commitment - Gestion des recrutements</title>
     
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/2.0.0/modern-normalize.min.css">
-    <link rel="stylesheet" href="../static/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/styles/planning-kanban.css">
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <!-- Contenu vide - prêt pour une nouvelle base -->
-    <div class="container">
-        <!-- Votre nouveau contenu ira ici -->
+    <!-- Notification bar -->
+    <div class="notification-bar">
+        Votre système de gestion de recrutements est prêt. Commencez à ajouter des candidats.
     </div>
 
-    <!-- Scripts -->
-    <script src="../static/js/main.js"></script>
+    <!-- Lien d'accessibilité pour sauter au contenu principal -->
+    <a href="#main-content" class="skip-to-content">Aller au contenu principal</a>
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                nex<span>ten</span><div class="logo-badge">10</div>
+            </div>
+            
+            <button class="menu-toggle" aria-label="Menu principal">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="candidate-login.html">Espace candidat</a></li>
+                    <li><a href="company-login.html" class="active">Espace entreprise</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <div class="container">
+            <div class="page-header">
+                <h1>Gestion des recrutements</h1>
+                <p>Organisez vos candidatures et suivez leur progression dans le processus de recrutement.</p>
+                
+                <div class="actions">
+                    <button id="add-job-offer-btn" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> Nouvelle offre d'emploi
+                    </button>
+                    <div class="search-filter">
+                        <input type="text" id="search-candidates" placeholder="Rechercher un candidat..." aria-label="Rechercher un candidat">
+                        <select id="filter-job-offers" aria-label="Filtrer par offre d'emploi">
+                            <option value="all">Toutes les offres</option>
+                            <!-- Les options seront ajoutées dynamiquement via JavaScript -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="kanban-job-board" id="kanban-container">
+                <!-- Les offres d'emploi et les tableaux Kanban associés seront ajoutés dynamiquement via JavaScript -->
+                
+                <!-- Exemple d'une offre d'emploi avec son tableau Kanban -->
+                <div class="job-offer-container" data-job-id="job1">
+                    <div class="job-offer-header">
+                        <div class="job-offer-title">
+                            <i class="fas fa-briefcase"></i>
+                            <h3>Développeur Full-Stack</h3>
+                        </div>
+                        <div class="job-offer-info">
+                            <div class="job-offer-salary">
+                                <i class="fas fa-euro-sign"></i> 45-55K€
+                            </div>
+                            <div class="job-offer-location">
+                                <i class="fas fa-map-marker-alt"></i> Paris, France
+                            </div>
+                            <div class="job-offer-deadline">
+                                <i class="fas fa-calendar-alt"></i> 30/04/2025
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="job-kanban-container">
+                        <!-- Colonnes du Kanban -->
+                        <div class="kanban-column" data-column="candidatures">
+                            <div class="kanban-column-header">
+                                <div class="kanban-column-title">
+                                    <i class="fas fa-file-alt"></i> Candidatures
+                                    <span class="kanban-column-count">3</span>
+                                </div>
+                            </div>
+                            <div class="kanban-cards" data-column="candidatures">
+                                <!-- Exemple de carte de candidat -->
+                                <div class="candidate-card" draggable="true" data-candidate-id="candidate1">
+                                    <div class="candidate-card-indicator indicator-high"></div>
+                                    <div class="candidate-name">Marie Dupont</div>
+                                    <div class="candidate-details">
+                                        <div class="candidate-detail">
+                                            <i class="fas fa-envelope candidate-detail-icon"></i>
+                                            marie.dupont@email.com
+                                        </div>
+                                        <div class="candidate-detail">
+                                            <i class="fas fa-phone candidate-detail-icon"></i>
+                                            +33 6 12 34 56 78
+                                        </div>
+                                        <div class="candidate-detail">
+                                            <i class="fas fa-briefcase candidate-detail-icon"></i>
+                                            5 ans d'expérience
+                                        </div>
+                                    </div>
+                                    <div class="candidate-actions">
+                                        <div class="action-buttons">
+                                            <button class="action-button view-profile-btn tooltip" data-candidate-id="candidate1">
+                                                <i class="fas fa-user"></i>
+                                                <span class="tooltip-text">Voir le profil</span>
+                                            </button>
+                                            <button class="action-button send-message-btn tooltip" data-candidate-id="candidate1">
+                                                <i class="fas fa-comment"></i>
+                                                <span class="tooltip-text">Envoyer un message</span>
+                                            </button>
+                                            <button class="action-button schedule-interview-btn tooltip" data-candidate-id="candidate1">
+                                                <i class="fas fa-calendar"></i>
+                                                <span class="tooltip-text">Planifier un entretien</span>
+                                            </button>
+                                        </div>
+                                        <div class="candidate-date">20/03/2025</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Autres candidats seront ajoutés ici dynamiquement -->
+                                
+                                <div class="add-candidate" data-column="candidatures">
+                                    <i class="fas fa-plus"></i> Ajouter un candidat
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" data-column="pre-selection">
+                            <div class="kanban-column-header">
+                                <div class="kanban-column-title">
+                                    <i class="fas fa-check"></i> Pré-sélection
+                                    <span class="kanban-column-count">2</span>
+                                </div>
+                            </div>
+                            <div class="kanban-cards" data-column="pre-selection">
+                                <!-- Candidats pré-sélectionnés -->
+                                <div class="add-candidate" data-column="pre-selection">
+                                    <i class="fas fa-plus"></i> Ajouter un candidat
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" data-column="entretiens">
+                            <div class="kanban-column-header">
+                                <div class="kanban-column-title">
+                                    <i class="fas fa-calendar-check"></i> Entretiens
+                                    <span class="kanban-column-count">1</span>
+                                </div>
+                            </div>
+                            <div class="kanban-cards" data-column="entretiens">
+                                <!-- Candidats en phase d'entretien -->
+                                <div class="add-candidate" data-column="entretiens">
+                                    <i class="fas fa-plus"></i> Ajouter un candidat
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" data-column="tests">
+                            <div class="kanban-column-header">
+                                <div class="kanban-column-title">
+                                    <i class="fas fa-tasks"></i> Tests techniques
+                                    <span class="kanban-column-count">0</span>
+                                </div>
+                            </div>
+                            <div class="kanban-cards" data-column="tests">
+                                <!-- Candidats en phase de test -->
+                                <div class="add-candidate" data-column="tests">
+                                    <i class="fas fa-plus"></i> Ajouter un candidat
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" data-column="decision">
+                            <div class="kanban-column-header">
+                                <div class="kanban-column-title">
+                                    <i class="fas fa-gavel"></i> Décision finale
+                                    <span class="kanban-column-count">0</span>
+                                </div>
+                            </div>
+                            <div class="kanban-cards" data-column="decision">
+                                <!-- Candidats en phase de décision finale -->
+                                <div class="add-candidate" data-column="decision">
+                                    <i class="fas fa-plus"></i> Ajouter un candidat
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" data-column="embauche">
+                            <div class="kanban-column-header">
+                                <div class="kanban-column-title">
+                                    <i class="fas fa-handshake"></i> Embauche
+                                    <span class="kanban-column-count">0</span>
+                                </div>
+                            </div>
+                            <div class="kanban-cards" data-column="embauche">
+                                <!-- Candidats embauchés -->
+                                <div class="add-candidate" data-column="embauche">
+                                    <i class="fas fa-plus"></i> Ajouter un candidat
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fin de l'exemple -->
+            </div>
+            
+            <div class="add-job-offer">
+                <button id="add-job-offer-bottom" class="btn btn-primary btn-add-job">
+                    <i class="fas fa-plus-circle"></i> Ajouter une nouvelle offre d'emploi
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Modales -->
+    <!-- Modale pour ajouter/éditer une offre d'emploi -->
+    <div class="modal" id="job-offer-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="job-modal-title">Ajouter une offre d'emploi</h2>
+                <button class="modal-close" id="close-job-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="job-offer-form">
+                    <input type="hidden" id="job-id" value="">
+                    
+                    <div class="form-group">
+                        <label for="job-title">Titre du poste</label>
+                        <input type="text" id="job-title" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="job-salary">Salaire (en €)</label>
+                            <input type="text" id="job-salary" placeholder="Ex: 45-55K€">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="job-location">Localisation</label>
+                            <input type="text" id="job-location" placeholder="Ex: Paris, France">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="job-type">Type de contrat</label>
+                            <select id="job-type">
+                                <option value="cdi">CDI</option>
+                                <option value="cdd">CDD</option>
+                                <option value="interim">Intérim</option>
+                                <option value="freelance">Freelance</option>
+                                <option value="alternance">Alternance</option>
+                                <option value="stage">Stage</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="job-deadline">Date limite</label>
+                            <input type="date" id="job-deadline">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="job-description">Description du poste</label>
+                        <textarea id="job-description" rows="5"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="job-skills">Compétences requises</label>
+                        <input type="text" id="job-skills" placeholder="Ex: JavaScript, React, Node.js">
+                        <small>Séparez les compétences par des virgules</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn" id="cancel-job-btn">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modale pour ajouter/éditer un candidat -->
+    <div class="modal" id="candidate-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="candidate-modal-title">Ajouter un candidat</h2>
+                <button class="modal-close" id="close-candidate-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="candidate-form">
+                    <input type="hidden" id="candidate-id" value="">
+                    <input type="hidden" id="candidate-column" value="">
+                    <input type="hidden" id="candidate-job-id" value="">
+                    
+                    <div class="form-group">
+                        <label for="candidate-name">Nom complet</label>
+                        <input type="text" id="candidate-name" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="candidate-email">Email</label>
+                            <input type="email" id="candidate-email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="candidate-phone">Téléphone</label>
+                            <input type="tel" id="candidate-phone">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="candidate-experience">Expérience</label>
+                            <input type="text" id="candidate-experience" placeholder="Ex: 5 ans">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="candidate-matching">Niveau de correspondance</label>
+                            <select id="candidate-matching">
+                                <option value="high">Élevé</option>
+                                <option value="medium">Moyen</option>
+                                <option value="low">Faible</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="candidate-notes">Notes</label>
+                        <textarea id="candidate-notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="candidate-cv">CV</label>
+                        <input type="file" id="candidate-cv" accept=".pdf,.doc,.docx">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn" id="cancel-candidate-btn">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modale pour afficher le profil d'un candidat -->
+    <div class="modal" id="profile-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="profile-name">Profil du candidat</h2>
+                <button class="modal-close" id="close-profile-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="profile-content">
+                    <!-- Le contenu du profil sera ajouté dynamiquement via JavaScript -->
+                </div>
+                
+                <div class="profile-actions">
+                    <button type="button" class="btn" id="back-to-kanban-btn">Retour</button>
+                    <button type="button" class="btn btn-primary" id="contact-candidate-btn">Contacter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modale pour planifier un entretien -->
+    <div class="modal" id="interview-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Planifier un entretien</h2>
+                <button class="modal-close" id="close-interview-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="interview-form">
+                    <input type="hidden" id="interview-candidate-id" value="">
+                    
+                    <div class="form-group">
+                        <label for="interview-candidate-name">Candidat</label>
+                        <input type="text" id="interview-candidate-name" readonly>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="interview-date">Date</label>
+                            <input type="date" id="interview-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="interview-time">Heure</label>
+                            <input type="time" id="interview-time" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interview-type">Type d'entretien</label>
+                        <select id="interview-type">
+                            <option value="phone">Téléphonique</option>
+                            <option value="video">Visioconférence</option>
+                            <option value="in-person">En présentiel</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interview-participants">Participants (internes)</label>
+                        <input type="text" id="interview-participants" placeholder="Ex: Marie (RH), Jean (CTO)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interview-notes">Notes et préparation</label>
+                        <textarea id="interview-notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn" id="cancel-interview-btn">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Planifier et envoyer l'invitation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="notification-content">
+            <p id="notification-message">Opération réalisée avec succès</p>
+        </div>
+        <button class="notification-close" id="close-notification">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <h4 class="footer-heading">Nexten</h4>
+                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
+                        <li><a href="candidate-login.html"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
+                        <li><a href="company-login.html"><i class="fas fa-chevron-right"></i> Espace entreprise</a></li>
+                        <li><a href="about.html"><i class="fas fa-chevron-right"></i> À propos</a></li>
+                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Contact</h4>
+                    <div class="footer-contact">
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
+                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="privacy.html">Politique de confidentialité</a> | <a href="terms.html">Conditions d'utilisation</a></p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bouton de retour en haut -->
+    <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script src="../static/js/kanban-recruitment.js"></script>
 </body>
 </html>
