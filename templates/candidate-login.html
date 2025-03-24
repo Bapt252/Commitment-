@@ -390,9 +390,7 @@
             to { opacity: 1; transform: translateX(0); }
         }
         
-        .fade-in-up {
-            animation: fadeInUp 0.5s ease-out;
-        }
+        /* Suppression de la classe fade-in-up qui causait le problème */
         
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -431,6 +429,20 @@
             .form-control {
                 padding: 12px 20px 12px 45px;
             }
+        }
+
+        /* Style spécifique pour la section de création de compte */
+        .create-account-section {
+            margin-top: 25px;
+            text-align: center;
+            padding: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .create-account-section p {
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: #4B5563;
         }
     </style>
 </head>
@@ -471,8 +483,8 @@
             <div class="login-content-wrapper">
                 <!-- Section formulaire de connexion -->
                 <div class="login-form-section">
-                    <h1 class="login-title fade-in-up">Bienvenue dans votre<br>Espace Candidat</h1>
-                    <p class="login-subtitle fade-in-up">Connectez-vous pour découvrir vos 10 meilleures opportunités professionnelles.</p>
+                    <h1 class="login-title">Bienvenue dans votre<br>Espace Candidat</h1>
+                    <p class="login-subtitle">Connectez-vous pour découvrir vos 10 meilleures opportunités professionnelles.</p>
                     
                     <form id="login-form" class="slide-in-left" action="candidate-dashboard.html" method="get">
                         <div class="form-group">
@@ -503,7 +515,7 @@
                         <span>ou connectez-vous avec</span>
                     </div>
                     
-                    <div class="social-login fade-in-up">
+                    <div class="social-login">
                         <a href="#" class="social-btn linkedin" aria-label="LinkedIn">
                             <i class="fab fa-linkedin-in"></i>
                         </a>
@@ -515,8 +527,9 @@
                         </a>
                     </div>
                     
-                    <div class="fade-in-up" style="text-align: center;">
-                        <p style="margin-bottom: 15px;">Vous n'avez pas encore de compte ?</p>
+                    <!-- Section de création de compte modifiée -->
+                    <div class="create-account-section">
+                        <p>Vous n'avez pas encore de compte ?</p>
                         <a href="candidate-upload.html" class="btn-modern btn-secondary-modern">Créer un compte candidat</a>
                     </div>
                 </div>
