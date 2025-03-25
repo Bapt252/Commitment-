@@ -1531,6 +1531,7 @@
                                                             </button>
                                                             <ul class="dropdown-menu">
                                                                 <li><a class="dropdown-item edit-contact" href="#"><i class="fas fa-edit"></i> Modifier</a></li>
+                                                                <li><a class="dropdown-item manage-role" href="#" data-bs-toggle="modal" data-bs-target="#manageRoleModal" data-user-id="1" data-user-name="Marie DURAND"><i class="fas fa-user-cog"></i> Gérer le rôle</a></li>
                                                                 <li><a class="dropdown-item delete-contact" href="#"><i class="fas fa-trash"></i> Supprimer</a></li>
                                                             </ul>
                                                         </div>
@@ -1551,6 +1552,7 @@
                                                             </button>
                                                             <ul class="dropdown-menu">
                                                                 <li><a class="dropdown-item edit-contact" href="#"><i class="fas fa-edit"></i> Modifier</a></li>
+                                                                <li><a class="dropdown-item manage-role" href="#" data-bs-toggle="modal" data-bs-target="#manageRoleModal" data-user-id="2" data-user-name="Joseph EUX"><i class="fas fa-user-cog"></i> Gérer le rôle</a></li>
                                                                 <li><a class="dropdown-item delete-contact" href="#"><i class="fas fa-trash"></i> Supprimer</a></li>
                                                             </ul>
                                                         </div>
@@ -1571,6 +1573,7 @@
                                                             </button>
                                                             <ul class="dropdown-menu">
                                                                 <li><a class="dropdown-item edit-contact" href="#"><i class="fas fa-edit"></i> Modifier</a></li>
+                                                                <li><a class="dropdown-item manage-role" href="#" data-bs-toggle="modal" data-bs-target="#manageRoleModal" data-user-id="3" data-user-name="Sophia MARTIN"><i class="fas fa-user-cog"></i> Gérer le rôle</a></li>
                                                                 <li><a class="dropdown-item delete-contact" href="#"><i class="fas fa-trash"></i> Supprimer</a></li>
                                                             </ul>
                                                         </div>
@@ -1839,6 +1842,54 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="button" class="btn btn-primary">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nouveau modal pour la gestion des rôles -->
+    <div class="modal fade" id="manageRoleModal" tabindex="-1" aria-labelledby="manageRoleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manageRoleModalLabel">Gérer le rôle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6 class="mb-3">Choisir le rôle pour <span id="roleUserName">cet utilisateur</span></h6>
+                        <div class="role-options">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="userRole" id="adminRoleOption" value="admin">
+                                <label class="form-check-label" for="adminRoleOption">
+                                    <span class="status-badge status-admin me-2"><i class="fas fa-crown"></i> Admin</span>
+                                    Accès complet à toutes les fonctionnalités
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="userRole" id="managerRoleOption" value="manager">
+                                <label class="form-check-label" for="managerRoleOption">
+                                    <span class="status-badge status-manager me-2"><i class="fas fa-user-shield"></i> Manager</span>
+                                    Accès aux recrutements et gestion d'équipe
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="userRole" id="recruiterRoleOption" value="recruiter">
+                                <label class="form-check-label" for="recruiterRoleOption">
+                                    <span class="status-badge status-recruiter me-2"><i class="fas fa-user-check"></i> Recruteur</span>
+                                    Accès limité aux candidatures assignées
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="permissions-info mt-4">
+                        <h6><i class="fas fa-info-circle"></i> Gestion des rôles</h6>
+                        <p>Le changement de rôle modifie les permissions et accès de l'utilisateur. Une notification lui sera envoyée en cas de modification.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="saveRoleBtn">Enregistrer</button>
                 </div>
             </div>
         </div>
@@ -2182,6 +2233,79 @@
             
             animateElements.forEach(el => {
                 observer.observe(el);
+            });
+
+            // Nouvelle fonction : Gestion des rôles dans le modal
+            const manageRoleLinks = document.querySelectorAll('.manage-role');
+            const roleUserName = document.getElementById('roleUserName');
+            const saveRoleBtn = document.getElementById('saveRoleBtn');
+
+            // Rôles actuels des utilisateurs (simulés)
+            const userRoles = {
+                1: 'manager',
+                2: 'admin',
+                3: 'recruiter'
+            };
+
+            // Configuration du modal de gestion des rôles
+            manageRoleLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const userId = this.dataset.userId;
+                    const userName = this.dataset.userName;
+                    
+                    // Mettre à jour le nom de l'utilisateur dans le modal
+                    roleUserName.textContent = userName;
+                    
+                    // Sélectionner le rôle actuel
+                    const currentRole = userRoles[userId];
+                    document.querySelector(`#${currentRole}RoleOption`).checked = true;
+                    
+                    // Stocker l'ID de l'utilisateur pour la sauvegarde
+                    saveRoleBtn.dataset.userId = userId;
+                });
+            });
+
+            // Sauvegarder les modifications de rôle
+            saveRoleBtn.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
+                
+                // Mettre à jour le rôle dans notre "base de données"
+                userRoles[userId] = selectedRole;
+                
+                // Mettre à jour visuellement le badge dans le tableau
+                const userRow = document.querySelector(`tr td .dropdown[data-bs-toggle="dropdown"][data-user-id="${userId}"]`)?.closest('tr');
+                if (userRow) {
+                    const statusCell = userRow.cells[2];
+                    const oldBadge = statusCell.querySelector('.status-badge');
+                    
+                    // Créer le nouveau badge en fonction du rôle
+                    let newBadgeHTML = '';
+                    if (selectedRole === 'admin') {
+                        newBadgeHTML = '<span class="status-badge status-admin"><i class="fas fa-crown"></i> Admin</span>';
+                    } else if (selectedRole === 'manager') {
+                        newBadgeHTML = '<span class="status-badge status-manager"><i class="fas fa-user-shield"></i> Manager</span>';
+                    } else if (selectedRole === 'recruiter') {
+                        newBadgeHTML = '<span class="status-badge status-recruiter"><i class="fas fa-user-check"></i> Recruteur</span>';
+                    }
+                    
+                    // Remplacer l'ancien badge
+                    if (oldBadge && newBadgeHTML) {
+                        oldBadge.outerHTML = newBadgeHTML;
+                    }
+                }
+                
+                // Afficher le toast de confirmation
+                const toastEl = document.getElementById('notificationToast');
+                const toastBody = toastEl.querySelector('.toast-body');
+                toastBody.innerHTML = 'Rôle modifié avec succès !';
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+                
+                // Fermer le modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('manageRoleModal'));
+                modal.hide();
             });
         });
     </script>
