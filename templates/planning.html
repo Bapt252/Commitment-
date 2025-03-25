@@ -1136,5 +1136,24 @@
 
     <!-- Ajout du script pour les boutons "Envoyer un message" -->
     <script src="js/send-message.js"></script>
+    
+    <!-- Script pour rediriger vers post-job.html lors du clic sur le bouton d'ajout d'offre -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Trouver le bouton par son ID
+            const addJobButton = document.getElementById('add-job-offer-bottom');
+            
+            // Ajouter un gestionnaire d'événements au clic
+            if (addJobButton) {
+                addJobButton.addEventListener('click', function() {
+                    // Rediriger vers la page post-job.html
+                    window.location.href = 'post-job.html';
+                });
+                
+                // Changer le curseur pour indiquer que c'est cliquable
+                addJobButton.style.cursor = 'pointer';
+            }
+        });
+    </script>
 </body>
 </html>
