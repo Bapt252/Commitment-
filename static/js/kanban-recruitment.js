@@ -5,7 +5,7 @@
  */
 
 // Données simulées (dans une application réelle, ces données viendraient d'une API ou d'une base de données)
-let jobOffers = [
+window.jobOffers = [
     {
         id: 'job1',
         title: 'Développeur Full-Stack',
@@ -118,8 +118,9 @@ function initKanban() {
 /**
  * Met à jour les options de filtrage par offre d'emploi
  */
-function updateJobFilters() {
+window.updateJobFilters = function() {
     const filterSelect = document.getElementById('filter-job-offers');
+    if (!filterSelect) return;
     
     // Vider les options existantes sauf "Toutes les offres"
     while (filterSelect.options.length > 1) {
@@ -127,13 +128,13 @@ function updateJobFilters() {
     }
     
     // Ajouter les offres d'emploi comme options
-    jobOffers.forEach(job => {
+    window.jobOffers.forEach(job => {
         const option = document.createElement('option');
         option.value = job.id;
         option.textContent = job.title;
         filterSelect.appendChild(option);
     });
-}
+};
 
 /**
  * Affiche tous les candidats dans leurs colonnes respectives
@@ -363,7 +364,7 @@ function setupModals() {
     jobForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        const jobId = document.getElementById('job-id').value || 'job' + (jobOffers.length + 1);
+        const jobId = document.getElementById('job-id').value || 'job' + (window.jobOffers.length + 1);
         const jobData = {
             id: jobId,
             title: document.getElementById('job-title').value,
@@ -376,21 +377,21 @@ function setupModals() {
         };
         
         // Vérifier si c'est une création ou une mise à jour
-        const existingJobIndex = jobOffers.findIndex(job => job.id === jobId);
+        const existingJobIndex = window.jobOffers.findIndex(job => job.id === jobId);
         if (existingJobIndex !== -1) {
             // Mise à jour
-            jobOffers[existingJobIndex] = jobData;
+            window.jobOffers[existingJobIndex] = jobData;
             showNotification('Offre d\'emploi mise à jour avec succès', 'success');
         } else {
             // Création
-            jobOffers.push(jobData);
+            window.jobOffers.push(jobData);
             // Ajouter l'offre d'emploi à l'interface
-            addJobOfferToUI(jobData);
+            window.addJobOfferToUI(jobData);
             showNotification('Nouvelle offre d\'emploi créée avec succès', 'success');
         }
         
         // Mettre à jour les filtres
-        updateJobFilters();
+        window.updateJobFilters();
         
         // Fermer la modale
         jobModal.classList.remove('show');
@@ -680,8 +681,9 @@ function setupActionButtons() {
  * Ajoute une nouvelle offre d'emploi à l'interface
  * @param {Object} jobData Les données de l'offre d'emploi
  */
-function addJobOfferToUI(jobData) {
+window.addJobOfferToUI = function(jobData) {
     const kanbanContainer = document.getElementById('kanban-container');
+    if (!kanbanContainer) return;
     
     // Créer le conteneur de l'offre d'emploi
     const jobOfferContainer = document.createElement('div');
@@ -711,6 +713,14 @@ function addJobOfferToUI(jobData) {
                 ` : ''}
                 <div class="job-offer-deadline">
                     <i class="fas fa-calendar-alt"></i> ${deadlineDisplay}
+                </div>
+                <div class="job-actions">
+                    <button class="btn btn-sm btn-outline view-job-stats" data-job-id="${jobData.id}">
+                        <i class="fas fa-chart-bar"></i> Statistiques
+                    </button>
+                    <button class="btn btn-sm btn-outline edit-job-btn" data-job-id="${jobData.id}">
+                        <i class="fas fa-edit"></i> Modifier
+                    </button>
                 </div>
             </div>
         </div>
@@ -808,7 +818,7 @@ function addJobOfferToUI(jobData) {
     
     // Configurer les événements de drag & drop
     setupDragAndDrop();
-}
+};
 
 /**
  * Affiche une notification à l'utilisateur
