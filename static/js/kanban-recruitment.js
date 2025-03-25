@@ -195,10 +195,10 @@ function createCandidateCard(candidate) {
         </div>
         <div class="candidate-actions">
             <div class="action-buttons">
-                <a href="candidate-page.html" class="action-button view-profile-btn tooltip" data-candidate-id="${candidate.id}">
+                <button class="action-button view-profile-btn tooltip" data-candidate-id="${candidate.id}">
                     <i class="fas fa-user"></i>
                     <span class="tooltip-text">Voir le profil</span>
-                </a>
+                </button>
                 <button class="action-button send-message-btn tooltip" data-candidate-id="${candidate.id}">
                     <i class="fas fa-comment"></i>
                     <span class="tooltip-text">Envoyer un message</span>
@@ -570,7 +570,73 @@ function setupActionButtons() {
     // Gérer les clics sur les boutons d'action des cartes
     document.addEventListener('click', (e) => {
         // 1. Voir le profil
-        // Note: Ce bouton a maintenant un lien HTML direct, donc il n'a plus besoin de gestionnaire d'événements ici
+        if (e.target.closest('.view-profile-btn')) {
+            const button = e.target.closest('.view-profile-btn');
+            const candidateId = button.getAttribute('data-candidate-id');
+            const candidate = candidates.find(c => c.id === candidateId);
+            
+            if (candidate) {
+                // Remplir la modale de profil avec les informations du candidat
+                document.getElementById('profile-name').textContent = candidate.name;
+                
+                const profileContent = document.getElementById('profile-content');
+                profileContent.innerHTML = `
+                    <div class="profile-section">
+                        <h3>Informations de contact</h3>
+                        <p><i class="fas fa-envelope"></i> ${candidate.email}</p>
+                        <p><i class="fas fa-phone"></i> ${candidate.phone}</p>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <h3>Informations professionnelles</h3>
+                        <p><i class="fas fa-briefcase"></i> ${candidate.experience}</p>
+                        <p><i class="fas fa-calendar-alt"></i> Candidature reçue le ${formatDate(candidate.date)}</p>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <h3>Notes</h3>
+                        <p>${candidate.notes || 'Aucune note pour ce candidat.'}</p>
+                    </div>
+                    
+                    ${interviews.some(i => i.candidateId === candidateId) ? `
+                    <div class="profile-section">
+                        <h3>Entretiens planifiés</h3>
+                        <ul class="interview-list">
+                            ${interviews.filter(i => i.candidateId === candidateId).map(interview => `
+                                <li>
+                                    <div class="interview-date">
+                                        <i class="fas fa-calendar-day"></i> ${formatDate(interview.date)} à ${interview.time}
+                                    </div>
+                                    <div class="interview-type">
+                                        <i class="fas fa-${interview.type === 'phone' ? 'phone' : interview.type === 'video' ? 'video' : 'building'}"></i>
+                                        ${interview.type === 'phone' ? 'Entretien téléphonique' : interview.type === 'video' ? 'Visioconférence' : 'Entretien en présentiel'}
+                                    </div>
+                                    ${interview.participants ? `<div class="interview-participants">
+                                        <i class="fas fa-users"></i> ${interview.participants}
+                                    </div>` : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                `;
+                
+                // Ajouter le bouton pour aller au profil complet
+                const profileActions = document.querySelector('.profile-actions');
+                profileActions.innerHTML = `
+                    <button type="button" class="btn" id="back-to-kanban-btn">Retour</button>
+                    <a href="candidate-page.html" class="btn btn-primary">Profil complet</a>
+                `;
+                
+                // Réinstaller l'action sur le bouton retour
+                document.getElementById('back-to-kanban-btn').addEventListener('click', () => {
+                    document.getElementById('profile-modal').classList.remove('show');
+                });
+                
+                // Afficher la modale
+                document.getElementById('profile-modal').classList.add('show');
+            }
+        }
         
         // 2. Envoyer un message
         if (e.target.closest('.send-message-btn')) {
