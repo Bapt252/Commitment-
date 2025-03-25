@@ -909,28 +909,66 @@
             box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
         }
 
-        /* Contact popup - MODIFIÉ */
-        .contact-popup {
-            position: absolute;
+        /* Contact popup - MODIFIÉ COMPLÈTEMENT */
+        .popup-container {
+            position: fixed;
             top: 0;
-            right: -320px;
-            width: 300px;
-            background-color: white;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
-            padding: 1.5rem;
-            z-index: 20;
-            transition: all 0.3s ease;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
             opacity: 0;
             visibility: hidden;
-            border: 1px solid var(--gray-200);
+            transition: opacity 0.3s ease;
         }
 
-        /* Modification du CSS pour le popup - Uniquement lorsque la classe active est présente */
-        .contact-popup.active {
-            right: 105%;
+        .popup-container.active {
             opacity: 1;
             visibility: visible;
+        }
+
+        .contact-popup {
+            width: 330px;
+            max-width: 90%;
+            background-color: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-xl);
+            padding: 1.5rem;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1101;
+        }
+
+        .popup-container.active .contact-popup {
+            transform: translateY(0);
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--gray-200);
+            border: none;
+            color: var(--gray-500);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .popup-close:hover {
+            background-color: var(--gray-300);
+            color: var(--dark);
         }
 
         .contact-popup h6 {
@@ -940,6 +978,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            padding-right: 30px;
         }
 
         .contact-popup h6 i {
@@ -1568,77 +1607,23 @@
                                             <div class="recruitment-list">
                                                 <div class="recruitment-item" data-recruitment-id="1">
                                                     <span class="recruitment-title"><i class="fas fa-code"></i> Développeur Full-Stack</span>
-                                                    <button class="assign-to-recruitment" data-contact-id="1">
+                                                    <button class="assign-to-recruitment" data-contact-id="1" data-recruitment-title="Développeur Full-Stack">
                                                         <i class="fas fa-plus"></i>
                                                     </button>
-                                                    <!-- Contact Pop-up -->
-                                                    <div class="contact-popup">
-                                                        <h6><i class="fas fa-users"></i> Interlocuteurs entreprise</h6>
-                                                        <!-- Contact items -->
-                                                        <div class="contact-item">
-                                                            <div class="contact-item-avatar">MD</div>
-                                                            <div class="contact-item-info">
-                                                                <div class="contact-item-name">Marie DURAND</div>
-                                                                <div class="contact-item-role"><i class="fas fa-user-tie"></i> Chargée de recrutement</div>
-                                                            </div>
-                                                            <button class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
-                                                        </div>
-                                                        
-                                                        <!-- Add contact button -->
-                                                        <button class="btn btn-sm btn-outline-primary w-100">
-                                                            <i class="fas fa-plus me-1"></i> Ajouter un interlocuteur
-                                                        </button>
-                                                    </div>
                                                 </div>
 
                                                 <div class="recruitment-item" data-recruitment-id="2">
                                                     <span class="recruitment-title"><i class="fas fa-tasks"></i> Chef de Projet IT</span>
-                                                    <button class="assign-to-recruitment" data-contact-id="1">
+                                                    <button class="assign-to-recruitment" data-contact-id="2" data-recruitment-title="Chef de Projet IT">
                                                         <i class="fas fa-plus"></i>
                                                     </button>
-                                                    <!-- Contact Pop-up -->
-                                                    <div class="contact-popup">
-                                                        <h6><i class="fas fa-users"></i> Interlocuteurs entreprise</h6>
-                                                        <!-- Contact items -->
-                                                        <div class="contact-item">
-                                                            <div class="contact-item-avatar">JE</div>
-                                                            <div class="contact-item-info">
-                                                                <div class="contact-item-name">Joseph EUX</div>
-                                                                <div class="contact-item-role"><i class="fas fa-user-tie"></i> DAF</div>
-                                                            </div>
-                                                            <button class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
-                                                        </div>
-                                                        
-                                                        <!-- Add contact button -->
-                                                        <button class="btn btn-sm btn-outline-primary w-100">
-                                                            <i class="fas fa-plus me-1"></i> Ajouter un interlocuteur
-                                                        </button>
-                                                    </div>
                                                 </div>
 
                                                 <div class="recruitment-item" data-recruitment-id="3">
                                                     <span class="recruitment-title"><i class="fas fa-paint-brush"></i> Designer UX/UI</span>
-                                                    <button class="assign-to-recruitment" data-contact-id="1">
+                                                    <button class="assign-to-recruitment" data-contact-id="3" data-recruitment-title="Designer UX/UI">
                                                         <i class="fas fa-plus"></i>
                                                     </button>
-                                                    <!-- Contact Pop-up -->
-                                                    <div class="contact-popup">
-                                                        <h6><i class="fas fa-users"></i> Interlocuteurs entreprise</h6>
-                                                        <!-- Contact items -->
-                                                        <div class="contact-item">
-                                                            <div class="contact-item-avatar">SM</div>
-                                                            <div class="contact-item-info">
-                                                                <div class="contact-item-name">Sophia MARTIN</div>
-                                                                <div class="contact-item-role"><i class="fas fa-user-tie"></i> Assistante RH</div>
-                                                            </div>
-                                                            <button class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
-                                                        </div>
-                                                        
-                                                        <!-- Add contact button -->
-                                                        <button class="btn btn-sm btn-outline-primary w-100">
-                                                            <i class="fas fa-plus me-1"></i> Ajouter un interlocuteur
-                                                        </button>
-                                                    </div>
                                                 </div>
                                             </div>
                                             <button class="btn btn-outline-primary w-100 mt-3">
@@ -1754,6 +1739,23 @@
             </div>
         </div>
     </main>
+    
+    <!-- POPUP CONTAINER POUR LES INTERLOCUTEURS -->
+    <div class="popup-container" id="popupContainer">
+        <div class="contact-popup">
+            <button class="popup-close" id="popupClose"><i class="fas fa-times"></i></button>
+            <h6><i class="fas fa-users"></i> Interlocuteurs entreprise</h6>
+            <!-- Contact items -->
+            <div id="popupContent">
+                <!-- Le contenu sera généré dynamiquement -->
+            </div>
+            
+            <!-- Add contact button -->
+            <button class="btn btn-sm btn-outline-primary w-100" id="addInterlocutorBtn">
+                <i class="fas fa-plus me-1"></i> Ajouter un interlocuteur
+            </button>
+        </div>
+    </div>
     
     <!-- Modal Ajouter un contact -->
     <div class="modal fade" id="addContactModal" tabindex="-1" aria-labelledby="addContactModalLabel" aria-hidden="true">
@@ -1906,40 +1908,168 @@
                 });
             }
             
-            // Gestion des interlocuteurs dans les recrutements - MODIFIÉ
+            // Gestion des popups de recrutement - NOUVEAU SYSTÈME
+            const popupContainer = document.getElementById('popupContainer');
+            const popupContent = document.getElementById('popupContent');
+            const popupClose = document.getElementById('popupClose');
+            const addInterlocutorBtn = document.getElementById('addInterlocutorBtn');
             const assignBtns = document.querySelectorAll('.assign-to-recruitment');
             
-            // Ferme tous les popups
-            function closeAllPopups() {
-                document.querySelectorAll('.contact-popup').forEach(popup => {
-                    popup.classList.remove('active');
+            // Données des interlocuteurs par recrutement
+            const contactsData = {
+                1: [
+                    { initials: 'MD', name: 'Marie DURAND', role: 'Chargée de recrutement' }
+                ],
+                2: [
+                    { initials: 'JE', name: 'Joseph EUX', role: 'DAF' }
+                ],
+                3: [
+                    { initials: 'SM', name: 'Sophia MARTIN', role: 'Assistante RH' }
+                ]
+            };
+            
+            // Générer le contenu du popup
+            function generatePopupContent(recruitmentId) {
+                popupContent.innerHTML = '';
+                const contacts = contactsData[recruitmentId] || [];
+                
+                contacts.forEach(contact => {
+                    const contactItem = document.createElement('div');
+                    contactItem.className = 'contact-item';
+                    contactItem.innerHTML = `
+                        <div class="contact-item-avatar">${contact.initials}</div>
+                        <div class="contact-item-info">
+                            <div class="contact-item-name">${contact.name}</div>
+                            <div class="contact-item-role"><i class="fas fa-user-tie"></i> ${contact.role}</div>
+                        </div>
+                        <button class="btn btn-sm btn-light remove-contact-btn"><i class="fas fa-times"></i></button>
+                    `;
+                    popupContent.appendChild(contactItem);
                 });
+                
+                if (contacts.length === 0) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'text-center mb-3 text-muted';
+                    emptyState.innerHTML = 'Aucun interlocuteur assigné';
+                    popupContent.appendChild(emptyState);
+                }
             }
             
-            // Gestion du clic sur les boutons "+"
+            let currentRecruitmentId = null;
+            let currentRecruitmentTitle = '';
+            
+            // Ouvrir le popup au clic sur le bouton "+"
             assignBtns.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
+                btn.addEventListener('click', function() {
+                    currentRecruitmentId = this.closest('.recruitment-item').dataset.recruitmentId;
+                    currentRecruitmentTitle = this.dataset.recruitmentTitle;
                     
-                    // Ferme tous les popups d'abord
-                    closeAllPopups();
+                    // Mettre à jour le titre du popup
+                    document.querySelector('.contact-popup h6').innerHTML = `<i class="fas fa-users"></i> Interlocuteurs pour "${currentRecruitmentTitle}"`;
                     
-                    // Trouve le popup associé à ce bouton
-                    const popup = this.closest('.recruitment-item').querySelector('.contact-popup');
-                    
-                    // Affiche/cache le popup
-                    if (popup.classList.contains('active')) {
-                        popup.classList.remove('active');
-                    } else {
-                        popup.classList.add('active');
-                    }
+                    generatePopupContent(currentRecruitmentId);
+                    popupContainer.classList.add('active');
                 });
             });
             
-            // Ferme les popups quand on clique ailleurs sur la page
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.contact-popup') && !e.target.closest('.assign-to-recruitment')) {
-                    closeAllPopups();
+            // Fermer le popup
+            popupClose.addEventListener('click', function() {
+                popupContainer.classList.remove('active');
+            });
+            
+            // Fermer le popup en cliquant à l'extérieur
+            popupContainer.addEventListener('click', function(e) {
+                if (e.target === popupContainer) {
+                    popupContainer.classList.remove('active');
+                }
+            });
+            
+            // Ouvrir le modal d'ajout d'interlocuteur
+            addInterlocutorBtn.addEventListener('click', function() {
+                // Mettre à jour le titre du modal
+                document.getElementById('addContactToRecruitmentModalLabel').textContent = `Ajouter un interlocuteur pour "${currentRecruitmentTitle}"`;
+                
+                const modal = new bootstrap.Modal(document.getElementById('addContactToRecruitmentModal'));
+                modal.show();
+                
+                // Cacher temporairement le popup
+                popupContainer.classList.remove('active');
+            });
+            
+            // Ajouter un interlocuteur (à partir du modal)
+            const addInterlocutorToRecruitmentBtn = document.querySelector('#addContactToRecruitmentModal .btn-primary');
+            if (addInterlocutorToRecruitmentBtn) {
+                addInterlocutorToRecruitmentBtn.addEventListener('click', function() {
+                    const contactSelect = document.getElementById('contactSelect');
+                    const contactRole = document.getElementById('contactRole');
+                    
+                    if (contactSelect.value && contactRole.value) {
+                        // Simuler l'ajout d'un contact
+                        const contactText = contactSelect.options[contactSelect.selectedIndex].text;
+                        const nameMatch = contactText.match(/(.+) - /);
+                        const name = nameMatch ? nameMatch[1] : contactText;
+                        
+                        // Créer les initiales
+                        const nameParts = name.split(' ');
+                        const initials = nameParts.map(part => part.charAt(0)).join('');
+                        
+                        // Ajouter à la structure de données
+                        if (!contactsData[currentRecruitmentId]) {
+                            contactsData[currentRecruitmentId] = [];
+                        }
+                        
+                        contactsData[currentRecruitmentId].push({
+                            initials: initials,
+                            name: name,
+                            role: contactRole.options[contactRole.selectedIndex].text
+                        });
+                        
+                        // Afficher une notification
+                        const toastEl = document.getElementById('notificationToast');
+                        const toastBody = toastEl.querySelector('.toast-body');
+                        toastBody.innerHTML = 'Interlocuteur ajouté avec succès !';
+                        const toast = new bootstrap.Toast(toastEl);
+                        toast.show();
+                        
+                        // Fermer le modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('addContactToRecruitmentModal'));
+                        modal.hide();
+                        
+                        // Réafficher le popup mis à jour
+                        generatePopupContent(currentRecruitmentId);
+                        popupContainer.classList.add('active');
+                    }
+                });
+            }
+            
+            // Supprimer un contact (géré par délégation d'événement)
+            popupContent.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-contact-btn')) {
+                    const contactItem = e.target.closest('.contact-item');
+                    const index = Array.from(popupContent.children).indexOf(contactItem);
+                    
+                    // Supprimer de la structure de données
+                    if (contactsData[currentRecruitmentId] && index >= 0) {
+                        contactsData[currentRecruitmentId].splice(index, 1);
+                        
+                        // Mettre à jour l'interface
+                        contactItem.remove();
+                        
+                        // Afficher un message si la liste est vide
+                        if (contactsData[currentRecruitmentId].length === 0) {
+                            const emptyState = document.createElement('div');
+                            emptyState.className = 'text-center mb-3 text-muted';
+                            emptyState.innerHTML = 'Aucun interlocuteur assigné';
+                            popupContent.appendChild(emptyState);
+                        }
+                        
+                        // Afficher une notification
+                        const toastEl = document.getElementById('notificationToast');
+                        const toastBody = toastEl.querySelector('.toast-body');
+                        toastBody.innerHTML = 'Interlocuteur retiré avec succès !';
+                        const toast = new bootstrap.Toast(toastEl);
+                        toast.show();
+                    }
                 }
             });
             
