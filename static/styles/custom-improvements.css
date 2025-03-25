@@ -1,274 +1,656 @@
-/* CSS personnalisé pour supprimer les éléments surlignés en jaune et améliorer l'UI/UX */
+/* 
+ * Fichier d'améliorations UI/UX pour la page d'opportunités candidates
+ * Créé par Claude - Mars 2025
+ */
 
-/* Masquer les éléments surlignés en jaune */
-.breadcrumb,
-.contextual-nav a[href*="Tableau de bord"],
-a[href*="tableau-de-bord"],
-a[href*="Mes offres reçues"],
-.numbered-pagination,
-.step-indicators {
-    display: none !important;
+:root {
+  --primary-light-hover: #f5f3ff;
+  --transition-hover: 0.25s ease-out;
+  --shadow-card-hover: 0 10px 25px rgba(80, 70, 229, 0.15);
+  --shadow-button-hover: 0 6px 12px rgba(80, 70, 229, 0.2);
 }
 
-/* Masquer spécifiquement les navigations avec les flèches */
-.contextual-nav {
-    border-bottom: none !important;
-}
-
-/* Masquer le fil d'Ariane et navigation avec numéros */
-[class*="step-"] {
-    display: none !important;
-}
-
-/* Améliorer l'apparence générale */
+/* ===== Améliorations générales ===== */
 body {
-    background-color: #f9f9fb;
-    font-family: 'Inter', sans-serif;
+  scroll-behavior: smooth;
 }
 
-/* Container principal amélioré */
-.main-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* Amélioration du titre principal */
-.section-heading {
-    font-size: 1.8rem;
-    color: #7C3AED;
-    font-weight: 700;
-    margin-bottom: 25px;
-    position: relative;
-    display: inline-block;
-}
-
-.section-heading::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    width: 60px;
-    height: 4px;
-    background: linear-gradient(90deg, #7C3AED 0%, #9F7AEA 100%);
-    border-radius: 2px;
-}
-
-/* Animation pour les cartes d'opportunités */
+/* Animation de chargement progressive */
 .opportunity-card {
-    transition: all 0.3s ease;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    background-color: white;
-    margin-bottom: 25px;
-    border-left: 5px solid #7C3AED;
-    animation: fadeInUp 0.5s ease forwards;
-    opacity: 0;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: card-appear 0.5s forwards;
 }
 
+@keyframes card-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation séquentielle des cartes */
 .opportunity-card:nth-child(1) { animation-delay: 0.1s; }
 .opportunity-card:nth-child(2) { animation-delay: 0.2s; }
 .opportunity-card:nth-child(3) { animation-delay: 0.3s; }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* ===== Améliorations de la navigation ===== */
+.contextual-nav {
+  border-radius: 8px;
+  background-color: var(--primary-light);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-hover);
+}
+
+.contextual-nav a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-weight: 500;
+  transition: all var(--transition-hover);
+  position: relative;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+}
+
+.contextual-nav a:hover {
+  background-color: var(--primary-light-hover);
+  transform: translateY(-2px);
+}
+
+.contextual-nav a::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: var(--primary);
+  transition: all var(--transition-hover);
+  transform: translateX(-50%);
+}
+
+.contextual-nav a:hover::after {
+  width: 80%;
+}
+
+/* Ajout de tooltips aux liens de navigation */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -32px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  background-color: var(--gray-800);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-hover);
+  z-index: 10;
+}
+
+[data-tooltip]::after {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent var(--gray-800) transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-hover);
+  z-index: 10;
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) scale(1);
+}
+
+/* ===== Améliorations de la barre de filtres ===== */
+.filter-section {
+  background: linear-gradient(to right, var(--primary-light), white);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 25px;
+  transition: all var(--transition-hover);
+}
+
+.filter-badge {
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+  padding: 10px 18px;
+  z-index: 1;
+}
+
+.filter-badge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-gradient);
+  opacity: 0;
+  transition: opacity var(--transition-hover);
+  z-index: -1;
+  border-radius: 25px;
+}
+
+.filter-badge:hover::before {
+  opacity: 0.1;
+}
+
+.filter-badge.active::before {
+  opacity: 1;
+}
+
+.filter-badge i {
+  transition: transform var(--transition-hover);
+}
+
+.filter-badge:hover i {
+  transform: scale(1.2);
+}
+
+/* Style amélioré pour le sélecteur de tri */
+.filter-sort .select-wrapper {
+  position: relative;
+  transition: all var(--transition-hover);
+}
+
+.filter-sort .form-control {
+  padding-right: 35px;
+  background-color: white;
+  border-color: var(--gray-200);
+  transition: all var(--transition-hover);
+  cursor: pointer;
+}
+
+.filter-sort .form-control:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(80, 70, 229, 0.1);
+}
+
+/* ===== Améliorations des cartes d'opportunités ===== */
+.opportunity-card {
+  border-left-width: 6px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.opportunity-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle at top right, 
+                              rgba(124, 58, 237, 0.08) 0%, 
+                              rgba(124, 58, 237, 0) 70%);
+  border-radius: 0 0 0 150%;
+  z-index: 0;
 }
 
 .opportunity-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-card-hover);
 }
 
-/* Pourcentage de match amélioré */
+/* Effet de surbrillance au survol */
+.opportunity-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent 98%, var(--primary) 100%);
+  opacity: 0;
+  transition: opacity var(--transition-hover);
+  pointer-events: none;
+}
+
+.opportunity-card:hover::after {
+  opacity: 0.3;
+}
+
+/* Logo d'entreprise amélioré */
+.logo-placeholder {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.logo-placeholder::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
+  transform: rotate(-45deg) translateY(100%);
+  transition: transform 0.6s ease;
+}
+
+.opportunity-card:hover .logo-placeholder::before {
+  transform: rotate(-45deg) translateY(-100%);
+}
+
+.opportunity-card:hover .logo-placeholder {
+  transform: scale(1.15) rotate(5deg);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Améliorations de l'indicateur de match */
 .match-percentage {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 65px;
-    height: 65px;
-    background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
-    color: white;
-    border-radius: 50%;
-    font-weight: 700;
-    font-size: 1.3rem;
-    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 15px rgba(124, 58, 237, 0.3);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.match-percentage::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
-    animation: shine 3s infinite;
+.match-percentage::before {
+  content: "";
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%);
+  top: -25%;
+  left: -25%;
+  transform: rotate(45deg) translateX(-100%);
+  transition: transform 0.8s ease;
 }
 
-@keyframes shine {
-    0% {
-        transform: scale(0.5) rotate(0deg);
-        opacity: 0;
-    }
-    50% {
-        opacity: 0.5;
-    }
-    100% {
-        transform: scale(1) rotate(360deg);
-        opacity: 0;
-    }
+.opportunity-card:hover .match-percentage::before {
+  transform: rotate(45deg) translateX(100%);
 }
 
 .opportunity-card:hover .match-percentage {
-    transform: scale(1.1) rotate(10deg);
-    box-shadow: 0 6px 15px rgba(124, 58, 237, 0.4);
+  transform: scale(1.2) rotate(12deg);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
 }
 
-/* Amélioration des boutons */
-.btn {
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    padding: 10px 18px;
-    font-weight: 500;
-    position: relative;
-    overflow: hidden;
+/* Amélioration de la progression et des étapes */
+.progress-bar-container {
+  height: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-light) 0%, var(--primary) 100%);
+  border-radius: 5px;
+  transition: width 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
 }
 
-.btn-primary {
-    background-color: #7C3AED;
-    color: white;
-    border: none;
-    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);
+.progress-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+                             rgba(255,255,255,0) 0%, 
+                             rgba(255,255,255,0.3) 50%, 
+                             rgba(255,255,255,0) 100%);
+  animation: progress-shine 2s linear infinite;
 }
 
-.btn-primary:hover {
-    background-color: #6D28D9;
-    box-shadow: 0 6px 15px rgba(124, 58, 237, 0.3);
+@keyframes progress-shine {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 }
 
-.btn-outline {
-    background-color: transparent;
-    color: #4B5563;
-    border: 1px solid #E5E7EB;
+/* Amélioration visuelle des étapes de recrutement */
+.recruitment-stages {
+  padding: 30px 0 20px;
 }
 
-.btn-outline:hover {
-    border-color: #7C3AED;
-    color: #7C3AED;
-    background-color: rgba(124, 58, 237, 0.05);
+.stages-line {
+  height: 4px;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 3px rgba(0,0,0,0.05);
 }
 
-.btn-outline-danger {
-    background-color: transparent;
-    color: #EF4444;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+.stages-progress {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #a78bfa 0%, #8b5cf6 50%, #7c3aed 100%);
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
 }
 
-.btn-outline-danger:hover {
-    background-color: rgba(239, 68, 68, 0.05);
-    border-color: #EF4444;
+.stage-icon {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Amélioration des étapes de recrutement */
+.stage.completed .stage-icon {
+  transform: scale(1.1);
+}
+
 .stage.active .stage-icon {
-    animation: pulse 2s infinite;
+  animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
-    }
-    70% {
-        transform: scale(1.1);
-        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-    }
-}
-
-/* Améliorations générales du layout */
-.candidate-dashboard-section {
-    margin-top: 20px;
-}
-
-.section-header {
-    padding-bottom: 15px;
-    margin-bottom: 25px;
-    border-bottom: 2px solid #F3F4F6;
-}
-
-.filter-section {
-    background-color: #F9FAFB;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-}
-
-/* Améliorations des filtres */
-.filter-badge {
-    padding: 8px 15px;
-    border-radius: 20px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    background-color: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    font-size: 0.9rem;
-}
-
-.filter-badge:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
-}
-
-.filter-badge.active {
-    background-color: #7C3AED;
-    color: white;
-    box-shadow: 0 3px 6px rgba(124, 58, 237, 0.2);
-}
-
-/* Amélioration de l'espacement général */
-.opportunity-header, 
-.opportunity-status, 
-.recruitment-stages, 
-.opportunity-actions {
-    margin-bottom: 20px;
-}
-
-.opportunity-actions {
-    padding-top: 15px;
-    border-top: 1px solid #F3F4F6;
-}
-
-/* Animation pour les icônes */
-.fa-check, .fa-circle, .fa-times-circle, .fa-calendar-alt, .fa-envelope, .fa-comment-dots {
-    transition: transform 0.3s ease;
-}
-
-.btn:hover .fa-check, 
-.btn:hover .fa-circle, 
-.btn:hover .fa-times-circle, 
-.btn:hover .fa-calendar-alt, 
-.btn:hover .fa-envelope, 
-.btn:hover .fa-comment-dots {
+  0% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  70% {
     transform: scale(1.2);
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  100% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+/* Amélioration de la carte d'interviewer */
+.interviewer-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  border-top: 4px solid var(--green);
+  transition: all var(--transition-hover);
+  animation: bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 20px) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -5px) scale(1.05);
+  }
+  100% {
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.interviewer-card::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent var(--green) transparent;
+}
+
+/* Améliorations des boutons d'action */
+.opportunity-actions .btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.opportunity-actions .btn:hover {
+  transform: translateY(-3px);
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);
+}
+
+.btn-primary:hover {
+  box-shadow: var(--shadow-button-hover);
+}
+
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.btn-primary:hover::after {
+  transform: translateX(100%);
+}
+
+/* Amélioration des boutons secondaires */
+.btn-outline {
+  border-width: 2px;
+  font-weight: 500;
+}
+
+.btn-outline:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+.btn-outline-danger:hover {
+  color: white;
+  background-color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Amélioration des champs de saisie */
+.note-input-container input {
+  padding: 12px 40px 12px 15px;
+  border-radius: 10px;
+  transition: all var(--transition-hover);
+}
+
+.note-input-container input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+}
+
+.btn-save {
+  opacity: 0.7;
+  transition: all var(--transition-hover);
+}
+
+.btn-save:hover {
+  opacity: 1;
+  color: var(--primary-dark);
+  transform: scale(1.2);
+}
+
+/* État vide amélioré */
+.empty-state {
+  padding: 40px;
+  background-color: var(--primary-light);
+  border-radius: 16px;
+  animation: fade-in 0.5s ease;
+}
+
+.empty-state i {
+  color: var(--primary);
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.empty-state h3 {
+  color: var(--primary-dark);
+  margin-bottom: 15px;
+}
+
+.empty-state .btn {
+  margin-top: 10px;
+  transition: all var(--transition-hover);
+}
+
+.empty-state .btn:hover {
+  transform: scale(1.05);
+}
+
+/* ===== Améliorations du mode sombre ===== */
+@media (prefers-color-scheme: dark) {
+  body.dark-mode-support {
+    --primary-light: rgba(124, 58, 237, 0.2);
+    --primary-light-hover: rgba(124, 58, 237, 0.3);
+    background-color: var(--gray-900);
+    color: var(--gray-200);
+  }
+  
+  body.dark-mode-support .opportunity-card {
+    background-color: var(--gray-800);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  body.dark-mode-support .stage-icon {
+    background-color: var(--gray-700);
+  }
+  
+  body.dark-mode-support .interviewer-card {
+    background-color: var(--gray-800);
+  }
+  
+  body.dark-mode-support .filter-section {
+    background: linear-gradient(to right, rgba(124, 58, 237, 0.2), var(--gray-800));
+  }
+  
+  body.dark-mode-support .form-control {
+    background-color: var(--gray-700);
+    border-color: var(--gray-600);
+    color: var(--gray-200);
+  }
+  
+  body.dark-mode-support .empty-state {
+    background-color: var(--gray-800);
+  }
+}
+
+/* ===== Améliorations du responsive ===== */
+@media (max-width: 992px) {
+  .opportunity-card::before,
+  .opportunity-card::after {
+    display: none;
+  }
+  
+  .interviewer-card {
+    position: static;
+    transform: none;
+    margin-top: 20px;
+    animation: fade-in 0.5s ease;
+  }
+  
+  .interviewer-card::before {
+    display: none;
+  }
+  
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (max-width: 768px) {
+  .contextual-nav {
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  
+  [data-tooltip]::before,
+  [data-tooltip]::after {
+    display: none;
+  }
+  
+  .primary-actions,
+  .secondary-actions {
+    flex-direction: column;
+  }
+  
+  .opportunity-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .opportunity-match {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 576px) {
+  .opportunity-card {
+    padding: 15px;
+  }
+  
+  .filter-badges {
+    justify-content: center;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Accessibilité améliorée */
+.btn:focus,
+.form-control:focus {
+  outline: 3px solid rgba(124, 58, 237, 0.4);
+  outline-offset: 2px;
+}
+
+/* ===== Animations performantes pour les appareils mobiles ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .opportunity-card {
+    transform: none !important;
+  }
+  
+  .match-percentage,
+  .logo-placeholder {
+    transform: none !important;
+  }
 }
