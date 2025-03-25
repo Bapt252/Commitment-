@@ -909,7 +909,7 @@
             box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
         }
 
-        /* Contact popup */
+        /* Contact popup - MODIFIÉ */
         .contact-popup {
             position: absolute;
             top: 0;
@@ -926,7 +926,8 @@
             border: 1px solid var(--gray-200);
         }
 
-        .recruitment-item:hover .contact-popup {
+        /* Modification du CSS pour le popup */
+        .contact-popup.active {
             right: 105%;
             opacity: 1;
             visibility: visible;
@@ -1905,15 +1906,41 @@
                 });
             }
             
-            // Gestion des interlocuteurs dans les recrutements
+            // Gestion des interlocuteurs dans les recrutements - MODIFIÉ
             const assignBtns = document.querySelectorAll('.assign-to-recruitment');
+            
+            // Ferme tous les popups
+            function closeAllPopups() {
+                document.querySelectorAll('.contact-popup').forEach(popup => {
+                    popup.classList.remove('active');
+                });
+            }
+            
+            // Gestion du clic sur les boutons "+"
             assignBtns.forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    const recruitmentId = this.closest('.recruitment-item').dataset.recruitmentId;
-                    const modal = new bootstrap.Modal(document.getElementById('addContactToRecruitmentModal'));
-                    modal.show();
+                    
+                    // Ferme tous les popups d'abord
+                    closeAllPopups();
+                    
+                    // Trouve le popup associé à ce bouton
+                    const popup = this.closest('.recruitment-item').querySelector('.contact-popup');
+                    
+                    // Affiche/cache le popup
+                    if (popup.classList.contains('active')) {
+                        popup.classList.remove('active');
+                    } else {
+                        popup.classList.add('active');
+                    }
                 });
+            });
+            
+            // Ferme les popups quand on clique ailleurs sur la page
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.contact-popup') && !e.target.closest('.assign-to-recruitment')) {
+                    closeAllPopups();
+                }
             });
             
             // Recherche et filtrage
