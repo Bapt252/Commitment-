@@ -14,11 +14,58 @@
     <link rel="stylesheet" href="../static/styles/dashboard-new.css">
     <link rel="stylesheet" href="../static/styles/nav-improvement.css">
     <link rel="stylesheet" href="../static/styles/candidate-opportunities-new.css">
-    <!-- Nouvelle feuille de style pour les améliorations personnalisées -->
+    <!-- Correctif pour les problèmes d'affichage -->
+    <link rel="stylesheet" href="../static/styles/layout-fix.css">
+    <!-- Nouvelle feuille de style pour les améliorations personnalisées (chargée après le correctif) -->
     <link rel="stylesheet" href="../static/styles/custom-improvements.css">
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
+    
+    <style>
+    /* Correctifs supplémentaires inline pour garantir la priorité */
+    .opportunity-card {
+        display: block !important;
+        width: auto !important;
+        margin: 0 0 20px 0 !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    .opportunity-header {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+    
+    .opportunity-match {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .match-percentage {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .stages-wrapper {
+        display: flex !important;
+    }
+    
+    .filter-section {
+        display: flex !important;
+    }
+    
+    .section-header {
+        display: flex !important;
+    }
+    
+    /* Désactiver temporairement les animations JS problématiques */
+    .animate-entry, .ripple-effect {
+        animation: none !important;
+        transform: none !important;
+    }
+    </style>
 </head>
 <body>
     <!-- Notification bar -->
@@ -51,13 +98,13 @@
 
     <div class="container main-container" id="main-content">
         <div class="contextual-nav">
-            <a href="candidate-dashboard-new.html" class="previous-page" data-tooltip="Page précédente">
+            <a href="candidate-dashboard-new.html" class="previous-page">
                 <i class="fas fa-chevron-left"></i> Tableau de bord
             </a>
-            <a href="candidate-dashboard-new.html" class="dashboard-link" data-tooltip="Retour au tableau de bord">
+            <a href="candidate-dashboard-new.html" class="dashboard-link">
                 <i class="fas fa-th-large"></i> Tableau de bord
             </a>
-            <a href="candidate-offers.html" class="next-page" data-tooltip="Page suivante">
+            <a href="candidate-offers.html" class="next-page">
                 Mes offres reçues <i class="fas fa-chevron-right"></i>
             </a>
         </div>
@@ -172,7 +219,7 @@
                             </div>
                             
                             <div class="stage active">
-                                <div class="stage-icon" style="transform: scale(1.15); box-shadow: rgba(76, 175, 80, 0.15) 0px 0px 0px 3px;">
+                                <div class="stage-icon">
                                     <i class="fas fa-circle"></i>
                                 </div>
                                 <div class="stage-label">Entretien Présentiel</div>
@@ -263,7 +310,7 @@
                             </div>
                             
                             <div class="stage active">
-                                <div class="stage-icon" style="transform: scale(1.15); box-shadow: rgba(76, 175, 80, 0.15) 0px 0px 0px 3px;">
+                                <div class="stage-icon">
                                     <i class="fas fa-circle"></i>
                                 </div>
                                 <div class="stage-label">Entretien visio</div>
@@ -347,7 +394,7 @@
                         
                         <div class="stages-wrapper">
                             <div class="stage active">
-                                <div class="stage-icon" style="transform: scale(1.15); box-shadow: rgba(76, 175, 80, 0.15) 0px 0px 0px 3px;">
+                                <div class="stage-icon">
                                     <i class="fas fa-circle"></i>
                                 </div>
                                 <div class="stage-label">En cours de validation</div>
@@ -473,31 +520,6 @@
                 });
             }
             
-            // Animation au défilement
-            const animatedElements = document.querySelectorAll('.fade-in');
-            
-            function checkIfInView() {
-                const windowHeight = window.innerHeight;
-                const windowTop = window.scrollY;
-                const windowBottom = windowTop + windowHeight;
-                
-                animatedElements.forEach(function(element) {
-                    const elementTop = element.getBoundingClientRect().top + windowTop;
-                    const elementBottom = elementTop + element.offsetHeight;
-                    
-                    // Si l'élément est visible dans la fenêtre
-                    if (elementBottom > windowTop && elementTop < windowBottom) {
-                        element.classList.add('visible');
-                    }
-                });
-            }
-            
-            // Vérifier au chargement de la page
-            checkIfInView();
-            
-            // Vérifier lors du défilement
-            window.addEventListener('scroll', checkIfInView);
-            
             // Bouton de retour en haut
             const scrollToTopButton = document.getElementById('scroll-to-top');
             
@@ -539,7 +561,6 @@
                     opportunities.forEach((opportunity, index) => {
                         if (filter === 'all' || opportunity.getAttribute('data-status') === filter) {
                             opportunity.style.display = 'block';
-                            opportunity.style.animationDelay = `${index * 0.1}s`;
                             hasVisibleOpportunities = true;
                         } else {
                             opportunity.style.display = 'none';
@@ -581,25 +602,27 @@
                     }
                 });
             });
-            
-            // Effet de pulsation sur l'étape active
-            const activeStageIcons = document.querySelectorAll('.stage.active .stage-icon');
-            activeStageIcons.forEach(icon => {
-                setInterval(() => {
-                    icon.style.transform = 'scale(1.2)';
-                    icon.style.boxShadow = '0 0 0 4px rgba(76, 175, 80, 0.2)';
-                    
-                    setTimeout(() => {
-                        icon.style.transform = 'scale(1.15)';
-                        icon.style.boxShadow = '0 0 0 3px rgba(76, 175, 80, 0.15)';
-                    }, 1000);
-                }, 2000);
-            });
         });
     </script>
     
-    <!-- Scripts améliorés pour l'UI/UX -->
-    <script src="../static/js/dark-mode-toggle.js"></script>
-    <script src="../static/js/enhanced-user-experience.js"></script>
+    <!-- Scripts améliorés pour l'UI/UX - chargés avec délai pour éviter les problèmes -->
+    <script>
+        // Attendre que la page soit complètement chargée avant d'ajouter les scripts avancés
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                // Charger le script du mode sombre avec un délai
+                const darkModeScript = document.createElement('script');
+                darkModeScript.src = '../static/js/dark-mode-toggle.js';
+                document.body.appendChild(darkModeScript);
+                
+                // Charger les améliorations UI/UX avec un délai plus long
+                setTimeout(function() {
+                    const enhancedUXScript = document.createElement('script');
+                    enhancedUXScript.src = '../static/js/enhanced-user-experience.js';
+                    document.body.appendChild(enhancedUXScript);
+                }, 500);
+            }, 300);
+        });
+    </script>
 </body>
 </html>
