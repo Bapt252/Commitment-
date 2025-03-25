@@ -6,66 +6,21 @@
     <meta name="description" content="Nexten - Opportunités candidat">
     <title>Nexten - Mes opportunités sélectionnées</title>
     
-    <!-- CSS -->
+    <!-- CSS de base -->
     <link rel="stylesheet" href="../static/styles/nexten-modern.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS de base du projet -->
     <link rel="stylesheet" href="../static/styles/dashboard.css">
-    <link rel="stylesheet" href="../static/styles/dashboard-new.css">
     <link rel="stylesheet" href="../static/styles/nav-improvement.css">
     <link rel="stylesheet" href="../static/styles/candidate-opportunities-new.css">
-    <!-- Correctif pour les problèmes d'affichage -->
-    <link rel="stylesheet" href="../static/styles/layout-fix.css">
-    <!-- Nouvelle feuille de style pour les améliorations personnalisées (chargée après le correctif) -->
-    <link rel="stylesheet" href="../static/styles/custom-improvements.css">
+    
+    <!-- Correctif d'urgence - IMPORTANT: Chargé après les autres styles pour garantir la priorité -->
+    <link rel="stylesheet" href="../static/styles/emergency-fix.css">
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
-    
-    <style>
-    /* Correctifs supplémentaires inline pour garantir la priorité */
-    .opportunity-card {
-        display: block !important;
-        width: auto !important;
-        margin: 0 0 20px 0 !important;
-        opacity: 1 !important;
-        transform: none !important;
-    }
-    
-    .opportunity-header {
-        display: flex !important;
-        flex-direction: row !important;
-    }
-    
-    .opportunity-match {
-        display: flex !important;
-        flex-direction: column !important;
-    }
-    
-    .match-percentage {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    .stages-wrapper {
-        display: flex !important;
-    }
-    
-    .filter-section {
-        display: flex !important;
-    }
-    
-    .section-header {
-        display: flex !important;
-    }
-    
-    /* Désactiver temporairement les animations JS problématiques */
-    .animate-entry, .ripple-effect {
-        animation: none !important;
-        transform: none !important;
-    }
-    </style>
 </head>
 <body>
     <!-- Notification bar -->
@@ -506,9 +461,30 @@
         </button>
     </footer>
 
-    <!-- JavaScript -->
+    <!-- JavaScript minimal -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Mode sombre simplifié
+            const darkModeToggle = document.createElement('button');
+            darkModeToggle.className = 'simple-dark-mode-toggle';
+            darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            darkModeToggle.setAttribute('aria-label', 'Activer le mode sombre');
+            
+            const header = document.querySelector('header .container');
+            if (header) {
+                header.insertBefore(darkModeToggle, header.querySelector('nav'));
+            }
+            
+            darkModeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                
+                if (document.body.classList.contains('dark-mode')) {
+                    this.innerHTML = '<i class="fas fa-sun"></i>';
+                } else {
+                    this.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+            });
+            
             // Menu mobile toggle
             const menuToggle = document.querySelector('.menu-toggle');
             const nav = document.querySelector('nav');
@@ -517,26 +493,6 @@
                 menuToggle.addEventListener('click', function() {
                     nav.classList.toggle('active');
                     this.classList.toggle('active');
-                });
-            }
-            
-            // Bouton de retour en haut
-            const scrollToTopButton = document.getElementById('scroll-to-top');
-            
-            if (scrollToTopButton) {
-                window.addEventListener('scroll', function() {
-                    if (window.scrollY > 500) {
-                        scrollToTopButton.classList.add('visible');
-                    } else {
-                        scrollToTopButton.classList.remove('visible');
-                    }
-                });
-                
-                scrollToTopButton.addEventListener('click', function() {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
-                    });
                 });
             }
             
@@ -558,7 +514,7 @@
                     const filter = this.getAttribute('data-filter');
                     let hasVisibleOpportunities = false;
                     
-                    opportunities.forEach((opportunity, index) => {
+                    opportunities.forEach(opportunity => {
                         if (filter === 'all' || opportunity.getAttribute('data-status') === filter) {
                             opportunity.style.display = 'block';
                             hasVisibleOpportunities = true;
@@ -602,10 +558,27 @@
                     }
                 });
             });
+            
+            // Bouton de retour en haut
+            const scrollToTopButton = document.getElementById('scroll-to-top');
+            
+            if (scrollToTopButton) {
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 500) {
+                        scrollToTopButton.classList.add('visible');
+                    } else {
+                        scrollToTopButton.classList.remove('visible');
+                    }
+                });
+                
+                scrollToTopButton.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
         });
     </script>
-    
-    <!-- Charger la version simplifiée des améliorations (plus stable) -->
-    <script src="../static/js/simplified-user-experience.js"></script>
 </body>
 </html>
