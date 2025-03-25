@@ -975,6 +975,17 @@
             box-shadow: 0 0 0 5px var(--primary-light);
         }
 
+        .flow-step.completed .flow-step-icon {
+            background-color: var(--purple-light);
+            color: white;
+            border-color: var(--purple-light);
+        }
+
+        .flow-step.completed .flow-step-icon::after {
+            content: '✓';
+            font-size: 16px;
+        }
+
         .flow-step-content {
             flex: 1;
         }
@@ -1028,6 +1039,16 @@
             background-color: rgba(239, 68, 68, 0.15);
         }
 
+        .flow-action-btn.btn-success {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .flow-action-btn.btn-success:hover {
+            background-color: rgba(34, 197, 94, 0.15);
+        }
+
         .flow-connector {
             margin-left: 20px;
             height: 30px;
@@ -1065,6 +1086,121 @@
             border-color: var(--purple);
             color: var(--purple);
             transform: translateY(-3px);
+        }
+
+        /* Styles pour les participants */
+        .participants-list {
+            margin: 8px 0;
+            padding: 8px;
+            background-color: rgba(124, 58, 237, 0.05);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .participants-list h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .participants-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .participants-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px;
+            background-color: white;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+        }
+
+        .remove-participant {
+            border: none;
+            background: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0 5px;
+        }
+
+        .remove-participant:hover {
+            transform: scale(1.2);
+        }
+
+        /* Styles pour la modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--box-shadow-md);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--gray);
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: var(--dark);
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            font-size: 1.2rem;
+        }
+
+        /* Styles pour les options de l'étape */
+        .options-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            background-color: rgba(124, 58, 237, 0.05);
+            border-radius: var(--border-radius-sm);
+            color: var(--gray);
+            margin-bottom: 8px;
         }
 
         /* Action buttons with modern styling */
@@ -2025,6 +2161,9 @@
     <!-- Bootstrap JavaScript Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Script de personnalisation du processus de recrutement -->
+    <script src="../js/recruitment-process.js"></script>
+
     <!-- Scripts personnalisés -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -2326,53 +2465,7 @@
                 updateProgressBar();
             });
             
-            // Gestion des étapes du processus
-            const addStepBtn = document.querySelector('.add-step-btn');
-            const flowContainer = document.querySelector('.flow-container');
-            
-            addStepBtn.addEventListener('click', function() {
-                const steps = document.querySelectorAll('.flow-step');
-                const newStepNumber = steps.length + 1;
-                
-                // Créer un nouvel élément d'étape
-                const newStep = document.createElement('div');
-                newStep.className = 'flow-step';
-                
-                newStep.innerHTML = `
-                    <div class="flow-step-icon">${newStepNumber}</div>
-                    <div class="flow-step-content">
-                        <div class="flow-step-title">
-                            <span>Nouvelle étape</span>
-                            <span class="tooltip" data-tooltip="Définir cette étape">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                        </div>
-                        <p class="flow-step-description">Description de cette étape</p>
-                        <div class="flow-step-actions">
-                            <button type="button" class="flow-action-btn btn-danger">
-                                <i class="fas fa-times"></i> Supprimer
-                            </button>
-                            <button type="button" class="flow-action-btn">
-                                <i class="fas fa-user-plus"></i> Ajouter un participant
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                // Créer un connecteur pour la connexion
-                const connector = document.createElement('div');
-                connector.className = 'flow-connector';
-                connector.innerHTML = '<div class="flow-connector-line"></div>';
-                
-                // Insérer l'étape et le connecteur avant le bouton d'ajout
-                flowContainer.insertBefore(connector, addStepBtn);
-                flowContainer.insertBefore(newStep, connector);
-                
-                // Mise à jour de la barre de progression
-                updateProgressBar();
-            });
-            
-            // Suivi de progression du formulaire
+            // Mise à jour de la barre de progression
             function updateProgressBar() {
                 const totalFields = document.querySelectorAll('.form-control, .choice-container').length;
                 const filledFields = document.querySelectorAll('.form-control:not([value=""]):not([value="0"]), .choice-card.selected').length;
@@ -2423,25 +2516,6 @@
             
             // Initialiser la barre de progression
             updateProgressBar();
-            
-            // Gestion de la soumission du formulaire
-            const form = document.getElementById('create-job-form');
-            
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Simuler la validation et l'envoi du formulaire
-                const submitBtn = form.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-                
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validation en cours...';
-                submitBtn.disabled = true;
-                
-                setTimeout(function() {
-                    // Rediriger vers le tableau de bord
-                    window.location.href = 'company-dashboard.html';
-                }, 2000);
-            });
             
             // Bouton de retour en haut
             const scrollToTopButton = document.getElementById('scroll-to-top');
