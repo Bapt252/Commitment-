@@ -1,0 +1,593 @@
+/**
+ * Correctif d'urgence pour réinitialiser les styles problématiques
+ * Ce fichier corrige les problèmes d'affichage en réinitialisant tous les styles cassés
+ */
+
+/* Réinitialisation globale */
+* {
+  animation: none !important;
+  transform: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+}
+
+body, html {
+  overflow-x: hidden !important;
+}
+
+/* Structure de base */
+.container {
+  width: 100% !important;
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  padding: 0 1rem !important;
+}
+
+/* Carte d'opportunité */
+.opportunity-card {
+  display: block !important;
+  width: auto !important;
+  margin-bottom: 30px !important;
+  padding: 20px !important;
+  background-color: white !important;
+  border-radius: 12px !important;
+  border-left: 5px solid #5046E5 !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+  position: relative !important;
+  opacity: 1 !important;
+}
+
+/* En-tête de la carte */
+.opportunity-header {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: 20px !important;
+}
+
+/* Entreprise */
+.opportunity-company {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+}
+
+.logo-placeholder {
+  width: 60px !important;
+  height: 60px !important;
+  background-color: #f5f5f5 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 10px !important;
+  margin-right: 15px !important;
+}
+
+.company-details {
+  display: block !important;
+}
+
+.company-name {
+  display: block !important;
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+  margin: 0 0 5px 0 !important;
+  color: #333 !important;
+}
+
+.job-title {
+  display: block !important;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  margin: 0 0 8px 0 !important;
+  color: #444 !important;
+}
+
+.job-info {
+  display: flex !important;
+  align-items: center !important;
+  font-size: 0.95rem !important;
+  color: #666 !important;
+  margin: 0 !important;
+}
+
+/* Match pourcentage */
+.opportunity-match {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.match-percentage {
+  width: 65px !important;
+  height: 65px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: #5046E5 !important;
+  color: white !important;
+  border-radius: 50% !important;
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 5px !important;
+}
+
+.match-label {
+  display: block !important;
+  font-size: 0.85rem !important;
+  color: #666 !important;
+}
+
+/* Statut et progression */
+.opportunity-status {
+  display: block !important;
+  margin-bottom: 25px !important;
+}
+
+.status-info {
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-bottom: 12px !important;
+}
+
+.status-label, .travel-time {
+  display: flex !important;
+  align-items: center !important;
+  color: #666 !important;
+  font-size: 0.95rem !important;
+}
+
+.status-label strong {
+  color: #5046E5 !important;
+  font-weight: 600 !important;
+}
+
+.progress-bar-container {
+  height: 8px !important;
+  background-color: #f0f0f0 !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  margin-top: 5px !important;
+}
+
+.progress-bar {
+  height: 100% !important;
+  background-color: #5046E5 !important;
+  border-radius: 4px !important;
+}
+
+/* Étapes de recrutement */
+.recruitment-stages {
+  position: relative !important;
+  margin-bottom: 30px !important;
+  padding: 20px 0 !important;
+  display: block !important;
+}
+
+.stages-line {
+  position: absolute !important;
+  top: 25px !important;
+  left: 30px !important;
+  right: 30px !important;
+  height: 3px !important;
+  background-color: #f0f0f0 !important;
+  z-index: 1 !important;
+}
+
+.stages-progress {
+  position: absolute !important;
+  top: 25px !important;
+  left: 30px !important;
+  height: 3px !important;
+  background-color: #5046E5 !important;
+  z-index: 2 !important;
+}
+
+.stages-wrapper {
+  display: flex !important;
+  justify-content: space-between !important;
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+.stage {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  position: relative !important;
+  width: 20% !important;
+}
+
+.stage-icon {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  background-color: white !important;
+  border: 2px solid #e0e0e0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 10px !important;
+  position: relative !important;
+  color: #e0e0e0 !important;
+}
+
+.stage.completed .stage-icon {
+  background-color: #5046E5 !important;
+  border-color: #5046E5 !important;
+  color: white !important;
+}
+
+.stage.active .stage-icon {
+  background-color: #4CAF50 !important;
+  border-color: #4CAF50 !important;
+  color: white !important;
+}
+
+.stage-label {
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  color: #666 !important;
+  margin-top: 5px !important;
+  display: block !important;
+}
+
+.stage.completed .stage-label {
+  color: #5046E5 !important;
+}
+
+.stage.active .stage-label {
+  color: #4CAF50 !important;
+  font-weight: 600 !important;
+}
+
+.interviewer-card {
+  display: block !important;
+  position: absolute !important;
+  top: 45px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: white !important;
+  border-radius: 8px !important;
+  padding: 15px !important;
+  min-width: 200px !important;
+  z-index: 10 !important;
+  border-top: 3px solid #4CAF50 !important;
+}
+
+.interviewer-name {
+  font-weight: 600 !important;
+  text-align: center !important;
+  margin-bottom: 5px !important;
+  color: #333 !important;
+  display: block !important;
+}
+
+.interviewer-title {
+  text-align: center !important;
+  color: #666 !important;
+  font-size: 0.85rem !important;
+  margin-bottom: 10px !important;
+  display: block !important;
+}
+
+.interview-date {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #4CAF50 !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+}
+
+/* Actions */
+.opportunity-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 15px !important;
+}
+
+.primary-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+.secondary-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding-top: 15px !important;
+  border-top: 1px solid #f0f0f0 !important;
+}
+
+.btn {
+  padding: 10px 15px !important;
+  font-size: 0.9rem !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+}
+
+.btn-primary {
+  background-color: #5046E5 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-outline {
+  background-color: transparent !important;
+  color: #666 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.btn-outline-danger {
+  background-color: transparent !important;
+  color: #f44336 !important;
+  border: 1px solid rgba(244,67,54,0.3) !important;
+}
+
+.notes-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-left: auto !important;
+}
+
+.note-input-container {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+.note-input-container input {
+  padding: 10px 40px 10px 15px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e0e0e0 !important;
+  min-width: 250px !important;
+}
+
+.btn-save {
+  position: absolute !important;
+  right: 5px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border: none !important;
+  background: none !important;
+  padding: 5px !important;
+  color: #5046E5 !important;
+  cursor: pointer !important;
+}
+
+/* Filtres */
+.filter-section {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 15px 20px !important;
+  margin-bottom: 20px !important;
+  background-color: #f9f9fb !important;
+  border-radius: 8px !important;
+}
+
+.filter-badges {
+  display: flex !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+.filter-badge {
+  padding: 10px 18px !important;
+  font-size: 0.85rem !important;
+  border-radius: 25px !important;
+  cursor: pointer !important;
+  background-color: white !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.filter-badge.active {
+  background-color: #5046E5 !important;
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.filter-sort {
+  position: relative !important;
+}
+
+.select-wrapper {
+  position: relative !important;
+}
+
+.select-wrapper i {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+  color: #666 !important;
+}
+
+.form-control {
+  padding: 10px 35px 10px 15px !important;
+  border-radius: 6px !important;
+  border: 1px solid #e0e0e0 !important;
+  background-color: white !important;
+  font-size: 0.9rem !important;
+  color: #333 !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  cursor: pointer !important;
+}
+
+/* Navigation contextuelle */
+.contextual-nav {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 20px !important;
+  background-color: #f5f3ff !important;
+  padding: 10px 15px !important;
+  border-radius: 8px !important;
+}
+
+.contextual-nav a {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  color: #5046E5 !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+}
+
+/* Section header */
+.section-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 20px !important;
+  border-bottom: 2px solid #EEF2FF !important;
+  padding-bottom: 15px !important;
+}
+
+.section-heading {
+  font-weight: 700 !important;
+  margin-bottom: 0 !important;
+  font-size: 1.4rem !important;
+  color: #5046E5 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.progress-tracker {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.progress-step {
+  display: flex !important;
+  align-items: center !important;
+  margin-right: 15px !important;
+}
+
+.step-indicator {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  background-color: #e0e0e0 !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.8rem !important;
+  margin-right: 5px !important;
+}
+
+.progress-step.active .step-indicator {
+  background-color: #5046E5 !important;
+}
+
+.step-label {
+  font-size: 0.8rem !important;
+  color: #666 !important;
+}
+
+.progress-step.active .step-label {
+  color: #5046E5 !important;
+  font-weight: 500 !important;
+}
+
+/* Mode sombre simple */
+.simple-dark-mode-toggle {
+  background: none !important;
+  border: none !important;
+  font-size: 1.2rem !important;
+  color: #5046E5 !important;
+  cursor: pointer !important;
+  margin-right: 15px !important;
+}
+
+/* Pour le responsive */
+@media (max-width: 768px) {
+  .opportunity-header {
+    flex-direction: column !important;
+  }
+  
+  .opportunity-match {
+    margin-top: 15px !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+  }
+  
+  .status-info {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  
+  .stages-wrapper {
+    flex-wrap: wrap !important;
+  }
+  
+  .stage {
+    width: 33.33% !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .notes-container {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-top: 10px !important;
+  }
+  
+  .note-input-container {
+    width: 100% !important;
+  }
+  
+  .note-input-container input {
+    width: 100% !important;
+    min-width: auto !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .stage {
+    width: 50% !important;
+  }
+  
+  .filter-section {
+    flex-direction: column !important;
+    gap: 15px !important;
+    align-items: flex-start !important;
+  }
+  
+  .filter-sort {
+    width: 100% !important;
+  }
+  
+  .form-control {
+    width: 100% !important;
+  }
+  
+  .section-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  
+  .progress-tracker {
+    margin-top: 15px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .progress-step {
+    margin-bottom: 10px !important;
+  }
+}
