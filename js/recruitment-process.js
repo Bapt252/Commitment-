@@ -12,6 +12,19 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
+ * Utilitaire pour trouver un élément contenant un texte spécifique
+ */
+function findElementByText(selector, text) {
+    const elements = document.querySelectorAll(selector);
+    for (let i = 0; i < elements.length; i++) {
+        if (elements[i].textContent.includes(text)) {
+            return elements[i];
+        }
+    }
+    return null;
+}
+
+/**
  * Initialise toutes les fonctionnalités du processus de recrutement
  */
 function initRecruitmentProcess() {
@@ -39,7 +52,7 @@ function initRecruitmentProcess() {
     }
     
     // Activer le bouton "Enregistrer comme brouillon"
-    const saveAsDraftBtn = document.querySelector('button:contains("Enregistrer comme brouillon")');
+    const saveAsDraftBtn = findElementByText('button', 'Enregistrer comme brouillon');
     if (saveAsDraftBtn) {
         saveAsDraftBtn.addEventListener('click', function() {
             saveRecruitmentProcess();
@@ -422,7 +435,7 @@ function getLocationText(location) {
  */
 function markStepAsCompleted(step) {
     step.classList.add('completed');
-    const completeButton = step.querySelector('button:contains("Terminé")');
+    const completeButton = findElementByText(step.querySelectorAll('button'), 'Terminé');
     if (completeButton) {
         completeButton.textContent = 'Terminé ✓';
         completeButton.classList.add('btn-success');
@@ -618,31 +631,4 @@ function initStepButtons(step) {
             }
         });
     });
-}
-
-// Utilitaire pour les sélecteurs jQuery-like (pour les boutons avec du texte spécifique)
-if (!document.querySelector.original) {
-    document.querySelector.original = document.querySelector;
-    document.querySelector = function(selector) {
-        try {
-            if (selector.includes(':contains(')) {
-                const matches = selector.match(/:contains\(['"](.+)['"]\)/);
-                if (matches) {
-                    const text = matches[1];
-                    const newSelector = selector.replace(/:contains\(['"](.+)['"]\)/, '');
-                    const elements = document.querySelectorAll(newSelector);
-                    
-                    for (let i = 0; i < elements.length; i++) {
-                        if (elements[i].textContent.includes(text)) {
-                            return elements[i];
-                        }
-                    }
-                    return null;
-                }
-            }
-            return document.querySelector.original(selector);
-        } catch (e) {
-            return document.querySelector.original(selector);
-        }
-    };
 }
