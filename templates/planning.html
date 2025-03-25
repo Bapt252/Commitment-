@@ -1155,5 +1155,33 @@
             }
         });
     </script>
+    
+    <!-- Script pour charger les offres depuis localStorage -->
+    <script>
+        // Code pour charger les offres depuis localStorage dans planning.html
+        document.addEventListener('DOMContentLoaded', function() {
+            // Vérifier s'il y a des offres stockées dans localStorage
+            const savedJobs = JSON.parse(localStorage.getItem('commitment_jobs') || '[]');
+            
+            if (savedJobs.length > 0) {
+                console.log("Offres trouvées dans localStorage:", savedJobs);
+                
+                // Ajouter les offres enregistrées à notre tableau global
+                savedJobs.forEach(jobData => {
+                    // Vérifier si l'offre existe déjà pour éviter les doublons
+                    const exists = window.jobOffers.some(job => job.id === jobData.id);
+                    if (!exists) {
+                        window.jobOffers.push(jobData);
+                        
+                        // Ajouter l'offre à l'interface
+                        window.addJobOfferToUI(jobData);
+                    }
+                });
+                
+                // Mettre à jour les filtres
+                window.updateJobFilters();
+            }
+        });
+    </script>
 </body>
 </html>
