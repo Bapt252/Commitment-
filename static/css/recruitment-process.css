@@ -1,0 +1,518 @@
+/* Styles pour le processus de recrutement personnalisé */
+
+/* Mise en page des modales */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background-color: white;
+    padding: 0;
+    border-radius: var(--border-radius-lg);
+    width: 500px;
+    max-width: 90%;
+    box-shadow: var(--box-shadow-lg);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: rgba(124, 58, 237, 0.05);
+    border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--purple);
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--gray);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.close-modal:hover {
+    color: var(--purple);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px 20px;
+    gap: 10px;
+    border-top: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+/* Styles pour les étapes du processus */
+.flow-step {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: #f8fafc;
+    border-radius: var(--border-radius-md);
+    transition: all var(--transition-normal);
+    border: 1px solid transparent;
+    position: relative;
+}
+
+.flow-step:hover {
+    background-color: #f1f5f9;
+    transform: translateY(-3px);
+    box-shadow: var(--box-shadow-sm);
+    border-color: var(--gray-light);
+}
+
+.flow-step-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--white);
+    border: 2px solid var(--gray-light);
+    color: var(--gray);
+    font-weight: 600;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    transition: all var(--transition-normal);
+}
+
+.flow-step.active .flow-step-icon {
+    background-color: var(--purple);
+    color: white;
+    border-color: var(--purple);
+    box-shadow: 0 0 0 5px var(--primary-light);
+}
+
+.flow-step.completed .flow-step-icon {
+    background-color: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+.flow-step.pending .flow-step-icon {
+    background-color: #f59e0b;
+    color: white;
+    border-color: #f59e0b;
+}
+
+.flow-step.skipped .flow-step-icon {
+    background-color: #6b7280;
+    color: white;
+    border-color: #6b7280;
+}
+
+.flow-step-content {
+    flex: 1;
+}
+
+.flow-step-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.step-title-text {
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.edit-step-btn {
+    cursor: pointer;
+    color: var(--gray);
+    transition: color var(--transition-fast);
+}
+
+.edit-step-btn:hover {
+    color: var(--purple);
+}
+
+.flow-step-description {
+    font-size: 0.9rem;
+    color: var(--gray);
+    margin-bottom: 10px;
+}
+
+.flow-step-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.flow-action-btn {
+    padding: 6px 12px;
+    border-radius: var(--border-radius-sm);
+    background-color: var(--white);
+    color: var(--gray);
+    font-size: 0.85rem;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    border: 1px solid var(--gray-light);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.flow-action-btn:hover {
+    background-color: var(--primary-light);
+    color: var(--purple);
+    border-color: var(--purple-light);
+}
+
+.flow-action-btn.btn-danger {
+    background-color: rgba(239, 68, 68, 0.05);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.1);
+}
+
+.flow-action-btn.btn-danger:hover {
+    background-color: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.flow-connector {
+    margin-left: 22px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+.flow-connector-line {
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--purple-light) 50%, transparent 50%);
+    background-size: 2px 8px;
+    margin-left: 19px;
+}
+
+.add-step-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 58px;
+    padding: 12px 20px;
+    background-color: #f8fafc;
+    border: 2px dashed var(--purple-light);
+    border-radius: var(--border-radius-md);
+    color: var(--purple);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.add-step-btn:hover {
+    background-color: var(--primary-light);
+    border-color: var(--purple);
+    transform: translateY(-3px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+/* Styles pour les participants */
+.participants-container {
+    margin-top: 10px;
+}
+
+.participants-list {
+    padding: 12px;
+    background-color: rgba(124, 58, 237, 0.05);
+    border-radius: var(--border-radius-md);
+    border: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+.participants-list h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: var(--purple);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.participants-list h4::before {
+    content: '\f007';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 0.8rem;
+}
+
+.participant-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border-radius: var(--border-radius-sm);
+    transition: background-color var(--transition-fast);
+}
+
+.participant-item:not(:last-child) {
+    margin-bottom: 5px;
+    border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+.participant-item:hover {
+    background-color: rgba(124, 58, 237, 0.07);
+}
+
+.participant-name {
+    font-weight: 500;
+    color: var(--dark);
+}
+
+.participant-role {
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-left: 5px;
+}
+
+.remove-participant-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity var(--transition-fast);
+    font-size: 0.8rem;
+    padding: 4px;
+}
+
+.remove-participant-btn:hover {
+    opacity: 1;
+}
+
+/* Styles pour les statuts */
+.status-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.status-option {
+    text-align: left;
+    padding: 12px 15px;
+    border-radius: var(--border-radius-md);
+    background-color: white;
+    border: 1px solid var(--gray-light);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.status-option i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.status-option:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+.status-option[data-status="pending"] {
+    color: #f59e0b;
+}
+
+.status-option[data-status="pending"]:hover {
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-option[data-status="active"] {
+    color: var(--purple);
+}
+
+.status-option[data-status="active"]:hover {
+    background-color: var(--primary-light);
+    border-color: var(--purple-light);
+}
+
+.status-option[data-status="completed"] {
+    color: #10b981;
+}
+
+.status-option[data-status="completed"]:hover {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.status-option[data-status="skipped"] {
+    color: #6b7280;
+}
+
+.status-option[data-status="skipped"]:hover {
+    background-color: rgba(107, 114, 128, 0.1);
+    border-color: rgba(107, 114, 128, 0.3);
+}
+
+/* Styles pour le sélecteur de templates */
+.template-selector-container {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    padding: 15px;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 20px;
+    box-shadow: var(--box-shadow-sm);
+    border: 1px solid var(--gray-light);
+}
+
+.template-selector-container h4 {
+    margin: 0 15px 0 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+    white-space: nowrap;
+}
+
+.template-selector-container select {
+    flex: 1;
+    max-width: 250px;
+    margin-right: 10px;
+}
+
+#apply-template-btn {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+}
+
+.save-template-btn {
+    background-color: white;
+    color: var(--purple);
+    border: 1px solid var(--purple-light);
+    transition: all var(--transition-normal);
+}
+
+.save-template-btn:hover {
+    background-color: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+/* Notification */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--purple);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--box-shadow-md);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+.notification i {
+    font-size: 1.2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .template-selector-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .template-selector-container h4 {
+        margin-bottom: 10px;
+    }
+    
+    .template-selector-container select {
+        max-width: 100%;
+        width: 100%;
+        margin-bottom: 10px;
+        margin-right: 0;
+    }
+    
+    #apply-template-btn {
+        width: 100%;
+    }
+    
+    .flow-step {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .flow-step-icon {
+        margin-bottom: 10px;
+    }
+    
+    .flow-step-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .flow-action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .flow-connector-line {
+        margin-left: 0;
+    }
+    
+    .add-step-btn {
+        margin-left: 0;
+        width: 100%;
+    }
+}
