@@ -42,7 +42,7 @@
             <nav>
                 <ul>
                     <li><a href="index.html">Accueil</a></li>
-                    <li><a href="candidate-dashboard.html?email=demo.utilisateur%40nexten.fr&password=s" class="active">Espace candidat</a></li>
+                    <li><a href="candidate-dashboard.html?email=demo.utilisateur@nexten.fr&password=s" class="active">Espace candidat</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
@@ -50,10 +50,48 @@
     </header>
 
     <div class="container main-container" id="main-content">
+        <div class="contextual-nav">
+            <a href="candidate-dashboard-new.html" class="previous-page" data-tooltip="Page précédente">
+                <i class="fas fa-chevron-left"></i> Tableau de bord
+            </a>
+            <a href="candidate-dashboard-new.html" class="dashboard-link" data-tooltip="Retour au tableau de bord">
+                <i class="fas fa-th-large"></i> Tableau de bord
+            </a>
+            <a href="candidate-offers.html" class="next-page" data-tooltip="Page suivante">
+                Mes offres reçues <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
         <!-- Section Mes opportunités selectionnées -->
         <div class="candidate-dashboard-section">
             <div class="section-header">
                 <h2 class="section-heading">MES OPPORTUNITÉS SÉLECTIONNÉES</h2>
+                <div class="progress-tracker">
+                    <div class="progress-step active">
+                        <div class="step-indicator">1</div>
+                        <div class="step-label">Mes opportunités</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="step-indicator">2</div>
+                        <div class="step-label">Mes offres reçues</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="step-indicator">3</div>
+                        <div class="step-label">Postuler en un clic</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="step-indicator">4</div>
+                        <div class="step-label">Travailler mon CV</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="step-indicator">5</div>
+                        <div class="step-label">Centre de ressources</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="step-indicator">6</div>
+                        <div class="step-label">Messagerie</div>
+                    </div>
+                </div>
             </div>
             
             <div class="filter-section">
@@ -69,6 +107,7 @@
                             <option>Trier par : Date</option>
                             <option>Trier par : Entreprise</option>
                             <option>Trier par : Avancement</option>
+                            <option>Trier par : Match</option>
                         </select>
                         <i class="fas fa-chevron-down"></i>
                     </div>
@@ -133,7 +172,7 @@
                             </div>
                             
                             <div class="stage active">
-                                <div class="stage-icon">
+                                <div class="stage-icon" style="transform: scale(1.15); box-shadow: rgba(76, 175, 80, 0.15) 0px 0px 0px 3px;">
                                     <i class="fas fa-circle"></i>
                                 </div>
                                 <div class="stage-label">Entretien Présentiel</div>
@@ -224,7 +263,7 @@
                             </div>
                             
                             <div class="stage active">
-                                <div class="stage-icon">
+                                <div class="stage-icon" style="transform: scale(1.15); box-shadow: rgba(76, 175, 80, 0.15) 0px 0px 0px 3px;">
                                     <i class="fas fa-circle"></i>
                                 </div>
                                 <div class="stage-label">Entretien visio</div>
@@ -308,7 +347,7 @@
                         
                         <div class="stages-wrapper">
                             <div class="stage active">
-                                <div class="stage-icon">
+                                <div class="stage-icon" style="transform: scale(1.15); box-shadow: rgba(76, 175, 80, 0.15) 0px 0px 0px 3px;">
                                     <i class="fas fa-circle"></i>
                                 </div>
                                 <div class="stage-label">En cours de validation</div>
@@ -393,7 +432,7 @@
                     <h4 class="footer-heading">Navigation</h4>
                     <ul class="footer-links">
                         <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
-                        <li><a href="candidate-dashboard.html?email=demo.utilisateur%40nexten.fr&password=s"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
+                        <li><a href="candidate-dashboard.html?email=demo.utilisateur@nexten.fr&password=s"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
                         <li><a href="#"><i class="fas fa-chevron-right"></i> À propos</a></li>
                         <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
                     </ul>
@@ -410,7 +449,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="#">Politique de confidentialité</a> | <a href="#">Conditions d'utilisation</a></p>
+                <p>© 2025 Nexten - Tous droits réservés | <a href="#">Politique de confidentialité</a> | <a href="#">Conditions d'utilisation</a></p>
             </div>
         </div>
         
@@ -556,55 +595,11 @@
                     }, 1000);
                 }, 2000);
             });
-
-            // Script pour masquer les éléments surlignés en jaune via JavaScript
-            document.addEventListener('DOMContentLoaded', function() {
-                // Fonction pour masquer les éléments par sélecteur
-                function hideElements(selector) {
-                    const elements = document.querySelectorAll(selector);
-                    elements.forEach(el => {
-                        el.style.display = 'none';
-                    });
-                }
-                
-                // Masquer le fil d'Ariane
-                hideElements('.breadcrumb');
-                
-                // Masquer les liens de tableau de bord redondants
-                hideElements('[href*="tableau-de-bord"]');
-                hideElements('.contextual-nav a');
-                
-                // Masquer "Mes offres reçues"
-                hideElements('a:contains("Mes offres reçues")');
-                
-                // Masquer la navigation numérotée
-                hideElements('[class*="step-"]');
-                hideElements('.numbered-pagination');
-                
-                // Extension jQuery-like pour simplifier la sélection de texte
-                Element.prototype.contains = function(text) {
-                    return this.textContent.includes(text);
-                };
-                
-                // Sélectionner tous les éléments qui contiennent le texte spécifié
-                document.querySelectorAll('a').forEach(a => {
-                    if (a.textContent.includes('Mes offres reçues') || a.textContent.includes('Tableau de bord')) {
-                        a.style.display = 'none';
-                    }
-                });
-                
-                // Masquer les éléments numérotés de 1 à 6
-                for (let i = 1; i <= 6; i++) {
-                    hideElements(`[class*="step-${i}"]`);
-                }
-            });
         });
     </script>
     
-    <!-- Script d'amélioration de la navigation -->
-    <script src="../static/services/nav-enhancement.js"></script>
-    
-    <!-- Script de sécurité pour masquer les informations sensibles dans l'URL -->
-    <script src="../static/services/security.js"></script>
+    <!-- Scripts améliorés pour l'UI/UX -->
+    <script src="../static/js/dark-mode-toggle.js"></script>
+    <script src="../static/js/enhanced-user-experience.js"></script>
 </body>
 </html>
