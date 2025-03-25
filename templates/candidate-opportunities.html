@@ -605,24 +605,7 @@
         });
     </script>
     
-    <!-- Scripts améliorés pour l'UI/UX - chargés avec délai pour éviter les problèmes -->
-    <script>
-        // Attendre que la page soit complètement chargée avant d'ajouter les scripts avancés
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                // Charger le script du mode sombre avec un délai
-                const darkModeScript = document.createElement('script');
-                darkModeScript.src = '../static/js/dark-mode-toggle.js';
-                document.body.appendChild(darkModeScript);
-                
-                // Charger les améliorations UI/UX avec un délai plus long
-                setTimeout(function() {
-                    const enhancedUXScript = document.createElement('script');
-                    enhancedUXScript.src = '../static/js/enhanced-user-experience.js';
-                    document.body.appendChild(enhancedUXScript);
-                }, 500);
-            }, 300);
-        });
-    </script>
+    <!-- Charger la version simplifiée des améliorations (plus stable) -->
+    <script src="../static/js/simplified-user-experience.js"></script>
 </body>
 </html>
