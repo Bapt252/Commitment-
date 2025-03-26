@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 process: getRecruitmentProcess()
             };
             
+            console.log("Données du poste à sauvegarder:", jobData);
+            
             // Sauvegarder dans localStorage
             saveJobToLocalStorage(jobData);
             
@@ -106,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        console.log("Processus de recrutement récupéré:", process);
         return process;
     }
     
