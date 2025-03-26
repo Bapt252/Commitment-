@@ -30,6 +30,44 @@
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
+    
+    <!-- CSS Inline pour corrections immédiates -->
+    <style>
+        /* Correctifs pour réduire la taille des cartes d'interlocuteurs */
+        .interviewer-card {
+            min-width: 180px !important;
+            padding: 10px !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+        }
+        
+        /* Réduire la taille du nom */
+        .interviewer-name {
+            font-size: 0.9rem !important;
+            margin-bottom: 3px !important;
+        }
+        
+        /* Réduire la taille du titre */
+        .interviewer-title {
+            font-size: 0.75rem !important;
+            margin-bottom: 5px !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* Réduire la taille de la date */
+        .interview-date {
+            font-size: 0.8rem !important;
+        }
+        
+        /* Alignement des étapes pour gain d'espace */
+        .stages-wrapper {
+            padding: 0 20px !important;
+        }
+        
+        /* Ajuster la position de la carte par rapport à l'étape */
+        .stage.active .interviewer-card {
+            top: 40px !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Notification bar -->
@@ -151,10 +189,10 @@
                                     <i class="fas fa-circle"></i>
                                 </div>
                                 <div class="stage-label">Entretien Présentiel</div>
-                                <div class="interviewer-card">
-                                    <div class="interviewer-name">Thomas MARTIN</div>
-                                    <div class="interviewer-title">Directeur Administratif et Financier</div>
-                                    <div class="interview-date">
+                                <div class="interviewer-card" style="min-width:180px; padding:10px; font-size:0.9rem;">
+                                    <div class="interviewer-name" style="font-size:0.9rem; margin-bottom:3px;">Thomas MARTIN</div>
+                                    <div class="interviewer-title" style="font-size:0.75rem; margin-bottom:5px; line-height:1.2;">Directeur Administratif et Financier</div>
+                                    <div class="interview-date" style="font-size:0.8rem;">
                                         <i class="fas fa-calendar-alt"></i> 28 Mars, 14h00
                                     </div>
                                 </div>
@@ -242,10 +280,10 @@
                                     <i class="fas fa-circle"></i>
                                 </div>
                                 <div class="stage-label">Entretien visio</div>
-                                <div class="interviewer-card">
-                                    <div class="interviewer-name">Sophie DUBOIS</div>
-                                    <div class="interviewer-title">Directrice RH</div>
-                                    <div class="interview-date">
+                                <div class="interviewer-card" style="min-width:180px; padding:10px; font-size:0.9rem;">
+                                    <div class="interviewer-name" style="font-size:0.9rem; margin-bottom:3px;">Sophie DUBOIS</div>
+                                    <div class="interviewer-title" style="font-size:0.75rem; margin-bottom:5px; line-height:1.2;">Directrice RH</div>
+                                    <div class="interview-date" style="font-size:0.8rem;">
                                         <i class="fas fa-calendar-alt"></i> 25 Mars, 10h30
                                     </div>
                                 </div>
