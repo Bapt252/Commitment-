@@ -5,6 +5,30 @@
     min-width: 180px;
     padding: 10px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    z-index: 100;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+/* Effet de bulle de dialogue */
+.interviewer-card:before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid var(--green);
+}
+
+/* Animation d'ouverture */
+.interviewer-card.card-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Réduire la taille du nom */
@@ -35,10 +59,61 @@
     top: 40px;
 }
 
+/* Indicateur visuel pour les icônes cliquables */
+.stage-icon.clickable {
+    cursor: pointer;
+    position: relative;
+}
+
+/* Indicateur d'information */
+.info-indicator {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--purple);
+    border-radius: 50%;
+    border: 1px solid white;
+}
+
+/* Effet lors du survol */
+.stage-icon.clickable:hover {
+    transform: scale(1.15);
+    transition: transform 0.2s ease;
+}
+
+/* État actif pour montrer que la carte est ouverte */
+.stage-icon.card-open {
+    transform: scale(1.25) !important;
+    box-shadow: 0 0 0 6px rgba(76, 175, 80, 0.3);
+}
+
+/* Effet de pulsation pour attirer l'attention */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(76, 175, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+.stage-icon.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
 /* Ajustements responsives */
 @media (max-width: 992px) {
     .interviewer-card {
         padding: 8px;
         margin-top: 5px;
+    }
+    
+    .interviewer-card:before {
+        display: none;
     }
 }
