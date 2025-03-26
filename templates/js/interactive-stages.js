@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', function() {
         interviewerCards.forEach(card => {
             card.style.display = 'none';
             card.classList.remove('card-visible');
+            
+            // S'assurer que tous les icônes perdent la classe "card-open"
+            document.querySelectorAll('.stage-icon').forEach(icon => {
+                icon.classList.remove('card-open');
+            });
         });
     }
     
@@ -28,10 +33,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (card) {
             // Ajouter une classe pour le style de l'icône cliquable
-            stage.querySelector('.stage-icon').classList.add('clickable');
+            const stageIcon = stage.querySelector('.stage-icon');
+            stageIcon.classList.add('clickable');
             
             // Ajouter un gestionnaire d'événement pour le clic sur l'icône
-            stage.querySelector('.stage-icon').addEventListener('click', function(e) {
+            stageIcon.addEventListener('click', function(e) {
                 e.stopPropagation(); // Empêcher la propagation de l'événement
                 
                 // Vérifier si cette étape est déjà ouverte
@@ -39,12 +45,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     // C'est la même étape, donc on ferme la carte
                     card.style.display = 'none';
                     card.classList.remove('card-visible');
+                    stageIcon.classList.remove('card-open');
                     currentOpenStage = null;
                 } else {
                     // C'est une nouvelle étape, fermer toutes les cartes et ouvrir celle-ci
                     closeAllCards();
                     card.style.display = 'block';
                     card.classList.add('card-visible');
+                    stageIcon.classList.add('card-open');
                     currentOpenStage = stage;
                     
                     // Animation d'apparition
@@ -59,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const infoIndicator = document.createElement('span');
             infoIndicator.className = 'info-indicator';
             infoIndicator.setAttribute('title', 'Cliquez pour voir les détails');
-            stage.querySelector('.stage-icon').appendChild(infoIndicator);
+            stageIcon.appendChild(infoIndicator);
         }
     });
     
@@ -75,5 +83,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const activeStages = document.querySelectorAll('.stage.active .stage-icon');
     activeStages.forEach(icon => {
         icon.classList.add('pulse-animation');
+        
+        // Ajouter une classe spéciale pour améliorer la visibilité du curseur pointer
+        icon.classList.add('active-icon-hover');
     });
+    
+    // Ajouter un style pour la carte ouverte
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .stage-icon.clickable {
+            cursor: pointer;
+        }
+        .stage-icon.active-icon-hover:hover {
+            transform: scale(1.25);
+            box-shadow: 0 0 0 6px rgba(76, 175, 80, 0.3);
+        }
+        .stage-icon.card-open {
+            transform: scale(1.25);
+            box-shadow: 0 0 0 6px rgba(76, 175, 80, 0.3);
+        }
+        .interviewer-card {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .interviewer-card.card-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    `;
+    document.head.appendChild(styleElement);
 });
