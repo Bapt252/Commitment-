@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const interviewerCards = document.querySelectorAll('.interviewer-card');
     interviewerCards.forEach(card => {
         card.style.display = 'none';
+        card.classList.remove('card-visible');
     });
     
     // Fonction pour fermer toutes les cartes ouvertes
@@ -16,6 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
             card.classList.remove('card-visible');
         });
     }
+    
+    // Variable pour suivre l'étape actuellement ouverte
+    let currentOpenStage = null;
     
     // Ajouter des gestionnaires d'événements pour chaque étape
     stages.forEach(stage => {
@@ -30,15 +34,18 @@ document.addEventListener('DOMContentLoaded', function() {
             stage.querySelector('.stage-icon').addEventListener('click', function(e) {
                 e.stopPropagation(); // Empêcher la propagation de l'événement
                 
-                // Si la carte est déjà visible, la masquer
-                if (card.style.display === 'block') {
+                // Vérifier si cette étape est déjà ouverte
+                if (currentOpenStage === stage) {
+                    // C'est la même étape, donc on ferme la carte
                     card.style.display = 'none';
                     card.classList.remove('card-visible');
+                    currentOpenStage = null;
                 } else {
-                    // Sinon, fermer toutes les cartes et afficher celle-ci
+                    // C'est une nouvelle étape, fermer toutes les cartes et ouvrir celle-ci
                     closeAllCards();
                     card.style.display = 'block';
                     card.classList.add('card-visible');
+                    currentOpenStage = stage;
                     
                     // Animation d'apparition
                     setTimeout(() => {
@@ -60,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.stage-icon') && !e.target.closest('.interviewer-card')) {
             closeAllCards();
+            currentOpenStage = null;
         }
     });
     
