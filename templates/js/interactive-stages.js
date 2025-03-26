@@ -63,30 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Ajouter un gestionnaire d'événement pour le clic sur le cercle vert (étape active)
-            if (stage.classList.contains('active')) {
-                const activeIcon = stage.querySelector('.stage-icon');
-                // Le cercle vert peut aussi être cliqué pour fermer l'infobulle
-                activeIcon.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    
-                    // Si une carte est ouverte, la fermer
-                    if (currentOpenStage) {
-                        const openCard = currentOpenStage.querySelector('.interviewer-card');
-                        if (openCard && openCard.style.display !== 'none') {
-                            openCard.style.display = 'none';
-                            openCard.classList.remove('card-visible');
-                            // Retirer la classe card-open de l'icône
-                            const openIcon = currentOpenStage.querySelector('.stage-icon');
-                            if (openIcon) {
-                                openIcon.classList.remove('card-open');
-                            }
-                            currentOpenStage = null;
-                        }
-                    }
-                });
-            }
-            
             // Ajouter un indice visuel (petit point ou badge) pour indiquer qu'il y a des informations
             const infoIndicator = document.createElement('span');
             infoIndicator.className = 'info-indicator';
@@ -97,13 +73,11 @@ document.addEventListener('DOMContentLoaded', function() {
             card.addEventListener('click', function(e) {
                 e.stopPropagation(); // Empêcher la propagation pour ne pas fermer toutes les cartes
                 
-                // Si c'est le cercle vert (étape active), on peut fermer la carte en cliquant dessus
-                if (stage.classList.contains('active')) {
-                    card.style.display = 'none';
-                    card.classList.remove('card-visible');
-                    stageIcon.classList.remove('card-open');
-                    currentOpenStage = null;
-                }
+                // Fermer la carte quand on clique dessus
+                card.style.display = 'none';
+                card.classList.remove('card-visible');
+                stageIcon.classList.remove('card-open');
+                currentOpenStage = null;
             });
         }
     });
