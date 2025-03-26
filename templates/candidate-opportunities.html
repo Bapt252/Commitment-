@@ -25,6 +25,9 @@
     <link rel="stylesheet" href="../static/styles/interviewer-card-fix.css">
     <link rel="stylesheet" href="../static/styles/ui-improvements.css">
     
+    <!-- Harmonisation UI pour le parcours candidat -->
+    <link rel="stylesheet" href="../static/styles/ui-harmonization.css">
+    
     <!-- Favicon -->
     <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
 </head>
@@ -55,6 +58,51 @@
     </header>
 
     <div class="container main-container" id="main-content">
+        <!-- Breadcrumb harmonisé -->
+        <div class="breadcrumb">
+            <a href="candidate-dashboard.html?email=demo.utilisateur@nexten.fr&password=s">Tableau de bord</a>
+            <span class="breadcrumb-separator">></span>
+            <span>Mes opportunités sélectionnées</span>
+        </div>
+        
+        <!-- Indicateur de progression harmonisé -->
+        <div class="progress-indicator">
+            <div class="progress-line"></div>
+            <div class="progress-line-filled" style="width: 20%;"></div>
+            
+            <div class="progress-step completed">
+                <div class="progress-dot completed">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="progress-label">Mes opportunités</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">2</div>
+                <div class="progress-label">Mes offres reçues</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">3</div>
+                <div class="progress-label">Postuler en un clic</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">4</div>
+                <div class="progress-label">Travailler mon CV</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">5</div>
+                <div class="progress-label">Centre de ressources</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">6</div>
+                <div class="progress-label">Messagerie</div>
+            </div>
+        </div>
+    
         <!-- Section Mes opportunités selectionnées -->
         <div class="candidate-dashboard-section">
             <div class="section-header">
