@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="../static/styles/dashboard-new.css">
     <link rel="stylesheet" href="../static/styles/nav-improvement.css">
     
+    <!-- Harmonisation UI pour le parcours candidat -->
+    <link rel="stylesheet" href="../static/styles/ui-harmonization.css">
+    
     <!-- Favicon -->
     <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
     
@@ -51,7 +54,7 @@
         
         /* Layout principal */
         .main-container {
-            padding-top: 100px;
+            padding-top: 30px;
             padding-bottom: 60px;
             max-width: 1440px;
         }
@@ -82,36 +85,7 @@
             transition: width 0.3s ease;
         }
         
-        /* Breadcrumb amélioré */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            margin-bottom: 24px;
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-        
-        .breadcrumb a {
-            display: flex;
-            align-items: center;
-            color: var(--gray);
-            transition: color var(--transition-fast);
-        }
-        
-        .breadcrumb a:hover {
-            color: var(--purple);
-        }
-        
-        .breadcrumb i {
-            margin-right: 6px;
-        }
-        
-        .breadcrumb span {
-            margin: 0 8px;
-            color: var(--gray);
-        }
-        
-        /* Contrôles de page améliorés */
+        /* Page controls améliorés */
         .page-controls {
             margin: 32px 0;
             padding: 0;
@@ -350,7 +324,7 @@
             position: absolute;
             top: 0;
             right: 0;
-            background-color: var(--orange);
+            background-color: var(--purple);
             color: var(--white);
             padding: 6px 16px;
             font-size: 0.75rem;
@@ -406,11 +380,12 @@
         }
         
         .job-match[data-score="high"] {
-            background: linear-gradient(135deg, var(--green), #2E7D32);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
         }
         
         .job-match[data-score="medium"] {
-            background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            opacity: 0.9;
         }
         
         /* Description de l'offre */
@@ -699,7 +674,7 @@
         
         @media (max-width: 768px) {
             .main-container {
-                padding-top: 100px;
+                padding-top: 30px;
             }
             
             .candidate-dashboard-section {
@@ -868,13 +843,51 @@
     </header>
 
     <div class="container main-container" id="main-content">
-        <!-- Breadcrumb amélioré -->
+        <!-- Breadcrumb harmonisé -->
         <div class="breadcrumb fade-in">
-            <a href="candidate-dashboard.html?email=demo.utilisateur%40nexten.fr&password=s">
-                <i class="fas fa-home"></i> Tableau de bord
-            </a>
-            <span>›</span>
+            <a href="candidate-dashboard.html?email=demo.utilisateur%40nexten.fr&password=s">Tableau de bord</a>
+            <span class="breadcrumb-separator">></span>
             <span>Mes offres reçues</span>
+        </div>
+        
+        <!-- Indicateur de progression harmonisé -->
+        <div class="progress-indicator">
+            <div class="progress-line"></div>
+            <div class="progress-line-filled" style="width: 40%;"></div>
+            
+            <div class="progress-step completed">
+                <div class="progress-dot completed">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="progress-label">Mes opportunités</div>
+            </div>
+            
+            <div class="progress-step active">
+                <div class="progress-dot active">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="progress-label">Mes offres reçues</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">3</div>
+                <div class="progress-label">Postuler en un clic</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">4</div>
+                <div class="progress-label">Travailler mon CV</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">5</div>
+                <div class="progress-label">Centre de ressources</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">6</div>
+                <div class="progress-label">Messagerie</div>
+            </div>
         </div>
         
         <!-- Contrôles de page améliorés -->
