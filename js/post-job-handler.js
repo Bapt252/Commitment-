@@ -7,8 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             
             // Récupérer les données du formulaire
+            const jobId = 'job-' + Date.now(); // Identifiant unique basé sur le timestamp
             const jobData = {
-                id: 'job-' + Date.now(), // Identifiant unique basé sur le timestamp
+                id: jobId, // Identifiant unique
                 title: document.getElementById('job-title').value,
                 description: document.getElementById('job-description').value,
                 salary: getSalaryRange(),
@@ -21,6 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             console.log("Données du poste à sauvegarder:", jobData);
+            console.log("ID du poste généré:", jobId);
+            
+            // Stocker l'ID du job pour la redirection
+            sessionStorage.setItem('last_created_job_id', jobId);
             
             // Sauvegarder dans localStorage
             saveJobToLocalStorage(jobData);
