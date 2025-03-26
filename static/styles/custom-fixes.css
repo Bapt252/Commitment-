@@ -16,6 +16,16 @@ a[href="#main-content"] {
     display: none !important;
 }
 
+/* Cache la navigation contextuelle */
+.contextual-nav {
+    display: none !important;
+}
+
+/* Cache le progress tracker (étapes numérotées) */
+.progress-tracker {
+    display: none !important;
+}
+
 /* Correction de l'espacement dans le header après suppression du bouton thème */
 header .container {
     gap: 1rem;
@@ -24,6 +34,22 @@ header .container {
 /* Ajustements pour compenser l'absence du lien "Aller au contenu principal" */
 .notification-bar {
     margin-bottom: 0;
+}
+
+/* Ajustements pour le titre de la section après suppression du progress tracker */
+.section-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.section-heading {
+    margin-bottom: 0;
+}
+
+/* Ajouter plus d'espace au-dessus de la section principale */
+.candidate-dashboard-section {
+    margin-top: 2rem;
 }
 
 /* S'assurer que la navigation est correctement alignée */
