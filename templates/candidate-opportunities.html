@@ -28,8 +28,7 @@
         <i class="fas fa-bell"></i> Votre recrutement change, votre approche aussi : découvrez notre approche TOP <span class="ten-badge">10</span>
     </div>
 
-    <!-- Lien d'accessibilité pour sauter au contenu principal -->
-    <a href="#main-content" class="skip-to-content">Aller au contenu principal</a>
+    <!-- Lien d'accessibilité pour sauter au contenu principal supprimé -->
 
     <header>
         <div class="container">
@@ -464,26 +463,7 @@
     <!-- JavaScript minimal -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Mode sombre simplifié
-            const darkModeToggle = document.createElement('button');
-            darkModeToggle.className = 'simple-dark-mode-toggle';
-            darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-            darkModeToggle.setAttribute('aria-label', 'Activer le mode sombre');
-            
-            const header = document.querySelector('header .container');
-            if (header) {
-                header.insertBefore(darkModeToggle, header.querySelector('nav'));
-            }
-            
-            darkModeToggle.addEventListener('click', function() {
-                document.body.classList.toggle('dark-mode');
-                
-                if (document.body.classList.contains('dark-mode')) {
-                    this.innerHTML = '<i class="fas fa-sun"></i>';
-                } else {
-                    this.innerHTML = '<i class="fas fa-moon"></i>';
-                }
-            });
+            // Code du mode sombre supprimé
             
             // Menu mobile toggle
             const menuToggle = document.querySelector('.menu-toggle');
