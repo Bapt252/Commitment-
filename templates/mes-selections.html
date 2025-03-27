@@ -51,6 +51,7 @@
             --transition-normal: 0.3s ease;
             --transition-slow: 0.5s ease;
             --notification-height: 40px; /* Hauteur de la barre de notification */
+            --header-height: 60px; /* Hauteur du header */
         }
 
         * {
@@ -64,7 +65,7 @@
             background-color: var(--cream);
             color: var(--dark);
             line-height: 1.6;
-            padding-top: calc(var(--notification-height) + 60px); /* Ajout de padding pour compenser la notification et le header */
+            padding-top: calc(var(--notification-height) + var(--header-height)); /* Ajout de padding pour compenser la notification et le header */
         }
 
         /* Header styles */
@@ -79,6 +80,9 @@
             transition: all var(--transition-normal);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
         }
 
         header.scrolled {
@@ -89,9 +93,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem var(--spacing-md);
+            padding: 0 var(--spacing-md);
             max-width: 1400px;
             margin: 0 auto;
+            width: 100%;
         }
 
         .logo {
@@ -168,6 +173,7 @@
             display: flex;
             gap: var(--spacing-md);
             list-style: none;
+            margin-bottom: 0;
         }
 
         nav a {
@@ -244,7 +250,6 @@
 
         /* Main content */
         #main-content {
-            padding-top: 0; /* Supprimé car on utilise padding-top sur body */
             padding-bottom: 60px;
         }
 
@@ -259,7 +264,7 @@
             background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
             color: var(--white);
             padding: var(--spacing-lg) 0;
-            margin-top: 0; /* Ajusté pour éviter un espacement excessif */
+            margin-top: 1rem; /* Marge réduite pour un meilleur positionnement */
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
@@ -1537,10 +1542,10 @@
             /* Ajustement pour le menu mobile */
             nav {
                 position: fixed;
-                top: calc(80px + var(--notification-height)); /* Ajustement pour tenir compte de la notification */
+                top: calc(var(--header-height) + var(--notification-height)); /* Ajustement pour tenir compte de la notification */
                 left: -100%;
                 width: 100%;
-                height: calc(100vh - 80px - var(--notification-height)); /* Ajustement de la hauteur */
+                height: calc(100vh - var(--header-height) - var(--notification-height)); /* Ajustement de la hauteur */
                 background-color: var(--white);
                 transition: left var(--transition-normal);
                 display: flex;
@@ -1580,7 +1585,16 @@
             }
             
             body {
-                padding-top: calc(var(--notification-height) + 80px); /* Ajustement pour mobile */
+                padding-top: calc(var(--notification-height) + var(--header-height) + 10px); /* Ajustement pour mobile */
+            }
+            
+            /* Ajustement de la bannière InnovTech pour mobile */
+            .company-banner {
+                margin-top: 0.5rem;
+            }
+            
+            .company-banner-content {
+                padding: var(--spacing-md);
             }
         }
         
@@ -1605,7 +1619,7 @@
             }
             
             body {
-                padding-top: calc(var(--notification-height) + 70px); /* Ajustement pour très petits écrans */
+                padding-top: calc(var(--notification-height) + var(--header-height)); /* Ajustement pour très petits écrans */
             }
         }
     </style>
