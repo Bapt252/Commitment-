@@ -10,12 +10,13 @@ function ajouterBoutonSuppression() {
   // Vérifier si le bouton existe déjà
   if (document.getElementById('btn-supprimer-offre')) return;
   
-  // Chercher la section des boutons du formulaire (à côté de "Annuler")
+  // Trouver les boutons d'action
   const formActions = modal.querySelector('.form-actions');
   if (!formActions) return;
   
   // Chercher le bouton "Annuler"
-  const cancelButton = formActions.querySelector('#cancel-job-btn');
+  const cancelButton = formActions.querySelector('#cancel-job-btn, button[type="button"]:not([id="assign-job-member"])');
+  if (!cancelButton) return;
   
   // Créer le bouton de suppression
   const deleteButton = document.createElement('button');
@@ -23,30 +24,50 @@ function ajouterBoutonSuppression() {
   deleteButton.className = 'btn btn-danger';
   deleteButton.type = 'button';
   deleteButton.textContent = 'Supprimer';
+  
+  // Appliquer les styles pour placer le bouton à côté de "Annuler"
+  formActions.style.display = 'flex';
+  formActions.style.flexDirection = 'row';
+  formActions.style.justifyContent = 'space-between';
+  formActions.style.alignItems = 'center';
+  
+  // Créer un conteneur flex pour les boutons de gauche (Annuler et Supprimer)
+  const leftButtons = document.createElement('div');
+  leftButtons.style.display = 'flex';
+  leftButtons.style.gap = '10px'; // Espace entre les boutons
+  
+  // Déplacer le bouton Annuler dans le conteneur de gauche
+  cancelButton.parentNode.insertBefore(leftButtons, cancelButton);
+  leftButtons.appendChild(cancelButton);
+  
+  // Ajouter le bouton Supprimer dans le conteneur de gauche
+  leftButtons.appendChild(deleteButton);
+  
+  // Chercher le bouton Enregistrer
+  const submitButton = formActions.querySelector('button[type="submit"]');
+  if (submitButton) {
+    // S'assurer que le bouton d'enregistrement est à droite
+    submitButton.style.marginLeft = 'auto';
+  }
+  
+  // Ajouter les styles pour le bouton de suppression
   deleteButton.style.backgroundColor = '#dc3545';
+  deleteButton.style.borderColor = '#dc3545';
   deleteButton.style.color = 'white';
-  deleteButton.style.marginRight = '10px';
+  
+  // Ajouter un style au survol
+  deleteButton.addEventListener('mouseenter', function() {
+    this.style.backgroundColor = '#c82333';
+    this.style.borderColor = '#bd2130';
+  });
+  
+  deleteButton.addEventListener('mouseleave', function() {
+    this.style.backgroundColor = '#dc3545';
+    this.style.borderColor = '#dc3545';
+  });
   
   // Ajouter l'écouteur d'événement pour la suppression
   deleteButton.addEventListener('click', supprimerOffreEmploi);
-  
-  // Si le bouton "Annuler" existe, insérer le bouton "Supprimer" juste après
-  if (cancelButton) {
-    cancelButton.parentNode.insertBefore(deleteButton, cancelButton.nextSibling);
-  } else {
-    // Sinon, ajouter le bouton au début de la section des actions
-    formActions.prepend(deleteButton);
-  }
-  
-  // Ajuster les styles pour mieux aligner les boutons
-  formActions.style.display = 'flex';
-  formActions.style.justifyContent = 'flex-start';
-  
-  // Assurer que le bouton "Enregistrer" reste à droite
-  const saveButton = formActions.querySelector('[type="submit"]');
-  if (saveButton) {
-    saveButton.style.marginLeft = 'auto';
-  }
 }
 
 // Fonction pour supprimer l'offre d'emploi
@@ -144,10 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
     .btn-danger:hover {
       background-color: #c82333;
       border-color: #bd2130;
-    }
-    .form-actions {
-      display: flex;
-      align-items: center;
     }
   `;
   document.head.appendChild(style);
