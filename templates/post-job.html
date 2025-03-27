@@ -791,6 +791,87 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Contact selection styling */
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+        
+        .contact-item:hover {
+            background-color: rgba(115, 102, 255, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .contact-info {
+            flex: 1;
+        }
+        
+        .contact-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .contact-position {
+            font-size: 12px;
+            color: var(--light-text);
+        }
+        
+        .contact-email {
+            font-size: 12px;
+            color: var(--primary-color);
+            margin-top: 2px;
+        }
+        
+        .contact-search {
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .contact-search i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--light-text);
+        }
+        
+        .contact-search input {
+            padding-left: 35px;
+        }
+        
+        .empty-contacts {
+            text-align: center;
+            padding: 20px;
+            color: var(--light-text);
+        }
+        
+        .empty-contacts i {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: var(--border-color);
+        }
         
         /* Responsive */
         @media (max-width: 992px) {
@@ -1438,36 +1519,32 @@
         <i class="fas fa-question"></i>
     </button>
     
-    <!-- Modal for adding organization members -->
-    <div class="modal fade" id="addMemberModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+    <!-- Modal pour la sélection des contacts de l'organisation -->
+    <div class="modal fade" id="contactSelectionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Ajouter un membre</h5>
+                    <h5 class="modal-title"><i class="fas fa-users text-primary me-2"></i> Sélectionner un membre</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="member-name" class="form-label">Nom du membre</label>
-                        <input type="text" class="form-control" id="member-name" placeholder="Entrez le nom du membre">
+                    <div class="contact-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-control" id="contact-search-input" placeholder="Rechercher un contact...">
                     </div>
-                    <div class="mb-3">
-                        <label for="member-email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="member-email" placeholder="Entrez l'email du membre">
-                    </div>
-                    <div class="mb-3">
-                        <label for="member-role" class="form-label">Rôle</label>
-                        <select class="form-select" id="member-role">
-                            <option value="recruteur">Recruteur</option>
-                            <option value="manager">Manager</option>
-                            <option value="rh">Ressources Humaines</option>
-                            <option value="directeur">Directeur</option>
-                        </select>
+                    
+                    <div id="contacts-container">
+                        <!-- Les contacts seront chargés dynamiquement ici -->
+                        <div class="text-center p-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Chargement...</span>
+                            </div>
+                            <p class="mt-2">Chargement des contacts...</p>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="save-member-btn">Ajouter</button>
                 </div>
             </div>
         </div>
@@ -1625,37 +1702,104 @@
             const addMemberBtn = document.getElementById('add-member-btn');
             const orgMembersList = document.getElementById('org-members-list');
             const noMembersMessage = document.getElementById('no-members-message');
-            const addMemberModal = new bootstrap.Modal(document.getElementById('addMemberModal'));
-            const saveMemberBtn = document.getElementById('save-member-btn');
+            const contactSelectionModal = new bootstrap.Modal(document.getElementById('contactSelectionModal'));
+            const contactSearchInput = document.getElementById('contact-search-input');
+            const contactsContainer = document.getElementById('contacts-container');
             
             let orgMembers = [];
             
-            addMemberBtn.addEventListener('click', function() {
-                addMemberModal.show();
-            });
+            // Données des contacts pour la démo
+            const demoContacts = [
+                { id: 1, firstName: 'Marie', lastName: 'DURAND', position: 'Chargée recrutement', email: 'marie.durand@example.com', role: 'manager' },
+                { id: 2, firstName: 'Joseph', lastName: 'EUX', position: 'DAF', email: 'joseph.eux@example.com', role: 'admin' },
+                { id: 3, firstName: 'Sophia', lastName: 'MARTIN', position: 'Assistante RH', email: 'sophia.martin@example.com', role: 'recruiter' }
+            ];
             
-            saveMemberBtn.addEventListener('click', function() {
-                const name = document.getElementById('member-name').value.trim();
-                const email = document.getElementById('member-email').value.trim();
-                const role = document.getElementById('member-role').value;
+            // Charger les contacts
+            function loadContacts() {
+                contactsContainer.innerHTML = '';
                 
-                if (name && email) {
-                    const member = {
-                        id: Date.now(), // Simple ID generation
-                        name: name,
-                        email: email,
-                        role: role
-                    };
-                    
-                    orgMembers.push(member);
-                    renderOrgMembers();
-                    addMemberModal.hide();
-                    
-                    // Reset form
-                    document.getElementById('member-name').value = '';
-                    document.getElementById('member-email').value = '';
-                    document.getElementById('member-role').value = 'recruteur';
+                if (demoContacts.length === 0) {
+                    contactsContainer.innerHTML = `
+                        <div class="empty-contacts">
+                            <i class="fas fa-users"></i>
+                            <p>Aucun contact trouvé.</p>
+                        </div>
+                    `;
+                    return;
                 }
+                
+                demoContacts.forEach(contact => {
+                    // Vérifier si ce contact est déjà ajouté à la liste des membres
+                    const isAlreadyAdded = orgMembers.some(member => member.id === contact.id);
+                    if (isAlreadyAdded) {
+                        return; // Skip this contact as it's already added
+                    }
+                    
+                    const contactElement = document.createElement('div');
+                    contactElement.className = 'contact-item';
+                    contactElement.dataset.id = contact.id;
+                    
+                    // Créer initiales pour l'avatar
+                    const initials = contact.firstName.charAt(0) + contact.lastName.charAt(0);
+                    
+                    contactElement.innerHTML = `
+                        <div class="contact-avatar">${initials}</div>
+                        <div class="contact-info">
+                            <div class="contact-name">${contact.firstName} ${contact.lastName}</div>
+                            <div class="contact-position">${contact.position}</div>
+                            <div class="contact-email">${contact.email}</div>
+                        </div>
+                    `;
+                    
+                    contactElement.addEventListener('click', function() {
+                        // Ajouter ce contact à la liste des membres
+                        const member = {
+                            id: contact.id,
+                            name: `${contact.firstName} ${contact.lastName}`,
+                            email: contact.email,
+                            role: contact.position
+                        };
+                        
+                        orgMembers.push(member);
+                        renderOrgMembers();
+                        contactSelectionModal.hide();
+                        
+                        // Afficher une notification de succès
+                        showNotification(`${member.name} a été ajouté avec succès.`);
+                    });
+                    
+                    contactsContainer.appendChild(contactElement);
+                });
+            }
+            
+            // Recherche de contacts
+            if (contactSearchInput) {
+                contactSearchInput.addEventListener('input', function() {
+                    const searchValue = this.value.toLowerCase().trim();
+                    const contactItems = contactsContainer.querySelectorAll('.contact-item');
+                    
+                    contactItems.forEach(item => {
+                        const name = item.querySelector('.contact-name').textContent.toLowerCase();
+                        const position = item.querySelector('.contact-position').textContent.toLowerCase();
+                        const email = item.querySelector('.contact-email').textContent.toLowerCase();
+                        
+                        if (name.includes(searchValue) || position.includes(searchValue) || email.includes(searchValue)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+            
+            // Ouvrir le modal de sélection des contacts
+            addMemberBtn.addEventListener('click', function() {
+                // Charger les contacts dans le modal
+                loadContacts();
+                
+                // Afficher le modal
+                contactSelectionModal.show();
             });
             
             function renderOrgMembers() {
@@ -1715,6 +1859,35 @@
                     orgMembersList.style.display = 'none';
                     noMembersMessage.style.display = 'block';
                 }
+            }
+            
+            // Afficher une notification de succès
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'position-fixed bottom-0 end-0 p-3';
+                notification.style.zIndex = '9999';
+                
+                notification.innerHTML = `
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header bg-success text-white">
+                            <strong class="me-auto">Succès</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>${message}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Supprimer après 3 secondes
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
             }
             
             // Process steps management
