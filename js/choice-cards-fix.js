@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fonction pour initialiser les choice-cards
     function initChoiceCards() {
         const choiceCards = document.querySelectorAll('.choice-card');
-        console.log(`Initializing ${choiceCards.length} choice cards...`);
+        console.log("Initialisation de " + choiceCards.length + " choice cards...");
         
         choiceCards.forEach(function(card) {
             // Supprimer les gestionnaires d'événements existants
@@ -26,22 +26,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Ajouter le nouveau gestionnaire d'événements
             newCard.addEventListener('click', function(e) {
-                console.log(`Card clicked! Type: ${input.type}, Name: ${input.name}, Value: ${input.value}`);
+                console.log("Card clicked! Type: " + input.type + ", Name: " + input.name + ", Value: " + input.value);
                 
                 // Basculer l'état de la checkbox si le clic n'est pas directement sur l'input
                 if (e.target !== input) {
                     input.checked = !input.checked;
-                    console.log(`Input state toggled to: ${input.checked}`);
+                    console.log("Input state toggled to: " + input.checked);
                 }
                 
                 if (input.type === 'checkbox') {
                     // Mettre à jour la classe et le style
                     this.classList.toggle('selected', input.checked);
-                    console.log(`Class 'selected' toggled: ${this.classList.contains('selected')}`);
+                    console.log("Class 'selected' toggled: " + this.classList.contains('selected'));
                 } else if (input.type === 'radio') {
                     // Désélectionner tous les autres radios du même groupe
                     const name = input.getAttribute('name');
-                    document.querySelectorAll(`input[name="${name}"]`).forEach(function(r) {
+                    document.querySelectorAll('input[name="' + name + '"]').forEach(function(r) {
                         const parentCard = r.closest('.choice-card');
                         if (parentCard) {
                             parentCard.classList.toggle('selected', r.checked);
