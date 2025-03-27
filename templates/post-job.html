@@ -6,16 +6,879 @@
     <meta name="description" content="Nexten - Création d'un nouveau poste">
     <title>Nexten - Création d'un nouveau poste</title>
     
-    <!-- CSS -->
-    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #7366ff;
+            --primary-light: #a5a0f7;
+            --primary-dark: #5649dd;
+            --secondary-color: #ffffff;
+            --dark-color: #2c323f;
+            --text-color: #212529;
+            --light-text: #6c757d;
+            --border-color: #f0f0f0;
+            --success-color: #51bb25;
+            --danger-color: #dc3545;
+            --warning-color: #f8961e;
+            --light-gray: #f8f9fa;
+            --card-bg: #ffffff;
+            --sidebar-bg: #2c323f;
+            --header-bg: #ffffff;
+            --header-border: #eeeeee;
+            --transition: all 0.25s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: #f7f7ff;
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 400;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+        
+        /* Layout structure */
+        .page-wrapper {
+            width: 100%;
+            position: relative;
+        }
+        
+        .page-body-wrapper {
+            min-height: calc(100vh - 80px);
+            margin-left: 280px;
+            padding-top: 80px;
+            padding-bottom: 30px;
+            transition: var(--transition);
+        }
+        
+        /* Header */
+        .header {
+            position: fixed;
+            width: calc(100% - 280px);
+            top: 0;
+            right: 0;
+            height: 80px;
+            background-color: var(--header-bg);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            transition: var(--transition);
+        }
+        
+        .header .logo-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header .nav-right .notification-icon {
+            position: relative;
+            cursor: pointer;
+            color: var(--dark-color);
+            font-size: 20px;
+        }
+        
+        .header .nav-right .notification-icon .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 10px;
+            border-radius: 50%;
+            padding: 0.25em 0.6em;
+        }
+        
+        .header .nav-right .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .header .nav-right .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-light);
+        }
+        
+        /* Sidebar */
+        .sidebar-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            z-index: 100;
+            transition: var(--transition);
+            overflow-y: auto;
+        }
+        
+        .sidebar-wrapper .logo-wrapper {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-wrapper .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .sidebar-wrapper .sidebar-menu .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-wrapper .sidebar-menu .sidebar-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left-color: var(--primary-light);
+        }
+        
+        .sidebar-wrapper .sidebar-menu .sidebar-link i {
+            font-size: 18px;
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-wrapper .sidebar-menu .sidebar-link.active {
+            color: #fff;
+            background-color: rgba(115, 102, 255, 0.15);
+            border-left-color: var(--primary-color);
+        }
+        
+        /* Main content */
+        .container-fluid {
+            padding: 0 30px;
+        }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-title {
+            margin: 0;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .breadcrumb {
+            margin: 0;
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .breadcrumb-item {
+            font-size: 14px;
+        }
+        
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+            color: var(--light-text);
+        }
+        
+        /* Progress steps */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--border-color);
+            z-index: -1;
+        }
+        
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-color);
+            margin-bottom: 10px;
+            position: relative;
+            transition: var(--transition);
+            color: var(--light-text);
+        }
+        
+        .progress-step.active .step-icon {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+        
+        .progress-step.completed .step-icon {
+            border-color: var(--success-color);
+            background-color: var(--success-color);
+            color: #fff;
+        }
+        
+        .step-label {
+            font-size: 14px;
+            color: var(--light-text);
+            text-align: center;
+            transition: var(--transition);
+        }
+        
+        .progress-step.active .step-label {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .progress-step.completed .step-label {
+            color: var(--success-color);
+        }
+        
+        /* Step content */
+        .step-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* UI Components */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            overflow: hidden;
+            height: 100%;
+            margin-bottom: 25px;
+            background-color: var(--card-bg);
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            padding: 20px 25px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-header h5 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .form-label .required {
+            color: var(--danger-color);
+        }
+        
+        .form-label .info-icon {
+            color: var(--primary-light);
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .form-control, .form-select {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            font-size: 14px;
+            width: 100%;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(115, 102, 255, 0.15);
+        }
+        
+        .form-check {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+        
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-label {
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .form-hint {
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--light-text);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: var(--transition);
+            font-weight: 500;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            box-shadow: 0 5px 15px rgba(115, 102, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: #f1f1f1;
+            border-color: #efefef;
+            color: var(--dark-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e6e6e6;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline-primary {
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            background-color: transparent;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 5px 15px rgba(115, 102, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Utilities */
+        .row {
+            margin-bottom: 25px;
+        }
+        
+        .mb-0 { margin-bottom: 0 !important; }
+        .mb-10 { margin-bottom: 10px !important; }
+        .mb-20 { margin-bottom: 20px !important; }
+        .mb-30 { margin-bottom: 30px !important; }
+        
+        .mt-0 { margin-top: 0 !important; }
+        .mt-10 { margin-top: 10px !important; }
+        .mt-20 { margin-top: 20px !important; }
+        .mt-30 { margin-top: 30px !important; }
+        
+        /* Option items */
+        .option-group {
+            margin-bottom: 15px;
+        }
+        
+        .option-item {
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+        }
+        
+        .option-item:hover {
+            background-color: rgba(115, 102, 255, 0.05);
+            border-color: var(--primary-light);
+        }
+        
+        .option-item.selected {
+            background-color: rgba(115, 102, 255, 0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .option-item .icon {
+            color: var(--primary-color);
+            margin-right: 15px;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Timeline process */
+        .timeline-container {
+            position: relative;
+            padding: 20px 0;
+            overflow-x: auto;
+            margin: 0 -10px;
+        }
+        
+        .timeline {
+            display: flex;
+            gap: 15px;
+            padding: 10px;
+            min-width: 100%;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: var(--card-bg);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+            min-width: 200px;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            cursor: grab;
+        }
+        
+        .timeline-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-light);
+        }
+        
+        .timeline-item.active {
+            border-color: var(--primary-color);
+            background-color: rgba(115, 102, 255, 0.05);
+        }
+        
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            width: 15px;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .timeline-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin: 0;
+            color: var(--dark-color);
+        }
+        
+        .timeline-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .timeline-action {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        .timeline-action.success {
+            background-color: var(--success-color);
+        }
+        
+        .timeline-action.danger {
+            background-color: var(--danger-color);
+        }
+        
+        .timeline-action:hover {
+            transform: scale(1.1);
+        }
+        
+        .timeline-content {
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .timeline-content .member {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            color: var(--primary-color);
+            font-weight: 500;
+            gap: 5px;
+        }
+        
+        .timeline-branch {
+            margin-top: 20px;
+            margin-left: 80px;
+            position: relative;
+        }
+        
+        .timeline-branch::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: -20px;
+            width: 30px;
+            height: 30px;
+            border-left: 2px solid var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            border-bottom-left-radius: 8px;
+        }
+        
+        /* Context notes */
+        .context-note {
+            background-color: rgba(115, 102, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 3px solid var(--primary-light);
+        }
+        
+        .context-note p {
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: var(--light-text);
+        }
+        
+        .context-note p:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Navigation buttons */
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .table th {
+            font-weight: 600;
+            padding: 12px 15px;
+            color: var(--dark-color);
+            background-color: rgba(115, 102, 255, 0.05);
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+        
+        .table td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+        
+        .table tbody tr:hover {
+            background-color: rgba(115, 102, 255, 0.02);
+        }
+        
+        /* Modal */
+        .modal-content {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 25px;
+            background-color: var(--card-bg);
+        }
+        
+        .modal-title {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+            padding: 20px 25px;
+            background-color: var(--card-bg);
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-info {
+            background-color: rgba(13, 202, 240, 0.1);
+            border-left: 3px solid #0dcaf0;
+            color: #055160;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .sidebar-wrapper {
+                transform: translateX(-100%);
+                box-shadow: none;
+            }
+            
+            .sidebar-wrapper.active {
+                transform: translateX(0);
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            }
+            
+            .page-body-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .header {
+                width: 100%;
+            }
+            
+            .container-fluid {
+                padding: 0 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .progress-steps {
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+            
+            .progress-step {
+                min-width: 100px;
+            }
+            
+            .card-body {
+                padding: 20px;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+            }
+            
+            .timeline-branch {
+                margin-left: 20px;
+            }
+            
+            .timeline-branch::before {
+                left: -20px;
+                width: 20px;
+                height: 20px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .step-navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .step-navigation .btn {
+                width: 100%;
+            }
+        }
+        
+        /* Nexten specific branding */
+        .notification-bar {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .skip-to-content {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            padding: 8px;
+            z-index: 1000;
+            background: var(--primary-color);
+            color: white;
+            transition: top 0.3s;
+        }
+        
+        .skip-to-content:focus {
+            top: 0;
+        }
+    </style>
 </head>
 <body>
     <!-- Notification bar -->
@@ -25,130 +888,1181 @@
 
     <!-- Lien d'accessibilité pour sauter au contenu principal -->
     <a href="#main-content" class="skip-to-content">Aller au contenu principal</a>
-
-    <header>
-        <div class="container">
-            <div class="logo">
-                nex<span>ten</span><div class="logo-badge">10</div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar-wrapper">
+        <div class="logo-wrapper">
+            <div style="color: white; font-weight: 700; font-size: 24px;">
+                <span style="color: var(--primary-color);">Nex</span>ten
             </div>
-            
-            <button class="menu-toggle" aria-label="Menu principal">
+        </div>
+        <div class="sidebar-menu">
+            <a href="index.html" class="sidebar-link">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-link active">
+                <i class="fas fa-briefcase"></i>
+                <span>Postes</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-users"></i>
+                <span>Candidats</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Statistiques</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-cog"></i>
+                <span>Paramètres</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-wrapper">
+            <div class="toggle-sidebar">
                 <i class="fas fa-bars"></i>
-            </button>
-            
-            <nav>
-                <ul>
-                    <li><a href="index.html">Accueil</a></li>
-                    <li><a href="post-job.html" class="active">Publier une offre</a></li>
-                    <li><a href="candidate-dashboard.html">Espace candidat</a></li>
-                    <li><a href="company-dashboard.html">Espace entreprise</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
+            </div>
         </div>
-    </header>
-    
-    <main class="main-container" id="main-content">
-        <!-- Contenu supprimé -->
-        <div class="text-center my-5">
-            <h1>Page en cours de maintenance</h1>
-            <p>Cette page est actuellement indisponible. Veuillez nous excuser pour la gêne occasionnée.</p>
+        <div class="nav-right">
+            <div class="notification-icon">
+                <i class="fas fa-bell"></i>
+                <span class="badge">3</span>
+            </div>
+            <div class="user-profile">
+                <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="User">
+                <span>Jean Dupont</span>
+            </div>
         </div>
-    </main>
+    </div>
     
-    <footer id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div>
-                    <h4 class="footer-heading">Nexten</h4>
-                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
-                    <div class="footer-social">
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+    <!-- Page Wrapper -->
+    <div class="page-wrapper">
+        <div class="page-body-wrapper" id="main-content">
+            <div class="container-fluid">
+                <div class="page-header">
+                    <h3 class="page-title">
+                        <i class="fas fa-plus-circle" style="color: var(--primary-color);"></i>
+                        Création d'un nouveau poste
+                    </h3>
+                    <div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href="jobs.html">Postes</a></li>
+                                <li class="breadcrumb-item active">Création</li>
+                            </ol>
+                        </nav>
                     </div>
                 </div>
                 
-                <div>
-                    <h4 class="footer-heading">Navigation</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
-                        <li><a href="post-job.html"><i class="fas fa-chevron-right"></i> Publier une offre</a></li>
-                        <li><a href="candidate-dashboard.html"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> À propos</a></li>
-                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="footer-heading">Contact</h4>
-                    <div class="footer-contact">
-                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
-                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
-                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
+                <!-- Progress Steps -->
+                <div class="progress-steps">
+                    <div class="progress-step active" data-step="1">
+                        <div class="step-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="step-label">Informations</div>
+                    </div>
+                    <div class="progress-step" data-step="2">
+                        <div class="step-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="step-label">Environnement</div>
+                    </div>
+                    <div class="progress-step" data-step="3">
+                        <div class="step-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="step-label">Équipe</div>
+                    </div>
+                    <div class="progress-step" data-step="4">
+                        <div class="step-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="step-label">Processus</div>
+                    </div>
+                    <div class="progress-step" data-step="5">
+                        <div class="step-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="step-label">Validation</div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="#">Politique de confidentialité</a> | <a href="#">Conditions d'utilisation</a></p>
+                
+                <form id="create-job-form">
+                    <!-- Step 1: Informations du poste -->
+                    <div class="step-content active" id="step-1">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Informations du poste</h5>
+                                <span class="badge bg-primary">Étape 1/5</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-20">
+                                    <label for="job-title" class="form-label">
+                                        Intitulé du poste
+                                        <span class="required">*</span>
+                                        <i class="fas fa-info-circle info-icon" data-bs-toggle="tooltip" title="Le titre exact qui sera affiché aux candidats"></i>
+                                    </label>
+                                    <input type="text" class="form-control" id="job-title" placeholder="ex: Développeur Full Stack JavaScript" required>
+                                </div>
+                                
+                                <div class="mb-20">
+                                    <label for="job-description" class="form-label">
+                                        Descriptif du poste
+                                        <span class="required">*</span>
+                                    </label>
+                                    <textarea class="form-control" id="job-description" rows="4" placeholder="Décrivez les principales responsabilités et tâches" required></textarea>
+                                    <div class="form-hint">Décrivez clairement les responsabilités, les tâches quotidiennes et les objectifs du poste.</div>
+                                </div>
+                                
+                                <div class="mb-20">
+                                    <label class="form-label">Contexte de recrutement</label>
+                                    <div class="option-group">
+                                        <div class="option-item" data-value="creation">
+                                            <i class="fas fa-plus-circle icon"></i>
+                                            <span>Création de poste</span>
+                                        </div>
+                                        <div class="option-item" data-value="replacement">
+                                            <i class="fas fa-exchange-alt icon"></i>
+                                            <span>Remplacement</span>
+                                        </div>
+                                        <div class="option-item" data-value="growth">
+                                            <i class="fas fa-chart-line icon"></i>
+                                            <span>Accroissement d'activité / Renfort</span>
+                                        </div>
+                                        <div class="option-item" data-value="no-communication">
+                                            <i class="fas fa-eye-slash icon"></i>
+                                            <span>Je ne souhaite pas communiquer</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="recruitment-context" name="recruitment-context" value="">
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-20">
+                                            <label class="form-label">Délai de recrutement souhaité</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="immediate">
+                                                <label class="form-check-label" for="immediate">Immédiat</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="2weeks">
+                                                <label class="form-check-label" for="2weeks">2 semaines</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="1month">
+                                                <label class="form-check-label" for="1month">1 mois</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="2months">
+                                                <label class="form-check-label" for="2months">2 mois</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="3months">
+                                                <label class="form-check-label" for="3months">3 mois</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-20">
+                                            <label class="form-label">Préavis acceptable</label>
+                                            <div class="d-flex mb-10 gap-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="preavis" id="preavis-oui" value="oui">
+                                                    <label class="form-check-label" for="preavis-oui">Oui</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="preavis" id="preavis-non" value="non">
+                                                    <label class="form-check-label" for="preavis-non">Non</label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div id="preavis-duration" style="display: none;">
+                                                <label class="form-label">Durée maximale</label>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="duree_preavis" id="1month-preavis" value="1">
+                                                    <label class="form-check-label" for="1month-preavis">1 mois</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="duree_preavis" id="2months-preavis" value="2">
+                                                    <label class="form-check-label" for="2months-preavis">2 mois</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="duree_preavis" id="3months-preavis" value="3">
+                                                    <label class="form-check-label" for="3months-preavis">3 mois</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-0">
+                                    <div class="col-md-6">
+                                        <div class="mb-20">
+                                            <label class="form-label">Expérience professionnelle requise</label>
+                                            <select class="form-select" id="experience-required">
+                                                <option value="0-2">Débutant (0-2 ans)</option>
+                                                <option value="2-5" selected>Confirmé (2-5 ans)</option>
+                                                <option value="5-10">Senior (5-10 ans)</option>
+                                                <option value="10+">Expert (10+ ans)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-0">
+                                            <label class="form-label">Connaissance du secteur</label>
+                                            <div class="d-flex mb-10 gap-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="secteur-obligatoire" id="secteur-oui" value="oui">
+                                                    <label class="form-check-label" for="secteur-oui">Obligatoire</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="secteur-obligatoire" id="secteur-non" value="non" checked>
+                                                    <label class="form-check-label" for="secteur-non">Non obligatoire</label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div id="sector-selection" style="display: none;">
+                                                <select class="form-select" id="activity-sector">
+                                                    <option value="" selected disabled>Sélectionnez un secteur d'activité</option>
+                                                    <option value="tech">Technologie</option>
+                                                    <option value="finance">Finance</option>
+                                                    <option value="health">Santé</option>
+                                                    <option value="retail">Commerce</option>
+                                                    <option value="education">Éducation</option>
+                                                    <option value="manufacturing">Industrie</option>
+                                                    <option value="services">Services</option>
+                                                    <option value="other">Autre</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-navigation">
+                            <div></div>
+                            <button type="button" class="btn btn-primary next-step" data-step="2">
+                                Continuer
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Environnement de travail -->
+                    <div class="step-content" id="step-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Environnement de travail</h5>
+                                <span class="badge bg-primary">Étape 2/5</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-20">
+                                    <label class="form-label">Type d'espace de travail</label>
+                                    <div class="d-flex gap-4 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="work-environment" id="open-space" value="open-space" checked>
+                                            <label class="form-check-label" for="open-space">Open Space</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="work-environment" id="closed-office" value="closed-office">
+                                            <label class="form-check-label" for="closed-office">Bureau fermé</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-20">
+                                    <label class="form-label">Organisation du travail</label>
+                                    <div class="d-flex flex-wrap gap-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="remote-full" name="work-organization">
+                                            <label class="form-check-label" for="remote-full">Télétravail à 100%</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="remote-partial" name="work-organization" checked>
+                                            <label class="form-check-label" for="remote-partial">Télétravail partiel</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="flexible-hours" name="work-organization" checked>
+                                            <label class="form-check-label" for="flexible-hours">Horaires flexibles</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="office-only" name="work-organization">
+                                            <label class="form-check-label" for="office-only">Présence au bureau uniquement</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-20">
+                                    <label for="team-composition" class="form-label">Composition de l'équipe</label>
+                                    <textarea class="form-control" id="team-composition" rows="3" placeholder="Décrivez la composition de l'équipe et la structure hiérarchique"></textarea>
+                                    
+                                    <div class="context-note">
+                                        <p>Précisions utiles pour le candidat :</p>
+                                        <p>• Taille de l'équipe (ex : équipe de 5 personnes)</p>
+                                        <p>• Structure hiérarchique (ex : rattaché à un responsable technique)</p>
+                                        <p>• Interactions avec d'autres équipes (ex : collaboration étroite avec l'équipe produit)</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-0">
+                                    <label for="career-perspectives" class="form-label">Perspectives d'évolution</label>
+                                    <textarea class="form-control" id="career-perspectives" rows="3" placeholder="Décrivez les possibilités d'évolution professionnelle pour ce poste"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-navigation">
+                            <button type="button" class="btn btn-secondary prev-step" data-step="1">
+                                <i class="fas fa-arrow-left"></i>
+                                Précédent
+                            </button>
+                            <button type="button" class="btn btn-primary next-step" data-step="3">
+                                Continuer
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Équipe -->
+                    <div class="step-content" id="step-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Ajouter des membres à impliquer dans le recrutement</h5>
+                                <span class="badge bg-primary">Étape 3/5</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-20">Ajoutez les membres de votre organisation qui participeront au processus de recrutement.</p>
+                                
+                                <div class="mb-20">
+                                    <button type="button" class="btn btn-outline-primary" id="add-member-btn">
+                                        <i class="fas fa-plus"></i>
+                                        Ajouter un membre
+                                    </button>
+                                </div>
+                                
+                                <div id="org-members-container">
+                                    <div id="org-members-list" style="display: none;">
+                                        <!-- This will be populated with JavaScript -->
+                                    </div>
+                                    <p id="no-members-message">Aucun membre ajouté. Cliquez sur le bouton pour ajouter des membres qui participeront au processus.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-navigation">
+                            <button type="button" class="btn btn-secondary prev-step" data-step="2">
+                                <i class="fas fa-arrow-left"></i>
+                                Précédent
+                            </button>
+                            <button type="button" class="btn btn-primary next-step" data-step="4">
+                                Continuer
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Processus -->
+                    <div class="step-content" id="step-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Processus de recrutement</h5>
+                                <span class="badge bg-primary">Étape 4/5</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-20">Configurez les étapes du processus de recrutement. Vous pouvez réorganiser les étapes par glisser-déposer.</p>
+                                
+                                <div class="timeline-container">
+                                    <div class="timeline" id="recruitment-timeline">
+                                        <div class="timeline-item" data-step="validation">
+                                            <div class="timeline-header">
+                                                <h6 class="timeline-title">Validation du CV</h6>
+                                                <div class="timeline-actions">
+                                                    <button type="button" class="timeline-action success" title="Approuver">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="timeline-action danger" title="Rejeter">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-content">
+                                                <p>Première analyse du profil</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item" data-step="call">
+                                            <div class="timeline-header">
+                                                <h6 class="timeline-title">Call de pré-qualification</h6>
+                                                <div class="timeline-actions">
+                                                    <button type="button" class="timeline-action success" title="Approuver">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="timeline-action danger" title="Rejeter">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-content">
+                                                <p>Premier contact téléphonique</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item" data-step="visio">
+                                            <div class="timeline-header">
+                                                <h6 class="timeline-title">Entretien visio</h6>
+                                                <div class="timeline-actions">
+                                                    <button type="button" class="timeline-action success" title="Approuver">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="timeline-action danger" title="Rejeter">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-content">
+                                                <p>Évaluation des compétences</p>
+                                                <div class="member">
+                                                    <i class="fas fa-user-plus"></i>
+                                                    <span>Associer un membre</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item" data-step="presentiel">
+                                            <div class="timeline-header">
+                                                <h6 class="timeline-title">Entretien présentiel</h6>
+                                                <div class="timeline-actions">
+                                                    <button type="button" class="timeline-action success" title="Approuver">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="timeline-action danger" title="Rejeter">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-content">
+                                                <p>Discussion approfondie</p>
+                                                <div class="member">
+                                                    <i class="fas fa-user-plus"></i>
+                                                    <span>Associer un membre</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item" data-step="decision">
+                                            <div class="timeline-header">
+                                                <h6 class="timeline-title">Décision finale</h6>
+                                                <div class="timeline-actions">
+                                                    <button type="button" class="timeline-action success" title="Approuver">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="timeline-action danger" title="Rejeter">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-content">
+                                                <p>Validation et offre</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-branch" id="presentiel2-container">
+                                        <div class="timeline-item" data-step="presentiel2">
+                                            <div class="timeline-header">
+                                                <h6 class="timeline-title">Entretien présentiel 2</h6>
+                                                <div class="timeline-actions">
+                                                    <button type="button" class="timeline-action success" title="Approuver">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="timeline-action danger" title="Rejeter">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-content">
+                                                <p>Rencontre avec l'équipe</p>
+                                                <div class="member">
+                                                    <i class="fas fa-user-plus"></i>
+                                                    <span>Associer un membre</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-20">
+                                    <button type="button" class="btn btn-outline-primary" id="add-step-btn">
+                                        <i class="fas fa-plus-circle"></i>
+                                        Ajouter une étape
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-navigation">
+                            <button type="button" class="btn btn-secondary prev-step" data-step="3">
+                                <i class="fas fa-arrow-left"></i>
+                                Précédent
+                            </button>
+                            <button type="button" class="btn btn-primary next-step" data-step="5">
+                                Continuer
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5: Récapitulatif et validation -->
+                    <div class="step-content" id="step-5">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Récapitulatif du poste</h5>
+                                <span class="badge bg-primary">Étape 5/5</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info mb-20">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Vérifiez les informations avant de publier le poste.
+                                </div>
+                                
+                                <div class="row mb-20">
+                                    <div class="col-md-6">
+                                        <h6 class="mb-10">Informations principales</h6>
+                                        <div id="job-summary-main">
+                                            <!-- Will be populated by JS -->
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mb-10">Environnement de travail</h6>
+                                        <div id="job-summary-environment">
+                                            <!-- Will be populated by JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-20">
+                                    <div class="col-md-6">
+                                        <h6 class="mb-10">Membres impliqués</h6>
+                                        <div id="job-summary-members">
+                                            <!-- Will be populated by JS -->
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mb-10">Processus de recrutement</h6>
+                                        <div id="job-summary-process">
+                                            <!-- Will be populated by JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-10">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="confirm-validation" required>
+                                        <label class="form-check-label" for="confirm-validation">
+                                            Je confirme que les informations sont correctes
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-navigation">
+                            <button type="button" class="btn btn-secondary prev-step" data-step="4">
+                                <i class="fas fa-arrow-left"></i>
+                                Précédent
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="submit-job">
+                                <i class="fas fa-check-circle"></i>
+                                Publier le poste
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
-    </footer>
+    </div>
     
-    <!-- Bouton de retour en haut -->
-    <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+    <!-- Modal for adding organization members -->
+    <div class="modal fade" id="addMemberModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajouter un membre</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="member-name" class="form-label">Nom du membre</label>
+                        <input type="text" class="form-control" id="member-name" placeholder="Entrez le nom du membre">
+                    </div>
+                    <div class="mb-3">
+                        <label for="member-email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="member-email" placeholder="Entrez l'email du membre">
+                    </div>
+                    <div class="mb-3">
+                        <label for="member-role" class="form-label">Rôle</label>
+                        <select class="form-select" id="member-role">
+                            <option value="recruteur">Recruteur</option>
+                            <option value="manager">Manager</option>
+                            <option value="rh">Ressources Humaines</option>
+                            <option value="directeur">Directeur</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="save-member-btn">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    <!-- Bootstrap JavaScript Bundle with Popper -->
+    <!-- Modal for adding process steps -->
+    <div class="modal fade" id="addStepModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajouter une étape</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="step-name" class="form-label">Nom de l'étape</label>
+                        <input type="text" class="form-control" id="step-name" placeholder="Entrez le nom de l'étape">
+                    </div>
+                    <div class="mb-3">
+                        <label for="step-description" class="form-label">Description</label>
+                        <textarea class="form-control" id="step-description" rows="2" placeholder="Description brève de cette étape"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="step-type" class="form-label">Type d'étape</label>
+                        <select class="form-select" id="step-type">
+                            <option value="interview">Entretien</option>
+                            <option value="test">Test technique</option>
+                            <option value="assessment">Assessment</option>
+                            <option value="other">Autre</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="add-members-to-step">
+                            <label class="form-check-label" for="add-members-to-step">
+                                Permettre d'associer des membres à cette étape
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="save-step-btn">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Scripts personnalisés -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Menu mobile toggle
-            const menuToggle = document.querySelector('.menu-toggle');
-            const nav = document.querySelector('nav');
-            
-            if (menuToggle && nav) {
-                menuToggle.addEventListener('click', function() {
-                    nav.classList.toggle('active');
-                    this.classList.toggle('active');
-                });
-            }
-            
-            // Header change on scroll
-            const header = document.querySelector('header');
-            
-            window.addEventListener('scroll', function() {
-                if (window.scrollY > 10) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
             
-            // Bouton de retour en haut
-            const scrollToTopButton = document.getElementById('scroll-to-top');
+            // Toggle sidebar
+            const toggleSidebar = document.querySelector('.toggle-sidebar');
+            const sidebarWrapper = document.querySelector('.sidebar-wrapper');
+            const pageBodyWrapper = document.querySelector('.page-body-wrapper');
+            const header = document.querySelector('.header');
             
-            if (scrollToTopButton) {
-                window.addEventListener('scroll', function() {
-                    if (window.scrollY > 500) {
-                        scrollToTopButton.classList.add('visible');
-                    } else {
-                        scrollToTopButton.classList.remove('visible');
+            toggleSidebar.addEventListener('click', function() {
+                sidebarWrapper.classList.toggle('active');
+            });
+            
+            // Multi-step form navigation
+            const progressSteps = document.querySelectorAll('.progress-step');
+            const stepContents = document.querySelectorAll('.step-content');
+            const nextButtons = document.querySelectorAll('.next-step');
+            const prevButtons = document.querySelectorAll('.prev-step');
+            
+            function showStep(stepNumber) {
+                // Hide all steps
+                stepContents.forEach(step => step.classList.remove('active'));
+                
+                // Show selected step
+                document.getElementById(`step-${stepNumber}`).classList.add('active');
+                
+                // Update progress steps
+                progressSteps.forEach(step => {
+                    const stepNum = parseInt(step.dataset.step);
+                    step.classList.remove('active', 'completed');
+                    
+                    if (stepNum === stepNumber) {
+                        step.classList.add('active');
+                    } else if (stepNum < stepNumber) {
+                        step.classList.add('completed');
                     }
                 });
                 
-                scrollToTopButton.addEventListener('click', function() {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            nextButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const nextStep = parseInt(button.dataset.step);
+                    showStep(nextStep);
+                });
+            });
+            
+            prevButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const prevStep = parseInt(button.dataset.step);
+                    showStep(prevStep);
+                });
+            });
+            
+            progressSteps.forEach(step => {
+                step.addEventListener('click', function() {
+                    const clickedStep = parseInt(step.dataset.step);
+                    showStep(clickedStep);
+                });
+            });
+            
+            // Option items selection
+            const optionItems = document.querySelectorAll('.option-item');
+            const recruitmentContextInput = document.getElementById('recruitment-context');
+            
+            optionItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove selected class from all items in the same group
+                    const parent = this.parentElement;
+                    parent.querySelectorAll('.option-item').forEach(i => i.classList.remove('selected'));
+                    
+                    // Add selected class to clicked item
+                    this.classList.add('selected');
+                    
+                    // Update hidden input value if it exists
+                    if (recruitmentContextInput) {
+                        recruitmentContextInput.value = this.dataset.value;
+                    }
+                });
+            });
+            
+            // Préavis visibility toggle
+            const preavisOui = document.getElementById('preavis-oui');
+            const preavisNon = document.getElementById('preavis-non');
+            const preavisDuration = document.getElementById('preavis-duration');
+            
+            preavisOui.addEventListener('change', function() {
+                preavisDuration.style.display = this.checked ? 'block' : 'none';
+            });
+            
+            preavisNon.addEventListener('change', function() {
+                preavisDuration.style.display = 'none';
+            });
+            
+            // Sector selection visibility toggle
+            const secteurOui = document.getElementById('secteur-oui');
+            const secteurNon = document.getElementById('secteur-non');
+            const sectorSelection = document.getElementById('sector-selection');
+            
+            secteurOui.addEventListener('change', function() {
+                sectorSelection.style.display = this.checked ? 'block' : 'none';
+            });
+            
+            secteurNon.addEventListener('change', function() {
+                sectorSelection.style.display = 'none';
+            });
+            
+            // Organization members management
+            const addMemberBtn = document.getElementById('add-member-btn');
+            const orgMembersList = document.getElementById('org-members-list');
+            const noMembersMessage = document.getElementById('no-members-message');
+            const addMemberModal = new bootstrap.Modal(document.getElementById('addMemberModal'));
+            const saveMemberBtn = document.getElementById('save-member-btn');
+            
+            let orgMembers = [];
+            
+            addMemberBtn.addEventListener('click', function() {
+                addMemberModal.show();
+            });
+            
+            saveMemberBtn.addEventListener('click', function() {
+                const name = document.getElementById('member-name').value.trim();
+                const email = document.getElementById('member-email').value.trim();
+                const role = document.getElementById('member-role').value;
+                
+                if (name && email) {
+                    const member = {
+                        id: Date.now(), // Simple ID generation
+                        name: name,
+                        email: email,
+                        role: role
+                    };
+                    
+                    orgMembers.push(member);
+                    renderOrgMembers();
+                    addMemberModal.hide();
+                    
+                    // Reset form
+                    document.getElementById('member-name').value = '';
+                    document.getElementById('member-email').value = '';
+                    document.getElementById('member-role').value = 'recruteur';
+                }
+            });
+            
+            function renderOrgMembers() {
+                if (orgMembers.length > 0) {
+                    orgMembersList.style.display = 'block';
+                    noMembersMessage.style.display = 'none';
+                    
+                    orgMembersList.innerHTML = '';
+                    
+                    const tableResponsive = document.createElement('div');
+                    tableResponsive.className = 'table-responsive';
+                    
+                    const table = document.createElement('table');
+                    table.className = 'table';
+                    
+                    const thead = document.createElement('thead');
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Actions</th>
+                        </tr>
+                    `;
+                    
+                    const tbody = document.createElement('tbody');
+                    
+                    orgMembers.forEach(member => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${member.name}</td>
+                            <td>${member.email}</td>
+                            <td>${member.role}</td>
+                            <td>
+                                <button class="btn btn-icon btn-outline-danger remove-member" data-id="${member.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
                     });
+                    
+                    table.appendChild(thead);
+                    table.appendChild(tbody);
+                    tableResponsive.appendChild(table);
+                    orgMembersList.appendChild(tableResponsive);
+                    
+                    // Add event listeners to remove buttons
+                    document.querySelectorAll('.remove-member').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const memberId = parseInt(this.getAttribute('data-id'));
+                            orgMembers = orgMembers.filter(member => member.id !== memberId);
+                            renderOrgMembers();
+                        });
+                    });
+                } else {
+                    orgMembersList.style.display = 'none';
+                    noMembersMessage.style.display = 'block';
+                }
+            }
+            
+            // Process steps management
+            const addStepBtn = document.getElementById('add-step-btn');
+            const addStepModal = new bootstrap.Modal(document.getElementById('addStepModal'));
+            const saveStepBtn = document.getElementById('save-step-btn');
+            const recruitmentTimeline = document.getElementById('recruitment-timeline');
+            
+            addStepBtn.addEventListener('click', function() {
+                addStepModal.show();
+            });
+            
+            saveStepBtn.addEventListener('click', function() {
+                const stepName = document.getElementById('step-name').value.trim();
+                const stepDescription = document.getElementById('step-description').value.trim();
+                const stepType = document.getElementById('step-type').value;
+                const addMembers = document.getElementById('add-members-to-step').checked;
+                
+                if (stepName) {
+                    const stepId = 'step-' + Date.now();
+                    
+                    const timelineItem = document.createElement('div');
+                    timelineItem.className = 'timeline-item';
+                    timelineItem.setAttribute('data-step', stepId);
+                    timelineItem.setAttribute('draggable', 'true');
+                    
+                    let stepContent = `
+                        <div class="timeline-header">
+                            <h6 class="timeline-title">${stepName}</h6>
+                            <div class="timeline-actions">
+                                <button type="button" class="timeline-action success" title="Approuver">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button type="button" class="timeline-action danger" title="Rejeter">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="timeline-content">
+                            <p>${stepDescription || `Étape de type ${stepType}`}</p>
+                    `;
+                    
+                    if (addMembers) {
+                        stepContent += `
+                            <div class="member">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Associer un membre</span>
+                            </div>
+                        `;
+                    }
+                    
+                    stepContent += `</div>`;
+                    
+                    timelineItem.innerHTML = stepContent;
+                    recruitmentTimeline.appendChild(timelineItem);
+                    
+                    addStepModal.hide();
+                    
+                    // Reset form
+                    document.getElementById('step-name').value = '';
+                    document.getElementById('step-description').value = '';
+                    document.getElementById('step-type').value = 'interview';
+                    document.getElementById('add-members-to-step').checked = false;
+                    
+                    // Add drag-and-drop functionality
+                    initDragAndDrop(timelineItem);
+                }
+            });
+            
+            // Enable dragging for timeline items
+            function initDragAndDrop(item) {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('dragenter', handleDragEnter);
+                item.addEventListener('dragleave', handleDragLeave);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragend', handleDragEnd);
+            }
+            
+            let draggedItem = null;
+            
+            function handleDragStart(e) {
+                this.style.opacity = '0.4';
+                draggedItem = this;
+                
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.innerHTML);
+                
+                // Add a class to indicate dragging
+                this.classList.add('dragging');
+            }
+            
+            function handleDragOver(e) {
+                if (e.preventDefault) {
+                    e.preventDefault();
+                }
+                
+                e.dataTransfer.dropEffect = 'move';
+                return false;
+            }
+            
+            function handleDragEnter(e) {
+                this.classList.add('over');
+            }
+            
+            function handleDragLeave(e) {
+                this.classList.remove('over');
+            }
+            
+            function handleDrop(e) {
+                if (e.stopPropagation) {
+                    e.stopPropagation();
+                }
+                
+                if (draggedItem !== this) {
+                    // Swap positions
+                    const allItems = Array.from(document.querySelectorAll('.timeline-item'));
+                    const draggedIndex = allItems.indexOf(draggedItem);
+                    const targetIndex = allItems.indexOf(this);
+                    
+                    if (draggedIndex < targetIndex) {
+                        this.parentNode.insertBefore(draggedItem, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedItem, this);
+                    }
+                }
+                
+                return false;
+            }
+            
+            function handleDragEnd(e) {
+                this.style.opacity = '1';
+                
+                document.querySelectorAll('.timeline-item').forEach(function(item) {
+                    item.classList.remove('over', 'dragging');
                 });
             }
+            
+            // Initialize drag-and-drop for existing items
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.setAttribute('draggable', 'true');
+                initDragAndDrop(item);
+            });
+            
+            // Summary generation for final step
+            function updateSummary() {
+                // Main information summary
+                const jobTitle = document.getElementById('job-title').value || 'Non spécifié';
+                const jobDescription = document.getElementById('job-description').value || 'Non spécifié';
+                const recruitmentContext = document.querySelector('.option-item.selected') ? 
+                    document.querySelector('.option-item.selected').querySelector('span').textContent : 'Non spécifié';
+                const experience = document.getElementById('experience-required').options[document.getElementById('experience-required').selectedIndex].text;
+                
+                document.getElementById('job-summary-main').innerHTML = `
+                    <p><strong>Titre :</strong> ${jobTitle}</p>
+                    <p><strong>Descriptif :</strong> ${jobDescription.length > 100 ? jobDescription.substring(0, 100) + '...' : jobDescription}</p>
+                    <p><strong>Contexte :</strong> ${recruitmentContext}</p>
+                    <p><strong>Expérience requise :</strong> ${experience}</p>
+                `;
+                
+                // Environment summary
+                const workEnv = document.querySelector('input[name="work-environment"]:checked').value === 'open-space' ? 'Open Space' : 'Bureau fermé';
+                const teamComp = document.getElementById('team-composition').value || 'Non spécifié';
+                const remotePossible = document.getElementById('remote-partial').checked || document.getElementById('remote-full').checked;
+                
+                document.getElementById('job-summary-environment').innerHTML = `
+                    <p><strong>Espace de travail :</strong> ${workEnv}</p>
+                    <p><strong>Télétravail possible :</strong> ${remotePossible ? 'Oui' : 'Non'}</p>
+                    <p><strong>Composition de l'équipe :</strong> ${teamComp.length > 100 ? teamComp.substring(0, 100) + '...' : teamComp}</p>
+                `;
+                
+                // Members summary
+                if (orgMembers.length > 0) {
+                    let membersHtml = '<ul class="list-unstyled">';
+                    orgMembers.forEach(member => {
+                        membersHtml += `<li><i class="fas fa-user me-2"></i> ${member.name} (${member.role})</li>`;
+                    });
+                    membersHtml += '</ul>';
+                    document.getElementById('job-summary-members').innerHTML = membersHtml;
+                } else {
+                    document.getElementById('job-summary-members').innerHTML = '<p>Aucun membre ajouté</p>';
+                }
+                
+                // Process summary
+                const steps = document.querySelectorAll('.timeline-item');
+                if (steps.length > 0) {
+                    let stepsHtml = '<ol>';
+                    steps.forEach(step => {
+                        const title = step.querySelector('.timeline-title').textContent;
+                        stepsHtml += `<li>${title}</li>`;
+                    });
+                    stepsHtml += '</ol>';
+                    document.getElementById('job-summary-process').innerHTML = stepsHtml;
+                } else {
+                    document.getElementById('job-summary-process').innerHTML = '<p>Aucune étape définie</p>';
+                }
+            }
+            
+            // Update summary when navigating to step 5
+            document.querySelector('[data-step="5"]').addEventListener('click', updateSummary);
+            document.querySelector('[data-step="5"].next-step').addEventListener('click', updateSummary);
+            
+            // Form submission
+            const createJobForm = document.getElementById('create-job-form');
+            
+            createJobForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const confirmValidation = document.getElementById('confirm-validation');
+                if (!confirmValidation.checked) {
+                    alert('Veuillez confirmer que les informations sont correctes avant de continuer.');
+                    return;
+                }
+                
+                // Collect form data
+                const jobData = {
+                    title: document.getElementById('job-title').value,
+                    description: document.getElementById('job-description').value,
+                    recruitmentContext: document.getElementById('recruitment-context').value,
+                    recruitmentDelay: {
+                        immediate: document.getElementById('immediate').checked,
+                        twoWeeks: document.getElementById('2weeks').checked,
+                        oneMonth: document.getElementById('1month').checked,
+                        twoMonths: document.getElementById('2months').checked,
+                        threeMonths: document.getElementById('3months').checked
+                    },
+                    preavis: document.getElementById('preavis-oui').checked,
+                    preavisDuration: document.querySelector('input[name="duree_preavis"]:checked')?.value,
+                    experienceRequired: document.getElementById('experience-required').value,
+                    sectorKnowledge: document.getElementById('secteur-oui').checked,
+                    sector: document.getElementById('activity-sector').value,
+                    workEnvironment: document.querySelector('input[name="work-environment"]:checked').value,
+                    workOrganization: {
+                        remoteFull: document.getElementById('remote-full').checked,
+                        remotePartial: document.getElementById('remote-partial').checked,
+                        flexibleHours: document.getElementById('flexible-hours').checked,
+                        officeOnly: document.getElementById('office-only').checked
+                    },
+                    teamComposition: document.getElementById('team-composition').value,
+                    careerPerspectives: document.getElementById('career-perspectives').value,
+                    organizationMembers: orgMembers,
+                    processSteps: Array.from(document.querySelectorAll('.timeline-item')).map(item => ({
+                        id: item.dataset.step,
+                        name: item.querySelector('.timeline-title').textContent,
+                        description: item.querySelector('.timeline-content p')?.textContent || '',
+                        hasMembers: !!item.querySelector('.member')
+                    }))
+                };
+                
+                // Show success notification
+                const toast = document.createElement('div');
+                toast.className = 'position-fixed top-0 end-0 p-3';
+                toast.style.zIndex = '9999';
+                toast.innerHTML = `
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header bg-success text-white">
+                            <strong class="me-auto">Succès</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Le poste a été créé avec succès.</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Remove the notification after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                    // Redirect to job listing page
+                    // window.location.href = 'jobs-listing.html';
+                }, 3000);
+                
+                // In a real implementation, send data to backend
+                console.log('Job Data:', jobData);
+            });
+            
+            // Initialize the form with default selection for context
+            document.querySelector('.option-item[data-value="creation"]').click();
         });
     </script>
 </body>
