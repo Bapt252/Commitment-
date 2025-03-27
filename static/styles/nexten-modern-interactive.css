@@ -1571,3 +1571,59 @@ footer::before {
 .skip-to-content:focus {
     top: 0;
 }
+
+/* Correctifs pour l'affichage de la bannière - ajout pour résoudre le problème */
+.company-name {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    width: auto !important;
+    font-size: 2rem !important;
+    max-width: none !important;
+    display: block !important;
+}
+
+.user-fullname {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    width: auto !important;
+    font-size: 1.2rem !important;
+    max-width: none !important;
+    display: block !important;
+}
+
+.company-banner {
+    overflow: visible !important;
+    padding: 2rem 0 !important;
+}
+
+.company-banner-content {
+    flex-wrap: nowrap !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    overflow: visible !important;
+    width: 100% !important;
+}
+
+.company-info, .user-info {
+    overflow: visible !important;
+    flex-shrink: 0 !important;
+}
+
+.company-logo, .user-avatar {
+    flex-shrink: 0 !important;
+}
+
+@media (max-width: 768px) {
+    .company-banner-content {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .user-info {
+        margin-top: 20px !important;
+        width: auto !important;
+    }
+}
