@@ -10,34 +10,43 @@ function ajouterBoutonSuppression() {
   // Vérifier si le bouton existe déjà
   if (document.getElementById('btn-supprimer-offre')) return;
   
-  // Créer un conteneur pour les boutons (s'il n'existe pas déjà)
-  let buttonContainer = modal.querySelector('.modal-footer');
+  // Chercher la section des boutons du formulaire (à côté de "Annuler")
+  const formActions = modal.querySelector('.form-actions');
+  if (!formActions) return;
   
-  if (!buttonContainer) {
-    buttonContainer = document.createElement('div');
-    buttonContainer.className = 'modal-footer';
-    buttonContainer.style.display = 'flex';
-    buttonContainer.style.justifyContent = 'space-between';
-    buttonContainer.style.marginTop = '20px';
-    modal.appendChild(buttonContainer);
-  }
+  // Chercher le bouton "Annuler"
+  const cancelButton = formActions.querySelector('#cancel-job-btn');
   
   // Créer le bouton de suppression
   const deleteButton = document.createElement('button');
   deleteButton.id = 'btn-supprimer-offre';
   deleteButton.className = 'btn btn-danger';
+  deleteButton.type = 'button';
   deleteButton.textContent = 'Supprimer';
   deleteButton.style.backgroundColor = '#dc3545';
   deleteButton.style.color = 'white';
-  deleteButton.style.border = 'none';
-  deleteButton.style.padding = '8px 16px';
-  deleteButton.style.borderRadius = '4px';
+  deleteButton.style.marginRight = '10px';
   
   // Ajouter l'écouteur d'événement pour la suppression
   deleteButton.addEventListener('click', supprimerOffreEmploi);
   
-  // Ajouter le bouton au conteneur
-  buttonContainer.prepend(deleteButton);
+  // Si le bouton "Annuler" existe, insérer le bouton "Supprimer" juste après
+  if (cancelButton) {
+    cancelButton.parentNode.insertBefore(deleteButton, cancelButton.nextSibling);
+  } else {
+    // Sinon, ajouter le bouton au début de la section des actions
+    formActions.prepend(deleteButton);
+  }
+  
+  // Ajuster les styles pour mieux aligner les boutons
+  formActions.style.display = 'flex';
+  formActions.style.justifyContent = 'flex-start';
+  
+  // Assurer que le bouton "Enregistrer" reste à droite
+  const saveButton = formActions.querySelector('[type="submit"]');
+  if (saveButton) {
+    saveButton.style.marginLeft = 'auto';
+  }
 }
 
 // Fonction pour supprimer l'offre d'emploi
@@ -123,6 +132,25 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(ajouterBoutonSuppression, 300);
     });
   });
+  
+  // Ajouter des styles CSS pour le bouton de suppression
+  const style = document.createElement('style');
+  style.textContent = `
+    .btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+      color: white;
+    }
+    .btn-danger:hover {
+      background-color: #c82333;
+      border-color: #bd2130;
+    }
+    .form-actions {
+      display: flex;
+      align-items: center;
+    }
+  `;
+  document.head.appendChild(style);
   
   // Exécuter une fois au chargement de la page pour les modales déjà ouvertes
   setTimeout(ajouterBoutonSuppression, 300);
