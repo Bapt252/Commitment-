@@ -50,6 +50,7 @@
             --transition-fast: 0.2s ease;
             --transition-normal: 0.3s ease;
             --transition-slow: 0.5s ease;
+            --notification-height: 40px; /* Hauteur de la barre de notification */
         }
 
         * {
@@ -68,7 +69,7 @@
         /* Header styles */
         header {
             position: fixed;
-            top: 0;
+            top: var(--notification-height); /* Décalage du header sous la notification */
             left: 0;
             width: 100%;
             background-color: var(--white);
@@ -138,9 +139,12 @@
             left: 0;
             width: 100%;
             z-index: 1001;
-            transform: translateY(-100%);
-            animation: slideDown 0.5s ease forwards 0.5s;
+            transform: translateY(0); /* Modification pour garder visible la notification */
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            height: var(--notification-height); /* Hauteur fixe pour la notification */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         @keyframes slideDown {
@@ -246,7 +250,7 @@
 
         /* Main content */
         #main-content {
-            padding-top: 120px;
+            padding-top: calc(120px + var(--notification-height)); /* Ajustement pour tenir compte du header et de la notification */
             padding-bottom: 60px;
         }
 
@@ -261,7 +265,7 @@
             background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
             color: var(--white);
             padding: var(--spacing-lg) 0;
-            margin-top: 60px;
+            margin-top: var(--notification-height); /* Ajustement du margin pour tenir compte de la notification */
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
@@ -1536,12 +1540,13 @@
                 left: 0;
             }
 
+            /* Ajustement pour le menu mobile */
             nav {
                 position: fixed;
-                top: 80px;
+                top: calc(80px + var(--notification-height)); /* Ajustement pour tenir compte de la notification */
                 left: -100%;
                 width: 100%;
-                height: calc(100vh - 80px);
+                height: calc(100vh - 80px - var(--notification-height)); /* Ajustement de la hauteur */
                 background-color: var(--white);
                 transition: left var(--transition-normal);
                 display: flex;
@@ -1594,6 +1599,11 @@
 
             .candidate-cards {
                 grid-template-columns: 1fr;
+            }
+            
+            /* Ajustement pour les petits écrans */
+            :root {
+                --notification-height: 60px; /* Hauteur plus grande pour les petits écrans */
             }
         }
     </style>
