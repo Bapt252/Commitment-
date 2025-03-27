@@ -64,6 +64,7 @@
             background-color: var(--cream);
             color: var(--dark);
             line-height: 1.6;
+            padding-top: calc(var(--notification-height) + 60px); /* Ajout de padding pour compenser la notification et le header */
         }
 
         /* Header styles */
@@ -139,18 +140,11 @@
             left: 0;
             width: 100%;
             z-index: 1001;
-            transform: translateY(0); /* Modification pour garder visible la notification */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             height: var(--notification-height); /* Hauteur fixe pour la notification */
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        @keyframes slideDown {
-            to {
-                transform: translateY(0);
-            }
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .notification-bar i {
@@ -250,7 +244,7 @@
 
         /* Main content */
         #main-content {
-            padding-top: calc(120px + var(--notification-height)); /* Ajustement pour tenir compte du header et de la notification */
+            padding-top: 0; /* Supprimé car on utilise padding-top sur body */
             padding-bottom: 60px;
         }
 
@@ -265,7 +259,7 @@
             background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
             color: var(--white);
             padding: var(--spacing-lg) 0;
-            margin-top: var(--notification-height); /* Ajustement du margin pour tenir compte de la notification */
+            margin-top: 0; /* Ajusté pour éviter un espacement excessif */
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
@@ -1584,6 +1578,10 @@
                 grid-template-columns: 1fr;
                 gap: var(--spacing-lg);
             }
+            
+            body {
+                padding-top: calc(var(--notification-height) + 80px); /* Ajustement pour mobile */
+            }
         }
         
         @media (max-width: 576px) {
@@ -1604,6 +1602,10 @@
             /* Ajustement pour les petits écrans */
             :root {
                 --notification-height: 60px; /* Hauteur plus grande pour les petits écrans */
+            }
+            
+            body {
+                padding-top: calc(var(--notification-height) + 70px); /* Ajustement pour très petits écrans */
             }
         }
     </style>
