@@ -43,19 +43,22 @@
 
 /* Correction pour le titre de la page */
 .page-header h1 {
-    font-size: 2.25rem; /* Augmenté de 2rem à 2.25rem */
-    margin-top: 10px; /* Ajout d'une marge en haut */
-    margin-bottom: 12px; /* Augmenté de 8px à 12px */
+    font-size: 2.1rem; /* Légèrement ajusté pour un meilleur équilibre */
+    margin-top: 0; /* Réinitialisation des marges pour un contrôle précis */
+    margin-bottom: 15px; /* Augmenté pour plus d'espace sous le titre */
     color: var(--gray-900);
-    line-height: 1.1; /* Réduit de 1.2 à 1.1 pour un meilleur espacement */
+    line-height: 1.15; /* Ajusté pour un espacement optimal des lignes */
     word-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
-    padding-right: 30px; /* Augmenté de 20px à 30px */
-    font-weight: 700; /* Renforcé la mise en gras */
-    display: block; /* Assuré que c'est un bloc complet */
+    padding-right: 0; /* Réinitialisation du padding droit */
+    padding-left: 0; /* Assurer qu'il n'y a pas de padding à gauche non désiré */
+    font-weight: 700; /* Mise en gras prononcée */
+    display: block; /* Assurer que c'est un bloc complet */
     width: 100%; /* Utiliser toute la largeur disponible */
     max-width: 100%; /* Limiter à la largeur du conteneur */
+    letter-spacing: -0.01em; /* Léger ajustement de l'espacement des lettres pour améliorer la lisibilité */
+    text-rendering: optimizeLegibility; /* Amélioration du rendu du texte */
 }
 
 /* Organisation par offre d'emploi */
@@ -1434,8 +1437,8 @@
     
     /* Amélioration de la mise en page responsive pour le titre de la page */
     .page-header h1 {
-        font-size: 2rem; /* Ajusté pour tablettes */
-        padding-right: 15px;
+        font-size: 1.9rem; /* Ajusté pour tablettes */
+        padding-right: 0;
     }
 }
 
@@ -1471,18 +1474,19 @@
     /* Amélioration de la mise en page responsive pour le titre de la page */
     .page-header h1 {
         font-size: 1.75rem; /* Ajusté pour mobiles */
-        margin-top: 5px;
-        padding-right: 10px;
+        margin-top: 0;
+        padding-right: 0;
     }
 }
 
 /* Correction pour l'en-tête de la page */
 .page-header {
     margin-bottom: var(--spacing-lg);
-    padding-top: var(--spacing-lg);
+    padding-top: var(--spacing-md); /* Réduit pour un meilleur équilibre */
     padding-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--gray-200);
     max-width: 100%; /* Assurer que l'en-tête n'est pas trop large */
+    overflow: visible; /* Assurer que le contenu débordant est visible */
 }
 
 .page-header p {
