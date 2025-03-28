@@ -18,6 +18,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="https://bapt252.github.io/Commitment-/assets/css/recruitment-process.css">
     <link rel="stylesheet" href="https://bapt252.github.io/Commitment-/assets/css/recruitment-process-improved.css">
+    <link rel="stylesheet" href="https://bapt252.github.io/Commitment-/assets/css/timeline.css">
     
     <style>
         :root {
@@ -1252,24 +1253,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="timeline-item" data-step="decision-finale" id="step-decision">
-                                    <div class="step-counter">5</div>
-                                    <div class="timeline-header">
-                                        <h6 class="timeline-title">Décision finale</h6>
-                                        <div class="timeline-actions">
-                                            <button type="button" class="timeline-action success" title="Approuver">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            <button type="button" class="timeline-action danger" title="Rejeter">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="timeline-content">
-                                        <p>Validation et offre</p>
-                                    </div>
-                                </div>
                             </div>
                             
                             <div class="timeline-branch" id="presentiel2-container">
@@ -1468,67 +1451,40 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Custom JS -->
-    <script src="https://bapt252.github.io/Commitment-/assets/js/recruitment-process.js"></script>
-    <script src="https://bapt252.github.io/Commitment-/assets/js/recruitment-process-improved.js"></script>
+    <!-- Our custom JS -->
+    <script src="https://bapt252.github.io/Commitment-/assets/js/recruitment-process-v2.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
+            // Préavis visibility toggle
+            const preavisOui = document.getElementById('preavis-oui');
+            const preavisNon = document.getElementById('preavis-non');
+            const preavisDuration = document.getElementById('preavis-duration');
             
-            // Multi-step form navigation
-            const progressSteps = document.querySelectorAll('.progress-step');
-            const stepContents = document.querySelectorAll('.step-content');
-            const nextButtons = document.querySelectorAll('.next-step');
-            const prevButtons = document.querySelectorAll('.prev-step');
-            
-            function showStep(stepNumber) {
-                // Hide all steps
-                stepContents.forEach(step => step.classList.remove('active'));
-                
-                // Show selected step
-                document.getElementById(`step-${stepNumber}`).classList.add('active');
-                
-                // Update progress steps
-                progressSteps.forEach(step => {
-                    const stepNum = parseInt(step.dataset.step);
-                    step.classList.remove('active', 'completed');
-                    
-                    if (stepNum === stepNumber) {
-                        step.classList.add('active');
-                    } else if (stepNum < stepNumber) {
-                        step.classList.add('completed');
-                    }
+            if (preavisOui && preavisNon && preavisDuration) {
+                preavisOui.addEventListener('change', function() {
+                    preavisDuration.style.display = this.checked ? 'block' : 'none';
                 });
                 
-                // Scroll to top
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                preavisNon.addEventListener('change', function() {
+                    preavisDuration.style.display = 'none';
+                });
             }
             
-            nextButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const nextStep = parseInt(button.dataset.step);
-                    showStep(nextStep);
-                });
-            });
+            // Sector selection visibility toggle
+            const secteurOui = document.getElementById('secteur-oui');
+            const secteurNon = document.getElementById('secteur-non');
+            const sectorSelection = document.getElementById('sector-selection');
             
-            prevButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const prevStep = parseInt(button.dataset.step);
-                    showStep(prevStep);
+            if (secteurOui && secteurNon && sectorSelection) {
+                secteurOui.addEventListener('change', function() {
+                    sectorSelection.style.display = this.checked ? 'block' : 'none';
                 });
-            });
-            
-            progressSteps.forEach(step => {
-                step.addEventListener('click', function() {
-                    const clickedStep = parseInt(step.dataset.step);
-                    showStep(clickedStep);
+                
+                secteurNon.addEventListener('change', function() {
+                    sectorSelection.style.display = 'none';
                 });
-            });
+            }
             
             // Option cards selection
             const optionCards = document.querySelectorAll('.option-card');
@@ -1549,328 +1505,19 @@
                 });
             });
             
-            // Préavis visibility toggle
-            const preavisOui = document.getElementById('preavis-oui');
-            const preavisNon = document.getElementById('preavis-non');
-            const preavisDuration = document.getElementById('preavis-duration');
-            
-            preavisOui.addEventListener('change', function() {
-                preavisDuration.style.display = this.checked ? 'block' : 'none';
-            });
-            
-            preavisNon.addEventListener('change', function() {
-                preavisDuration.style.display = 'none';
-            });
-            
-            // Sector selection visibility toggle
-            const secteurOui = document.getElementById('secteur-oui');
-            const secteurNon = document.getElementById('secteur-non');
-            const sectorSelection = document.getElementById('sector-selection');
-            
-            secteurOui.addEventListener('change', function() {
-                sectorSelection.style.display = this.checked ? 'block' : 'none';
-            });
-            
-            secteurNon.addEventListener('change', function() {
-                sectorSelection.style.display = 'none';
-            });
-            
-            // Organization members management
-            const addMemberBtn = document.getElementById('add-member-btn');
-            const orgMembersList = document.getElementById('org-members-list');
-            const noMembersMessage = document.getElementById('no-members-message');
-            const contactSelectionModal = new bootstrap.Modal(document.getElementById('contactSelectionModal'));
-            const contactSearchInput = document.getElementById('contact-search-input');
-            const contactsContainer = document.getElementById('contacts-container');
-            
-            let orgMembers = [];
-            
-            // Données des contacts pour la démo
-            const demoContacts = [
-                { id: 1, firstName: 'Marie', lastName: 'DURAND', position: 'Chargée recrutement', email: 'marie.durand@example.com', role: 'manager' },
-                { id: 2, firstName: 'Joseph', lastName: 'EUX', position: 'DAF', email: 'joseph.eux@example.com', role: 'admin' },
-                { id: 3, firstName: 'Sophia', lastName: 'MARTIN', position: 'Assistante RH', email: 'sophia.martin@example.com', role: 'recruiter' }
-            ];
-            
-            // Charger les contacts
-            function loadContacts() {
-                contactsContainer.innerHTML = '';
-                
-                if (demoContacts.length === 0) {
-                    contactsContainer.innerHTML = `
-                        <div class="empty-contacts">
-                            <i class="fas fa-users"></i>
-                            <p>Aucun contact trouvé.</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                demoContacts.forEach(contact => {
-                    // Vérifier si ce contact est déjà ajouté à la liste des membres
-                    const isAlreadyAdded = orgMembers.some(member => member.id === contact.id);
-                    if (isAlreadyAdded) {
-                        return; // Skip this contact as it's already added
-                    }
-                    
-                    const contactElement = document.createElement('div');
-                    contactElement.className = 'contact-item';
-                    contactElement.dataset.id = contact.id;
-                    
-                    // Créer initiales pour l'avatar
-                    const initials = contact.firstName.charAt(0) + contact.lastName.charAt(0);
-                    
-                    contactElement.innerHTML = `
-                        <div class="contact-avatar">${initials}</div>
-                        <div class="contact-info">
-                            <div class="contact-name">${contact.firstName} ${contact.lastName}</div>
-                            <div class="contact-position">${contact.position}</div>
-                            <div class="contact-email">${contact.email}</div>
-                        </div>
-                    `;
-                    
-                    contactElement.addEventListener('click', function() {
-                        // Ajouter ce contact à la liste des membres
-                        const member = {
-                            id: contact.id,
-                            name: `${contact.firstName} ${contact.lastName}`,
-                            email: contact.email,
-                            role: contact.position
-                        };
-                        
-                        orgMembers.push(member);
-                        renderOrgMembers();
-                        contactSelectionModal.hide();
-                    });
-                    
-                    contactsContainer.appendChild(contactElement);
-                });
+            // Initialize with the first option selected
+            if (optionCards.length > 0 && recruitmentContextInput) {
+                optionCards[0].classList.add('selected');
+                recruitmentContextInput.value = optionCards[0].dataset.value;
             }
-            
-            // Recherche de contacts
-            if (contactSearchInput) {
-                contactSearchInput.addEventListener('input', function() {
-                    const searchValue = this.value.toLowerCase().trim();
-                    const contactItems = contactsContainer.querySelectorAll('.contact-item');
-                    
-                    contactItems.forEach(item => {
-                        const name = item.querySelector('.contact-name').textContent.toLowerCase();
-                        const position = item.querySelector('.contact-position').textContent.toLowerCase();
-                        const email = item.querySelector('.contact-email').textContent.toLowerCase();
-                        
-                        if (name.includes(searchValue) || position.includes(searchValue) || email.includes(searchValue)) {
-                            item.style.display = '';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                });
-            }
-            
-            // Ouvrir le modal de sélection des contacts
-            addMemberBtn.addEventListener('click', function() {
-                // Charger les contacts dans le modal
-                loadContacts();
-                
-                // Afficher le modal
-                contactSelectionModal.show();
-            });
-            
-            function renderOrgMembers() {
-                if (orgMembers.length > 0) {
-                    orgMembersList.style.display = 'block';
-                    noMembersMessage.style.display = 'none';
-                    
-                    orgMembersList.innerHTML = '';
-                    
-                    const tableResponsive = document.createElement('div');
-                    tableResponsive.className = 'table-responsive';
-                    
-                    const table = document.createElement('table');
-                    table.className = 'table';
-                    
-                    const thead = document.createElement('thead');
-                    thead.innerHTML = `
-                        <tr>
-                            <th>Nom</th>
-                            <th>Email</th>
-                            <th>Rôle</th>
-                            <th>Actions</th>
-                        </tr>
-                    `;
-                    
-                    const tbody = document.createElement('tbody');
-                    
-                    orgMembers.forEach(member => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${member.name}</td>
-                            <td>${member.email}</td>
-                            <td>${member.role}</td>
-                            <td>
-                                <button class="btn btn-outline-danger btn-icon remove-member" data-id="${member.id}">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                    
-                    table.appendChild(thead);
-                    table.appendChild(tbody);
-                    tableResponsive.appendChild(table);
-                    orgMembersList.appendChild(tableResponsive);
-                    
-                    // Add event listeners to remove buttons
-                    document.querySelectorAll('.remove-member').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const memberId = parseInt(this.getAttribute('data-id'));
-                            orgMembers = orgMembers.filter(member => member.id !== memberId);
-                            renderOrgMembers();
-                        });
-                    });
-                } else {
-                    orgMembersList.style.display = 'none';
-                    noMembersMessage.style.display = 'block';
-                }
-            }
-            
-            // Summary generation for final step
-            function updateSummary() {
-                // Main information summary
-                const jobTitle = document.getElementById('job-title').value || 'Non spécifié';
-                const jobDescription = document.getElementById('job-description').value || 'Non spécifié';
-                
-                let recruitmentContext = 'Non spécifié';
-                const selectedCard = document.querySelector('.option-card.selected');
-                if (selectedCard) {
-                    recruitmentContext = selectedCard.querySelector('.option-title').textContent;
-                }
-                
-                const experience = document.getElementById('experience-required').options[document.getElementById('experience-required').selectedIndex].text;
-                
-                document.getElementById('job-summary-main').innerHTML = `
-                    <div class="summary-item mb-2">
-                        <strong>Titre :</strong> ${jobTitle}
-                    </div>
-                    <div class="summary-item mb-2">
-                        <strong>Descriptif :</strong> ${jobDescription.length > 100 ? jobDescription.substring(0, 100) + '...' : jobDescription}
-                    </div>
-                    <div class="summary-item mb-2">
-                        <strong>Contexte :</strong> ${recruitmentContext}
-                    </div>
-                    <div class="summary-item mb-2">
-                        <strong>Expérience requise :</strong> ${experience}
-                    </div>
-                `;
-                
-                // Environment summary
-                const workEnv = document.querySelector('input[name="work-environment"]:checked').value === 'open-space' ? 'Open Space' : 'Bureau fermé';
-                const teamComp = document.getElementById('team-composition').value || 'Non spécifié';
-                const remotePossible = document.getElementById('remote-partial').checked || document.getElementById('remote-full').checked;
-                
-                document.getElementById('job-summary-environment').innerHTML = `
-                    <div class="summary-item mb-2">
-                        <strong>Espace de travail :</strong> ${workEnv}
-                    </div>
-                    <div class="summary-item mb-2">
-                        <strong>Télétravail possible :</strong> ${remotePossible ? 'Oui' : 'Non'}
-                    </div>
-                    <div class="summary-item mb-2">
-                        <strong>Composition de l'équipe :</strong> ${teamComp.length > 100 ? teamComp.substring(0, 100) + '...' : teamComp}
-                    </div>
-                `;
-                
-                // Members summary
-                if (orgMembers.length > 0) {
-                    let membersHtml = '<ul class="list-unstyled">';
-                    orgMembers.forEach(member => {
-                        membersHtml += `<li class="mb-1"><i class="fas fa-user text-primary me-2"></i> ${member.name} <small>(${member.role})</small></li>`;
-                    });
-                    membersHtml += '</ul>';
-                    document.getElementById('job-summary-members').innerHTML = membersHtml;
-                } else {
-                    document.getElementById('job-summary-members').innerHTML = '<p>Aucun membre ajouté</p>';
-                }
-                
-                // Process summary
-                const steps = document.querySelectorAll('.timeline-item');
-                if (steps.length > 0) {
-                    let stepsHtml = '<ol class="ps-3">';
-                    steps.forEach(step => {
-                        const title = step.querySelector('.timeline-title').textContent;
-                        const isEnabled = step.classList.contains('enabled');
-                        const isDisabled = step.classList.contains('disabled');
-                        const statusBadge = isEnabled ? 
-                            '<span class="stage-badge active">Activé</span>' : 
-                            (isDisabled ? '<span class="stage-badge inactive">Désactivé</span>' : '');
-                        
-                        stepsHtml += `<li class="mb-1">${title} ${statusBadge}</li>`;
-                    });
-                    stepsHtml += '</ol>';
-                    document.getElementById('job-summary-process').innerHTML = stepsHtml;
-                } else {
-                    document.getElementById('job-summary-process').innerHTML = '<p>Aucune étape définie</p>';
-                }
-            }
-            
-            // Update summary when navigating to step 5
-            document.querySelector('[data-step="5"]').addEventListener('click', updateSummary);
-            document.querySelector('[data-step="5"].next-step').addEventListener('click', updateSummary);
-            
-            // Form submission
-            const createJobForm = document.getElementById('create-job-form');
-            
-            createJobForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const confirmValidation = document.getElementById('confirm-validation');
-                if (!confirmValidation.checked) {
-                    alert('Veuillez confirmer que les informations sont correctes avant de continuer.');
-                    return;
-                }
-                
-                // Show success toast
-                if (typeof showToast === 'function') {
-                    showToast('Le poste a été créé avec succès', 'success');
-                } else {
-                    // Fallback if the improved script isn't loaded
-                    const toastContainer = document.createElement('div');
-                    toastContainer.className = 'position-fixed top-0 end-0 p-3';
-                    toastContainer.style.zIndex = '9999';
-                    
-                    toastContainer.innerHTML = `
-                        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                            <div class="toast-header bg-success text-white">
-                                <strong class="me-auto">Succès</strong>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                            </div>
-                            <div class="toast-body">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    <span>Le poste a été créé avec succès.</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    document.body.appendChild(toastContainer);
-                    
-                    // Remove toast after 3 seconds
-                    setTimeout(() => {
-                        toastContainer.remove();
-                    }, 3000);
-                }
-            });
             
             // Help button
             const helpButton = document.getElementById('help-button');
-            helpButton.addEventListener('click', function() {
-                alert('Aide: Ce formulaire vous permet de créer un nouveau poste dans votre entreprise. Remplissez les informations étape par étape, puis validez pour publier le poste.');
-            });
-            
-            // Initialize the form with default selection for context
-            document.querySelector('.option-card[data-value="creation"]').click();
+            if (helpButton) {
+                helpButton.addEventListener('click', function() {
+                    alert('Aide: Ce formulaire vous permet de créer un nouveau poste dans votre entreprise. Remplissez les informations étape par étape, puis validez pour publier le poste.');
+                });
+            }
         });
     </script>
 </body>
