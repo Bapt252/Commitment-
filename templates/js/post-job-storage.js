@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Récupérer le formulaire
     const jobForm = document.getElementById('create-job-form');
-    const addStepButton = document.getElementById('add-step-btn');
+    const addStepBtn = document.getElementById('add-step-btn');
     
     // Écouter l'événement de soumission du formulaire
     if (jobForm) {
@@ -66,13 +66,13 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             // Récupérer les jobs existants depuis localStorage
-            let jobs = JSON.parse(localStorage.getItem('commitmentJobs')) || [];
+            let jobs = JSON.parse(localStorage.getItem('commitment_jobs')) || [];
             
             // Ajouter le nouveau job
             jobs.push(jobData);
             
             // Sauvegarder dans localStorage
-            localStorage.setItem('commitmentJobs', JSON.stringify(jobs));
+            localStorage.setItem('commitment_jobs', JSON.stringify(jobs));
             
             // Afficher un message de confirmation (optionnel, peut être géré par le code existant)
             console.log('Poste enregistré avec succès dans localStorage');
