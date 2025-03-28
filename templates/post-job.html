@@ -912,28 +912,28 @@
                                 <div class="mb-4">
                                     <label class="form-label">Délai de recrutement souhaité</label>
                                     <label class="nexten-check">
-                                        <input type="checkbox" id="immediate">
-                                        <span class="checkmark"></span>
+                                        <input type="radio" name="delai" id="immediate" value="immediate">
+                                        <span class="radio-mark"></span>
                                         Immédiat
                                     </label>
                                     <label class="nexten-check">
-                                        <input type="checkbox" id="2weeks">
-                                        <span class="checkmark"></span>
+                                        <input type="radio" name="delai" id="2weeks" value="2weeks">
+                                        <span class="radio-mark"></span>
                                         2 semaines
                                     </label>
                                     <label class="nexten-check">
-                                        <input type="checkbox" id="1month">
-                                        <span class="checkmark"></span>
+                                        <input type="radio" name="delai" id="1month" value="1month">
+                                        <span class="radio-mark"></span>
                                         1 mois
                                     </label>
                                     <label class="nexten-check">
-                                        <input type="checkbox" id="2months">
-                                        <span class="checkmark"></span>
+                                        <input type="radio" name="delai" id="2months" value="2months">
+                                        <span class="radio-mark"></span>
                                         2 mois
                                     </label>
                                     <label class="nexten-check">
-                                        <input type="checkbox" id="3months">
-                                        <span class="checkmark"></span>
+                                        <input type="radio" name="delai" id="3months" value="3months">
+                                        <span class="radio-mark"></span>
                                         3 mois
                                     </label>
                                 </div>
@@ -1709,7 +1709,7 @@
                             <td>${member.role}</td>
                             <td>
                                 <button class="btn btn-outline-danger btn-icon remove-member" data-id="${member.id}">
-                                    <i class="fas fa-trash"></i>
+                                    <i class="fas fa-times"></i>
                                 </button>
                             </td>
                         `;
