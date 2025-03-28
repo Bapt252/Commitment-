@@ -1,0 +1,402 @@
+/* Corrections UI/UX pour le processus de recrutement */
+
+/* Correction des onglets avec numérotation plus visible */
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 40px;
+}
+
+/* Amélioration de la ligne de progression */
+.progress-steps::before {
+  content: '';
+  position: absolute;
+  top: 25px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #f0f0f0;
+  z-index: 1;
+}
+
+/* Ajout d'une ligne de progression colorée pour montrer l'avancement */
+.progress-steps::after {
+  content: '';
+  position: absolute;
+  top: 25px;
+  left: 0;
+  width: 0; /* Sera modifié par JS en fonction de l'étape active */
+  height: 4px;
+  background-color: var(--primary-color);
+  z-index: 2;
+  transition: width 0.5s ease;
+}
+
+/* Amélioration visuelle des étapes */
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+  width: 100px;
+}
+
+/* Correction du cercle d'étape */
+.step-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Ajout de numéros d'étape visibles */
+.progress-step[data-step]::before {
+  content: attr(data-step);
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 25px;
+  height: 25px;
+  background-color: white;
+  border: 2px solid var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--primary-color);
+  z-index: 4;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Style pour l'étape active */
+.progress-step.active .step-circle {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(115, 102, 255, 0.3);
+}
+
+.progress-step.active::before {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: white;
+}
+
+/* Style pour les étapes complétées */
+.progress-step.completed .step-circle {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+  color: white;
+}
+
+.progress-step.completed::before {
+  background-color: var(--success-color);
+  color: white;
+  border-color: white;
+}
+
+/* Style pour le texte d'étape */
+.step-label {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--light-text);
+  text-align: center;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+}
+
+.progress-step.active .step-label {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.progress-step.completed .step-label {
+  color: var(--success-color);
+}
+
+/* Correction du processus de recrutement */
+
+/* Container principal amélioré */
+.timeline-container {
+  overflow-x: auto;
+  padding: 20px 15px;
+  border-radius: 12px;
+  background-color: rgba(115, 102, 255, 0.02);
+  border: 1px solid rgba(115, 102, 255, 0.05);
+  margin-bottom: 25px;
+  position: relative;
+}
+
+/* Correction de la ligne violette au centre */
+.timeline {
+  display: flex;
+  gap: 25px;
+  min-width: max-content;
+  position: relative;
+  padding: 20px 10px;
+}
+
+.timeline::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    rgba(115, 102, 255, 0.1) 0%, 
+    rgba(115, 102, 255, 0.7) 50%, 
+    rgba(115, 102, 255, 0.1) 100%);
+  z-index: 0;
+  transform: translateY(-50%);
+}
+
+/* Timeline items améliorés */
+.timeline-item {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  position: relative;
+  width: 250px;
+  transition: all 0.3s ease;
+  cursor: grab;
+  z-index: 1;
+  border: 1px solid #f0f0f0;
+}
+
+.timeline-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Correction du badge numéroté */
+.step-counter {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 2;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Amélioration de l'entête des items */
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px 12px 0 0;
+  background-color: rgba(115, 102, 255, 0.03);
+}
+
+.timeline-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--dark-color);
+  margin: 0;
+}
+
+/* Amélioration des boutons d'action */
+.timeline-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.timeline-action {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: white;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.timeline-action:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.timeline-action.success {
+  background: linear-gradient(135deg, var(--success-color) 0%, #2a9d5d 100%);
+  box-shadow: 0 2px 6px rgba(55, 182, 121, 0.3);
+}
+
+.timeline-action.danger {
+  background: linear-gradient(135deg, var(--danger-color) 0%, #e0253f 100%);
+  box-shadow: 0 2px 6px rgba(255, 71, 87, 0.3);
+}
+
+/* Contenu des étapes */
+.timeline-content {
+  padding: 15px;
+  font-size: 14px;
+  color: var(--light-text);
+}
+
+/* Amélioration des branches */
+.timeline-branch {
+  margin-top: 30px;
+  margin-left: 60px;
+  position: relative;
+}
+
+.timeline-branch:before {
+  content: '';
+  position: absolute;
+  left: -35px;
+  top: -30px;
+  width: 35px;
+  height: 45px;
+  border-left: 3px solid var(--primary-color);
+  border-bottom: 3px solid var(--primary-color);
+  border-bottom-left-radius: 12px;
+  z-index: 1;
+}
+
+/* Amélioration pour l'ajout de membres */
+.member-item {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: rgba(115, 102, 255, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid rgba(115, 102, 255, 0.1);
+}
+
+.member-item:hover {
+  background-color: rgba(115, 102, 255, 0.1);
+  transform: translateX(5px);
+}
+
+.member-icon {
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  margin-right: 12px;
+  transition: transform 0.3s ease;
+}
+
+.member-item:hover .member-icon {
+  transform: scale(1.1);
+}
+
+.member-name {
+  color: var(--primary-color);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Ajout d'étape */
+#add-step-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: white;
+  border: 2px dashed var(--primary-light);
+  color: var(--primary-color);
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  gap: 8px;
+}
+
+#add-step-btn:hover {
+  background-color: rgba(115, 102, 255, 0.05);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(115, 102, 255, 0.15);
+}
+
+#add-step-btn i {
+  transition: transform 0.3s ease;
+}
+
+#add-step-btn:hover i {
+  transform: rotate(90deg);
+}
+
+/* Responsive fixes */
+@media (max-width: 992px) {
+  .progress-step {
+    width: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .progress-steps {
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 15px;
+  }
+  
+  .progress-step {
+    min-width: 80px;
+    margin-right: 20px;
+  }
+  
+  .timeline-item {
+    width: 220px;
+  }
+  
+  .timeline-branch {
+    margin-left: 40px;
+  }
+}
+
+@media (max-width: 576px) {
+  .progress-step {
+    min-width: 70px;
+  }
+  
+  .step-circle {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .timeline-item {
+    width: 200px;
+  }
+  
+  .timeline-branch {
+    margin-left: 30px;
+  }
+}
+
+/* Script pour mettre à jour la barre de progression */
+/* Sera mis à jour par JavaScript */
