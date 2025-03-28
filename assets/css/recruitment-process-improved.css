@@ -1,0 +1,467 @@
+/* Improved Recruitment Process Styles */
+
+/* Timeline Items with enhanced styling */
+.timeline-item {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  position: relative;
+  padding: 16px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  cursor: grab;
+}
+
+.timeline-item:active {
+  cursor: grabbing;
+}
+
+.timeline-item:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Better spacing for timeline items */
+.timeline {
+  display: flex;
+  gap: 25px;
+  min-width: max-content;
+  position: relative;
+  padding: 10px 0;
+}
+
+.timeline::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(115,102,255,0.1) 0%, rgba(115,102,255,0.3) 50%, rgba(115,102,255,0.1) 100%);
+  z-index: 0;
+}
+
+/* Step counter badge improvements */
+.step-counter {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 2;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Improved timeline header */
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  padding-bottom: 10px;
+}
+
+.timeline-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--dark-color);
+  margin: 0;
+}
+
+/* Better actions buttons */
+.timeline-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.timeline-action {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: white;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.timeline-action:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.timeline-action.success {
+  background-color: var(--success-color);
+}
+
+.timeline-action.danger {
+  background-color: var(--danger-color);
+}
+
+.timeline-action.delete {
+  background-color: #ff4757;
+}
+
+/* Timeline content improved */
+.timeline-content {
+  font-size: 14px;
+  color: var(--light-text);
+  line-height: 1.4;
+}
+
+.timeline-content p {
+  margin-bottom: 10px;
+}
+
+/* Make timeline branches more visible */
+.timeline-branch {
+  margin-top: 25px;
+  margin-left: 50px;
+  position: relative;
+}
+
+.timeline-branch:before {
+  content: '';
+  position: absolute;
+  left: -30px;
+  top: -25px;
+  width: 30px;
+  height: 40px;
+  border-left: 3px solid var(--primary-color);
+  border-bottom: 3px solid var(--primary-color);
+  border-bottom-left-radius: 10px;
+  z-index: 1;
+}
+
+/* Enhanced member item styling */
+.member-item {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: rgba(115, 102, 255, 0.05);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid rgba(115, 102, 255, 0.1);
+}
+
+.member-item:hover {
+  background-color: rgba(115, 102, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.member-icon {
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  margin-right: 12px;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--primary-color);
+  margin-bottom: 2px;
+}
+
+.member-position {
+  font-size: 12px;
+  color: var(--light-text);
+}
+
+/* Improved contact avatar */
+.contact-avatar {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  margin-right: 12px;
+  flex-shrink: 0;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Timeline states */
+.timeline-item.enabled {
+  border-left: 4px solid var(--success-color);
+}
+
+.timeline-item.disabled {
+  border-left: 4px solid var(--danger-color);
+  opacity: 0.75;
+}
+
+/* Drag and drop indicators */
+.timeline-item.dragging {
+  opacity: 0.6;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.timeline-item.drop-target {
+  outline: 2px dashed rgba(115, 102, 255, 0.3);
+}
+
+.timeline-item.ready-to-drop {
+  border: 2px dashed var(--primary-color);
+  background-color: rgba(115, 102, 255, 0.05);
+  transform: scale(1.02);
+}
+
+/* Improved add step button */
+#add-step-btn {
+  background-color: white;
+  border: 2px dashed var(--primary-light);
+  color: var(--primary-color);
+  font-weight: 600;
+  padding: 10px 16px;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+#add-step-btn:hover {
+  background-color: rgba(115, 102, 255, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(115, 102, 255, 0.1);
+}
+
+#add-step-btn i {
+  margin-right: 8px;
+}
+
+/* Better modals */
+.modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  background-color: var(--primary-color);
+  color: white;
+  border-bottom: none;
+  padding: 15px 20px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 15px 20px;
+}
+
+/* Improved contact items */
+.contact-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: white;
+}
+
+.contact-item:hover {
+  background-color: rgba(115, 102, 255, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border-color: var(--primary-light);
+}
+
+.contact-info {
+  flex: 1;
+}
+
+.contact-name {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 4px;
+  color: var(--dark-color);
+}
+
+.contact-position {
+  font-size: 13px;
+  color: var(--light-text);
+  margin-bottom: 2px;
+}
+
+.contact-email {
+  font-size: 12px;
+  color: var(--primary-color);
+}
+
+/* Better toast notifications */
+.toast-notification {
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  animation: toast-slide-in 0.3s ease forwards;
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Nice animation for the entire process section */
+.step-content#step-4 {
+  animation: fade-in 0.5s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Delete confirmation styling */
+.delete-confirmation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 8px;
+  backdrop-filter: blur(2px);
+  animation: fade-in 0.2s ease;
+}
+
+.delete-confirmation-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.timeline-item.deletion-pending {
+  box-shadow: 0 0 0 2px #ff4757, 0 0 10px rgba(255, 71, 87, 0.3);
+}
+
+/* Add icon to indicate draggable items */
+.timeline-item:hover:before {
+  content: "☰";
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #ccc;
+  font-size: 16px;
+  opacity: 0.7;
+  cursor: move;
+}
+
+/* Make the entire timeline container nicer */
+.timeline-container {
+  margin-bottom: 25px;
+  background-color: rgba(115, 102, 255, 0.02);
+  border-radius: 12px;
+  padding: 20px 15px;
+  border: 1px dashed rgba(115, 102, 255, 0.2);
+}
+
+/* Responsive adaptations */
+@media (max-width: 768px) {
+  .timeline-item {
+    width: 200px;
+  }
+  
+  .timeline-branch {
+    margin-left: 30px;
+  }
+  
+  .timeline-branch:before {
+    left: -20px;
+    width: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .timeline-item {
+    width: 180px;
+  }
+  
+  .timeline-branch {
+    margin-left: 25px;
+  }
+  
+  .contact-item {
+    padding: 10px;
+  }
+  
+  .contact-name {
+    font-size: 14px;
+  }
+}
+
+/* Custom scrollbar for the timeline container */
+.timeline-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.timeline-container::-webkit-scrollbar-track {
+  background: rgba(115, 102, 255, 0.05);
+  border-radius: 4px;
+}
+
+.timeline-container::-webkit-scrollbar-thumb {
+  background: rgba(115, 102, 255, 0.2);
+  border-radius: 4px;
+}
+
+.timeline-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(115, 102, 255, 0.3);
+}
