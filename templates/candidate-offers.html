@@ -807,26 +807,16 @@
             margin: 0 auto 24px;
         }
         
-        /* Style pour le logo du dashboard */
-        .dashboard-logo {
-            display: inline-flex;
-            align-items: center;
-            font-weight: 500;
-            margin-left: 15px;
-            padding: 3px 10px;
-            background-color: #7C3AED;
-            color: white;
-            border-radius: 5px;
-            font-size: 0.8rem;
-        }
-        
-        .dashboard-logo i {
-            margin-right: 5px;
-        }
-        
-        .header-logos {
+        /* Style pour le logo */
+        .nexten-logo {
             display: flex;
             align-items: center;
+            height: 40px;
+        }
+        
+        .nexten-logo svg {
+            height: 100%;
+            width: auto;
         }
     </style>
 </head>
@@ -846,13 +836,37 @@
 
     <header>
         <div class="container">
-            <div class="header-logos">
-                <div class="logo">
-                    nex<span>ten</span><div class="logo-badge">10</div>
-                </div>
-                <div class="dashboard-logo">
-                    <i class="fas fa-tachometer-alt"></i>DASHBOARD
-                </div>
+            <div class="nexten-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 250">
+                    <g fill="#2D1A70">
+                        <!-- Logo graphique (réseau) -->
+                        <circle cx="130" cy="125" r="15" />
+                        <circle cx="130" cy="45" r="15" />
+                        <circle cx="130" cy="205" r="15" />
+                        <circle cx="50" cy="125" r="15" />
+                        <circle cx="210" cy="125" r="15" />
+                        <circle cx="70" cy="65" r="15" />
+                        <circle cx="190" cy="65" r="15" />
+                        <circle cx="70" cy="185" r="15" />
+                        <circle cx="190" cy="185" r="15" />
+                        <line x1="130" y1="125" x2="130" y2="45" stroke="#2D1A70" stroke-width="5" />
+                        <line x1="130" y1="125" x2="130" y2="205" stroke="#2D1A70" stroke-width="5" />
+                        <line x1="130" y1="125" x2="50" y2="125" stroke="#2D1A70" stroke-width="5" />
+                        <line x1="130" y1="125" x2="210" y2="125" stroke="#2D1A70" stroke-width="5" />
+                        <line x1="130" y1="125" x2="70" y2="65" stroke="#2D1A70" stroke-width="5" />
+                        <line x1="130" y1="125" x2="190" y2="65" stroke="#2D1A70" stroke-width="5" />
+                        <line x1="130" y1="125" x2="70" y2="185" stroke="#2D1A70" stroke-width="5" />
+                        <line x1="130" y1="125" x2="190" y2="185" stroke="#2D1A70" stroke-width="5" />
+                        
+                        <!-- Texte NEXTEN -->
+                        <path d="M360 80h30v120h-30V150h-50v50h-30V80h30v50h50V80z" />
+                        <path d="M420 80h90v25h-60v25h50v25h-50v25h60v25h-90V80z" />
+                        <path d="M520 80h30l50 70V80h30v120h-30l-50-70v70h-30V80z" />
+                        <path d="M650 80h30v95h50v25h-80V80z" />
+                        <path d="M740 80h90v25h-60v25h50v25h-50v25h60v25h-90V80z" />
+                        <path d="M850 80h30l50 120h-35l-8-20h-45l-8 20h-35l51-120zM865 150h25l-12-30-13 30z" />
+                    </g>
+                </svg>
             </div>
             
             <button class="menu-toggle" aria-label="Menu principal">
@@ -880,7 +894,7 @@
         <!-- Indicateur de progression harmonisé -->
         <div class="progress-indicator">
             <div class="progress-line"></div>
-            <div class="progress-line-filled" style="width: 40%;"></div>
+            <div class="progress-line-filled" style="width: a%;"></div>
             
             <div class="progress-step completed">
                 <div class="progress-dot completed">
