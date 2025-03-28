@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Enable/disable timeline items functionality
+  // Success/Delete timeline items functionality
   document.querySelectorAll('.timeline-action').forEach(button => {
     button.addEventListener('click', function() {
       const timelineItem = this.closest('.timeline-item');
@@ -26,10 +26,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Enable this step
         timelineItem.classList.add('enabled');
         timelineItem.classList.remove('disabled');
+        
+        // Show a success notification
+        showNotification(`Étape "${timelineItem.querySelector('.timeline-title').textContent}" activée`);
       } else if (this.classList.contains('danger')) {
-        // Disable this step
-        timelineItem.classList.add('disabled');
-        timelineItem.classList.remove('enabled');
+        // Remove this step (instead of disabling it)
+        removeStep(timelineItem);
       }
     });
   });
@@ -48,6 +50,29 @@ document.addEventListener('DOMContentLoaded', function() {
     addStepBtn.addEventListener('click', function() {
       openAddStepModal();
     });
+  }
+
+  /**
+   * Remove a step from the recruitment process
+   * @param {HTMLElement} timelineItem - The timeline item to remove
+   */
+  function removeStep(timelineItem) {
+    // Confirm deletion
+    const stepTitle = timelineItem.querySelector('.timeline-title').textContent;
+    
+    // Add the removing class for animation
+    timelineItem.classList.add('removing');
+    
+    // After animation completes, remove the element
+    setTimeout(() => {
+      timelineItem.remove();
+      
+      // Update step numbers
+      updateStepNumbers();
+      
+      // Show notification
+      showNotification(`Étape "${stepTitle}" supprimée`, 'danger');
+    }, 500); // Match this with the CSS animation duration
   }
 
   /**
@@ -76,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function handleDragStart(e) {
     // Add a dragging class and set opacity
     this.classList.add('dragging');
-    this.style.opacity = '0.4';
     
     // Store the dragged item
     draggedItem = this;
@@ -154,6 +178,12 @@ document.addEventListener('DOMContentLoaded', function() {
           // We're dropping before the source
           dropTarget.parentNode.insertBefore(draggedItem, dropTarget);
         }
+        
+        // Update step numbers after drag and drop
+        updateStepNumbers();
+        
+        // Show notification
+        showNotification(`Ordre des étapes modifié`);
       }
     }
     
@@ -165,7 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {DragEvent} e - The drag event
    */
   function handleDragEnd(e) {
-    this.style.opacity = '1';
     this.classList.remove('dragging');
     
     // Remove any drag-over classes
@@ -175,6 +204,37 @@ document.addEventListener('DOMContentLoaded', function() {
     
     draggedItem = null;
     dragSourceIndex = null;
+  }
+
+  /**
+   * Update the step numbers after adding, removing, or reordering steps
+   */
+  function updateStepNumbers() {
+    const timelineItems = document.querySelectorAll('#recruitment-timeline > .timeline-item');
+    timelineItems.forEach((item, index) => {
+      const stepCounter = item.querySelector('.step-counter');
+      if (stepCounter) {
+        stepCounter.textContent = (index + 1);
+      }
+    });
+    
+    // Update branch numbering if exists
+    const branchItem = document.querySelector('#presentiel2-container .timeline-item');
+    if (branchItem) {
+      const mainItems = document.querySelectorAll('#recruitment-timeline > .timeline-item');
+      const mainItemsCount = mainItems.length;
+      const stepCounter = branchItem.querySelector('.step-counter');
+      if (stepCounter) {
+        // Find the index of the parent item (usually the item before the decision)
+        const parentIndex = mainItemsCount - 2;
+        // Make sure we don't get a negative index
+        if (parentIndex >= 0) {
+          stepCounter.textContent = `${parentIndex + 1}b`;
+        } else {
+          stepCounter.textContent = "1b";
+        }
+      }
+    }
   }
 
   /**
@@ -206,7 +266,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const demoContacts = [
       { id: 1, firstName: 'Marie', lastName: 'DURAND', position: 'Chargée recrutement', email: 'marie.durand@example.com' },
       { id: 2, firstName: 'Joseph', lastName: 'EUX', position: 'DAF', email: 'joseph.eux@example.com' },
-      { id: 3, firstName: 'Sophia', lastName: 'MARTIN', position: 'Assistante RH', email: 'sophia.martin@example.com' }
+      { id: 3, firstName: 'Sophia', lastName: 'MARTIN', position: 'Assistante RH', email: 'sophia.martin@example.com' },
+      { id: 4, firstName: 'Thomas', lastName: 'BERNARD', position: 'Responsable Technique', email: 'thomas.bernard@example.com' },
+      { id: 5, firstName: 'Julie', lastName: 'PETIT', position: 'Responsable RH', email: 'julie.petit@example.com' }
     ];
     
     demoContacts.forEach(contact => {
@@ -295,6 +357,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const timelineItem = this.closest('.timeline-item');
       openMemberSelectionModal(timelineItem);
     });
+    
+    // Show notification
+    showNotification("Membre dissocié de l'étape", "warning");
   }
 
   /**
@@ -343,18 +408,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Create the new timeline item
     const newStep = document.createElement('div');
-    newStep.className = 'timeline-item';
+    newStep.className = 'timeline-item new-item';
     newStep.dataset.step = stepId;
+    
+    // Get the next step number
+    const nextStepNumber = document.querySelectorAll('#recruitment-timeline > .timeline-item').length + 1;
     
     // Create the content for the new step
     let stepContent = `
+      <div class="step-counter">${nextStepNumber}</div>
       <div class="timeline-header">
         <h6 class="timeline-title">${stepName}</h6>
         <div class="timeline-actions">
-          <button type="button" class="timeline-action success" title="Approuver">
+          <button type="button" class="timeline-action success" title="Activer cette étape">
             <i class="fas fa-check"></i>
           </button>
-          <button type="button" class="timeline-action danger" title="Rejeter">
+          <button type="button" class="timeline-action danger" title="Supprimer cette étape">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -391,11 +460,11 @@ document.addEventListener('DOMContentLoaded', function() {
     successButton.addEventListener('click', function() {
       newStep.classList.add('enabled');
       newStep.classList.remove('disabled');
+      showNotification(`Étape "${stepName}" activée`);
     });
     
     dangerButton.addEventListener('click', function() {
-      newStep.classList.add('disabled');
-      newStep.classList.remove('enabled');
+      removeStep(newStep);
     });
     
     // Add event listener to the member item if present
@@ -406,29 +475,44 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
+    // Update step numbers
+    updateStepNumbers();
+    
     // Show a success notification
     showNotification(`L'étape "${stepName}" a été ajoutée avec succès`);
+    
+    // Tooltip initialization for the new elements
+    const tooltips = [].slice.call(newStep.querySelectorAll('[title]'));
+    tooltips.forEach(el => {
+      new bootstrap.Tooltip(el);
+    });
   }
 
   /**
    * Show a notification
    * @param {string} message - The message to display
-   * @param {string} type - The type of notification (success, danger)
+   * @param {string} type - The type of notification (success, danger, warning)
    */
   function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.className = 'position-fixed bottom-0 end-0 p-3';
     notification.style.zIndex = '9999';
     
+    const icon = type === 'success' ? 'check-circle' : 
+                (type === 'danger' ? 'times-circle' : 'exclamation-circle');
+    
+    const title = type === 'success' ? 'Succès' : 
+                (type === 'danger' ? 'Action effectuée' : 'Attention');
+    
     notification.innerHTML = `
       <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header bg-${type} text-white">
-          <strong class="me-auto">${type === 'success' ? 'Succès' : 'Erreur'}</strong>
+          <strong class="me-auto">${title}</strong>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body">
           <div class="d-flex align-items-center">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} text-${type} me-2"></i>
+            <i class="fas fa-${icon} text-${type} me-2"></i>
             <span>${message}</span>
           </div>
         </div>
@@ -439,7 +523,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Remove after 3 seconds
     setTimeout(() => {
-      notification.remove();
+      // Add fade out animation
+      const toast = notification.querySelector('.toast');
+      toast.style.transition = 'opacity 0.5s ease';
+      toast.style.opacity = '0';
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 500);
     }, 3000);
   }
+  
+  // Initialize tooltips for action buttons
+  const actionButtons = document.querySelectorAll('.timeline-action');
+  actionButtons.forEach(button => {
+    if (button.classList.contains('success')) {
+      button.setAttribute('title', 'Activer cette étape');
+    } else if (button.classList.contains('danger')) {
+      button.setAttribute('title', 'Supprimer cette étape');
+    }
+    
+    new bootstrap.Tooltip(button);
+  });
 });
