@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Set up draggable attribute
       item.setAttribute('draggable', true);
       
-      // Setup action buttons (enable/disable)
+      // Setup action buttons (enable/disable/delete)
       setupActionButtons(item);
       
       // Setup member association
@@ -68,9 +68,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (dangerBtn) {
       dangerBtn.addEventListener('click', function() {
-        item.classList.add('disabled');
-        item.classList.remove('enabled');
-        showToast(`Étape "${item.querySelector('.timeline-title').textContent}" désactivée`, 'warning');
+        // Ask for confirmation before removing the step
+        if (confirm(`Voulez-vous supprimer l'étape "${item.querySelector('.timeline-title').textContent}" ?`)) {
+          // Don't delete items in timeline-branch
+          if (!item.closest('.timeline-branch')) {
+            // Add removing class for animation
+            item.classList.add('removing');
+            
+            // Remove after animation completes
+            setTimeout(() => {
+              item.remove();
+              updateStepNumbers();
+              showToast(`Étape supprimée`, 'warning');
+            }, 300);
+          } else {
+            showToast(`Les étapes de branche ne peuvent pas être supprimées`, 'warning');
+          }
+        }
       });
     }
   }
@@ -249,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <button type="button" class="timeline-action success" title="Approuver">
             <i class="fas fa-check"></i>
           </button>
-          <button type="button" class="timeline-action danger" title="Rejeter">
+          <button type="button" class="timeline-action danger" title="Supprimer">
             <i class="fas fa-times"></i>
           </button>
         </div>
