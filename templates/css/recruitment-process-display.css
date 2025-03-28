@@ -1,0 +1,160 @@
+/* Styles pour l'affichage du processus de recrutement sur la page planning */
+
+.job-timeline {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.job-timeline h4 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 20px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #3498db;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+}
+
+.timeline-date {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timeline-content {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: flex-start;
+}
+
+.timeline-icon {
+    width: 30px;
+    height: 30px;
+    background-color: #3498db;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.timeline-icon i {
+    font-size: 14px;
+}
+
+.timeline-text {
+    flex: 1;
+}
+
+.timeline-title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.timeline-text p {
+    margin: 0;
+    font-size: 13px;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+.timeline-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.toggle-timeline {
+    background-color: transparent;
+    border: none;
+    color: #3498db;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 0;
+    margin-top: 10px;
+}
+
+.toggle-timeline i {
+    margin-right: 8px;
+}
+
+.toggle-timeline:hover {
+    color: #2077b3;
+    text-decoration: underline;
+}
+
+/* Styles spécifiques pour l'affichage du processus de recrutement */
+.recruitment-process-steps {
+    margin-top: 20px;
+}
+
+.recruitment-step {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.recruitment-step-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.recruitment-step-number {
+    width: 25px;
+    height: 25px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.recruitment-step-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+}
+
+.recruitment-step-description {
+    font-size: 14px;
+    color: #6c757d;
+    line-height: 1.5;
+}
