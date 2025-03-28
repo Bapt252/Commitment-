@@ -662,6 +662,19 @@
             background-color: rgba(124, 58, 237, 0.1);
             z-index: 0;
         }
+        
+        /* Style du logo */
+        .logo img {
+            height: 60px;
+            width: auto;
+            margin: 10px 0;
+        }
+        
+        .footer-logo img {
+            height: 60px;
+            width: auto;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -676,7 +689,9 @@
     <header>
         <div class="container">
             <div class="logo">
-                nex<span>ten</span><div class="logo-badge">10</div>
+                <a href="index.html">
+                    <img src="../static/images/nexten-logo.svg" alt="Nexten Logo" class="site-logo">
+                </a>
             </div>
             
             <button class="menu-toggle" aria-label="Menu principal">
@@ -908,7 +923,9 @@
         <div class="container">
             <div class="footer-content">
                 <div>
-                    <h4 class="footer-heading">Nexten</h4>
+                    <div class="footer-logo">
+                        <img src="../static/images/nexten-logo-white.svg" alt="Nexten Logo">
+                    </div>
                     <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
                     <div class="footer-social">
                         <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
