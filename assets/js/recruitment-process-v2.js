@@ -528,6 +528,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // In a real app, we would submit the form data to the server here
         console.log('Form submitted successfully');
+        
+        // Redirection vers planning.html après un court délai
+        setTimeout(() => {
+          window.location.href = 'planning.html';
+        }, 1500); // Délai de 1.5 secondes pour permettre à l'utilisateur de voir le message de succès
       });
     }
   }
