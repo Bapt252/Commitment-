@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function init() {
     initializeTimelineItems();
     setupAddStepButton();
-    setupDeleteConfirmation();
     
     // Add some UI improvements
     addStepNumbers();
@@ -162,21 +161,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function setupActionButtons(item) {
     const successButton = item.querySelector('.timeline-action.success');
     const dangerButton = item.querySelector('.timeline-action.danger');
-    const actionsContainer = item.querySelector('.timeline-actions');
-    
-    // Add delete button if it doesn't exist yet
-    if (!actionsContainer.querySelector('.timeline-action.delete')) {
-      const deleteButton = document.createElement('button');
-      deleteButton.className = 'timeline-action delete';
-      deleteButton.title = 'Supprimer';
-      deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-      deleteButton.style.backgroundColor = '#ff4757';
-      actionsContainer.appendChild(deleteButton);
-      
-      deleteButton.addEventListener('click', function() {
-        showDeleteConfirmation(item);
-      });
-    }
     
     if (successButton) {
       successButton.addEventListener('click', function() {
@@ -534,9 +518,6 @@ document.addEventListener('DOMContentLoaded', function() {
           <button type="button" class="timeline-action danger" title="Rejeter">
             <i class="fas fa-times"></i>
           </button>
-          <button type="button" class="timeline-action delete" title="Supprimer" style="background-color: #ff4757;">
-            <i class="fas fa-trash"></i>
-          </button>
         </div>
       </div>
       <div class="timeline-content">
@@ -685,88 +666,6 @@ document.addEventListener('DOMContentLoaded', function() {
       
       return false;
     });
-  }
-
-  /**
-   * Set up the delete confirmation system
-   */
-  function setupDeleteConfirmation() {
-    // This is handled through event delegation
-    document.addEventListener('click', function(e) {
-      const deleteButton = e.target.closest('.timeline-action.delete');
-      if (deleteButton) {
-        const timelineItem = deleteButton.closest('.timeline-item');
-        showDeleteConfirmation(timelineItem);
-      }
-      
-      // Handle confirmation buttons
-      if (e.target.classList.contains('confirm-delete')) {
-        const timelineItem = e.target.closest('.timeline-item');
-        deleteTimelineItem(timelineItem);
-      }
-      
-      if (e.target.classList.contains('cancel-delete')) {
-        const timelineItem = e.target.closest('.timeline-item');
-        hideDeleteConfirmation(timelineItem);
-      }
-    });
-  }
-
-  /**
-   * Show a confirmation dialog before deleting an item
-   * @param {HTMLElement} item - The timeline item to delete
-   */
-  function showDeleteConfirmation(item) {
-    // Add deletion pending class
-    item.classList.add('deletion-pending');
-    
-    // Create confirmation overlay
-    const confirmationOverlay = document.createElement('div');
-    confirmationOverlay.className = 'delete-confirmation';
-    
-    const stepName = item.querySelector('.timeline-title').textContent;
-    
-    confirmationOverlay.innerHTML = `
-      <p style="font-weight: 600; color: #333; margin-bottom: 5px;">Supprimer cette étape ?</p>
-      <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Cette action est irréversible.</p>
-      <div class="delete-confirmation-buttons">
-        <button class="btn btn-sm btn-outline-secondary cancel-delete">Annuler</button>
-        <button class="btn btn-sm btn-danger confirm-delete">Supprimer</button>
-      </div>
-    `;
-    
-    // Add to item
-    item.appendChild(confirmationOverlay);
-  }
-
-  /**
-   * Hide the delete confirmation
-   * @param {HTMLElement} item - The timeline item
-   */
-  function hideDeleteConfirmation(item) {
-    item.classList.remove('deletion-pending');
-    const confirmation = item.querySelector('.delete-confirmation');
-    if (confirmation) {
-      confirmation.remove();
-    }
-  }
-
-  /**
-   * Delete a timeline item
-   * @param {HTMLElement} item - The timeline item to delete
-   */
-  function deleteTimelineItem(item) {
-    // Get the name for notification
-    const stepName = item.querySelector('.timeline-title').textContent;
-    
-    // Remove from DOM
-    item.remove();
-    
-    // Update step numbers
-    updateStepNumbers();
-    
-    // Show notification
-    showToast(`Étape "${stepName}" supprimée`, 'warning');
   }
 
   /**
