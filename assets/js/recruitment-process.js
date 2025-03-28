@@ -30,8 +30,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show a success notification
         showNotification(`Étape "${timelineItem.querySelector('.timeline-title').textContent}" activée`);
       } else if (this.classList.contains('danger')) {
-        // Remove this step (instead of disabling it)
-        removeStep(timelineItem);
+        // Disable this step
+        timelineItem.classList.add('disabled');
+        timelineItem.classList.remove('enabled');
+        
+        // Show a notification
+        showNotification(`Étape "${timelineItem.querySelector('.timeline-title').textContent}" désactivée`, 'warning');
       }
     });
   });
@@ -50,29 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
     addStepBtn.addEventListener('click', function() {
       openAddStepModal();
     });
-  }
-
-  /**
-   * Remove a step from the recruitment process
-   * @param {HTMLElement} timelineItem - The timeline item to remove
-   */
-  function removeStep(timelineItem) {
-    // Confirm deletion
-    const stepTitle = timelineItem.querySelector('.timeline-title').textContent;
-    
-    // Add the removing class for animation
-    timelineItem.classList.add('removing');
-    
-    // After animation completes, remove the element
-    setTimeout(() => {
-      timelineItem.remove();
-      
-      // Update step numbers
-      updateStepNumbers();
-      
-      // Show notification
-      showNotification(`Étape "${stepTitle}" supprimée`, 'danger');
-    }, 500); // Match this with the CSS animation duration
   }
 
   /**
@@ -423,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <button type="button" class="timeline-action success" title="Activer cette étape">
             <i class="fas fa-check"></i>
           </button>
-          <button type="button" class="timeline-action danger" title="Supprimer cette étape">
+          <button type="button" class="timeline-action danger" title="Désactiver cette étape">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -464,7 +445,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     dangerButton.addEventListener('click', function() {
-      removeStep(newStep);
+      newStep.classList.add('disabled');
+      newStep.classList.remove('enabled');
+      showNotification(`Étape "${stepName}" désactivée`, 'warning');
     });
     
     // Add event listener to the member item if present
@@ -540,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (button.classList.contains('success')) {
       button.setAttribute('title', 'Activer cette étape');
     } else if (button.classList.contains('danger')) {
-      button.setAttribute('title', 'Supprimer cette étape');
+      button.setAttribute('title', 'Désactiver cette étape');
     }
     
     new bootstrap.Tooltip(button);
