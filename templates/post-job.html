@@ -17,6 +17,7 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="https://bapt252.github.io/Commitment-/assets/css/recruitment-process.css">
+    <link rel="stylesheet" href="https://bapt252.github.io/Commitment-/assets/css/recruitment-process-improved.css">
     
     <style>
         :root {
@@ -509,115 +510,6 @@
             display: block;
         }
         
-        /* Timeline process */
-        .timeline-container {
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding: 10px 0;
-            position: relative;
-        }
-        
-        .timeline {
-            display: flex;
-            gap: 20px;
-            min-width: max-content;
-            position: relative;
-        }
-        
-        .timeline-item {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            width: 230px;
-            padding: 15px;
-            position: relative;
-            border: 1px solid var(--border-color);
-            transition: var(--transition);
-        }
-        
-        .timeline-item:not(:last-child):after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            right: -20px;
-            width: 20px;
-            height: 2px;
-            background-color: var(--border-color);
-        }
-        
-        .timeline-item:hover {
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary-light);
-        }
-        
-        .timeline-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        
-        .timeline-title {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--dark-color);
-            margin: 0;
-        }
-        
-        .timeline-actions {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .timeline-action {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            color: white;
-            font-size: 12px;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-        
-        .timeline-action.success {
-            background-color: var(--success-color);
-        }
-        
-        .timeline-action.danger {
-            background-color: var(--danger-color);
-        }
-        
-        .timeline-action:hover {
-            transform: scale(1.1);
-        }
-        
-        .timeline-content {
-            font-size: 13px;
-            color: var(--light-text);
-        }
-        
-        .timeline-branch {
-            margin-top: 20px;
-            margin-left: 50px;
-            position: relative;
-        }
-        
-        .timeline-branch:before {
-            content: '';
-            position: absolute;
-            left: -20px;
-            top: -20px;
-            width: 20px;
-            height: 30px;
-            border-left: 2px solid var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            border-bottom-left-radius: 5px;
-        }
-        
         /* Member Item */
         .member-item {
             display: flex;
@@ -725,32 +617,6 @@
         
         .info-box p:last-child {
             margin-bottom: 0;
-        }
-        
-        /* Modal */
-        .modal-content {
-            border-radius: 12px;
-            overflow: hidden;
-            border: none;
-        }
-        
-        .modal-header {
-            border-bottom: 1px solid var(--border-color);
-            padding: 15px 20px;
-        }
-        
-        .modal-title {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .modal-body {
-            padding: 20px;
-        }
-        
-        .modal-footer {
-            padding: 15px 20px;
-            border-top: 1px solid var(--border-color);
         }
         
         /* Tables */
@@ -922,10 +788,6 @@
         @media (max-width: 576px) {
             .option-group {
                 grid-template-columns: 1fr;
-            }
-            
-            .timeline-item {
-                width: 200px;
             }
         }
     </style>
@@ -1303,7 +1165,7 @@
                         <span class="nexten-badge badge-primary">Étape 4/5</span>
                     </div>
                     <div class="card-body">
-                        <p class="mb-4">Configurez les étapes du processus de recrutement. Vous pouvez réorganiser les étapes par glisser-déposer.</p>
+                        <p class="mb-4">Configurez les étapes du processus de recrutement. Vous pouvez réorganiser les étapes par glisser-déposer, activer/désactiver ou supprimer des étapes.</p>
                         
                         <div class="timeline-container">
                             <div class="timeline" id="recruitment-timeline">
@@ -1608,6 +1470,7 @@
     
     <!-- Custom JS -->
     <script src="https://bapt252.github.io/Commitment-/assets/js/recruitment-process.js"></script>
+    <script src="https://bapt252.github.io/Commitment-/assets/js/recruitment-process-improved.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1712,45 +1575,6 @@
                 sectorSelection.style.display = 'none';
             });
             
-            // Update step numbering
-            function updateStepNumbers() {
-                const timelineItems = document.querySelectorAll('#recruitment-timeline > .timeline-item');
-                timelineItems.forEach((item, index) => {
-                    const stepCounter = item.querySelector('.step-counter');
-                    if (stepCounter) {
-                        stepCounter.textContent = (index + 1);
-                    }
-                });
-                
-                // Update branch numbering if exists
-                const branchItem = document.querySelector('#presentiel2-container .timeline-item');
-                if (branchItem) {
-                    const mainItems = document.querySelectorAll('#recruitment-timeline > .timeline-item');
-                    const mainItemsCount = mainItems.length;
-                    const stepCounter = branchItem.querySelector('.step-counter');
-                    if (stepCounter) {
-                        // Find the index of the parent item (usually the item before the decision)
-                        const parentIndex = mainItemsCount - 2;
-                        stepCounter.textContent = `${parentIndex + 1}b`;
-                    }
-                }
-            }
-            
-            // Call this initially
-            updateStepNumbers();
-            
-            // Call it whenever the timeline changes
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'childList') {
-                        updateStepNumbers();
-                    }
-                });
-            });
-            
-            // Start observing the timeline
-            observer.observe(document.getElementById('recruitment-timeline'), { childList: true });
-            
             // Organization members management
             const addMemberBtn = document.getElementById('add-member-btn');
             const orgMembersList = document.getElementById('org-members-list');
@@ -1817,9 +1641,6 @@
                         orgMembers.push(member);
                         renderOrgMembers();
                         contactSelectionModal.hide();
-                        
-                        // Afficher une notification de succès
-                        showNotification(`${member.name} a été ajouté avec succès.`);
                     });
                     
                     contactsContainer.appendChild(contactElement);
@@ -1912,35 +1733,6 @@
                     orgMembersList.style.display = 'none';
                     noMembersMessage.style.display = 'block';
                 }
-            }
-            
-            // Afficher une notification de succès
-            function showNotification(message, type = 'success') {
-                const notification = document.createElement('div');
-                notification.className = 'position-fixed bottom-0 end-0 p-3';
-                notification.style.zIndex = '9999';
-                
-                notification.innerHTML = `
-                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header bg-${type} text-white">
-                            <strong class="me-auto">${type === 'success' ? 'Succès' : 'Erreur'}</strong>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} text-${type} me-2"></i>
-                                <span>${message}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(notification);
-                
-                // Supprimer après 3 secondes
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
             }
             
             // Summary generation for final step
@@ -2038,74 +1830,37 @@
                     return;
                 }
                 
-                // Collect form data
-                const jobData = {
-                    title: document.getElementById('job-title').value,
-                    description: document.getElementById('job-description').value,
-                    recruitmentContext: document.getElementById('recruitment-context').value,
-                    recruitmentDelay: {
-                        immediate: document.getElementById('immediate').checked,
-                        twoWeeks: document.getElementById('2weeks').checked,
-                        oneMonth: document.getElementById('1month').checked,
-                        twoMonths: document.getElementById('2months').checked,
-                        threeMonths: document.getElementById('3months').checked
-                    },
-                    preavis: document.getElementById('preavis-oui').checked,
-                    preavisDuration: document.querySelector('input[name="duree_preavis"]:checked')?.value,
-                    experienceRequired: document.getElementById('experience-required').value,
-                    sectorKnowledge: document.getElementById('secteur-oui').checked,
-                    sector: document.getElementById('activity-sector').value,
-                    workEnvironment: document.querySelector('input[name="work-environment"]:checked').value,
-                    workOrganization: {
-                        remoteFull: document.getElementById('remote-full').checked,
-                        remotePartial: document.getElementById('remote-partial').checked,
-                        flexibleHours: document.getElementById('flexible-hours').checked,
-                        officeOnly: document.getElementById('office-only').checked
-                    },
-                    teamComposition: document.getElementById('team-composition').value,
-                    careerPerspectives: document.getElementById('career-perspectives').value,
-                    organizationMembers: orgMembers,
-                    processSteps: Array.from(document.querySelectorAll('.timeline-item')).map(item => ({
-                        id: item.dataset.step,
-                        name: item.querySelector('.timeline-title').textContent,
-                        description: item.querySelector('.timeline-content p')?.textContent || '',
-                        hasMembers: !!item.querySelector('.member-item'),
-                        enabled: item.classList.contains('enabled'),
-                        disabled: item.classList.contains('disabled')
-                    }))
-                };
-                
                 // Show success toast
-                const toastContainer = document.createElement('div');
-                toastContainer.className = 'position-fixed top-0 end-0 p-3';
-                toastContainer.style.zIndex = '9999';
-                
-                toastContainer.innerHTML = `
-                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header bg-success text-white">
-                            <strong class="me-auto">Succès</strong>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <span>Le poste a été créé avec succès.</span>
+                if (typeof showToast === 'function') {
+                    showToast('Le poste a été créé avec succès', 'success');
+                } else {
+                    // Fallback if the improved script isn't loaded
+                    const toastContainer = document.createElement('div');
+                    toastContainer.className = 'position-fixed top-0 end-0 p-3';
+                    toastContainer.style.zIndex = '9999';
+                    
+                    toastContainer.innerHTML = `
+                        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="toast-header bg-success text-white">
+                                <strong class="me-auto">Succès</strong>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>Le poste a été créé avec succès.</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(toastContainer);
-                
-                // Remove toast after 3 seconds
-                setTimeout(() => {
-                    toastContainer.remove();
-                    // Redirect to job listing page in a real implementation
-                    // window.location.href = 'jobs-listing.html';
-                }, 3000);
-                
-                // In a real implementation, you would send this data to your backend
-                console.log('Job Data:', jobData);
+                    `;
+                    
+                    document.body.appendChild(toastContainer);
+                    
+                    // Remove toast after 3 seconds
+                    setTimeout(() => {
+                        toastContainer.remove();
+                    }, 3000);
+                }
             });
             
             // Help button
