@@ -188,3 +188,19 @@
 .new-item {
   animation: fadeIn 0.5s ease;
 }
+
+/* Removal animation */
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+}
+
+.timeline-item.removing {
+  animation: slideOut 0.3s forwards;
+}
