@@ -318,6 +318,28 @@
             color: var(--black);
         }
         
+        /* Style pour le logo du dashboard */
+        .dashboard-logo {
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            margin-left: 15px;
+            padding: 3px 10px;
+            background-color: #7C3AED;
+            color: white;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .dashboard-logo i {
+            margin-right: 5px;
+        }
+        
+        .header-logos {
+            display: flex;
+            align-items: center;
+        }
+        
         @media (max-width: 992px) {
             .messaging-container {
                 flex-direction: column;
@@ -346,8 +368,13 @@
 
     <header>
         <div class="container">
-            <div class="logo">
-                nex<span>ten</span><div class="logo-badge">10</div>
+            <div class="header-logos">
+                <div class="logo">
+                    nex<span>ten</span><div class="logo-badge">10</div>
+                </div>
+                <div class="dashboard-logo">
+                    <i class="fas fa-tachometer-alt"></i>DASHBOARD
+                </div>
             </div>
             
             <button class="menu-toggle" aria-label="Menu principal">
