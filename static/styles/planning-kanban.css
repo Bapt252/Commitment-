@@ -43,14 +43,19 @@
 
 /* Correction pour le titre de la page */
 .page-header h1 {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-sm);
+    font-size: 2.25rem; /* Augmenté de 2rem à 2.25rem */
+    margin-top: 10px; /* Ajout d'une marge en haut */
+    margin-bottom: 12px; /* Augmenté de 8px à 12px */
     color: var(--gray-900);
-    line-height: 1.2;
+    line-height: 1.1; /* Réduit de 1.2 à 1.1 pour un meilleur espacement */
     word-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
-    padding-right: 20px;
+    padding-right: 30px; /* Augmenté de 20px à 30px */
+    font-weight: 700; /* Renforcé la mise en gras */
+    display: block; /* Assuré que c'est un bloc complet */
+    width: 100%; /* Utiliser toute la largeur disponible */
+    max-width: 100%; /* Limiter à la largeur du conteneur */
 }
 
 /* Organisation par offre d'emploi */
@@ -1429,8 +1434,8 @@
     
     /* Amélioration de la mise en page responsive pour le titre de la page */
     .page-header h1 {
-        font-size: 1.75rem;
-        padding-right: 10px;
+        font-size: 2rem; /* Ajusté pour tablettes */
+        padding-right: 15px;
     }
 }
 
@@ -1465,7 +1470,9 @@
     
     /* Amélioration de la mise en page responsive pour le titre de la page */
     .page-header h1 {
-        font-size: 1.5rem;
+        font-size: 1.75rem; /* Ajusté pour mobiles */
+        margin-top: 5px;
+        padding-right: 10px;
     }
 }
 
@@ -1475,13 +1482,14 @@
     padding-top: var(--spacing-lg);
     padding-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--gray-200);
+    max-width: 100%; /* Assurer que l'en-tête n'est pas trop large */
 }
 
 .page-header p {
     color: var(--gray-600);
     margin-top: 0;
     margin-bottom: var(--spacing-md);
-    max-width: 80%;
+    max-width: 100%; /* Permettre l'utilisation de tout l'espace disponible */
 }
 
 .actions {
