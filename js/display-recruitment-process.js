@@ -14,9 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Pour chaque offre, vérifier si elle a un processus de recrutement
         savedJobs.forEach(job => {
             console.log("Traitement de l'offre:", job.id, job.title);
-            console.log("Processus attaché:", job.process);
             
-            if (job.process && job.process.length > 0) {
+            // Utiliser recruitmentProcess ou process (priorité à process pour rétrocompatibilité)
+            const jobProcess = job.process || job.recruitmentProcess;
+            console.log("Processus attaché:", jobProcess);
+            
+            if (jobProcess && jobProcess.length > 0) {
                 console.log("Processus de recrutement trouvé pour:", job.id);
                 
                 // Attendre un peu que le DOM soit complètement chargé avec les offres
@@ -48,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (timelineContainer) {
                                     console.log("Timeline créée avec succès");
                                     // Appliquer le processus
-                                    applyProcessToTimeline(job.process, timelineContainer);
+                                    applyProcessToTimeline(jobProcess, timelineContainer);
                                     // Refermer la timeline
                                     setTimeout(() => timelineToggleBtn.click(), 100);
                                 } else {
@@ -56,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                             } else {
                                 console.log("Timeline trouvée directement");
-                                applyProcessToTimeline(job.process, timelineContainer);
+                                applyProcessToTimeline(jobProcess, timelineContainer);
                             }
                         } else {
                             console.error("Bouton toggle timeline non trouvé");
@@ -80,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (timelineContainerParent) {
                                 timelineContainerParent.appendChild(timelineContainer);
                                 console.log("Timeline créée manuellement");
-                                applyProcessToTimeline(job.process, timelineContainer);
+                                applyProcessToTimeline(jobProcess, timelineContainer);
                             }
                         }
                     } else {
@@ -107,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         
                                         if (timelineContainer) {
                                             // Appliquer le processus
-                                            applyProcessToTimeline(job.process, timelineContainer);
+                                            applyProcessToTimeline(jobProcess, timelineContainer);
                                             // Refermer la timeline après un moment
                                             setTimeout(() => timelineToggleBtn.click(), 200);
                                         }
@@ -145,9 +148,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     const savedJobs = JSON.parse(localStorage.getItem('commitment_jobs') || '[]');
                     const job = savedJobs.find(j => j.id === jobId);
                     
-                    if (job && job.process && job.process.length > 0) {
-                        console.log("Application du processus lors du toggle:", job.process);
-                        applyProcessToTimeline(job.process, timelineContainer);
+                    if (job) {
+                        const jobProcess = job.process || job.recruitmentProcess;
+                        if (jobProcess && jobProcess.length > 0) {
+                            console.log("Application du processus lors du toggle:", jobProcess);
+                            applyProcessToTimeline(jobProcess, timelineContainer);
+                        }
                     }
                 } else {
                     timelineContainer.style.display = 'none';
@@ -156,7 +162,41 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Logique pour initialiser les colonnes Kanban en fonction du processus de recrutement
+    initializeKanbanColumns();
 });
+
+/**
+ * Initialise les colonnes du Kanban en fonction du processus de recrutement
+ */
+function initializeKanbanColumns() {
+    console.log("Initialisation des colonnes Kanban basées sur le processus de recrutement");
+    
+    // Récupérer les offres d'emploi depuis localStorage
+    const savedJobs = JSON.parse(localStorage.getItem('commitment_jobs') || '[]');
+    
+    // Pour chaque offre
+    savedJobs.forEach(job => {
+        // Utiliser recruitmentProcess ou process (priorité à process pour rétrocompatibilité)
+        const jobProcess = job.process || job.recruitmentProcess;
+        
+        if (jobProcess && jobProcess.length > 0) {
+            setTimeout(() => {
+                // Trouver le conteneur Kanban pour cette offre
+                const jobContainer = document.querySelector(`[data-job-id="${job.id}"]`);
+                if (jobContainer) {
+                    const kanbanContainer = jobContainer.querySelector('.job-kanban-container');
+                    if (kanbanContainer) {
+                        // Adapter les colonnes du Kanban aux étapes du processus si nécessaire
+                        // Cette partie est optionnelle et peut être implémentée selon les besoins
+                        console.log(`Colonnes Kanban trouvées pour l'offre ${job.id}, adaptation possible`);
+                    }
+                }
+            }, 1500); // Attendre que le DOM soit chargé
+        }
+    });
+}
 
 /**
  * Applique les étapes du processus de recrutement à la timeline
@@ -191,7 +231,7 @@ function applyProcessToTimeline(process, timelineContainer) {
         let icon = '';
         if (step.title.toLowerCase().includes('validation')) {
             icon = 'fa-clipboard-check';
-        } else if (step.title.toLowerCase().includes('contact') || step.title.toLowerCase().includes('call')) {
+        } else if (step.title.toLowerCase().includes('contact') || step.title.toLowerCase().includes('call') || step.title.toLowerCase().includes('qualification')) {
             icon = 'fa-phone';
         } else if (step.title.toLowerCase().includes('entretien') || step.title.toLowerCase().includes('visio')) {
             icon = 'fa-video';
@@ -215,21 +255,64 @@ function applyProcessToTimeline(process, timelineContainer) {
         const year = stepDate.getFullYear();
         const formattedDate = `${day}/${month}/${year}`;
         
-        // Construire l'élément HTML
-        timelineItem.innerHTML = `
+        // Construire l'élément HTML de base
+        let timelineItemHTML = `
             <div class="timeline-date">${formattedDate}</div>
             <div class="timeline-content">
                 <div class="timeline-icon"><i class="fas ${icon}"></i></div>
                 <div class="timeline-text">
                     <span class="timeline-title">${step.title}</span>
-                    <p>${step.description}</p>
+                    <p>${step.description || ''}</p>
                 </div>
             </div>
         `;
+        
+        // Ajouter les membres associés si présents
+        if (step.members && step.members.length > 0) {
+            let membersHTML = '<div class="timeline-members">';
+            step.members.forEach(member => {
+                membersHTML += `
+                    <div class="timeline-member">
+                        <div class="member-avatar">${getInitials(member.name)}</div>
+                        <div class="member-info">
+                            <div class="member-name">${member.name}</div>
+                            ${member.role ? `<div class="member-role">${member.role}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            membersHTML += '</div>';
+            
+            // Insérer les membres dans l'élément HTML
+            timelineItemHTML = timelineItemHTML.replace('</div></div>', `</div>${membersHTML}</div>`);
+        }
+        
+        // Définir le HTML de l'élément timeline
+        timelineItem.innerHTML = timelineItemHTML;
         
         // Ajouter l'élément à la timeline
         timelineElement.appendChild(timelineItem);
     });
     
     console.log("Timeline mise à jour avec le processus de recrutement");
+}
+
+/**
+ * Récupère les initiales d'un nom
+ * @param {string} name Le nom complet
+ * @return {string} Les initiales (2 caractères max)
+ */
+function getInitials(name) {
+    if (!name) return '';
+    
+    const parts = name.split(' ');
+    let initials = '';
+    
+    for (let i = 0; i < Math.min(parts.length, 2); i++) {
+        if (parts[i][0]) {
+            initials += parts[i][0].toUpperCase();
+        }
+    }
+    
+    return initials;
 }
