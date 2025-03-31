@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="../static/styles/custom-fixes.css">
     <link rel="stylesheet" href="../static/styles/interviewer-card-fix.css">
     <link rel="stylesheet" href="../static/styles/ui-improvements.css">
+    <link rel="stylesheet" href="../static/styles/footer-improvements.css">
     
     <!-- Harmonisation UI pour le parcours candidat -->
     <link rel="stylesheet" href="../static/styles/ui-harmonization.css">
@@ -475,13 +476,14 @@
         </div>
     </div>
 
-    <footer id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div>
-                    <h4 class="footer-heading">Nexten</h4>
-                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
-                    <div class="footer-social">
+    <!-- Nouveau Footer Amélioré -->
+    <footer id="contact" class="improved-footer">
+        <div class="footer-container">
+            <div class="footer-main">
+                <div class="footer-brand">
+                    <h3>Nexten</h3>
+                    <p>Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
+                    <div class="social-icons">
                         <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
                         <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
                         <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
@@ -489,39 +491,56 @@
                     </div>
                 </div>
                 
-                <div>
-                    <h4 class="footer-heading">Navigation</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
-                        <li><a href="candidate-dashboard.html?email=demo.utilisateur@nexten.fr&password=s"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> À propos</a></li>
-                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="footer-heading">Contact</h4>
+                <div class="footer-links">
+                    <div class="footer-nav">
+                        <h4>Navigation</h4>
+                        <ul>
+                            <li><a href="index.html">Accueil</a></li>
+                            <li><a href="candidate-dashboard.html?email=demo.utilisateur@nexten.fr&password=s">Espace candidat</a></li>
+                            <li><a href="#">À propos</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                        </ul>
+                    </div>
+                    
                     <div class="footer-contact">
-                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
-                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
-                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
+                        <h4>Contact</h4>
+                        <ul>
+                            <li>
+                                <i class="fas fa-map-marker-alt"></i>
+                                <a href="https://maps.google.com/?q=123+Avenue+de+l'Innovation,+75001+Paris" target="_blank">
+                                    123 Avenue de l'Innovation, 75001 Paris
+                                </a>
+                            </li>
+                            <li>
+                                <i class="fas fa-phone-alt"></i>
+                                <a href="tel:+33123456789">+33 1 23 45 67 89</a>
+                            </li>
+                            <li>
+                                <i class="fas fa-envelope"></i>
+                                <a href="mailto:contact@nexten.fr">contact@nexten.fr</a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>© 2025 Nexten - Tous droits réservés | <a href="#">Politique de confidentialité</a> | <a href="#">Conditions d'utilisation</a></p>
+                <p>&copy; 2025 Nexten - Tous droits réservés</p>
+                <div class="footer-legal">
+                    <a href="#">Politique de confidentialité</a>
+                    <span class="separator">|</span>
+                    <a href="#">Conditions d'utilisation</a>
+                </div>
+                <button id="back-to-top" aria-label="Retour en haut de la page">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
             </div>
         </div>
-        
-        <!-- Bouton de retour en haut -->
-        <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
-            <i class="fas fa-arrow-up"></i>
-        </button>
     </footer>
 
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/js/footer-functions.js"></script>
     <script src="js/buttons-functionality.js"></script>
     <script src="js/interactive-stages.js"></script>
 
@@ -601,26 +620,6 @@
                     }
                 });
             });
-            
-            // Bouton de retour en haut
-            const scrollToTopButton = document.getElementById('scroll-to-top');
-            
-            if (scrollToTopButton) {
-                window.addEventListener('scroll', function() {
-                    if (window.scrollY > 500) {
-                        scrollToTopButton.classList.add('visible');
-                    } else {
-                        scrollToTopButton.classList.remove('visible');
-                    }
-                });
-                
-                scrollToTopButton.addEventListener('click', function() {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
-                    });
-                });
-            }
         });
     </script>
 </body>
