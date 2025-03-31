@@ -1482,7 +1482,7 @@
 /* Correction pour l'en-tête de la page */
 .page-header {
     margin-bottom: var(--spacing-lg);
-    padding-top: var(--spacing-md); /* Réduit pour un meilleur équilibre */
+    padding-top: 75px; /* Augmenté pour résoudre le problème de coupure du titre */
     padding-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--gray-200);
     max-width: 100%; /* Assurer que l'en-tête n'est pas trop large */
@@ -1509,4 +1509,9 @@
     align-items: center;
     gap: var(--spacing-md);
     flex-wrap: wrap;
+}
+
+/* Correction supplémentaire pour le contenu principal */
+main#main-content {
+    padding-top: 40px; /* Ajoute un espace en haut du contenu principal */
 }
