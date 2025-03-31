@@ -1,0 +1,156 @@
+/* Footer Styles */
+footer {
+  background-color: #f8f9fa;
+  padding-top: 40px;
+  margin-top: 40px;
+  border-top: 1px solid #e9ecef;
+}
+
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.footer-content > div {
+  flex: 1;
+  margin-bottom: 20px;
+  padding-right: 20px;
+}
+
+/* Styling for Nexten brand section */
+.footer-heading {
+  color: #8052ff;
+  font-size: 18px;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.footer-description {
+  color: #6c757d;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+.footer-social {
+  display: flex;
+  gap: 12px;
+}
+
+.footer-social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f1f1f1;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.footer-social a:hover {
+  background-color: #8052ff;
+  color: white;
+}
+
+/* Footer navigation links */
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  color: #6c757d;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #8052ff;
+}
+
+.footer-links i {
+  margin-right: 8px;
+  font-size: 12px;
+}
+
+/* Footer contact information */
+.footer-contact p {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  color: #6c757d;
+}
+
+.footer-contact i {
+  margin-right: 10px;
+  color: #8052ff;
+}
+
+/* Footer bottom section */
+.footer-bottom {
+  padding: 15px 0;
+  text-align: center;
+  color: #6c757d;
+  font-size: 14px;
+  border-top: 1px solid #e9ecef;
+}
+
+.footer-bottom a {
+  color: #6c757d;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-bottom a:hover {
+  color: #8052ff;
+}
+
+/* Scroll to top button */
+.scroll-to-top {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background-color: #8052ff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 99;
+}
+
+.scroll-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scroll-to-top:hover {
+  background-color: #6030e0;
+  transform: translateY(-3px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .footer-content > div {
+    flex: 0 0 100%;
+    margin-bottom: 30px;
+  }
+}
