@@ -1,101 +1,242 @@
 /**
- * Script d'aide pour améliorer l'intégration des nouvelles offres d'emploi 
- * dans le système Kanban de recrutement
+ * Script d'aide pour synchroniser le processus de recrutement avec les colonnes Kanban
+ * Ce script permet de s'assurer que les colonnes Kanban correspondent aux étapes du processus de recrutement
  */
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Script kanban-recruitment-helper.js chargé");
+    console.log("Script d'aide pour la synchronisation Kanban-Processus chargé");
     
-    // Vérifie si une offre vient d'être créée (via sessionStorage)
-    const lastCreatedJobId = sessionStorage.getItem('last_created_job_id');
+    // Délai court pour s'assurer que les offres sont chargées
+    setTimeout(initializeKanbanColumns, 1000);
     
-    if (lastCreatedJobId) {
-        console.log("Dernière offre créée détectée:", lastCreatedJobId);
+    // Ajouter des écouteurs d'événements pour observer les changements
+    observeJobChanges();
+});
+
+/**
+ * Initialise les colonnes Kanban en fonction du processus de recrutement défini
+ */
+function initializeKanbanColumns() {
+    console.log("Initialisation des colonnes Kanban...");
+    
+    // Vérifier s'il y a des postes définis
+    const savedJobs = JSON.parse(localStorage.getItem('commitment_jobs') || '[]');
+    
+    if (!savedJobs.length) {
+        console.log("Aucun poste trouvé dans localStorage");
+        return;
+    }
+    
+    // Pour chaque poste
+    savedJobs.forEach(job => {
+        // Récupérer le processus de recrutement (priorité à process pour compatibilité)
+        const jobProcess = job.process || job.recruitmentProcess;
         
-        // Attendre que les offres soient chargées dans le DOM
-        setTimeout(() => {
-            // On vérifie si l'offre est bien affichée
-            const jobContainer = document.querySelector(`[data-job-id="${lastCreatedJobId}"]`);
+        // Si le processus existe
+        if (jobProcess && jobProcess.length > 0) {
+            console.log(`Processus trouvé pour le job ${job.id} : ${jobProcess.length} étapes`);
             
-            if (!jobContainer) {
-                console.log("L'offre récemment créée n'est pas encore dans le DOM, tentative de l'ajouter manuellement");
+            // Trouver le conteneur d'offre d'emploi correspondant
+            const jobContainer = document.querySelector(`[data-job-id="${job.id}"]`);
+            
+            // Si le conteneur est trouvé
+            if (jobContainer) {
+                console.log(`Conteneur trouvé pour le job ${job.id}`);
                 
-                // Récupérer les données de l'offre
-                const savedJobs = JSON.parse(localStorage.getItem('commitment_jobs') || '[]');
-                const newJob = savedJobs.find(job => job.id === lastCreatedJobId);
+                // Trouver le conteneur Kanban dans le conteneur d'offre
+                const kanbanContainer = jobContainer.querySelector('.job-kanban-container');
                 
-                if (newJob && window.addJobOfferToUI) {
-                    // Ajouter manuellement l'offre à l'interface
-                    window.addJobOfferToUI(newJob);
-                    console.log("Offre ajoutée manuellement à l'interface:", newJob);
+                // Si le conteneur Kanban est trouvé
+                if (kanbanContainer) {
+                    console.log(`Conteneur Kanban trouvé pour le job ${job.id}`);
                     
-                    // Nettoyer sessionStorage
-                    sessionStorage.removeItem('last_created_job_id');
+                    // Vérifier si les colonnes doivent être adaptées au processus de recrutement
+                    const shouldAdaptColumns = shouldAdaptKanbanColumns(kanbanContainer, jobProcess);
+                    
+                    if (shouldAdaptColumns) {
+                        // Adapter les colonnes Kanban au processus de recrutement
+                        adaptKanbanColumns(kanbanContainer, jobProcess);
+                    }
+                } else {
+                    console.log(`Conteneur Kanban non trouvé pour le job ${job.id}`);
                 }
             } else {
-                console.log("L'offre récemment créée est déjà présente dans le DOM");
-                
-                // Mettre en évidence l'offre nouvellement ajoutée
-                jobContainer.style.transition = 'background-color 2s';
-                jobContainer.style.backgroundColor = 'rgba(124, 58, 237, 0.1)';
-                
-                // Revenir à la couleur normale après un délai
-                setTimeout(() => {
-                    jobContainer.style.backgroundColor = '';
-                }, 3000);
-                
-                // Nettoyer sessionStorage
-                sessionStorage.removeItem('last_created_job_id');
+                console.log(`Conteneur d'offre non trouvé pour le job ${job.id}`);
             }
-        }, 1500);
+        } else {
+            console.log(`Aucun processus défini pour le job ${job.id}`);
+        }
+    });
+}
+
+/**
+ * Détermine si les colonnes Kanban doivent être adaptées au processus de recrutement
+ * @param {HTMLElement} kanbanContainer Le conteneur Kanban
+ * @param {Array} jobProcess Le processus de recrutement
+ * @return {boolean} True si les colonnes doivent être adaptées, false sinon
+ */
+function shouldAdaptKanbanColumns(kanbanContainer, jobProcess) {
+    // Vérifier si l'option est activée en configuration
+    const enableAutoAdapt = true; // À rendre configurable si nécessaire
+    
+    if (!enableAutoAdapt) {
+        return false;
     }
     
-    // Améliorer la fonction addJobOfferToUI pour gérer les timelines
-    const originalAddJobOfferToUI = window.addJobOfferToUI;
+    // Vérifier si les colonnes correspondent déjà au processus
+    const columns = kanbanContainer.querySelectorAll('.kanban-column');
     
-    if (typeof originalAddJobOfferToUI === 'function') {
-        window.addJobOfferToUI = function(jobData) {
-            console.log("Ajout amélioré d'une offre à l'interface:", jobData);
-            
-            // Appeler la fonction originale
-            originalAddJobOfferToUI(jobData);
-            
-            // Attendre que le DOM soit mis à jour
-            setTimeout(() => {
-                // Trouver le conteneur de l'offre
-                const jobContainer = document.querySelector(`[data-job-id="${jobData.id}"]`);
-                
-                if (jobContainer) {
-                    // Trouver ou créer la section de timeline
-                    let timelineContainer = jobContainer.querySelector('.job-timeline-container');
-                    
-                    if (!timelineContainer) {
-                        console.log("Création d'un conteneur de timeline pour:", jobData.id);
-                        
-                        // Créer la section de timeline
-                        timelineContainer = document.createElement('div');
-                        timelineContainer.className = 'job-timeline-container';
-                        timelineContainer.innerHTML = `
-                            <button class="toggle-timeline" data-target="${jobData.id}-timeline">
-                                <i class="fas fa-stream"></i> Afficher la timeline du recrutement
-                            </button>
-                            <div id="${jobData.id}-timeline" class="job-timeline" style="display: none;">
-                                <h4>Timeline du recrutement</h4>
-                                <div class="timeline"></div>
-                                <div class="timeline-actions">
-                                    <button class="btn btn-sm btn-outline add-timeline-event" data-job-id="${jobData.id}">
-                                        <i class="fas fa-plus"></i> Ajouter un événement
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        
-                        // Ajouter au jobContainer
-                        jobContainer.appendChild(timelineContainer);
-                        
-                        console.log("Conteneur de timeline créé pour:", jobData.id);
-                    }
-                }
-            }, 500);
-        };
+    // Si le nombre de colonnes est différent du nombre d'étapes + 1 (pour les candidatures)
+    // On considère que les colonnes doivent être adaptées
+    if (columns.length !== jobProcess.length + 1) {
+        return true;
     }
-});
+    
+    // Vérifie si les noms des colonnes correspondent aux étapes du processus
+    // (ceci est une vérification simplifiée, vous pourriez vouloir l'améliorer)
+    let columnsMatch = true;
+    
+    // Vérifier chaque colonne à partir de la 2ème (la 1ère est toujours "Candidatures")
+    columns.forEach((column, index) => {
+        if (index === 0) {
+            // La première colonne doit être "Candidatures"
+            const title = column.querySelector('.kanban-column-title');
+            if (title && !title.textContent.includes('Candidatures')) {
+                columnsMatch = false;
+            }
+        } else if (index <= jobProcess.length) {
+            // Les colonnes suivantes doivent correspondre aux étapes du processus
+            const step = jobProcess[index - 1];
+            const title = column.querySelector('.kanban-column-title');
+            
+            if (title && !title.textContent.includes(step.title)) {
+                columnsMatch = false;
+            }
+        }
+    });
+    
+    return !columnsMatch;
+}
+
+/**
+ * Adapte les colonnes Kanban au processus de recrutement
+ * @param {HTMLElement} kanbanContainer Le conteneur Kanban
+ * @param {Array} jobProcess Le processus de recrutement
+ */
+function adaptKanbanColumns(kanbanContainer, jobProcess) {
+    console.log("Adaptation des colonnes Kanban au processus de recrutement...");
+    
+    // Cette fonction est liée à l'implémentation spécifique du Kanban
+    // et pourrait nécessiter des adaptations en fonction de votre code
+    
+    // Exemple simple: créer de nouvelles colonnes
+    
+    // 1. Vider le conteneur Kanban (sauf les candidats existants)
+    const existingCards = {};
+    const columns = kanbanContainer.querySelectorAll('.kanban-column');
+    
+    columns.forEach(column => {
+        const columnId = column.getAttribute('data-column');
+        const cards = column.querySelectorAll('.candidate-card');
+        
+        // Stocker les cartes existantes pour les restaurer plus tard
+        existingCards[columnId] = Array.from(cards);
+    });
+    
+    // Vider le conteneur
+    kanbanContainer.innerHTML = '';
+    
+    // 2. Créer la colonne "Candidatures"
+    const candidaturesColumn = createKanbanColumn('candidatures', 'Candidatures', 'fa-file-alt');
+    kanbanContainer.appendChild(candidaturesColumn);
+    
+    // 3. Créer les colonnes pour chaque étape du processus
+    jobProcess.forEach((step, index) => {
+        // Créer un identifiant unique pour la colonne
+        const columnId = `step-${index + 1}`;
+        
+        // Déterminer l'icône en fonction du titre de l'étape
+        let icon = '';
+        if (step.title.toLowerCase().includes('validation')) {
+            icon = 'fa-clipboard-check';
+        } else if (step.title.toLowerCase().includes('call') || step.title.toLowerCase().includes('qualification')) {
+            icon = 'fa-phone';
+        } else if (step.title.toLowerCase().includes('entretien') || step.title.toLowerCase().includes('visio')) {
+            icon = 'fa-video';
+        } else if (step.title.toLowerCase().includes('présentiel')) {
+            icon = 'fa-building';
+        } else if (step.title.toLowerCase().includes('test')) {
+            icon = 'fa-tasks';
+        } else if (step.title.toLowerCase().includes('décision')) {
+            icon = 'fa-gavel';
+        } else if (step.title.toLowerCase().includes('embauche')) {
+            icon = 'fa-handshake';
+        } else {
+            // Icône par défaut
+            icon = 'fa-check';
+        }
+        
+        // Créer la colonne
+        const column = createKanbanColumn(columnId, step.title, icon);
+        kanbanContainer.appendChild(column);
+    });
+    
+    // 4. Restaurer les cartes existantes dans les nouvelles colonnes
+    Object.keys(existingCards).forEach(columnId => {
+        const column = kanbanContainer.querySelector(`[data-column="${columnId}"]`);
+        
+        if (column) {
+            const cardsContainer = column.querySelector('.kanban-cards');
+            
+            existingCards[columnId].forEach(card => {
+                // Insérer avant l'élément "Ajouter un candidat"
+                cardsContainer.appendChild(card.cloneNode(true));
+            });
+        }
+    });
+    
+    console.log("Colonnes Kanban adaptées au processus de recrutement");
+}
+
+/**
+ * Crée une colonne Kanban
+ * @param {string} columnId L'identifiant de la colonne
+ * @param {string} title Le titre de la colonne
+ * @param {string} icon L'icône de la colonne
+ * @return {HTMLElement} La colonne créée
+ */
+function createKanbanColumn(columnId, title, icon) {
+    const column = document.createElement('div');
+    column.className = 'kanban-column';
+    column.setAttribute('data-column', columnId);
+    
+    column.innerHTML = `
+        <div class="kanban-column-header">
+            <div class="kanban-column-title">
+                <i class="fas ${icon}"></i> ${title}
+                <span class="kanban-column-count">0</span>
+            </div>
+        </div>
+        <div class="kanban-cards" data-column="${columnId}">
+            <div class="add-candidate" data-column="${columnId}">
+                <i class="fas fa-plus"></i> Ajouter un candidat
+            </div>
+        </div>
+    `;
+    
+    return column;
+}
+
+/**
+ * Observe les changements dans les postes pour réinitialiser les colonnes Kanban si nécessaire
+ */
+function observeJobChanges() {
+    // Cette fonction pourrait utiliser MutationObserver pour détecter les changements dans le DOM
+    // et réinitialiser les colonnes Kanban en conséquence
+    
+    // Exemple simplifié: vérifier toutes les 5 secondes
+    setInterval(() => {
+        // Revérifier si les colonnes Kanban doivent être adaptées
+        initializeKanbanColumns();
+    }, 5000);
+}
