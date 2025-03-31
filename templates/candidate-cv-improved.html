@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Commitment - Travailler mon CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- CSS du footer -->
+    <link rel="stylesheet" href="../static/styles/footer.css">
     <style>
         :root {
             --primary-color: #8149ff;
@@ -903,6 +905,52 @@
         </div>
     </div>
     
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <h4 class="footer-heading">Nexten</h4>
+                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
+                        <li><a href="candidate-dashboard.html"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> À propos</a></li>
+                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Contact</h4>
+                    <div class="footer-contact">
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
+                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="#">Politique de confidentialité</a> | <a href="#">Conditions d'utilisation</a></p>
+            </div>
+        </div>
+        
+        <!-- Bouton de retour en haut -->
+        <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </footer>
+    
     <!-- Modal pour ajouter/éditer une expérience -->
     <div id="experience-modal" class="modal">
         <div class="modal-content">
@@ -1231,6 +1279,26 @@
                 // Notification de succès (simulation)
                 alert('Formation enregistrée avec succès !');
             });
+            
+            // Gestion du bouton de retour en haut
+            const scrollToTopButton = document.getElementById('scroll-to-top');
+            
+            if (scrollToTopButton) {
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 500) {
+                        scrollToTopButton.classList.add('visible');
+                    } else {
+                        scrollToTopButton.classList.remove('visible');
+                    }
+                });
+                
+                scrollToTopButton.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
         });
     </script>
 </body>
