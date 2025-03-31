@@ -1030,6 +1030,35 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Ajout du champ de fourchette de rémunération -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-4">
+                                    <label class="form-label">Fourchette de rémunération</label>
+                                    <div class="d-flex gap-3 align-items-center">
+                                        <div class="input-group" style="width: auto;">
+                                            <span class="input-group-text">Min</span>
+                                            <input type="number" class="form-control" id="salary-min" placeholder="ex: 40000" min="0">
+                                            <span class="input-group-text">€</span>
+                                        </div>
+                                        <span>-</span>
+                                        <div class="input-group" style="width: auto;">
+                                            <span class="input-group-text">Max</span>
+                                            <input type="number" class="form-control" id="salary-max" placeholder="ex: 60000" min="0">
+                                            <span class="input-group-text">€</span>
+                                        </div>
+                                        <select class="form-select" id="salary-frequency" style="width: auto;">
+                                            <option value="annual">Annuel</option>
+                                            <option value="monthly">Mensuel</option>
+                                            <option value="daily">Journalier</option>
+                                            <option value="hourly">Horaire</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-text text-muted small">Indiquez la fourchette de rémunération brute pour ce poste.</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
