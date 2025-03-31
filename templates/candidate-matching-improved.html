@@ -376,6 +376,10 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--black);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         
         .matching-header h2::after {
@@ -391,8 +395,8 @@
             background-color: var(--purple);
             color: var(--white);
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             font-weight: 700;
             position: relative;
             overflow: hidden;
@@ -400,6 +404,7 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             vertical-align: middle;
             margin: 0 5px;
+            font-size: 1.5rem;
         }
         
         .matching-header .ten-accent:hover {
@@ -818,8 +823,7 @@
         }
         
         .match-indicators {
-            display: flex;
-            gap: 0.7rem;
+            display: none; /* Masquer les indicateurs comme demandé */
         }
         
         .indicator {
@@ -1464,7 +1468,6 @@
                 <ul>
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="candidate-dashboard.html" class="active">Espace candidat</a></li>
-                    <li><a href="company-login.html">Espace entreprise</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
@@ -1494,7 +1497,7 @@
                 </div>
 
                 <div class="matching-header">
-                    <h2>PROPOSITION DE POSTES : <span class="ten-accent">TOP 10</span></h2>
+                    <h2>PROPOSITION DE POSTES <i class="fas fa-briefcase" style="color: var(--purple); font-size: 1.8rem;"></i> <span class="ten-accent">TOP 10</span></h2>
                     <p>En fonction de votre profil et de vos préférences, nous avons sélectionné les 10 postes qui correspondent le mieux à vos attentes. Choisissez les postes qui vous intéressent pour accéder à votre tableau de bord personnalisé.</p>
                 </div>
 
@@ -1584,16 +1587,6 @@
                                 <div class="match-percentage">
                                     <span class="match-high">92%</span>
                                 </div>
-                                <div class="match-indicators">
-                                    <div class="indicator success tooltip">
-                                        <i class="fas fa-check"></i>
-                                        <span class="tooltip-text">Compétences techniques</span>
-                                    </div>
-                                    <div class="indicator success tooltip">
-                                        <i class="fas fa-check"></i>
-                                        <span class="tooltip-text">Zone géographique</span>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         <div class="job-card-body">
@@ -1657,16 +1650,6 @@
                             <div class="job-match">
                                 <div class="match-percentage">
                                     <span class="match-high">88%</span>
-                                </div>
-                                <div class="match-indicators">
-                                    <div class="indicator success tooltip">
-                                        <i class="fas fa-check"></i>
-                                        <span class="tooltip-text">Environnement dynamique</span>
-                                    </div>
-                                    <div class="indicator danger tooltip">
-                                        <i class="fas fa-times"></i>
-                                        <span class="tooltip-text">Déplacements occasionnels</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1732,16 +1715,6 @@
                             <div class="job-match">
                                 <div class="match-percentage">
                                     <span class="match-high">85%</span>
-                                </div>
-                                <div class="match-indicators">
-                                    <div class="indicator success tooltip">
-                                        <i class="fas fa-check"></i>
-                                        <span class="tooltip-text">Télétravail possible</span>
-                                    </div>
-                                    <div class="indicator success tooltip">
-                                        <i class="fas fa-check"></i>
-                                        <span class="tooltip-text">Stack technique</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
