@@ -165,7 +165,43 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Logique pour initialiser les colonnes Kanban en fonction du processus de recrutement
     initializeKanbanColumns();
+    
+    // Écouter les changements dans localStorage pour mettre à jour la page
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'commitment_jobs') {
+            console.log('Changement détecté dans localStorage - mise à jour affichage');
+            // Reload pour obtenir les données mises à jour
+            setTimeout(function() {
+                initializeKanbanColumns();
+                updateAllTimelines();
+            }, 500);
+        }
+    });
+    
+    // Vérifier périodiquement les mises à jour
+    setInterval(function() {
+        updateAllTimelines();
+    }, 5000);
 });
+
+/**
+ * Met à jour toutes les timelines avec les dernières informations de processus
+ */
+function updateAllTimelines() {
+    const savedJobs = JSON.parse(localStorage.getItem('commitment_jobs') || '[]');
+    
+    savedJobs.forEach(job => {
+        const jobId = job.id;
+        const jobProcess = job.process || job.recruitmentProcess;
+        
+        if (jobProcess && jobProcess.length > 0) {
+            const timelineContainer = document.getElementById(`${jobId}-timeline`);
+            if (timelineContainer) {
+                applyProcessToTimeline(jobProcess, timelineContainer);
+            }
+        }
+    });
+}
 
 /**
  * Initialise les colonnes du Kanban en fonction du processus de recrutement
@@ -188,9 +224,13 @@ function initializeKanbanColumns() {
                 if (jobContainer) {
                     const kanbanContainer = jobContainer.querySelector('.job-kanban-container');
                     if (kanbanContainer) {
-                        // Adapter les colonnes du Kanban aux étapes du processus si nécessaire
-                        // Cette partie est optionnelle et peut être implémentée selon les besoins
-                        console.log(`Colonnes Kanban trouvées pour l'offre ${job.id}, adaptation possible`);
+                        // Adapter les colonnes du Kanban aux étapes du processus
+                        console.log(`Colonnes Kanban trouvées pour l'offre ${job.id}, adaptation nécessaire`);
+                        
+                        // Cette fonction devrait être définie dans kanban-recruitment-helper.js
+                        if (typeof adaptKanbanColumns === 'function') {
+                            adaptKanbanColumns(kanbanContainer, jobProcess);
+                        }
                     }
                 }
             }, 1500); // Attendre que le DOM soit chargé
