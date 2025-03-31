@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Ajouter des écouteurs d'événements pour observer les changements
     observeJobChanges();
+    
+    // Ajouter un écouteur pour la mise à jour du localStorage
+    listenForStorageChanges();
 });
 
 /**
@@ -50,13 +53,9 @@ function initializeKanbanColumns() {
                 if (kanbanContainer) {
                     console.log(`Conteneur Kanban trouvé pour le job ${job.id}`);
                     
-                    // Vérifier si les colonnes doivent être adaptées au processus de recrutement
-                    const shouldAdaptColumns = shouldAdaptKanbanColumns(kanbanContainer, jobProcess);
+                    // Force la mise à jour des colonnes pour correspondre au processus actuel
+                    adaptKanbanColumns(kanbanContainer, jobProcess);
                     
-                    if (shouldAdaptColumns) {
-                        // Adapter les colonnes Kanban au processus de recrutement
-                        adaptKanbanColumns(kanbanContainer, jobProcess);
-                    }
                 } else {
                     console.log(`Conteneur Kanban non trouvé pour le job ${job.id}`);
                 }
@@ -231,12 +230,24 @@ function createKanbanColumn(columnId, title, icon) {
  * Observe les changements dans les postes pour réinitialiser les colonnes Kanban si nécessaire
  */
 function observeJobChanges() {
-    // Cette fonction pourrait utiliser MutationObserver pour détecter les changements dans le DOM
-    // et réinitialiser les colonnes Kanban en conséquence
-    
-    // Exemple simplifié: vérifier toutes les 5 secondes
+    // Vérifier toutes les 3 secondes (plus fréquent pour une meilleure réactivité)
     setInterval(() => {
         // Revérifier si les colonnes Kanban doivent être adaptées
         initializeKanbanColumns();
-    }, 5000);
+    }, 3000);
+}
+
+/**
+ * Écoute les changements dans le localStorage pour détecter les modifications du processus
+ */
+function listenForStorageChanges() {
+    // Ajouter un écouteur d'événements pour les changements de localStorage
+    window.addEventListener('storage', function(e) {
+        // Vérifier si l'élément modifié est 'commitment_jobs'
+        if (e.key === 'commitment_jobs') {
+            console.log('Détection de changement dans localStorage pour commitment_jobs');
+            // Forcer la réinitialisation des colonnes Kanban
+            setTimeout(initializeKanbanColumns, 500);
+        }
+    });
 }
