@@ -1,171 +1,326 @@
 <!DOCTYPE html>
 <html lang="fr">
-<!-- ... le reste du code HTML reste identique ... -->
-<script>
-    // 1. Fonction pour charger et afficher les opportunités sélectionnées
-    function loadSavedOpportunities() {
-        // Récupérer le conteneur où afficher les opportunités
-        const opportunitiesContainer = document.getElementById('selected-opportunities');
-        
-        // Si le conteneur n'existe pas, arrêter l'exécution
-        if (!opportunitiesContainer) {
-            console.error("Conteneur des opportunités non trouvé");
-            return;
-        }
-        
-        // MODIFICATION ICI - Utiliser la clé 'selectedOpportunities' au lieu de 'savedOpportunities'
-        const savedJobs = JSON.parse(localStorage.getItem('selectedOpportunities') || '[]');
-        
-        // Vérifier s'il y a des opportunités à afficher
-        if (savedJobs.length === 0) {
-            opportunitiesContainer.innerHTML = `
-                <div class="no-opportunities-message">
-                    <h3><i class="fas fa-info-circle"></i> Aucune opportunité sélectionnée</h3>
-                    <p>Vous n'avez pas encore sélectionné d'opportunités. Découvrez notre sélection de postes adaptés à votre profil.</p>
-                    <a href="candidate-matching-improved.html" class="discover-btn">
-                        <i class="fas fa-search"></i> Découvrir des opportunités
-                    </a>
-                </div>
-            `;
-            return;
-        }
-        
-        // Afficher chaque opportunité sauvegardée
-        let opportunitiesHTML = '';
-        
-        savedJobs.forEach((job, index) => {
-            const matchPercentage = job.matchPercentage ? job.matchPercentage : '85%';
-            const matchValue = parseInt(matchPercentage);
-            const matchClass = matchValue >= 80 ? 'match-high' : 
-                          matchValue >= 60 ? 'match-medium' : 'match-low';
-                          
-            // Créer une représentation visuelle de la timeline du processus (simplifiée)
-            const stages = [
-                { name: "En cours de validation", status: "completed" },
-                { name: "Call prise de contact", status: "active" },
-                { name: "Entretien visio", status: "" },
-                { name: "Entretien Présentiel", status: "" },
-                { name: "Acceptation", status: "" }
-            ];
-            
-            let stagesHTML = '';
-            let progressWidth = 20; // Progression par défaut (première étape)
-            
-            stages.forEach((stage, i) => {
-                const stageStatus = i === 0 ? "completed" : (i === 1 ? "active" : "");
-                const stageIcon = stageStatus === "completed" ? 
-                                `<i class="fas fa-check"></i>` : 
-                                (stageStatus === "active" ? 
-                                `<i class="fas fa-circle"></i>` : 
-                                `<i class="far fa-circle"></i>`);
-                
-                stagesHTML += `
-                    <div class="stage ${stageStatus}">
-                        <div class="stage-icon">
-                            ${stageIcon}
-                        </div>
-                        <div class="stage-label">${stage.name}</div>
-                        ${stageStatus === "active" ? `
-                        <div class="interviewer-card">
-                            <div class="interviewer-name">Recruteur ${index + 1}</div>
-                            <div class="interviewer-title">Responsable Recrutement</div>
-                            <div class="interview-date">
-                                <i class="fas fa-calendar-alt"></i> Prochainement
-                            </div>
-                        </div>` : ''}
-                    </div>
-                `;
-            });
-            
-            opportunitiesHTML += `
-                <div class="opportunity-card" data-status="in-progress" data-job-id="${job.id}">
-                    <div class="opportunity-header">
-                        <div class="opportunity-company">
-                            <div class="logo-placeholder">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <div class="company-details">
-                                <h3 class="company-name">${job.company}</h3>
-                                <h4 class="job-title">${job.title}</h4>
-                                <p class="job-info"><i class="fas fa-money-bill-wave"></i> ${job.salary}</p>
-                                <a href="candidate-resources.html?email=demo.utilisateur%40nexten.fr&password=s" class="resource-button">
-                                    Accéder aux ressources
-                                </a>
-                            </div>
-                        </div>
-                        <div class="opportunity-match">
-                            <span class="match-percentage">${matchPercentage}</span>
-                            <span class="match-label">Match</span>
-                        </div>
-                    </div>
-                    
-                    <div class="opportunity-status">
-                        <div class="status-info">
-                            <span class="status-label"><i class="fas fa-info-circle"></i> Statut: <strong>En traitement</strong></span>
-                            <span class="travel-time"><i class="fas fa-map-marker-alt"></i> Temps de trajet: <a href="#" class="map-link">${job.location} <span class="text-nowrap">(voir sur Maps)</span></a></span>
-                        </div>
-                        
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: ${progressWidth}%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="recruitment-stages">
-                        <div class="stages-line"></div>
-                        <div class="stages-progress" style="width: ${progressWidth}%;"></div>
-                        
-                        <div class="stages-wrapper">
-                            ${stagesHTML}
-                        </div>
-                    </div>
-                    
-                    <div class="opportunity-actions">
-                        <div class="primary-actions">
-                            <button class="btn btn-primary"><i class="fas fa-comment-dots"></i> Poser une question</button>
-                            <button class="btn btn-outline-danger remove-job" data-job-id="${job.id}"><i class="fas fa-times-circle"></i> Retirer cette opportunité</button>
-                            <button class="btn btn-outline"><i class="fas fa-calendar-alt"></i> Définir un rappel</button>
-                        </div>
-                        <div class="secondary-actions">
-                            <button class="btn btn-outline btn-icon-text"><i class="fas fa-envelope"></i> Messagerie</button>
-                            <div class="notes-container">
-                                <span>Note personnelle: </span>
-                                <div class="note-input-container">
-                                    <input type="text" class="form-control" placeholder="Ajouter un rappel...">
-                                    <button class="btn-save" aria-label="Sauvegarder la note"><i class="fas fa-bell"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        // Insérer le HTML dans le conteneur
-        opportunitiesContainer.innerHTML = opportunitiesHTML;
-        
-        // Ajouter les écouteurs d'événements pour les boutons
-        initRemoveButtons();
-    }
-
-    // MODIFICATION ICI - Mise à jour de la fonction de suppression
-    function removeJob(jobId) {
-        // Récupérer les opportunités sauvegardées
-        let savedJobs = JSON.parse(localStorage.getItem('selectedOpportunities') || '[]');
-        
-        // Filtrer pour retirer l'opportunité spécifiée
-        const updatedJobs = savedJobs.filter(job => job.id !== jobId);
-        
-        // Sauvegarder la nouvelle liste
-        localStorage.setItem('selectedOpportunities', JSON.stringify(updatedJobs));
-        
-        // Afficher une notification
-        showNotification('Opportunité retirée de vos sélections');
-        
-        // Mettre à jour l'affichage
-        loadSavedOpportunities();
-    }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Nexten - Opportunités candidat">
+    <title>Nexten - Mes opportunités sélectionnées</title>
     
-    // Le reste du code reste identique...
-</script>
+    <!-- CSS de base -->
+    <link rel="stylesheet" href="../static/styles/nexten-modern.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS pour les modales -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- CSS de base du projet -->
+    <link rel="stylesheet" href="../static/styles/dashboard.css">
+    <link rel="stylesheet" href="../static/styles/nav-improvement.css">
+    <link rel="stylesheet" href="../static/styles/candidate-opportunities-new.css">
+    
+    <!-- Correctifs et améliorations -->
+    <link rel="stylesheet" href="../static/styles/emergency-fix.css">
+    <link rel="stylesheet" href="../static/styles/custom-fixes.css">
+    <link rel="stylesheet" href="../static/styles/interviewer-card-fix.css">
+    <link rel="stylesheet" href="../static/styles/ui-improvements.css">
+    <link rel="stylesheet" href="../static/styles/footer-improvements.css">
+    
+    <!-- Harmonisation UI pour le parcours candidat -->
+    <link rel="stylesheet" href="../static/styles/ui-harmonization.css">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
+    
+    <!-- Style pour le bouton de ressources -->
+    <style>
+        .resource-button {
+            display: inline-block;
+            background-color: #6f42c1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        
+        .resource-button:hover {
+            background-color: #5a32a3;
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Style pour le logo */
+        .nexten-logo {
+            display: flex;
+            align-items: center;
+            height: 40px;
+        }
+        
+        .nexten-logo img {
+            height: 100%;
+            width: auto;
+        }
+        
+        /* Styles pour les opportunités chargées dynamiquement */
+        .no-opportunities-message {
+            text-align: center;
+            padding: 30px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .no-opportunities-message h3 {
+            color: #6f42c1;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .no-opportunities-message p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .discover-btn {
+            background-color: #6f42c1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        
+        .discover-btn:hover {
+            background-color: #5a32a3;
+            color: white;
+            text-decoration: none;
+        }
+        
+        /* Style pour les notifications toast */
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+            z-index: 1000;
+        }
+        
+        .notification-toast.show {
+            transform: translateX(0);
+        }
+        
+        .notification-toast i {
+            font-size: 1.2rem;
+        }
+        
+        .notification-toast .notification-message {
+            flex-grow: 1;
+            font-weight: 500;
+        }
+        
+        .close-notification {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .close-notification:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification bar -->
+    <div class="notification-bar">
+        <i class="fas fa-bell"></i> Votre recrutement change, votre approche aussi : découvrez notre approche TOP <span class="ten-badge">10</span>
+    </div>
+
+    <header>
+        <div class="container">
+            <div class="nexten-logo">
+                <img src="https://raw.githubusercontent.com/Bapt252/Commitment-/main/static/images/nexten-logo.png" alt="NEXTEN Logo">
+            </div>
+            
+            <button class="menu-toggle" aria-label="Menu principal">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="candidate-dashboard.html?email=demo.utilisateur@nexten.fr&password=s" class="active">Espace candidat</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container main-container" id="main-content">
+        <!-- Breadcrumb harmonisé -->
+        <div class="breadcrumb">
+            <a href="candidate-dashboard.html?email=demo.utilisateur@nexten.fr&password=s">Tableau de bord</a>
+            <span class="breadcrumb-separator">></span>
+            <span>Mes opportunités sélectionnées</span>
+        </div>
+        
+        <!-- Indicateur de progression harmonisé -->
+        <div class="progress-indicator">
+            <div class="progress-line"></div>
+            <div class="progress-line-filled" style="width: 20%;"></div>
+            
+            <div class="progress-step completed">
+                <div class="progress-dot completed">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="progress-label">Mes opportunités</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">2</div>
+                <div class="progress-label">Mes offres reçues</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">3</div>
+                <div class="progress-label">Postuler en un clic</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">4</div>
+                <div class="progress-label">Travailler mon CV</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">5</div>
+                <div class="progress-label">Centre de ressources</div>
+            </div>
+            
+            <div class="progress-step">
+                <div class="progress-dot">6</div>
+                <div class="progress-label">Messagerie</div>
+            </div>
+        </div>
+    
+        <!-- Section Mes opportunités selectionnées -->
+        <div class="candidate-dashboard-section">
+            <div class="section-header">
+                <h2 class="section-heading">MES OPPORTUNITÉS SÉLECTIONNÉES</h2>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-badges">
+                    <span class="filter-badge active" data-filter="all"><i class="fas fa-filter"></i> Tous</span>
+                    <span class="filter-badge" data-filter="in-progress"><i class="fas fa-spinner"></i> En cours</span>
+                    <span class="filter-badge" data-filter="completed"><i class="fas fa-check"></i> Terminés</span>
+                </div>
+                <div class="filter-sort">
+                    <label for="sort-select" class="sr-only">Trier par</label>
+                    <div class="select-wrapper">
+                        <select id="sort-select" class="form-control">
+                            <option>Trier par : Date</option>
+                            <option>Trier par : Entreprise</option>
+                            <option>Trier par : Avancement</option>
+                            <option>Trier par : Match</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="opportunities-container" id="selected-opportunities">
+                <!-- Les opportunités seront chargées dynamiquement ici -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Nouveau Footer Amélioré -->
+    <footer id="contact" class="improved-footer">
+        <div class="footer-container">
+            <div class="footer-main">
+                <div class="footer-brand">
+                    <h3>Nexten</h3>
+                    <p>Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
+                    <div class="social-icons">
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-nav">
+                        <h4>Navigation</h4>
+                        <ul>
+                            <li><a href="index.html">Accueil</a></li>
+                            <li><a href="candidate-dashboard.html?email=demo.utilisateur@nexten.fr&password=s">Espace candidat</a></li>
+                            <li><a href="#">À propos</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-contact">
+                        <h4>Contact</h4>
+                        <ul>
+                            <li>
+                                <i class="fas fa-map-marker-alt"></i>
+                                <a href="https://maps.google.com/?q=123+Avenue+de+l'Innovation,+75001+Paris" target="_blank">
+                                    123 Avenue de l'Innovation, 75001 Paris
+                                </a>
+                            </li>
+                            <li>
+                                <i class="fas fa-phone-alt"></i>
+                                <a href="tel:+33123456789">+33 1 23 45 67 89</a>
+                            </li>
+                            <li>
+                                <i class="fas fa-envelope"></i>
+                                <a href="mailto:contact@nexten.fr">contact@nexten.fr</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Nexten - Tous droits réservés</p>
+                <div class="footer-legal">
+                    <a href="#">Politique de confidentialité</a>
+                    <span class="separator">|</span>
+                    <a href="#">Conditions d'utilisation</a>
+                </div>
+                <button id="back-to-top" aria-label="Retour en haut de la page">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/js/footer-functions.js"></script>
+    <script src="js/buttons-functionality.js"></script>
+    <script src="js/interactive-stages.js"></script>
+
+    <!-- Script d'affichage des opportunités sélectionnées -->
+    <script src="../static/js/opportunity-display.js"></script>
 </body>
 </html>
