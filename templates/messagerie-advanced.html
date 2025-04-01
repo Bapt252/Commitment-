@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Nexten - Messagerie Avancée">
+    <title>Nexten - Messagerie Avancée</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/styles/messagerie-enhanced.css">
+    <link rel="stylesheet" href="../static/styles/improved-header.css">
+    <link rel="stylesheet" href="../static/styles/enhanced-modern-ui.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Accessibility skip link -->
+    <a href="#main-content" class="skip-to-content">Aller au contenu principal</a>
+
+    <!-- Notification bar with subtle animation -->
+    <div class="notification-bar parallax-layer" data-speed="5">
+        <i class="fas fa-bell"></i> Vous avez 5 nouveaux candidats correspondant à vos offres et 2 entretiens programmés aujourd'hui
+    </div>
+
+    <!-- Improved Header with glassmorphism -->
+    <header class="app-header">
+        <div class="brand-container">
+            <div class="logo-container">
+                <img src="../assets/images/nexten-logo.png" alt="nexten" class="logo">
+            </div>
+            <div class="logo-container">
+                <img src="../assets/images/innovtech-logo.png" alt="InnovTech" class="logo">
+                <span class="logo-text">INNOVTECH</span>
+            </div>
+        </div>
+        
+        <button class="menu-toggle" aria-label="Menu principal">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <nav class="nav-links">
+            <a href="../index.html" class="nav-link" data-tooltip="Accueil">Accueil</a>
+            <a href="enterprise.html" class="nav-link" data-tooltip="Espace entreprise">Espace entreprise</a>
+            <a href="#contact" class="nav-link" data-tooltip="Contactez-nous">Contact</a>
+        </nav>
+    </header>
+    
+    <main id="main-content" class="container">
+        <!-- User info card with hover effects -->
+        <div class="user-info scroll-reveal">
+            <div class="user-name">Thomas Martin</div>
+            <div class="user-title">Directeur des Ressources Humaines</div>
+            <div class="user-company">TM</div>
+        </div>
+
+        <!-- Messaging header with improved design -->
+        <div class="messaging-header scroll-reveal">
+            <div class="messaging-title">
+                <h1>MESSAGERIE : AVEC DAVID BERNARD</h1>
+                <div class="messaging-subtitle">Communiquez avec vos candidats</div>
+            </div>
+            <a href="dashboard-enterprise.html" class="back-button">
+                <svg class="back-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Retour au tableau de bord</span>
+            </a>
+        </div>
+        
+        <!-- Enhanced messagerie container -->
+        <div class="messagerie-container scroll-reveal">
+            <!-- Sidebar with contacts list -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="header-title">
+                        <h3>Candidats</h3>
+                        <button class="add-btn" title="Ajouter un candidat à la discussion" data-tooltip="Ajouter un candidat">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="filter-tabs">
+                        <button class="filter-tab active">Statut</button>
+                        <button class="filter-tab">Date</button>
+                        <button class="filter-tab">Offre reçue</button>
+                    </div>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Rechercher un candidat...">
+                    </div>
+                </div>
+                
+                <!-- Contacts with improved visuals -->
+                <div class="contact-list">
+                    <div class="section-heading parallax-layer" data-speed="2">BESOIN 1 : Comptabilité général</div>
+                    
+                    <div class="contact-item active interactive-hover">
+                        <div class="contact-header">
+                            <h5 class="contact-nom">David B.</h5>
+                            <span class="contact-status">
+                                <span class="status-dot dot-online"></span>
+                                Entretien présentiel
+                            </span>
+                        </div>
+                        <div class="contact-details">
+                            <p class="contact-poste">CV : Comptable expérimenté</p>
+                            <div class="contact-metadata">
+                                <span class="contact-badge match-badge">90%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item interactive-hover">
+                        <div class="contact-header">
+                            <h5 class="contact-nom">Sophie M.</h5>
+                            <span class="contact-status">
+                                <span class="status-dot dot-online"></span>
+                                Entretien présentiel
+                            </span>
+                        </div>
+                        <div class="contact-details">
+                            <p class="contact-poste">Recherche : CDI Comptabilité</p>
+                            <div class="contact-metadata">
+                                <span class="contact-badge match-badge">85%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-heading parallax-layer" data-speed="2">BESOIN 2 : Assistanat de direction</div>
+                    
+                    <div class="contact-item interactive-hover">
+                        <div class="contact-header">
+                            <h5 class="contact-nom">Julie L.</h5>
+                            <span class="contact-status">
+                                <span class="status-dot dot-away"></span>
+                                Entretien présentiel
+                            </span>
+                        </div>
+                        <div class="contact-details">
+                            <p class="contact-poste">Recherche : CDI Assistant(e)</p>
+                            <div class="contact-metadata">
+                                <span class="contact-badge match-badge">78%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Enhanced conversation area -->
+            <div class="conversation">
+                <div class="conversation-header">
+                    <div class="interlocutor-info">
+                        <div class="avatar">DB</div>
+                        <div class="interlocutor-details">
+                            <h3>David Bernard</h3>
+                            <p>Candidat pour Comptabilité générale</p>
+                        </div>
+                    </div>
+                    <div class="conversation-actions">
+                        <button class="action-button" title="Voir le profil" data-tooltip="Voir le profil">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <button class="action-button" title="Planifier un entretien" data-tooltip="Planifier un entretien">
+                            <i class="fas fa-calendar-alt"></i>
+                        </button>
+                        <button class="action-button" title="Options" data-tooltip="Plus d'options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Enhanced message container with animations -->
+                <div class="messages-container">
+                    <!-- Date separator -->
+                    <div class="date-separator">
+                        <span>Aujourd'hui</span>
+                    </div>
+                    
+                    <!-- Messages with reactions -->
+                    <div class="message incoming">
+                        <div class="message-content-wrapper">
+                            <div class="message-avatar">DB</div>
+                            <div class="message-content">
+                                Bonjour, je suis intéressé par le poste de comptable chez InnovTech. Mon expérience de 5 ans en comptabilité générale correspond au profil recherché.
+                            </div>
+                        </div>
+                        <span class="message-time">10:30</span>
+                        <div class="reaction-container">
+                            <div class="reaction-bubble" data-emoji="👍">
+                                <span class="emoji">👍</span>
+                                <span class="count">1</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="message outgoing">
+                        <div class="message-content-wrapper">
+                            <div class="message-avatar">TM</div>
+                            <div class="message-content">
+                                Bonjour David, merci pour votre intérêt. Votre profil semble bien correspondre à ce que nous recherchons. Êtes-vous disponible pour un premier échange téléphonique cette semaine ?
+                            </div>
+                        </div>
+                        <span class="message-time">10:35</span>
+                        <div class="message-status status-read">
+                            <i class="fas fa-check-double status-icon"></i>
+                            <span>Lu</span>
+                        </div>
+                    </div>
+                    
+                    <div class="message incoming">
+                        <div class="message-content-wrapper">
+                            <div class="message-avatar">DB</div>
+                            <div class="message-content">
+                                Oui tout à fait, je suis disponible jeudi ou vendredi après-midi si cela vous convient ?
+                            </div>
+                        </div>
+                        <span class="message-time">10:42</span>
+                    </div>
+                    
+                    <!-- Typing indicator with enhanced animation -->
+                    <div class="typing-indicator">
+                        <span class="typing-avatar">DB</span>
+                        <div class="typing-bubble"></div>
+                        <div class="typing-bubble"></div>
+                        <div class="typing-bubble"></div>
+                    </div>
+                </div>
+                
+                <!-- Enhanced AI suggestions -->
+                <div class="ai-suggestions parallax-layer" data-speed="3">
+                    <div class="suggestions-header">
+                        <i class="fas fa-robot"></i>
+                        <span>Réponses suggérées via IA</span>
+                    </div>
+                    <div class="suggestions-list">
+                        <div class="suggestion-item">Pourriez-vous me parler de votre expérience en comptabilité ?</div>
+                        <div class="suggestion-item">Parfait ! Je vous propose jeudi à 14h, est-ce que cela vous convient ?</div>
+                        <div class="suggestion-item">Excellent ! Préférez-vous un appel téléphonique ou une visioconférence ?</div>
+                    </div>
+                </div>
+                
+                <!-- Enhanced file options -->
+                <div class="file-options parallax-layer" data-speed="2">
+                    <div class="file-options-header">
+                        <i class="fas fa-paperclip"></i>
+                        <span>Possibilité d'envoi de fichier :</span>
+                    </div>
+                    <div class="file-list">
+                        <div class="file-item">
+                            <i class="fas fa-file-alt"></i>
+                            Document RH
+                        </div>
+                        <div class="file-item">
+                            <i class="fas fa-file-alt"></i>
+                            Fiche de poste complémentaire
+                        </div>
+                        <div class="file-item">
+                            <i class="fas fa-file-pdf"></i>
+                            Présentation entreprise
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Enhanced input container -->
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <input type="text" class="message-input" placeholder="Tapez votre message...">
+                        <div class="input-actions">
+                            <button class="input-action-btn" title="Joindre un fichier" data-tooltip="Joindre un fichier">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button class="input-action-btn" title="Émoji" data-tooltip="Ajouter un émoji">
+                                <i class="far fa-smile"></i>
+                            </button>
+                            <button class="send-button" title="Envoyer" data-tooltip="Envoyer le message">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating action button for mobile -->
+        <button class="floating-action-button" aria-label="Nouvelle conversation">
+            <i class="fas fa-plus"></i>
+        </button>
+    </main>
+    
+    <footer id="contact">
+        <!-- Footer content -->
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <h4 class="footer-heading">Nexten</h4>
+                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="../index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> À propos</a></li>
+                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Contact</h4>
+                    <div class="footer-contact">
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
+                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="#">Politique de confidentialité</a> | <a href="#">Conditions d'utilisation</a></p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="../static/js/header-responsive.js"></script>
+    <script src="../static/js/enhanced-interactions.js"></script>
+</body>
+</html>
