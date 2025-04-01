@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../static/styles/dashboard.css">
     <link rel="stylesheet" href="../static/styles/dashboard-new.css">
     <link rel="stylesheet" href="../static/styles/nav-improvement.css">
+    <link rel="stylesheet" href="../static/styles/improved-footer.css">
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
@@ -517,49 +518,67 @@
         </div>
     </div>
 
-    <footer id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div>
-                    <h4 class="footer-heading">Nexten</h4>
-                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
-                    <div class="footer-social">
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    </div>
-                </div>
-                
-                <div>
-                    <h4 class="footer-heading">Navigation</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
-                        <li><a href="candidate-dashboard.html?email=jean-olivier.penin%40b-acceptance.com&password=%C3%A9"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> À propos</a></li>
-                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="footer-heading">Contact</h4>
-                    <div class="footer-contact">
-                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
-                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
-                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
-                    </div>
+    <!-- Nouveau Footer avec meilleur UI/UX -->
+    <footer id="contact" class="footer-container">
+        <div class="footer-content">
+            <!-- Colonne Entreprise -->
+            <div class="footer-column">
+                <h3 class="footer-title">Nexten</h3>
+                <p class="footer-description">
+                    Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.
+                </p>
+                <div class="social-icons">
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                 </div>
             </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="#">Politique de confidentialité</a> | <a href="#">Conditions d'utilisation</a></p>
+
+            <!-- Colonne Navigation -->
+            <div class="footer-column">
+                <h3 class="footer-title">Navigation</h3>
+                <ul class="footer-links">
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="candidate-dashboard.html">Espace candidat</a></li>
+                    <li><a href="about.html">À propos</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Colonne Contact -->
+            <div class="footer-column">
+                <h3 class="footer-title">Contact</h3>
+                <ul class="contact-info">
+                    <li>
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>123 Avenue de l'Innovation, 75001 Paris</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-phone-alt"></i>
+                        <span>+33 1 23 45 67 89</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-envelope"></i>
+                        <span>contact@nexten.fr</span>
+                    </li>
+                </ul>
             </div>
         </div>
-        
-        <!-- Bouton de retour en haut -->
-        <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
-            <i class="fas fa-arrow-up"></i>
-        </button>
+
+        <!-- Section Copyright -->
+        <div class="copyright-section">
+            <div class="copyright-text">
+                © 2025 Nexten - Tous droits réservés
+            </div>
+            <div class="legal-links">
+                <a href="privacy.html">Politique de confidentialité</a>
+                <a href="terms.html">Conditions d'utilisation</a>
+            </div>
+            <a href="#top" class="back-to-top" id="scroll-to-top">
+                <i class="fas fa-arrow-up"></i>
+            </a>
+        </div>
     </footer>
 
     <!-- JavaScript -->
