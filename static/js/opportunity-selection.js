@@ -64,12 +64,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         notification.classList.remove('show');
                         
-                        // Rediriger vers la page des opportunités
-                        window.location.href = 'candidate-opportunities.html?email=demo.utilisateur%40nexten.fr&password=s';
+                        // MODIFICATION: Rediriger vers le tableau de bord candidat
+                        window.location.href = 'candidate-dashboard.html?email=demo.utilisateur%40nexten.fr&password=s';
                     }, 2000);
                 } else {
                     // Si la notification n'existe pas, rediriger directement
-                    window.location.href = 'candidate-opportunities.html?email=demo.utilisateur%40nexten.fr&password=s';
+                    window.location.href = 'candidate-dashboard.html?email=demo.utilisateur%40nexten.fr&password=s';
                 }
             } else {
                 alert('Veuillez sélectionner au moins une opportunité.');
