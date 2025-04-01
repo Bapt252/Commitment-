@@ -1,0 +1,301 @@
+/* Improved Header CSS for Messaging Pages */
+:root {
+  --primary-color: #6a3de8;
+  --secondary-color: #f6f6f9;
+  --text-color: #333;
+  --light-text: #666;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styles */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background-color: white;
+  border-bottom: 1px solid #eee;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.logo {
+  height: 32px;
+  width: auto;
+}
+
+.logo-text {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+.nav-links {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.nav-link {
+  color: var(--light-text);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  padding: var(--spacing-sm);
+}
+
+.nav-link:hover {
+  color: var(--primary-color);
+}
+
+.nav-link.active {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+/* User Info Section */
+.user-info {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-lg);
+  background-color: var(--secondary-color);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.user-title {
+  color: var(--light-text);
+  font-size: 0.9rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Messaging Section Header */
+.messaging-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding: 0 var(--spacing-lg);
+}
+
+.messaging-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.messaging-title h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.messaging-subtitle {
+  font-size: 0.9rem;
+  color: var(--light-text);
+  margin-top: var(--spacing-sm);
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: var(--radius-md);
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: var(--secondary-color);
+  border-color: var(--primary-color);
+}
+
+.back-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--spacing-md) var(--spacing-md);
+  }
+
+  .nav-links {
+    margin-top: var(--spacing-md);
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .messaging-header {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+
+  .back-button {
+    align-self: flex-start;
+  }
+}
+
+/* For extra small screens */
+@media (max-width: 576px) {
+  .app-header {
+    padding: 12px;
+  }
+  
+  .brand-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .nav-links {
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-top: 12px;
+    gap: 16px;
+  }
+  
+  .messaging-header {
+    padding: 0 12px;
+  }
+  
+  .messaging-title h1 {
+    font-size: 1.2rem;
+  }
+  
+  .user-info {
+    padding: 16px;
+  }
+  
+  .container {
+    padding: 12px;
+  }
+}
+
+/* Enhanced focus states for accessibility */
+:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.nav-link:focus,
+.back-button:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Skip to content link for accessibility */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary-color);
+  color: white;
+  padding: 8px;
+  z-index: 1000;
+  transition: top 0.3s;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Animation enhancements */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary-color: #8a65ff;
+    --secondary-color: #2a2a3a;
+    --text-color: #e1e1e6;
+    --light-text: #a0a0b0;
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  body {
+    background-color: #1a1a2a;
+  }
+  
+  .app-header {
+    background-color: #252535;
+    border-bottom: 1px solid #333345;
+  }
+  
+  .back-button {
+    background-color: #323245;
+    border-color: #444456;
+    color: #e1e1e6;
+  }
+  
+  .back-button:hover {
+    background-color: #3a3a50;
+    border-color: var(--primary-color);
+  }
+  
+  .user-info {
+    background-color: #2a2a3a;
+  }
+}
