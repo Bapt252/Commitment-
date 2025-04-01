@@ -1,0 +1,84 @@
+/* Footer Styles - Modern Design 2025 */
+.footer {
+  background-color: #212529;
+  color: #f8f9fa;
+  position: relative;
+}
+
+.footer .text-primary {
+  color: #7a29ff !important;
+}
+
+.footer-links a {
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.footer-links a:hover {
+  padding-left: 5px;
+  color: #7a29ff !important;
+}
+
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+  background-color: #7a29ff;
+  color: #fff;
+  transform: translateY(-3px);
+}
+
+.contact-info i {
+  width: 20px;
+}
+
+.newsletter-form .form-control {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+}
+
+.newsletter-form .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.newsletter-form .btn {
+  background-color: #7a29ff;
+  border-color: #7a29ff;
+}
+
+.newsletter-form .btn:hover {
+  background-color: #6620d4;
+  border-color: #6620d4;
+}
+
+hr.bg-secondary {
+  opacity: 0.2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .footer {
+    text-align: center;
+  }
+  
+  .social-links {
+    justify-content: center;
+    display: flex;
+    margin-bottom: 2rem;
+  }
+  
+  .contact-info {
+    margin-bottom: 2rem;
+  }
+}

@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../static/styles/dashboard.css">
     <link rel="stylesheet" href="../static/styles/dashboard-new.css">
     <link rel="stylesheet" href="../static/styles/nav-improvement.css">
+    <link rel="stylesheet" href="../static/styles/footer-nexten-modern.css">
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
@@ -919,110 +920,6 @@
             font-size: 1rem;
         }
         
-        /* Enhanced footer */
-        footer {
-            background-color: var(--black);
-            color: var(--white);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        footer::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
-        }
-        
-        .footer-content {
-            padding-top: 20px;
-        }
-        
-        .footer-heading {
-            color: var(--white);
-            position: relative;
-            padding-bottom: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .footer-heading::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 30px;
-            height: 2px;
-            background-color: var(--purple);
-        }
-        
-        .footer-description {
-            color: var(--gray-light);
-        }
-        
-        .footer-links a,
-        .footer-contact p {
-            color: var(--gray-light);
-            transition: all var(--transition-normal);
-        }
-        
-        .footer-links a:hover {
-            color: var(--purple-light);
-            transform: translateX(3px);
-        }
-        
-        .footer-social a {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--white);
-            transition: all var(--transition-normal);
-        }
-        
-        .footer-social a:hover {
-            background-color: var(--purple);
-            transform: translateY(-3px);
-        }
-        
-        .footer-bottom {
-            background-color: rgba(0, 0, 0, 0.2);
-            padding: 15px 0;
-            margin-top: 30px;
-        }
-        
-        .scroll-to-top {
-            width: 45px;
-            height: 45px;
-            background-color: var(--purple);
-            color: var(--white);
-            border: none;
-            box-shadow: var(--shadow-md);
-            transition: all var(--transition-normal);
-        }
-        
-        .scroll-to-top:hover {
-            background-color: var(--purple-dark);
-            transform: translateY(-5px);
-        }
-        
-        /* Animation utilities */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-        
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
         /* Scrollbar customization */
         ::-webkit-scrollbar {
             width: 10px;
@@ -1461,49 +1358,87 @@
         </div>
     </div>
 
-    <footer id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div>
-                    <h4 class="footer-heading">Nexten</h4>
-                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
-                    <div class="footer-social">
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    </div>
-                </div>
-                
-                <div>
-                    <h4 class="footer-heading">Navigation</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
-                        <li><a href="candidate-dashboard.html?email=jean-olivier.penin%40b-acceptance.com&password=%C3%A9"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> À propos</a></li>
-                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="footer-heading">Contact</h4>
-                    <div class="footer-contact">
-                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
-                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
-                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
-                    </div>
-                </div>
+    <!-- Footer Section -->
+    <footer class="footer bg-dark text-light py-5" id="contact">
+      <div class="container">
+        <div class="row">
+          <!-- Company Info Column -->
+          <div class="col-lg-4 mb-4 mb-lg-0">
+            <h5 class="text-primary mb-4">Nexten</h5>
+            <p>Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
+            <div class="social-links mt-3 d-flex">
+              <a href="#" class="social-icon me-2"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#" class="social-icon me-2"><i class="fab fa-twitter"></i></a>
+              <a href="#" class="social-icon me-2"><i class="fab fa-instagram"></i></a>
+              <a href="#" class="social-icon me-2"><i class="fab fa-facebook-f"></i></a>
             </div>
+          </div>
+          
+          <!-- Navigation Links Column -->
+          <div class="col-lg-4 mb-4 mb-lg-0">
+            <h5 class="text-primary mb-4">Navigation</h5>
+            <ul class="list-unstyled footer-links">
+              <li class="mb-2"><a href="index.html" class="text-light"><i class="fas fa-chevron-right me-2"></i>Accueil</a></li>
+              <li class="mb-2"><a href="candidate-dashboard.html?email=jean-olivier.penin%40b-acceptance.com&password=%C3%A9" class="text-light"><i class="fas fa-chevron-right me-2"></i>Espace candidat</a></li>
+              <li class="mb-2"><a href="#" class="text-light"><i class="fas fa-chevron-right me-2"></i>À propos</a></li>
+              <li class="mb-2"><a href="#contact" class="text-light"><i class="fas fa-chevron-right me-2"></i>Contact</a></li>
+              <li class="mb-2"><a href="#" class="text-light"><i class="fas fa-chevron-right me-2"></i>Politique de confidentialité</a></li>
+              <li class="mb-2"><a href="#" class="text-light"><i class="fas fa-chevron-right me-2"></i>Conditions d'utilisation</a></li>
+            </ul>
+          </div>
+          
+          <!-- Contact Info Column -->
+          <div class="col-lg-4">
+            <h5 class="text-primary mb-4">Contact</h5>
+            <ul class="list-unstyled contact-info">
+              <li class="mb-3">
+                <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                <span>123 Avenue de l'Innovation, 75001 Paris</span>
+              </li>
+              <li class="mb-3">
+                <i class="fas fa-phone-alt me-2 text-primary"></i>
+                <span>+33 1 23 45 67 89</span>
+              </li>
+              <li class="mb-3">
+                <i class="fas fa-envelope me-2 text-primary"></i>
+                <a href="mailto:contact@nexten.fr" class="text-light">contact@nexten.fr</a>
+              </li>
+            </ul>
             
-            <div class="footer-bottom">
-                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="#">Politique de confidentialité</a> | <a href="#">Conditions d'utilisation</a></p>
+            <!-- Newsletter Subscription -->
+            <div class="mt-4">
+              <h6 class="text-primary mb-3">Restez informé</h6>
+              <form class="newsletter-form">
+                <div class="input-group">
+                  <input type="email" class="form-control" placeholder="Votre email">
+                  <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </form>
             </div>
+          </div>
         </div>
         
-        <!-- Bouton de retour en haut -->
-        <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
-            <i class="fas fa-arrow-up"></i>
-        </button>
+        <!-- Copyright Section -->
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr class="bg-secondary">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+              <p class="mb-0">&copy; 2025 Nexten - Tous droits réservés</p>
+              <div>
+                <a href="#" class="text-light me-3">Mentions légales</a>
+                <a href="#" class="text-light">Cookies</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bouton de retour en haut -->
+      <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
+        <i class="fas fa-arrow-up"></i>
+      </button>
     </footer>
 
     <!-- JavaScript -->
@@ -1642,5 +1577,10 @@
     </script>
     <!-- Script d'amélioration de la navigation -->
     <script src="../static/services/nav-enhancement.js"></script>
+    
+    <!-- Required Scripts for Footer Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <!-- Bootstrap JS Bundle (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
