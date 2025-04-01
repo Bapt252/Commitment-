@@ -64,6 +64,43 @@
             height: 100%;
             width: auto;
         }
+        
+        /* Styles pour les opportunités chargées dynamiquement */
+        .no-opportunities-message {
+            text-align: center;
+            padding: 30px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .no-opportunities-message h3 {
+            color: #6f42c1;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .no-opportunities-message p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .discover-btn {
+            background-color: #6f42c1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        
+        .discover-btn:hover {
+            background-color: #5a32a3;
+            color: white;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
@@ -164,314 +201,8 @@
                 </div>
             </div>
             
-            <div class="opportunities-container">
-                <!-- Opportunity 1 -->
-                <div class="opportunity-card" data-status="in-progress">
-                    <div class="opportunity-header">
-                        <div class="opportunity-company">
-                            <div class="logo-placeholder">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <div class="company-details">
-                                <h3 class="company-name">Entreprise Alpha</h3>
-                                <h4 class="job-title">Chef de Projet Digital</h4>
-                                <p class="job-info"><i class="fas fa-money-bill-wave"></i> 42K-48K</p>
-                                <!-- Bouton d'accès aux ressources -->
-                                <a href="candidate-resources.html?email=demo.utilisateur%40nexten.fr&password=s" class="resource-button">
-                                    Accéder aux ressources
-                                </a>
-                            </div>
-                        </div>
-                        <div class="opportunity-match">
-                            <span class="match-percentage">90%</span>
-                            <span class="match-label">Match</span>
-                        </div>
-                    </div>
-                    
-                    <div class="opportunity-status">
-                        <div class="status-info">
-                            <span class="status-label"><i class="fas fa-info-circle"></i> Statut: <strong>Entretien présentiel</strong></span>
-                            <span class="travel-time"><i class="fas fa-map-marker-alt"></i> Temps de trajet: <a href="#" class="map-link">25 min <span class="text-nowrap">(voir sur Maps)</span></a></span>
-                        </div>
-                        
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: 70%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="recruitment-stages">
-                        <div class="stages-line"></div>
-                        <div class="stages-progress" style="width: 70%;"></div>
-                        
-                        <div class="stages-wrapper">
-                            <div class="stage completed">
-                                <div class="stage-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <div class="stage-label">En cours de validation</div>
-                            </div>
-                            
-                            <div class="stage completed">
-                                <div class="stage-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <div class="stage-label">Call prise de contact</div>
-                            </div>
-                            
-                            <div class="stage completed">
-                                <div class="stage-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <div class="stage-label">Entretien visio</div>
-                            </div>
-                            
-                            <div class="stage active">
-                                <div class="stage-icon">
-                                    <i class="fas fa-circle"></i>
-                                </div>
-                                <div class="stage-label">Entretien Présentiel</div>
-                                <div class="interviewer-card">
-                                    <div class="interviewer-name">Thomas MARTIN</div>
-                                    <div class="interviewer-title">Directeur Administratif et Financier</div>
-                                    <div class="interview-date">
-                                        <i class="fas fa-calendar-alt"></i> 28 Mars, 14h00
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="stage">
-                                <div class="stage-icon">
-                                    <i class="far fa-circle"></i>
-                                </div>
-                                <div class="stage-label">Acceptation</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="opportunity-actions">
-                        <div class="primary-actions">
-                            <button class="btn btn-primary"><i class="fas fa-comment-dots"></i> Poser une question</button>
-                            <button class="btn btn-outline-danger"><i class="fas fa-times-circle"></i> Annuler ma candidature</button>
-                            <button class="btn btn-outline"><i class="fas fa-calendar-alt"></i> Modifier le rendez-vous</button>
-                        </div>
-                        <div class="secondary-actions">
-                            <button class="btn btn-outline btn-icon-text"><i class="fas fa-envelope"></i> Messagerie</button>
-                            <div class="notes-container">
-                                <span>Note personnelle: </span>
-                                <div class="note-input-container">
-                                    <input type="text" class="form-control" placeholder="Ajouter un rappel...">
-                                    <button class="btn-save" aria-label="Sauvegarder la note"><i class="fas fa-bell"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Opportunity 2 -->
-                <div class="opportunity-card" data-status="in-progress">
-                    <div class="opportunity-header">
-                        <div class="opportunity-company">
-                            <div class="logo-placeholder">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <div class="company-details">
-                                <h3 class="company-name">Entreprise Beta</h3>
-                                <h4 class="job-title">Business Developer</h4>
-                                <p class="job-info"><i class="fas fa-money-bill-wave"></i> 38K-45K</p>
-                                <!-- Bouton d'accès aux ressources -->
-                                <a href="candidate-resources.html?email=demo.utilisateur%40nexten.fr&password=s" class="resource-button">
-                                    Accéder aux ressources
-                                </a>
-                            </div>
-                        </div>
-                        <div class="opportunity-match">
-                            <span class="match-percentage">85%</span>
-                            <span class="match-label">Match</span>
-                        </div>
-                    </div>
-                    
-                    <div class="opportunity-status">
-                        <div class="status-info">
-                            <span class="status-label"><i class="fas fa-info-circle"></i> Statut: <strong>Entretien visio</strong></span>
-                            <span class="travel-time"><i class="fas fa-map-marker-alt"></i> Temps de trajet: <a href="#" class="map-link">35 min <span class="text-nowrap">(voir sur Maps)</span></a></span>
-                        </div>
-                        
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: 50%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="recruitment-stages">
-                        <div class="stages-line"></div>
-                        <div class="stages-progress" style="width: 50%;"></div>
-                        
-                        <div class="stages-wrapper">
-                            <div class="stage completed">
-                                <div class="stage-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <div class="stage-label">En cours de validation</div>
-                            </div>
-                            
-                            <div class="stage completed">
-                                <div class="stage-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <div class="stage-label">Call prise de contact</div>
-                            </div>
-                            
-                            <div class="stage active">
-                                <div class="stage-icon">
-                                    <i class="fas fa-circle"></i>
-                                </div>
-                                <div class="stage-label">Entretien visio</div>
-                                <div class="interviewer-card">
-                                    <div class="interviewer-name">Sophie DUBOIS</div>
-                                    <div class="interviewer-title">Directrice RH</div>
-                                    <div class="interview-date">
-                                        <i class="fas fa-calendar-alt"></i> 25 Mars, 10h30
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="stage">
-                                <div class="stage-icon">
-                                    <i class="far fa-circle"></i>
-                                </div>
-                                <div class="stage-label">Entretien Présentiel</div>
-                            </div>
-                            
-                            <div class="stage">
-                                <div class="stage-icon">
-                                    <i class="far fa-circle"></i>
-                                </div>
-                                <div class="stage-label">Acceptation</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="opportunity-actions">
-                        <div class="primary-actions">
-                            <button class="btn btn-primary"><i class="fas fa-comment-dots"></i> Poser une question</button>
-                            <button class="btn btn-outline-danger"><i class="fas fa-times-circle"></i> Annuler ma candidature</button>
-                            <button class="btn btn-outline"><i class="fas fa-calendar-alt"></i> Modifier le rendez-vous</button>
-                        </div>
-                        <div class="secondary-actions">
-                            <button class="btn btn-outline btn-icon-text"><i class="fas fa-envelope"></i> Messagerie</button>
-                            <div class="notes-container">
-                                <span>Note personnelle: </span>
-                                <div class="note-input-container">
-                                    <input type="text" class="form-control" placeholder="Ajouter un rappel...">
-                                    <button class="btn-save" aria-label="Sauvegarder la note"><i class="fas fa-bell"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Opportunity 3 -->
-                <div class="opportunity-card" data-status="in-progress">
-                    <div class="opportunity-header">
-                        <div class="opportunity-company">
-                            <div class="logo-placeholder">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <div class="company-details">
-                                <h3 class="company-name">Entreprise Gamma</h3>
-                                <h4 class="job-title">Product Owner</h4>
-                                <p class="job-info"><i class="fas fa-money-bill-wave"></i> 45K-52K</p>
-                                <!-- Bouton d'accès aux ressources -->
-                                <a href="candidate-resources.html?email=demo.utilisateur%40nexten.fr&password=s" class="resource-button">
-                                    Accéder aux ressources
-                                </a>
-                            </div>
-                        </div>
-                        <div class="opportunity-match">
-                            <span class="match-percentage">95%</span>
-                            <span class="match-label">Match</span>
-                        </div>
-                    </div>
-                    
-                    <div class="opportunity-status">
-                        <div class="status-info">
-                            <span class="status-label"><i class="fas fa-info-circle"></i> Statut: <strong>En cours de validation</strong></span>
-                            <span class="travel-time"><i class="fas fa-map-marker-alt"></i> Temps de trajet: <a href="#" class="map-link">20 min <span class="text-nowrap">(voir sur Maps)</span></a></span>
-                        </div>
-                        
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: 20%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="recruitment-stages">
-                        <div class="stages-line"></div>
-                        <div class="stages-progress" style="width: 20%;"></div>
-                        
-                        <div class="stages-wrapper">
-                            <div class="stage active">
-                                <div class="stage-icon">
-                                    <i class="fas fa-circle"></i>
-                                </div>
-                                <div class="stage-label">En cours de validation</div>
-                            </div>
-                            
-                            <div class="stage">
-                                <div class="stage-icon">
-                                    <i class="far fa-circle"></i>
-                                </div>
-                                <div class="stage-label">Call prise de contact</div>
-                            </div>
-                            
-                            <div class="stage">
-                                <div class="stage-icon">
-                                    <i class="far fa-circle"></i>
-                                </div>
-                                <div class="stage-label">Entretien visio</div>
-                            </div>
-                            
-                            <div class="stage">
-                                <div class="stage-icon">
-                                    <i class="far fa-circle"></i>
-                                </div>
-                                <div class="stage-label">Entretien Présentiel</div>
-                            </div>
-                            
-                            <div class="stage">
-                                <div class="stage-icon">
-                                    <i class="far fa-circle"></i>
-                                </div>
-                                <div class="stage-label">Acceptation</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="opportunity-actions">
-                        <div class="primary-actions">
-                            <button class="btn btn-primary"><i class="fas fa-comment-dots"></i> Poser une question</button>
-                            <button class="btn btn-outline-danger"><i class="fas fa-times-circle"></i> Annuler ma candidature</button>
-                        </div>
-                        <div class="secondary-actions">
-                            <button class="btn btn-outline btn-icon-text"><i class="fas fa-envelope"></i> Messagerie</button>
-                            <div class="notes-container">
-                                <span>Note personnelle: </span>
-                                <div class="note-input-container">
-                                    <input type="text" class="form-control" placeholder="Ajouter un rappel...">
-                                    <button class="btn-save" aria-label="Sauvegarder la note"><i class="fas fa-bell"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pas d'opportunités message -->
-                <div class="no-opportunities hidden">
-                    <div class="empty-state">
-                        <i class="fas fa-search"></i>
-                        <h3>Aucune opportunité trouvée</h3>
-                        <p>Aucune opportunité ne correspond aux filtres sélectionnés.</p>
-                        <button class="btn btn-outline reset-filters"><i class="fas fa-sync"></i> Réinitialiser les filtres</button>
-                    </div>
-                </div>
+            <div class="opportunities-container" id="selected-opportunities">
+                <!-- Les opportunités seront chargées dynamiquement ici -->
             </div>
         </div>
     </div>
@@ -544,83 +275,366 @@
     <script src="js/buttons-functionality.js"></script>
     <script src="js/interactive-stages.js"></script>
 
-    <!-- JavaScript de base -->
+    <!-- Script d'affichage des opportunités sélectionnées -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Menu mobile toggle
-            const menuToggle = document.querySelector('.menu-toggle');
-            const nav = document.querySelector('nav');
+        // 1. Fonction pour charger et afficher les opportunités sauvegardées
+        function loadSavedOpportunities() {
+            // Récupérer le conteneur où afficher les opportunités
+            const opportunitiesContainer = document.getElementById('selected-opportunities');
             
-            if (menuToggle && nav) {
-                menuToggle.addEventListener('click', function() {
-                    nav.classList.toggle('active');
-                    this.classList.toggle('active');
+            // Si le conteneur n'existe pas, arrêter l'exécution
+            if (!opportunitiesContainer) {
+                console.error("Conteneur des opportunités non trouvé");
+                return;
+            }
+            
+            // Récupérer les opportunités sauvegardées
+            const savedJobs = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
+            
+            // Vérifier s'il y a des opportunités à afficher
+            if (savedJobs.length === 0) {
+                opportunitiesContainer.innerHTML = `
+                    <div class="no-opportunities-message">
+                        <h3><i class="fas fa-info-circle"></i> Aucune opportunité sélectionnée</h3>
+                        <p>Vous n'avez pas encore sélectionné d'opportunités. Découvrez notre sélection de postes adaptés à votre profil.</p>
+                        <a href="candidate-matching-improved.html" class="discover-btn">
+                            <i class="fas fa-search"></i> Découvrir des opportunités
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Afficher chaque opportunité sauvegardée
+            let opportunitiesHTML = '';
+            
+            savedJobs.forEach((job, index) => {
+                const matchClass = parseInt(job.matchPercentage) >= 80 ? 'match-high' : 
+                              parseInt(job.matchPercentage) >= 60 ? 'match-medium' : 'match-low';
+                              
+                // Créer une représentation visuelle de la timeline du processus (simplifiée)
+                const stages = [
+                    { name: "En cours de validation", status: "completed" },
+                    { name: "Call prise de contact", status: "active" },
+                    { name: "Entretien visio", status: "" },
+                    { name: "Entretien Présentiel", status: "" },
+                    { name: "Acceptation", status: "" }
+                ];
+                
+                let stagesHTML = '';
+                let progressWidth = 20; // Progression par défaut (première étape)
+                
+                stages.forEach((stage, i) => {
+                    const stageStatus = i === 0 ? "completed" : (i === 1 ? "active" : "");
+                    const stageIcon = stageStatus === "completed" ? 
+                                    `<i class="fas fa-check"></i>` : 
+                                    (stageStatus === "active" ? 
+                                    `<i class="fas fa-circle"></i>` : 
+                                    `<i class="far fa-circle"></i>`);
+                    
+                    stagesHTML += `
+                        <div class="stage ${stageStatus}">
+                            <div class="stage-icon">
+                                ${stageIcon}
+                            </div>
+                            <div class="stage-label">${stage.name}</div>
+                            ${stageStatus === "active" ? `
+                            <div class="interviewer-card">
+                                <div class="interviewer-name">Recruteur ${index + 1}</div>
+                                <div class="interviewer-title">Responsable Recrutement</div>
+                                <div class="interview-date">
+                                    <i class="fas fa-calendar-alt"></i> Prochainement
+                                </div>
+                            </div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                opportunitiesHTML += `
+                    <div class="opportunity-card" data-status="in-progress" data-job-id="${job.id}">
+                        <div class="opportunity-header">
+                            <div class="opportunity-company">
+                                <div class="logo-placeholder">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <div class="company-details">
+                                    <h3 class="company-name">${job.company}</h3>
+                                    <h4 class="job-title">${job.title}</h4>
+                                    <p class="job-info"><i class="fas fa-money-bill-wave"></i> ${job.salary}</p>
+                                    <a href="candidate-resources.html?email=demo.utilisateur%40nexten.fr&password=s" class="resource-button">
+                                        Accéder aux ressources
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="opportunity-match">
+                                <span class="match-percentage ${matchClass}">${job.matchPercentage || '85%'}</span>
+                                <span class="match-label">Match</span>
+                            </div>
+                        </div>
+                        
+                        <div class="opportunity-status">
+                            <div class="status-info">
+                                <span class="status-label"><i class="fas fa-info-circle"></i> Statut: <strong>En traitement</strong></span>
+                                <span class="travel-time"><i class="fas fa-map-marker-alt"></i> Temps de trajet: <a href="#" class="map-link">${job.location} <span class="text-nowrap">(voir sur Maps)</span></a></span>
+                            </div>
+                            
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: ${progressWidth}%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="recruitment-stages">
+                            <div class="stages-line"></div>
+                            <div class="stages-progress" style="width: ${progressWidth}%;"></div>
+                            
+                            <div class="stages-wrapper">
+                                ${stagesHTML}
+                            </div>
+                        </div>
+                        
+                        <div class="opportunity-actions">
+                            <div class="primary-actions">
+                                <button class="btn btn-primary"><i class="fas fa-comment-dots"></i> Poser une question</button>
+                                <button class="btn btn-outline-danger remove-job" data-job-id="${job.id}"><i class="fas fa-times-circle"></i> Retirer cette opportunité</button>
+                                <button class="btn btn-outline"><i class="fas fa-calendar-alt"></i> Définir un rappel</button>
+                            </div>
+                            <div class="secondary-actions">
+                                <button class="btn btn-outline btn-icon-text"><i class="fas fa-envelope"></i> Messagerie</button>
+                                <div class="notes-container">
+                                    <span>Note personnelle: </span>
+                                    <div class="note-input-container">
+                                        <input type="text" class="form-control" placeholder="Ajouter un rappel...">
+                                        <button class="btn-save" aria-label="Sauvegarder la note"><i class="fas fa-bell"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Insérer le HTML dans le conteneur
+            opportunitiesContainer.innerHTML = opportunitiesHTML;
+            
+            // Ajouter les écouteurs d'événements pour les boutons
+            initRemoveButtons();
+        }
+
+        // Fonction pour initialiser les boutons de suppression
+        function initRemoveButtons() {
+            const removeButtons = document.querySelectorAll('.remove-job');
+            
+            removeButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const jobId = this.getAttribute('data-job-id');
+                    removeJob(jobId);
+                });
+            });
+        }
+
+        // Fonction pour supprimer une opportunité
+        function removeJob(jobId) {
+            // Récupérer les opportunités sauvegardées
+            let savedJobs = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
+            
+            // Filtrer pour retirer l'opportunité spécifiée
+            const updatedJobs = savedJobs.filter(job => job.id !== jobId);
+            
+            // Sauvegarder la nouvelle liste
+            localStorage.setItem('savedOpportunities', JSON.stringify(updatedJobs));
+            
+            // Afficher une notification
+            showNotification('Opportunité retirée de vos sélections');
+            
+            // Mettre à jour l'affichage
+            loadSavedOpportunities();
+        }
+
+        // Fonction pour afficher une notification
+        function showNotification(message) {
+            // Créer un élément de notification s'il n'existe pas déjà
+            let notification = document.querySelector('.notification-toast');
+            
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.className = 'notification-toast';
+                notification.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span class="notification-message"></span>
+                    <button class="close-notification"><i class="fas fa-times"></i></button>
+                `;
+                document.body.appendChild(notification);
+                
+                // Ajouter un gestionnaire pour le bouton de fermeture
+                notification.querySelector('.close-notification').addEventListener('click', function() {
+                    notification.classList.remove('show');
                 });
             }
             
-            // Interaction avec les filtres
+            // Mettre à jour le message et afficher la notification
+            notification.querySelector('.notification-message').textContent = message;
+            notification.classList.add('show');
+            
+            // Masquer automatiquement après 3 secondes
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Écouter les changements sur le select de tri
+        function initSortSelect() {
+            const sortSelect = document.getElementById('sort-select');
+            
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function() {
+                    sortOpportunities(this.value);
+                });
+            }
+        }
+
+        // Fonction pour trier les opportunités
+        function sortOpportunities(sortType) {
+            let savedJobs = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
+            
+            if (savedJobs.length <= 1) return; // Pas besoin de trier s'il n'y a qu'une seule opportunité
+            
+            // Trier selon le critère sélectionné
+            switch(sortType) {
+                case 'Trier par : Date':
+                    savedJobs.sort((a, b) => new Date(b.saveDate) - new Date(a.saveDate));
+                    break;
+                case 'Trier par : Entreprise':
+                    savedJobs.sort((a, b) => a.company.localeCompare(b.company));
+                    break;
+                case 'Trier par : Match':
+                    savedJobs.sort((a, b) => {
+                        const percentA = parseInt(a.matchPercentage || '0');
+                        const percentB = parseInt(b.matchPercentage || '0');
+                        return percentB - percentA;
+                    });
+                    break;
+                default:
+                    // Par défaut, trier par date d'ajout
+                    savedJobs.sort((a, b) => new Date(b.saveDate) - new Date(a.saveDate));
+            }
+            
+            // Mettre à jour le localStorage
+            localStorage.setItem('savedOpportunities', JSON.stringify(savedJobs));
+            
+            // Recharger l'affichage
+            loadSavedOpportunities();
+        }
+
+        // Initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ajouter du CSS pour la notification
+            const style = document.createElement('style');
+            style.textContent = `
+                .notification-toast {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                    display: flex;
+                    align-items: center;
+                    gap: 0.8rem;
+                    transform: translateX(120%);
+                    transition: transform 0.3s ease-out;
+                    z-index: 1000;
+                }
+                
+                .notification-toast.show {
+                    transform: translateX(0);
+                }
+                
+                .notification-toast i {
+                    font-size: 1.2rem;
+                }
+                
+                .notification-toast .notification-message {
+                    flex-grow: 1;
+                    font-weight: 500;
+                }
+                
+                .close-notification {
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 0.9rem;
+                    cursor: pointer;
+                    opacity: 0.8;
+                    transition: opacity 0.2s;
+                }
+                
+                .close-notification:hover {
+                    opacity: 1;
+                }
+                
+                .match-high {
+                    color: #10B981 !important;
+                }
+                
+                .match-medium {
+                    color: #F59E0B !important;
+                }
+                
+                .match-low {
+                    color: #EF4444 !important;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Charger les opportunités
+            loadSavedOpportunities();
+            
+            // Initialiser les filtres
+            initFilters();
+            
+            // Initialiser le tri
+            initSortSelect();
+            
+            console.log('Système d\'affichage des opportunités sélectionnées initialisé avec succès');
+        });
+
+        // Initialiser les filtres
+        function initFilters() {
             const filterBadges = document.querySelectorAll('.filter-badge');
-            const opportunities = document.querySelectorAll('.opportunity-card');
-            const noOpportunitiesMsg = document.querySelector('.no-opportunities');
             
             filterBadges.forEach(badge => {
                 badge.addEventListener('click', function() {
                     // Désactiver tous les filtres
-                    filterBadges.forEach(b => {
-                        b.classList.remove('active');
-                    });
+                    filterBadges.forEach(b => b.classList.remove('active'));
                     
                     // Activer le filtre cliqué
                     this.classList.add('active');
                     
+                    // Appliquer le filtre
                     const filter = this.getAttribute('data-filter');
-                    let hasVisibleOpportunities = false;
-                    
-                    opportunities.forEach(opportunity => {
-                        if (filter === 'all' || opportunity.getAttribute('data-status') === filter) {
-                            opportunity.style.display = 'block';
-                            hasVisibleOpportunities = true;
-                        } else {
-                            opportunity.style.display = 'none';
-                        }
-                    });
-                    
-                    // Afficher/masquer le message "aucune opportunité"
-                    if (hasVisibleOpportunities) {
-                        noOpportunitiesMsg.classList.add('hidden');
-                    } else {
-                        noOpportunitiesMsg.classList.remove('hidden');
-                    }
+                    filterOpportunities(filter);
                 });
             });
+        }
+
+        // Fonction pour filtrer les opportunités
+        function filterOpportunities(filter) {
+            const opportunityCards = document.querySelectorAll('.opportunity-card');
             
-            // Réinitialiser les filtres
-            const resetFiltersBtn = document.querySelector('.reset-filters');
-            if (resetFiltersBtn) {
-                resetFiltersBtn.addEventListener('click', function() {
-                    const allFilter = document.querySelector('[data-filter="all"]');
-                    if (allFilter) {
-                        allFilter.click();
-                    }
-                });
-            }
+            if (opportunityCards.length === 0) return;
             
-            // Sauvegarde des notes personnelles (simulation)
-            const saveButtons = document.querySelectorAll('.btn-save');
-            saveButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const input = this.previousElementSibling;
-                    if (input.value.trim() !== '') {
-                        // Simuler une sauvegarde
-                        const originalText = button.innerHTML;
-                        button.innerHTML = '<i class="fas fa-check"></i>';
-                        setTimeout(() => {
-                            button.innerHTML = originalText;
-                        }, 1500);
-                    }
-                });
+            opportunityCards.forEach(card => {
+                if (filter === 'all' || card.getAttribute('data-status') === filter) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
             });
-        });
+        }
     </script>
 </body>
 </html>
