@@ -7,6 +7,7 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/styles/candidate-analyzer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -1221,6 +1222,9 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
+    <!-- Scripts JavaScript -->
+    <script src="../static/scripts/candidate-analyzer.js"></script>
+    <script src="../static/scripts/candidate-questionnaire-analyzer.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Création des particules pour l'arrière-plan hero
@@ -1300,7 +1304,7 @@
             const progressValues = ['0%', '33%', '66%', '100%'];
             
             // Fonctions pour afficher les notifications
-            function showNotification(message, type = 'success') {
+            window.showNotification = function(message, type = 'success') {
                 const notification = document.getElementById('notification');
                 const notificationMessage = notification.querySelector('.notification-message');
                 
@@ -1341,7 +1345,7 @@
             }
             
             // Validation des formulaires
-            function validateStep(stepNumber) {
+            window.validateStep = function(stepNumber) {
                 const currentStepElement = document.getElementById(`form-step${stepNumber}`);
                 const requiredFields = currentStepElement.querySelectorAll('[required]');
                 let isValid = true;
@@ -1557,32 +1561,6 @@
             document.getElementById('back-step3').addEventListener('click', function() {
                 goToStep(4, 3);
                 document.getElementById('step3').classList.remove('completed');
-            });
-            
-            // Soumission du formulaire
-            document.getElementById('submit-btn').addEventListener('click', function() {
-                if (validateStep(4)) {
-                    // Simuler l'envoi du formulaire
-                    const submitButton = document.querySelector('.btn-submit');
-                    submitButton.disabled = true;
-                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Traitement...</span>';
-                    
-                    setTimeout(() => {
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = '<i class="fas fa-check-circle"></i> <span>Soumettre</span>';
-                        showNotification('Votre candidature a été soumise avec succès !', 'success');
-                        
-                        // Redirection après un délai
-                        setTimeout(() => {
-                            document.getElementById('loading-overlay').classList.add('active');
-                            
-                            setTimeout(() => {
-                                // Utilisez un chemin absolu pour la redirection
-                                window.location.href = window.location.origin + '/Commitment-/templates/candidate-matching-improved.html';
-                            }, 2000);
-                        }, 2000);
-                    }, 2000);
-                }
             });
             
             // Désactiver la soumission du formulaire par défaut
