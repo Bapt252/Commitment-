@@ -1,0 +1,122 @@
+{
+  "categories": {
+    "langages_programmation": [
+      "Python", "Java", "JavaScript", "C++", "C#", "Ruby", "PHP",
+      "TypeScript", "Swift", "Kotlin", "Go", "Rust", "Scala",
+      "Perl", "R", "Bash", "Shell", "Objective-C", "Assembly",
+      "Visual Basic", "COBOL", "Fortran", "Lisp", "Haskell", "Erlang",
+      "Clojure", "F#", "OCaml", "Dart", "Groovy", "PowerShell"
+    ],
+    "technologies_web": [
+      "HTML", "CSS", "React", "Angular", "Vue.js", "Node.js", "Django",
+      "Flask", "Express", "Spring", "Laravel", "jQuery", "Bootstrap",
+      "Tailwind CSS", "Webpack", "Babel", "Gulp", "Sass", "Less",
+      "Redux", "GraphQL", "RESTful API", "SOAP", "JSON", "XML",
+      "WebSockets", "PWA", "SPA", "SSR", "Responsive Design",
+      "Wordpress", "Drupal", "Joomla", "Magento", "Shopify"
+    ],
+    "bases_donnees": [
+      "SQL", "MySQL", "PostgreSQL", "MongoDB", "Oracle", "SQLite",
+      "Cassandra", "Redis", "Elasticsearch", "Neo4j", "MariaDB",
+      "DynamoDB", "Firebase", "Firestore", "CosmosDB", "BigQuery",
+      "Snowflake", "Redshift", "Teradata", "SQL Server", "Sybase",
+      "IBM Db2", "Couchbase", "RavenDB", "H2", "HDFS"
+    ],
+    "cloud_devops": [
+      "AWS", "Azure", "Google Cloud", "Docker", "Kubernetes", "Jenkins",
+      "Ansible", "Terraform", "Git", "GitHub", "GitLab", "CI/CD",
+      "Travis CI", "CircleCI", "GitHub Actions", "Prometheus", "Grafana",
+      "ELK Stack", "Nagios", "Datadog", "New Relic", "Splunk",
+      "Vagrant", "Puppet", "Chef", "SaltStack", "OpenStack",
+      "Heroku", "DigitalOcean", "Netlify", "Vercel", "Serverless"
+    ],
+    "data_science": [
+      "Machine Learning", "Deep Learning", "TensorFlow", "PyTorch", "scikit-learn",
+      "Pandas", "NumPy", "R", "Tableau", "Power BI", "Big Data", "Hadoop", "Spark",
+      "KNIME", "RapidMiner", "NLP", "Computer Vision", "Reinforcement Learning",
+      "Random Forest", "Neural Networks", "SVM", "K-means", "Statistics", "Regression",
+      "Classification", "Clustering", "Data Mining", "Data Visualization", "ETL",
+      "Mathematica", "MATLAB", "Octave", "SAS", "SPSS", "Minitab", "Qlik"
+    ],
+    "systemes": [
+      "Windows", "Linux", "macOS", "Unix", "Ubuntu", "CentOS", "Debian",
+      "Red Hat", "Fedora", "Android", "iOS", "Embedded Systems", "RTOS",
+      "Networking", "TCP/IP", "DNS", "DHCP", "Firewall", "VPN", "HTTP/HTTPS",
+      "SSL/TLS", "SSH", "FTP", "Load Balancing", "Proxy", "Virtualization",
+      "VMware", "Hyper-V", "KVM", "Xen", "VirtualBox", "Containers"
+    ],
+    "securite": [
+      "Cryptography", "Authentication", "Authorization", "OAuth", "JWT",
+      "Penetration Testing", "Security Auditing", "Vulnerability Assessment",
+      "Intrusion Detection", "Firewalls", "Antivirus", "Malware Analysis",
+      "Security Policies", "Risk Management", "Compliance", "OWASP", "SAST",
+      "DAST", "WAF", "DLP", "IAM", "PKI", "Data Encryption", "Secure Coding",
+      "Incident Response", "SIEM", "Forensics", "Ethical Hacking", "Red Team",
+      "Blue Team", "Zero Trust", "Biometrics", "MFA"
+    ],
+    "gestion_projet": [
+      "Agile", "Scrum", "Kanban", "Waterfall", "Lean", "Six Sigma", "PMP",
+      "PRINCE2", "ITIL", "DevOps", "Jira", "Confluence", "Trello", "Asana",
+      "Monday", "Basecamp", "MS Project", "Roadmapping", "Stakeholder Management",
+      "Risk Management", "Resource Planning", "Gantt Charts", "WBS", "KPIs",
+      "Budgeting", "Cost Analysis", "Scope Management", "Change Management",
+      "Quality Assurance", "Technical Documentation", "User Stories", "Backlog"
+    ],
+    "soft_skills": [
+      "Communication", "Leadership", "Travail d'équipe", "Résolution de problèmes",
+      "Adaptabilité", "Gestion du temps", "Organisation", "Créativité", "Esprit critique",
+      "Prise de décision", "Négociation", "Médiation", "Présentation", "Réseautage",
+      "Empathie", "Écoute active", "Respect des délais", "Orientation client",
+      "Intelligence émotionnelle", "Gestion du stress", "Mentorat", "Coaching",
+      "Sens des responsabilités", "Éthique de travail", "Proactivité", "Innovation",
+      "Pensée stratégique", "Orientation résultats", "Diplomatie", "Persuasion"
+    ],
+    "langues": [
+      "Français", "Anglais", "Espagnol", "Allemand", "Italien", "Portugais",
+      "Russe", "Chinois", "Japonais", "Arabe", "Hindi", "Coréen", "Néerlandais",
+      "Suédois", "Norvégien", "Danois", "Finnois", "Grec", "Turc", "Polonais",
+      "Tchèque", "Hongrois", "Hébreu", "Thaï", "Vietnamien", "Bengali", "Persan",
+      "Urdu", "Malais", "Indonésien", "Latin", "Ukrainien", "Roumain"
+    ]
+  },
+  "synonyms": {
+    "Python": ["py", "python3", "python2"],
+    "JavaScript": ["JS", "ECMAScript", "ES6", "ES2015", "ES2020"],
+    "Machine Learning": ["ML", "apprentissage automatique", "apprentissage machine"],
+    "Deep Learning": ["DL", "apprentissage profond"],
+    "Gestion de projet": ["project management", "management de projet"],
+    "PHP": ["PHP7", "PHP8"],
+    "C#": ["CSharp", "C Sharp"],
+    "SQL": ["TSQL", "PL/SQL", "SQL/PSM"],
+    "AWS": ["Amazon Web Services", "amazon cloud"],
+    "HTML": ["HTML5"],
+    "CSS": ["CSS3"],
+    "TensorFlow": ["TF"],
+    "MySQL": ["MariaDB"],
+    "MongoDB": ["Mongo"],
+    "Git": ["Git Flow", "Version Control"],
+    "Docker": ["Docker Compose", "Dockerfile"],
+    "DevOps": ["MLOps", "DataOps"],
+    "React": ["ReactJS", "React.js"],
+    "Angular": ["AngularJS", "Angular2+"],
+    "Vue.js": ["Vue", "VueJS"],
+    "Node.js": ["NodeJS", "Node"],
+    "PostgreSQL": ["Postgres", "PgSQL"],
+    "Kubernetes": ["K8s"],
+    "jQuery": ["JQ"],
+    "CI/CD": ["Continuous Integration", "Continuous Deployment", "Continuous Delivery"],
+    "Linux": ["GNU/Linux"],
+    "iOS": ["iPhone OS", "iPadOS"],
+    "Agile": ["Agilité", "Méthodes agiles"],
+    "RESTful API": ["REST API", "REST", "API REST"],
+    "Power BI": ["PowerBI"],
+    "Big Data": ["Données massives", "Mégadonnées"],
+    "Scrum": ["SCRUM"],
+    "Jira": ["Atlassian Jira"],
+    "Travail d'équipe": ["Team work", "Team player", "Team spirit"],
+    "Français": ["French"],
+    "Anglais": ["English"],
+    "Espagnol": ["Spanish"],
+    "Allemand": ["German"]
+  }
+}

@@ -1,12 +1,11 @@
-import os
-import tempfile
-import magic
-from typing import Tuple
+from typing import Tuple, Dict, Any
+import logging
+from app.utils.document_converter import DocumentConverter
 
-# Support pour différents formats de fichiers
-def extract_text_from_file(file_content: bytes, filename: str) -> Tuple[str, str]:
+# Fonction de compatibilité avec l'API existante
+def extract_text_from_file(file_content: bytes, filename: str = None) -> Tuple[str, str]:
     """
-    Extrait le texte de différents formats de fichiers
+    Extrait le texte de différents formats de fichiers (Compatible avec l'API existante)
     
     Args:
         file_content: Contenu binaire du fichier
@@ -15,70 +14,23 @@ def extract_text_from_file(file_content: bytes, filename: str) -> Tuple[str, str
     Returns:
         Tuple: (texte extrait, type mime)
     """
-    # Détecter le type de fichier
-    mime_type = magic.Magic(mime=True).from_buffer(file_content)
+    # Utiliser le nouveau convertisseur amélioré
+    text, mime_type, metadata = DocumentConverter.convert_to_text(file_content, filename)
     
-    # Texte brut
-    if mime_type == 'text/plain':
-        try:
-            return file_content.decode('utf-8'), mime_type
-        except UnicodeDecodeError:
-            # Essayer d'autres encodages
-            try:
-                return file_content.decode('latin-1'), mime_type
-            except:
-                return file_content.decode('cp1252', errors='ignore'), mime_type
-    
-    # PDF
-    elif mime_type == 'application/pdf':
-        return extract_text_from_pdf(file_content), mime_type
-    
-    # Word
-    elif mime_type in ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']:
-        return extract_text_from_word(file_content), mime_type
-    
-    # Format non supporté
-    else:
-        raise ValueError(f"Format de fichier non supporté: {mime_type}")
-
-def extract_text_from_pdf(file_content: bytes) -> str:
-    """
-    Extrait le texte d'un fichier PDF
-    
-    Args:
-        file_content: Contenu binaire du fichier PDF
+    if not text:
+        # Journaliser l'échec
+        logging.warning(f"Échec d'extraction pour le fichier {filename}: {metadata.get('errors', 'Raison inconnue')}")
         
-    Returns:
-        str: Texte extrait
-    """
-    from pdfminer.high_level import extract_text
-    from io import BytesIO
-    
-    # Utiliser BytesIO pour éviter d'écrire le fichier sur le disque
-    with BytesIO(file_content) as pdf_file:
-        text = extract_text(pdf_file)
-    
-    return text
-
-def extract_text_from_word(file_content: bytes) -> str:
-    """
-    Extrait le texte d'un fichier Word
-    
-    Args:
-        file_content: Contenu binaire du fichier Word
+        # Format non supporté
+        if mime_type not in ['text/plain', 'application/pdf', 'application/msword', 
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                            'text/html']:
+            raise ValueError(f"Format de fichier non supporté: {mime_type}")
         
-    Returns:
-        str: Texte extrait
-    """
-    import docx2txt
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_file:
-        temp_file.write(file_content)
-        temp_file_path = temp_file.name
+        # Échec avec format supporté
+        raise ValueError(f"Impossible d'extraire le texte du fichier: {filename}")
     
-    try:
-        text = docx2txt.process(temp_file_path)
-        return text
-    finally:
-        # Nettoyer le fichier temporaire
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
+    return text, mime_type
+
+# Les anciennes fonctions sont conservées dans document_converter.py
+# pour maintenir une compatibilité maximale si nécessaire
