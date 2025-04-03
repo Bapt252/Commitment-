@@ -1,52 +1,44 @@
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
-from typing import List, Any, Optional
-from app.nlp.job_parser import parse_job_description
+from typing import List, Any, Optional, Union, Dict
+from app.nlp.document_parser import parse_document
 from pydantic import BaseModel
+import json
 
 router = APIRouter()
 
-class JobDescription(BaseModel):
+class DocumentText(BaseModel):
     text: str
 
-class JobDescriptionResponse(BaseModel):
-    titre: Optional[str] = None
-    experience: Optional[str] = None
-    competences: Optional[List[str]] = None
-    formation: Optional[Any] = None
-    contrat: Optional[str] = None
-    localisation: Optional[str] = None
-    remuneration: Optional[str] = None
-    confidence_scores: Optional[dict] = None
+class ParsingResponse(BaseModel):
+    doc_type: str
+    extracted_data: Dict[str, Any]
+    confidence_scores: Dict[str, float]
 
-@router.post("/parse", response_model=JobDescriptionResponse)
-async def parse_job_posting(job_description: JobDescription):
-    """Parse une fiche de poste à partir de texte"""
+@router.post("/parse", response_model=ParsingResponse)
+async def parse_job_posting(document: DocumentText):
+    """
+    Parse un document (CV ou fiche de poste) à partir de texte
+    """
     try:
-        result = parse_job_description(job_description.text)
-        
-        return {
-            **result["extracted_data"],
-            "confidence_scores": result["confidence_scores"]
-        }
+        result = parse_document(document.text)
+        return result
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors du parsing: {str(e)}"
         )
 
-@router.post("/parse-file", response_model=JobDescriptionResponse)
-async def parse_job_posting_from_file(file: UploadFile = File(...)):
-    """Parse une fiche de poste à partir d'un fichier texte"""
+@router.post("/parse-file", response_model=ParsingResponse)
+async def parse_from_file(file: UploadFile = File(...)):
+    """
+    Parse un document (CV ou fiche de poste) à partir d'un fichier
+    """
     try:
         content = await file.read()
         text = content.decode("utf-8")
         
-        result = parse_job_description(text)
-        
-        return {
-            **result["extracted_data"],
-            "confidence_scores": result["confidence_scores"]
-        }
+        result = parse_document(text)
+        return result
     except UnicodeDecodeError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -60,6 +52,8 @@ async def parse_job_posting_from_file(file: UploadFile = File(...)):
 
 @router.get("/", response_model=List[dict])
 def get_jobs():
-    """Liste des offres d'emploi"""
+    """
+    Liste des offres d'emploi
+    """
     # Cette fonction servirait à récupérer les offres depuis une base de données
     return [{"id": 1, "titre": "Développeur Python"}]
