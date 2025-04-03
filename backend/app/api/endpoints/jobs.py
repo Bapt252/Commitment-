@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from typing import List, Any, Optional, Union, Dict
 from app.nlp.document_parser import parse_document
+from app.utils.file_extractor import extract_text_from_file
 from pydantic import BaseModel
 import json
 
@@ -35,14 +36,28 @@ async def parse_from_file(file: UploadFile = File(...)):
     """
     try:
         content = await file.read()
-        text = content.decode("utf-8")
+        
+        # Extraire le texte selon le format du fichier
+        try:
+            text, mime_type = extract_text_from_file(content, file.filename)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e)
+            )
         
         result = parse_document(text)
+        # Ajouter des informations sur le fichier source
+        result["file_info"] = {
+            "filename": file.filename,
+            "mime_type": mime_type
+        }
+        
         return result
     except UnicodeDecodeError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Le fichier n'est pas encodé en UTF-8"
+            detail="Le fichier n'est pas encodable correctement"
         )
     except Exception as e:
         raise HTTPException(
