@@ -1,46 +1,88 @@
-# Commitment - Solution de Recrutement
+# Commitment
 
-Ce projet présente une interface web pour Nexten, une solution innovante de recrutement basée sur l'IA qui propose 10 correspondances personnalisées pour les candidats et les recruteurs.
+Commitment est une plateforme de matching entre candidats et offres d'emploi.
 
-## Nouvelle fonctionnalité : Analyse de fiche de poste
+## Fonctionnalités principales
 
-Une nouvelle fonctionnalité a été ajoutée : l'analyse automatique des fiches de poste. Elle permet aux recruteurs de télécharger ou coller leur fiche de poste pour extraire automatiquement les informations clés qui seront utilisées dans le processus de recrutement.
+- Analyse des offres d'emploi pour extraction automatique des compétences et exigences
+- Questionnaires personnalisés pour les candidats
+- Algorithme de matching intelligent
+- Interface utilisateur intuitive pour explorer les matchings
 
-### Pour tester cette fonctionnalité :
+## Architecture technique
 
-1. Accédez à la page du questionnaire client : [client-questionnaire.html](https://bapt252.github.io/Commitment-/templates/client-questionnaire.html)
-2. Remplissez les informations de l'entreprise à l'étape 1 et passez à l'étape 2
-3. À la question "Avez-vous un poste sur lequel vous souhaitez recruter ?", sélectionnez "Oui"
-4. Utilisez le bouton "Analyser une fiche de poste" qui apparaît (s'il n'apparaît pas, consultez la note ci-dessous)
-5. Sur la page d'analyse, téléchargez un fichier ou collez du texte, puis cliquez sur "Analyser"
-6. Après l'analyse, cliquez sur "Continuer" pour revenir au questionnaire avec les champs pré-remplis
+- Backend: FastAPI (Python)
+- Frontend: HTML/CSS/JavaScript 
+- Base de données: PostgreSQL
+- Machine Learning: scikit-learn, TensorFlow
 
-> **Note importante** : Si le bouton "Analyser une fiche de poste" n'apparaît pas après avoir sélectionné "Oui", vous pouvez accéder directement à la page d'analyse via ce lien : [job-description-parser.html](https://bapt252.github.io/Commitment-/templates/job-description-parser.html)
+## Structure du projet
 
-## Problèmes connus
+```
+├── backend/            # API FastAPI
+├── ml_engine/          # Modèles de machine learning
+├── airflow_dags/       # DAGs Airflow pour les traitements planifiés
+└── docs/               # Documentation
+```
 
-En raison du cache de GitHub Pages, la dernière version du site peut ne pas être immédiatement disponible. Si vous rencontrez des problèmes :
+## Système d'amélioration continue
 
-1. Essayez d'accéder directement à la version corrigée : [client-questionnaire-fixed.html](https://bapt252.github.io/Commitment-/templates/client-questionnaire-fixed.html)
-2. Ou effectuez un hard refresh de la page (Ctrl+F5 ou Cmd+Shift+R)
+Le projet intègre désormais un système complet d'amélioration continue basé sur les feedbacks utilisateurs qui permet:
 
-## Technologies utilisées
+1. **Collecte de feedback**:
+   - Feedback explicite sur les matchings (ratings, commentaires)
+   - Mesures implicites (taux d'interaction post-matching)
 
-- HTML5
-- CSS3
-- JavaScript (ES6+)
-- LocalStorage et SessionStorage pour la gestion de l'état entre les pages
+2. **Analyse et entraînement**:
+   - Réentraînement périodique des modèles 
+   - Validation croisée et métriques de qualité
+   - Déploiement automatisé des modèles améliorés
 
-## Fonctionnalités
+3. **Monitoring**:
+   - Alertes en cas de détérioration des performances
+   - Tableaux de bord de suivi des métriques
+   - Détection proactive des problèmes
 
-- Questionnaire client interactif en plusieurs étapes
-- Analyse automatique de fiches de poste
-- Extraction d'informations clés (compétences, expérience, salaire, etc.)
-- Pré-remplissage intelligent des formulaires
+Consultez la [documentation du système de feedback](./docs/feedback_system.md) pour plus de détails.
 
-## Structure des fichiers
+## Installation et configuration
 
-- `/templates/` - Pages HTML du site
-- `/static/styles/` - Feuilles de style CSS
-- `/static/scripts/` - Scripts JavaScript
-- `/assets/` - Images et autres ressources
+### Prérequis
+
+- Python 3.9+
+- PostgreSQL
+- Node.js/npm (pour certaines parties frontend)
+
+### Installation
+
+1. Clonez le repository
+   ```
+   git clone https://github.com/Bapt252/Commitment-.git
+   cd Commitment-
+   ```
+
+2. Installez les dépendances du backend
+   ```
+   cd backend
+   pip install -r requirements.txt
+   ```
+
+3. Configurez la base de données
+   ```
+   # Créez un fichier .env basé sur .env.example
+   # Puis exécutez les migrations
+   alembic upgrade head
+   ```
+
+4. Lancez l'API
+   ```
+   python run.py
+   ```
+
+## Contribuer au projet
+
+Veuillez consulter [CONTRIBUTING.md](CONTRIBUTING.md) pour les détails sur notre code de conduite et le processus de soumission des pull requests.
+
+## Licence
+
+Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
