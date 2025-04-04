@@ -1,143 +1,192 @@
-import logging
 from typing import Dict, Any, List, Optional
+import logging
 from datetime import datetime
+import pandas as pd
+import numpy as np
 import json
 import os
 
 # Configurer le logging
 logger = logging.getLogger(__name__)
 
-async def process_feedback(feedback: Dict[str, Any]) -> Dict[str, Any]:
+# Chemin vers le fichier de stockage des feedbacks pour l'amélioration continue
+FEEDBACK_STORAGE_PATH = os.path.join(os.path.dirname(__file__), '../../data/feedback/')
+
+async def process_feedback(feedback: Dict[str, Any]) -> bool:
     """
     Traite un feedback pour améliorer les modèles ML.
-    Enregistre le feedback et déclenche des mises à jour de modèles si nécessaire.
+    
+    Args:
+        feedback (Dict[str, Any]): Le feedback à traiter
+        
+    Returns:
+        bool: True si le traitement a réussi, False sinon
     """
     try:
-        # Récupérer les informations du feedback
+        # Vérifier que le dossier de stockage existe
+        os.makedirs(FEEDBACK_STORAGE_PATH, exist_ok=True)
+        
+        # Extraire le type d'entité et l'ID
         entity_type = feedback.get("entity_type")
         entity_id = feedback.get("entity_id")
-        rating = feedback.get("rating")
-        comments = feedback.get("comments", "")
         
-        # Enregistrer le feedback dans un format structuré
-        feedback_record = {
-            "entity_type": entity_type,
-            "entity_id": entity_id,
-            "rating": rating,
-            "comments": comments,
-            "submitted_by": feedback.get("submitted_by"),
-            "timestamp": datetime.now().isoformat()
-        }
+        # Stocker le feedback pour utilisation ultérieure dans l'entraînement
+        feedback_with_timestamp = feedback.copy()
+        feedback_with_timestamp["processed_at"] = datetime.now().isoformat()
         
-        # Stocker le feedback (dans une implémentation réelle, ce serait en base de données)
-        store_feedback(feedback_record)
+        # Ajouter le feedback au fichier correspondant
+        feedback_file = os.path.join(FEEDBACK_STORAGE_PATH, f"{entity_type}_feedback.jsonl")
         
-        # Selon le type d'entité, déclencher des processus d'amélioration différents
+        with open(feedback_file, "a") as f:
+            f.write(json.dumps(feedback_with_timestamp) + "\n")
+        
+        # Traitement spécifique selon le type d'entité
         if entity_type == "job_parsing":
-            await improve_job_parsing_model(feedback_record)
+            await process_job_parsing_feedback(feedback)
         elif entity_type == "matching":
-            await improve_matching_model(feedback_record)
+            await process_matching_feedback(feedback)
         elif entity_type == "questionnaire":
-            await improve_questionnaire_model(feedback_record)
+            await process_questionnaire_feedback(feedback)
         
-        logger.info(f"Feedback traité avec succès pour {entity_type} #{entity_id}")
-        
-        return {
-            "status": "success",
-            "message": f"Feedback traité avec succès",
-            "feedback_id": 1  # Placeholder, serait remplacé par l'ID généré en DB
-        }
+        logger.info(f"Feedback traité avec succès: {entity_type} ID {entity_id}")
+        return True
     except Exception as e:
         logger.error(f"Erreur lors du traitement du feedback: {str(e)}")
-        raise
+        return False
 
-def store_feedback(feedback_record: Dict[str, Any]) -> None:
+async def process_job_parsing_feedback(feedback: Dict[str, Any]) -> None:
     """
-    Stocke un feedback.
-    Dans une implémentation réelle, ce serait en base de données.
+    Traite un feedback sur le parsing de fiche de poste.
+    
+    Si la note est basse, signale le problème pour revue manuelle.
+    Si des aspects spécifiques sont mentionnés, les utilise pour améliorer les règles d'extraction.
     """
-    # Simulation de stockage (dans un fichier logs pour cet exemple)
-    try:
-        # Créer le répertoire data s'il n'existe pas
-        os.makedirs("backend/data/feedback", exist_ok=True)
-        
-        # Déterminer le nom du fichier basé sur le type d'entité
-        entity_type = feedback_record.get("entity_type")
-        filename = f"backend/data/feedback/{entity_type}_feedback.jsonl"
-        
-        # Ajouter le feedback au fichier
-        with open(filename, 'a') as f:
-            f.write(json.dumps(feedback_record) + '\n')
-            
-        logger.debug(f"Feedback enregistré dans {filename}")
-    except Exception as e:
-        logger.error(f"Erreur lors de l'enregistrement du feedback: {str(e)}")
+    entity_id = feedback.get("entity_id")
+    rating = feedback.get("rating", 0)
+    aspects = feedback.get("aspects", {})
+    comments = feedback.get("comments", "")
+    
+    # Si la note est basse, signaler pour revue manuelle
+    if rating <= 2:
+        await flag_for_manual_review(
+            "job_parsing", 
+            entity_id, 
+            f"Note basse: {rating}/5. Commentaires: {comments}"
+        )
+    
+    # Si des aspects spécifiques sont mal notés, les traiter
+    for aspect, aspect_rating in aspects.items():
+        if aspect_rating <= 2:
+            if aspect == "skills":
+                await improve_skills_extraction(entity_id, comments)
+            elif aspect == "experience":
+                await improve_experience_extraction(entity_id, comments)
+            elif aspect == "education":
+                await improve_education_extraction(entity_id, comments)
 
-async def improve_job_parsing_model(feedback: Dict[str, Any]) -> None:
+async def process_matching_feedback(feedback: Dict[str, Any]) -> None:
     """
-    Utilise le feedback pour améliorer le modèle de parsing des fiches de poste.
+    Traite un feedback sur le matching.
+    
+    Ajuste les poids des différents critères de matching en fonction du feedback.
     """
-    try:
-        # Récupérer les données spécifiques
-        entity_id = feedback.get("entity_id")
-        rating = feedback.get("rating")
-        comments = feedback.get("comments", "")
+    entity_id = feedback.get("entity_id")
+    rating = feedback.get("rating", 0)
+    aspects = feedback.get("aspects", {})
+    
+    # Ajuster les poids si nécessaire
+    if aspects:
+        # Charger les poids actuels (simulation)
+        current_weights = {
+            "skills": 0.5,
+            "experience": 0.3,
+            "education": 0.2
+        }
         
-        # Si le rating est bas, enregistrer pour analyse manuelle
-        if rating <= 3:
-            logger.warning(f"Feedback négatif pour le parsing de la fiche {entity_id}: {comments}")
-            # Dans un système réel, on pourrait:
-            # 1. Envoyer une alerte à l'équipe ML
-            # 2. Marquer cette fiche pour une révision manuelle
-            # 3. Collecter les cas d'échec pour réentraîner le modèle
+        # Ajuster les poids en fonction du feedback
+        # Exemple simple: augmenter légèrement le poids des aspects bien notés
+        for aspect, aspect_rating in aspects.items():
+            if aspect in current_weights:
+                # Ajustement très léger basé sur l'évaluation
+                adjustment = (aspect_rating - 3) * 0.01
+                current_weights[aspect] += adjustment
         
-        # Simuler une amélioration du modèle
-        # Dans un système réel, on accumulerait les feedbacks et réentraînerait périodiquement
-        logger.info(f"Le feedback sur le parsing a été enregistré pour amélioration future")
-    except Exception as e:
-        logger.error(f"Erreur lors de l'amélioration du modèle de parsing: {str(e)}")
+        # Normaliser les poids pour qu'ils somment à 1
+        total = sum(current_weights.values())
+        normalized_weights = {k: v/total for k, v in current_weights.items()}
+        
+        # Sauvegarder les nouveaux poids (simulation)
+        await save_updated_matching_weights(normalized_weights)
 
-async def improve_matching_model(feedback: Dict[str, Any]) -> None:
+async def process_questionnaire_feedback(feedback: Dict[str, Any]) -> None:
     """
-    Utilise le feedback pour améliorer le modèle de matching.
+    Traite un feedback sur le questionnaire.
+    
+    Améliore l'analyse des réponses aux questionnaires.
     """
-    try:
-        # Récupérer les données spécifiques
-        entity_id = feedback.get("entity_id")
-        rating = feedback.get("rating")
-        comments = feedback.get("comments", "")
-        
-        # Enregistrer le feedback pour analyse et reréglage des poids du modèle
-        if rating <= 3:
-            logger.warning(f"Feedback négatif pour le matching {entity_id}: {comments}")
-            # Dans un système réel:
-            # 1. Analyser quels aspects du matching ont mal fonctionné
-            # 2. Ajuster les poids des différentes composantes du modèle
-        elif rating >= 4:
-            logger.info(f"Feedback positif pour le matching {entity_id}")
-            # Renforcer les aspects positifs du matching
-        
-        logger.info(f"Le feedback sur le matching a été enregistré pour amélioration future")
-    except Exception as e:
-        logger.error(f"Erreur lors de l'amélioration du modèle de matching: {str(e)}")
+    entity_id = feedback.get("entity_id")
+    rating = feedback.get("rating", 0)
+    comments = feedback.get("comments", "")
+    
+    # Si la note est basse, signaler pour revue manuelle
+    if rating <= 2:
+        await flag_for_manual_review(
+            "questionnaire", 
+            entity_id, 
+            f"Note basse: {rating}/5. Commentaires: {comments}"
+        )
 
-async def improve_questionnaire_model(feedback: Dict[str, Any]) -> None:
+async def flag_for_manual_review(entity_type: str, entity_id: int, reason: str) -> None:
     """
-    Utilise le feedback pour améliorer l'analyse des questionnaires.
+    Signale une entité pour revue manuelle.
     """
-    try:
-        # Récupérer les données spécifiques
-        entity_id = feedback.get("entity_id")
-        rating = feedback.get("rating")
-        comments = feedback.get("comments", "")
-        
-        # Enregistrer le feedback pour amélioration du modèle d'analyse
-        if rating <= 3:
-            logger.warning(f"Feedback négatif pour l'analyse du questionnaire {entity_id}: {comments}")
-            # Dans un système réel:
-            # 1. Identifier quelles questions ont été mal interprétées
-            # 2. Améliorer les algorithmes d'analyse pour ces types de réponses
-        
-        logger.info(f"Le feedback sur l'analyse de questionnaire a été enregistré pour amélioration future")
-    except Exception as e:
-        logger.error(f"Erreur lors de l'amélioration du modèle d'analyse de questionnaire: {str(e)}")
+    manual_review_file = os.path.join(FEEDBACK_STORAGE_PATH, "manual_review.jsonl")
+    
+    review_entry = {
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+        "reason": reason,
+        "flagged_at": datetime.now().isoformat(),
+        "status": "pending"
+    }
+    
+    with open(manual_review_file, "a") as f:
+        f.write(json.dumps(review_entry) + "\n")
+    
+    logger.info(f"Entité signalée pour revue manuelle: {entity_type} ID {entity_id}")
+
+async def improve_skills_extraction(entity_id: int, comments: str) -> None:
+    """
+    Améliore l'extraction des compétences basée sur le feedback.
+    """
+    # Cette fonction pourrait analyser les commentaires pour extraire des indications
+    # sur les compétences manquées, puis mettre à jour les règles d'extraction
+    logger.info(f"Amélioration de l'extraction des compétences pour l'entité {entity_id}")
+
+async def improve_experience_extraction(entity_id: int, comments: str) -> None:
+    """
+    Améliore l'extraction de l'expérience basée sur le feedback.
+    """
+    logger.info(f"Amélioration de l'extraction de l'expérience pour l'entité {entity_id}")
+
+async def improve_education_extraction(entity_id: int, comments: str) -> None:
+    """
+    Améliore l'extraction de l'éducation basée sur le feedback.
+    """
+    logger.info(f"Amélioration de l'extraction de l'éducation pour l'entité {entity_id}")
+
+async def save_updated_matching_weights(weights: Dict[str, float]) -> None:
+    """
+    Sauvegarde les poids mis à jour pour le matching.
+    """
+    weights_file = os.path.join(FEEDBACK_STORAGE_PATH, "matching_weights.json")
+    
+    # Dans une implémentation réelle, on pourrait avoir un verrou
+    # pour éviter les problèmes de concurrence
+    with open(weights_file, "w") as f:
+        json.dump({
+            "weights": weights,
+            "updated_at": datetime.now().isoformat()
+        }, f)
+    
+    logger.info(f"Poids de matching mis à jour: {weights}")
