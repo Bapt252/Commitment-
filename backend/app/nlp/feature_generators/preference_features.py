@@ -1,1553 +1,1768 @@
 """
 Générateur de features basées sur les préférences professionnelles.
-Ce module analyse les préférences des candidats (lieu, rémunération, 
-mode de travail, etc.) et leur compatibilité avec les offres d'emploi.
 """
 
 import logging
 import re
-import json
 from pathlib import Path
-from geopy.distance import geodesic
-from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
-
-try:
-    from geopy.geocoders import Nominatim
-    GEOCODING_AVAILABLE = True
-except ImportError:
-    GEOCODING_AVAILABLE = False
+import json
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 class PreferenceFeatureGenerator:
     """
-    Générateur de features pour les préférences professionnelles.
+    Générateur de features pour les préférences professionnelles et les attentes.
     """
     
-    def __init__(self, geo_timeout=5):
+    def __init__(self):
         """
         Initialise le générateur de features de préférences.
-        
-        Args:
-            geo_timeout: Timeout pour les requêtes de géocodage (en secondes)
         """
         self.logger = logging.getLogger(__name__)
         
-        # Initialiser le géocodeur si disponible
-        self.geocoder = None
-        if GEOCODING_AVAILABLE:
-            try:
-                self.geocoder = Nominatim(user_agent="commitment_matcher", timeout=geo_timeout)
-            except Exception as e:
-                self.logger.warning(f"Impossible d'initialiser le géocodeur: {e}")
-        
-        # Charger les données d'équivalence des salaires
-        self.salary_ranges = self._load_salary_ranges()
-        
-        # Dictionnaires pour la normalisation des préférences
-        self.work_mode_mapping = {
-            # Télétravail
-            "remote": ["télétravail", "remote", "à distance", "home office", "work from home", "wfh", "distanciel"],
-            # Présentiel
-            "office": ["présentiel", "sur site", "sur place", "on-site", "office"],
-            # Hybride
-            "hybrid": ["hybride", "hybrid", "mixte", "flexible"]
+        # Cartographie des types de contrats
+        self.contract_types = {
+            "cdi": ["cdi", "contrat à durée indéterminée", "permanent", "unlimited", "long-term"],
+            "cdd": ["cdd", "contrat à durée déterminée", "temporary", "fixed-term", "short-term"],
+            "interim": ["interim", "intérim", "temp", "temporary work", "mission"],
+            "freelance": ["freelance", "independent", "contractor", "self-employed", "consultant"],
+            "alternance": ["alternance", "apprenticeship", "apprentissage", "work-study", "dual training"],
+            "stage": ["stage", "internship", "trainee", "training"]
         }
         
-        self.contract_type_mapping = {
-            # CDI
-            "permanent": ["cdi", "permanent", "indéterminée", "indeterminee", "cdi", "full-time", "full time"],
-            # CDD
-            "temporary": ["cdd", "temporary", "déterminée", "determinee", "fixed term", "fixed-term"],
-            # Freelance
-            "freelance": ["freelance", "indépendant", "independant", "auto-entrepreneur", "consultant"],
-            # Stage
-            "internship": ["stage", "internship", "intern", "stagiaire"],
-            # Alternance
-            "apprenticeship": ["alternance", "apprentissage", "apprenticeship", "contrat pro", "professionnalisation"],
-            # Temps partiel
-            "part_time": ["temps partiel", "part time", "part-time"],
-            # Intérim
-            "interim": ["intérim", "interim", "temporaire", "temporary"]
+        # Cartographie des modes de travail
+        self.work_modes = {
+            "remote": ["remote", "télétravail", "teletravail", "à distance", "remote work", "work from home", "home-based"],
+            "onsite": ["onsite", "on-site", "présentiel", "presentiel", "on site", "office", "bureau"],
+            "hybrid": ["hybrid", "hybride", "mixed", "mixte", "partial remote", "flexible", "remote and office"]
         }
         
-        self.company_size_mapping = {
-            "startup": ["startup", "start-up", "early stage", "seed", "série a", "serie a", "series a"],
-            "small": ["petite", "small", "tpe", "< 50", "moins de 50", "<50", "10-50"],
-            "medium": ["moyenne", "medium", "pme", "eti", "50-250", "50 à 250", "50-500", "50 à 500"],
-            "large": ["grande", "large", "grand groupe", "big company", "entreprise", "> 250", "plus de 250", ">250"]
+        # Cartographie des tailles d'entreprise
+        self.company_sizes = {
+            "startup": ["startup", "start-up", "small company", "petite entreprise", "early-stage", "<10", "<20"],
+            "sme": ["sme", "pme", "medium", "moyenne entreprise", "mid-size", "growing", "<250", "<500"],
+            "large": ["large", "grande entreprise", "big company", "entreprise importante", "corporate", ">500", ">1000"],
+            "multinational": ["multinational", "international", "global", "worldwide", "group", "groupe", "enterprise"]
         }
         
-        self.work_environment_mapping = {
-            "pace": {
-                "fast": ["rapide", "fast-paced", "intense", "dynamique", "challenging"],
-                "balanced": ["équilibré", "balanced", "normal", "modéré", "stable"],
-                "relaxed": ["calme", "relaxed", "détendu", "tranquille", "quiet"]
-            },
-            "formality": {
-                "formal": ["formel", "formal", "corporate", "structuré", "strict"],
-                "casual": ["décontracté", "casual", "informel", "relaxed", "cool", "startup"]
-            },
-            "hierarchy": {
-                "flat": ["plate", "flat", "horizontale", "collaborative", "agile"],
-                "hierarchical": ["hiérarchique", "hierarchical", "structurée", "traditional"]
-            },
-            "management": {
-                "directive": ["directif", "directive", "structuré", "structured", "strict"],
-                "participative": ["participatif", "participative", "collaboratif", "inclusive"],
-                "delegative": ["délégatif", "delegative", "autonome", "autonomous", "trust"]
-            }
-        }
-        
-        self.industry_mapping = self._load_industry_mapping()
+        # Cartographie des types d'industries
+        self.industry_types = self._load_industry_types()
     
-    def _load_salary_ranges(self):
+    def _load_industry_types(self):
         """
-        Charge les tranches salariales typiques par poste et expérience.
+        Charge la taxonomie des secteurs d'activité.
+        
+        Returns:
+            Dict: Taxonomie des secteurs
         """
-        # Valeurs par défaut si aucun fichier n'est disponible
-        default_ranges = {
-            "junior": {
-                "tech": {"min": 35000, "max": 45000},
-                "marketing": {"min": 30000, "max": 40000},
-                "sales": {"min": 30000, "max": 45000},
-                "finance": {"min": 35000, "max": 45000},
-                "hr": {"min": 30000, "max": 40000},
-                "default": {"min": 30000, "max": 40000}
-            },
-            "mid": {
-                "tech": {"min": 45000, "max": 65000},
-                "marketing": {"min": 40000, "max": 60000},
-                "sales": {"min": 45000, "max": 70000},
-                "finance": {"min": 45000, "max": 70000},
-                "hr": {"min": 40000, "max": 60000},
-                "default": {"min": 40000, "max": 60000}
-            },
-            "senior": {
-                "tech": {"min": 65000, "max": 95000},
-                "marketing": {"min": 60000, "max": 90000},
-                "sales": {"min": 70000, "max": 120000},
-                "finance": {"min": 70000, "max": 110000},
-                "hr": {"min": 60000, "max": 90000},
-                "default": {"min": 65000, "max": 90000}
-            },
-            "executive": {
-                "tech": {"min": 95000, "max": 200000},
-                "marketing": {"min": 90000, "max": 180000},
-                "sales": {"min": 100000, "max": 200000},
-                "finance": {"min": 100000, "max": 200000},
-                "hr": {"min": 90000, "max": 160000},
-                "default": {"min": 90000, "max": 180000}
-            }
+        # Structure de base pour les industries
+        default_industries = {
+            "tech": ["technologie", "technology", "it", "informatique", "software", "logiciel", "digital", "numérique", "web", "internet"],
+            "finance": ["finance", "banking", "banque", "investment", "investissement", "insurance", "assurance", "fintech"],
+            "healthcare": ["healthcare", "santé", "médical", "medical", "pharmaceutical", "pharmaceutique", "biotech", "health", "hospital", "hôpital"],
+            "retail": ["retail", "commerce", "retail", "vente", "e-commerce", "distribution", "magasin", "store", "consumer goods"],
+            "manufacturing": ["manufacturing", "industrie", "production", "fabrication", "usine", "factory", "industrial"],
+            "energy": ["energy", "énergie", "oil", "gas", "pétrole", "renewables", "renewable energy", "énergie renouvelable"],
+            "education": ["education", "éducation", "teaching", "enseignement", "academic", "académique", "school", "université", "university"],
+            "consulting": ["consulting", "conseil", "consultancy", "professional services", "services professionnels"],
+            "media": ["media", "médias", "entertainment", "divertissement", "publishing", "édition", "news", "actualités"],
+            "telecom": ["telecom", "télécommunications", "telecommunications", "network", "réseau"]
         }
         
+        # Essayer de charger une taxonomie plus détaillée si disponible
         try:
-            # Chemin vers le fichier de configuration salariale
-            salary_path = Path(__file__).resolve().parent.parent.parent / "data" / "salary_ranges.json"
-            
-            if salary_path.exists():
-                with open(salary_path, 'r', encoding='utf-8') as f:
+            taxonomy_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "industry_sectors.json"
+            if taxonomy_path.exists():
+                with open(taxonomy_path, 'r', encoding='utf-8') as f:
                     return json.load(f)
-            else:
-                self.logger.warning(f"Fichier de tranches salariales non trouvé. Utilisation des valeurs par défaut.")
-                return default_ranges
         except Exception as e:
-            self.logger.error(f"Erreur lors du chargement des tranches salariales: {e}")
-            return default_ranges
-
-    def _load_industry_mapping(self):
-        """
-        Charge la classification des secteurs d'activité.
-        """
-        # Dictionnaire par défaut des secteurs d'activité
-        default_mapping = {
-            "tech": [
-                "technologie", "informatique", "tech", "it", "digital", "logiciel", "software",
-                "développement", "development", "programmation", "web", "mobile", "data",
-                "ia", "ai", "intelligence artificielle", "artificial intelligence", "cloud"
-            ],
-            "finance": [
-                "finance", "banque", "bank", "assurance", "insurance", "investissement", 
-                "investment", "comptabilité", "accounting", "fintech"
-            ],
-            "healthcare": [
-                "santé", "health", "médical", "medical", "pharmaceutique", "pharmaceutical",
-                "hôpital", "hospital", "clinique", "clinic", "biotech"
-            ],
-            "education": [
-                "éducation", "education", "enseignement", "teaching", "formation", "training",
-                "académique", "academic", "école", "school", "université", "university"
-            ],
-            "media": [
-                "média", "media", "presse", "press", "journalisme", "journalism",
-                "édition", "publishing", "audiovisuel", "audiovisual", "cinéma", "cinema"
-            ],
-            "retail": [
-                "commerce", "retail", "e-commerce", "ecommerce", "distribution", "vente",
-                "sales", "consommation", "consumer"
-            ],
-            "manufacturing": [
-                "industrie", "manufacturing", "production", "usine", "factory",
-                "automobile", "automotive", "aéronautique", "aerospace"
-            ],
-            "energy": [
-                "énergie", "energy", "pétrole", "oil", "gaz", "gas", "électricité",
-                "electricity", "renouvelable", "renewable"
-            ],
-            "consulting": [
-                "conseil", "consulting", "consultant", "audit", "stratégie", "strategy"
-            ],
-            "services": [
-                "service", "services", "btp", "construction", "immobilier", "real estate",
-                "transport", "logistique", "logistics", "tourisme", "tourism", "restauration"
-            ],
-            "public": [
-                "public", "gouvernement", "government", "administration", "collectivité",
-                "état", "state", "service public"
-            ],
-            "nonprofit": [
-                "association", "nonprofit", "non-profit", "ong", "ngo", "humanitaire",
-                "humanitarian", "social", "solidarité", "solidarity"
-            ]
-        }
+            self.logger.warning(f"Impossible de charger la taxonomie des secteurs: {e}")
         
-        try:
-            # Chemin vers le fichier de mapping des secteurs
-            industry_path = Path(__file__).resolve().parent.parent.parent / "data" / "industry_mapping.json"
-            
-            if industry_path.exists():
-                with open(industry_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            else:
-                self.logger.warning(f"Fichier de mapping des secteurs non trouvé. Utilisation des valeurs par défaut.")
-                return default_mapping
-        except Exception as e:
-            self.logger.error(f"Erreur lors du chargement du mapping des secteurs: {e}")
-            return default_mapping
+        return default_industries
     
     def generate_preference_features(self, candidate_profile, job_profile):
         """
-        Génère les features de compatibilité entre les préférences du candidat
-        et les caractéristiques du poste.
+        Génère les features basées sur les préférences et attentes.
         
         Args:
-            candidate_profile: Dictionnaire contenant les informations du candidat
-            job_profile: Dictionnaire contenant les informations du poste
+            candidate_profile: Profil du candidat
+            job_profile: Profil de l'offre d'emploi
             
         Returns:
-            Dict: Features de compatibilité des préférences
+            Dict: Features de préférences
         """
         features = {}
         
-        # Location match
+        # 1. Correspondance de localisation
         features["location_match"] = self.calculate_location_match(
-            self._extract_location(candidate_profile, "preferred"),
-            self._extract_location(job_profile, "job")
+            self._extract_preferred_location(candidate_profile),
+            self._extract_job_location(job_profile)
         )
         
-        # Salary match
-        features["salary_match"] = self.calculate_salary_match(
-            self._extract_salary(candidate_profile, "expected"),
-            self._extract_salary(job_profile, "offered"),
-            self._extract_job_category(job_profile),
-            self._extract_experience_level(candidate_profile)
-        )
-        
-        # Work mode match (remote, on-site, hybrid)
-        features["work_mode_match"] = self.calculate_work_mode_match(
-            self._extract_work_mode(candidate_profile, "preferred"),
-            self._extract_work_mode(job_profile, "offered")
-        )
-        
-        # Contract type match
+        # 2. Correspondance de type de contrat
         features["contract_type_match"] = self.calculate_contract_type_match(
-            self._extract_contract_type(candidate_profile, "preferred"),
-            self._extract_contract_type(job_profile, "offered")
+            self._extract_preferred_contract(candidate_profile),
+            self._extract_job_contract(job_profile)
         )
         
-        # Company size match
+        # 3. Correspondance de mode de travail (remote/onsite/hybrid)
+        features["work_mode_match"] = self.calculate_work_mode_match(
+            self._extract_preferred_work_mode(candidate_profile),
+            self._extract_job_work_mode(job_profile)
+        )
+        
+        # 4. Correspondance de salaire
+        features["salary_match"] = self.calculate_salary_match(
+            self._extract_expected_salary(candidate_profile),
+            self._extract_job_salary(job_profile)
+        )
+        
+        # 5. Correspondance de taille d'entreprise
         features["company_size_match"] = self.calculate_company_size_match(
-            self._extract_company_size(candidate_profile, "preferred"),
-            self._extract_company_size(job_profile, "actual")
+            self._extract_preferred_company_size(candidate_profile),
+            self._extract_company_size(job_profile)
         )
         
-        # Work environment match (pace, formality, hierarchy, management)
-        for env_type in self.work_environment_mapping.keys():
-            features[f"work_env_{env_type}_match"] = self.calculate_work_environment_match(
-                self._extract_work_environment(candidate_profile, env_type, "preferred"),
-                self._extract_work_environment(job_profile, env_type, "actual")
-            )
-        
-        # Industry match
+        # 6. Correspondance d'industrie/secteur
         features["industry_match"] = self.calculate_industry_match(
-            self._extract_industry(candidate_profile, "preferred"),
-            self._extract_industry(job_profile, "company")
+            self._extract_preferred_industries(candidate_profile),
+            self._extract_job_industry(job_profile)
         )
         
-        # Travel willingness match
-        features["travel_match"] = self.calculate_travel_match(
-            self._extract_travel_willingness(candidate_profile),
-            self._extract_travel_requirements(job_profile)
+        # 7. Correspondance d'horaires de travail
+        features["work_hours_match"] = self.calculate_work_hours_match(
+            self._extract_preferred_work_hours(candidate_profile),
+            self._extract_job_work_hours(job_profile)
+        )
+        
+        # 8. Correspondance de durée de trajet
+        features["commute_time_match"] = self.calculate_commute_time_match(
+            self._extract_max_commute_time(candidate_profile),
+            candidate_profile.get("address", ""),
+            job_profile.get("location", "")
         )
         
         return features
     
-    def _extract_location(self, profile, location_type):
+    def _extract_preferred_location(self, candidate_profile):
         """
-        Extrait l'information de localisation du profil.
+        Extrait la localisation préférée du candidat.
         
         Args:
-            profile: Dictionnaire contenant les informations
-            location_type: Type de localisation à extraire (preferred, job, etc.)
+            candidate_profile: Profil du candidat
             
         Returns:
-            str: Localisation extraite
+            str: Localisation préférée
         """
-        if not profile:
-            return None
+        if not candidate_profile:
+            return ""
         
-        location = None
+        # Chemins possibles pour la localisation
+        location_fields = [
+            "preferred_location", "desired_location", "location_preference",
+            "mobility.preferred_location", "work_preferences.location",
+            "address", "location"
+        ]
         
-        if location_type == "preferred":
-            # Chercher dans différents champs possibles pour la préférence de localisation
-            for field in ["preferred_location", "location_preference", "desired_location"]:
-                if field in profile and profile[field]:
-                    location = profile[field]
+        for field in location_fields:
+            parts = field.split('.')
+            current = candidate_profile
+            
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
                     break
             
-            # Si pas trouvé, chercher dans d'autres champs possibles
-            if not location:
-                if "location" in profile:
-                    location = profile["location"]
-                elif "address" in profile:
-                    location = profile["address"]
+            if current and isinstance(current, str) and current.strip():
+                return current.strip()
         
-        elif location_type == "job":
-            # Chercher dans différents champs possibles pour la localisation du poste
-            for field in ["location", "job_location", "workplace", "address", "city"]:
-                if field in profile and profile[field]:
-                    location = profile[field]
-                    break
+        return ""
+    
+    def _extract_job_location(self, job_profile):
+        """
+        Extrait la localisation du poste.
         
-        return location.strip().lower() if isinstance(location, str) else None
+        Args:
+            job_profile: Profil de l'offre d'emploi
+            
+        Returns:
+            str: Localisation du poste
+        """
+        if not job_profile:
+            return ""
+        
+        # Chemins possibles pour la localisation
+        location_fields = [
+            "location", "job_location", "workplace", "address",
+            "company_location", "office_location"
+        ]
+        
+        for field in location_fields:
+            if field in job_profile:
+                value = job_profile[field]
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+        
+        return ""
     
     def calculate_location_match(self, candidate_location, job_location):
         """
-        Calcule la compatibilité entre la localisation souhaitée et celle du poste.
+        Calcule la correspondance entre la localisation préférée et celle du poste.
         
         Args:
-            candidate_location: Localisation souhaitée par le candidat
+            candidate_location: Localisation préférée du candidat
             job_location: Localisation du poste
             
         Returns:
-            float: Score de compatibilité (0.0 - 1.0)
+            float: Score de correspondance (0.0 - 1.0)
         """
         if not candidate_location or not job_location:
-            return 0.5  # Valeur neutre par défaut
+            return 0.5  # Valeur neutre si l'information est manquante
         
-        # Si les locations sont exactement identiques
-        if candidate_location.lower() == job_location.lower():
+        # Normaliser les localisations
+        candidate_location = candidate_location.lower()
+        job_location = job_location.lower()
+        
+        # Correspondance exacte
+        if candidate_location == job_location:
             return 1.0
-            
-        # Si l'une contient l'autre
-        if candidate_location.lower() in job_location.lower() or job_location.lower() in candidate_location.lower():
+        
+        # Correspondance partielle (une ville contenue dans l'autre)
+        if candidate_location in job_location or job_location in candidate_location:
+            return 0.8
+        
+        # Extraction de la ville et du code postal/département
+        candidate_city, candidate_region = self._extract_city_region(candidate_location)
+        job_city, job_region = self._extract_city_region(job_location)
+        
+        # Correspondance de ville
+        if candidate_city and job_city and (candidate_city == job_city):
             return 0.9
         
-        # Vérifier les mots communs
-        candidate_tokens = set(re.findall(r'\w+', candidate_location.lower()))
-        job_tokens = set(re.findall(r'\w+', job_location.lower()))
+        # Correspondance de région/département
+        if candidate_region and job_region and (candidate_region == job_region):
+            return 0.7
+        
+        # Séparation des mots et recherche de chevauchement
+        candidate_tokens = set(re.findall(r'\b\w+\b', candidate_location))
+        job_tokens = set(re.findall(r'\b\w+\b', job_location))
         
         common_tokens = candidate_tokens.intersection(job_tokens)
+        
         if common_tokens:
-            # Plus il y a de mots en commun, plus le score est élevé
-            return min(0.8, len(common_tokens) / max(len(candidate_tokens), len(job_tokens)) * 0.9)
+            # Calculer un score basé sur la proportion de mots communs
+            similarity = len(common_tokens) / max(len(candidate_tokens), len(job_tokens))
+            return max(0.3, similarity)  # Minimum 0.3 s'il y a au moins un mot commun
         
-        # Si le géocodage est disponible, essayer de calculer la distance
-        if self.geocoder:
-            try:
-                candidate_coords = self._geocode(candidate_location)
-                job_coords = self._geocode(job_location)
-                
-                if candidate_coords and job_coords:
-                    # Calculer la distance en km
-                    distance = geodesic(candidate_coords, job_coords).kilometers
-                    
-                    # Convertir la distance en score (plus proche = meilleur score)
-                    if distance < 10:  # Même ville ou très proche
-                        return 0.9
-                    elif distance < 30:  # Même agglomération
-                        return 0.7
-                    elif distance < 100:  # Même région proche
-                        return 0.5
-                    elif distance < 300:  # Même grande région
-                        return 0.3
-                    else:  # Trop loin
-                        return 0.1
-            except Exception as e:
-                self.logger.warning(f"Erreur lors du géocodage: {e}")
-        
-        # Si aucune correspondance n'est trouvée ou si le géocodage échoue
+        # Aucune correspondance
         return 0.1
     
-    def _geocode(self, location):
+    def _extract_city_region(self, location):
         """
-        Géocode une adresse en coordonnées (latitude, longitude).
+        Extrait la ville et la région/département d'une localisation.
         
         Args:
-            location: Adresse à géocoder
+            location: Chaîne de localisation
             
         Returns:
-            tuple: (latitude, longitude) ou None en cas d'échec
+            Tuple: (ville, région/département)
         """
-        if not self.geocoder or not location:
-            return None
+        # Extraction de code postal français
+        postal_match = re.search(r'\b\d{5}\b', location)
+        postal_code = postal_match.group(0) if postal_match else None
         
-        try:
-            geocode_result = self.geocoder.geocode(location, exactly_one=True)
-            if geocode_result:
-                return (geocode_result.latitude, geocode_result.longitude)
-        except (GeocoderTimedOut, GeocoderUnavailable) as e:
-            self.logger.warning(f"Erreur de géocodage pour '{location}': {e}")
-        except Exception as e:
-            self.logger.warning(f"Erreur inattendue lors du géocodage: {e}")
+        # Extraction de département français (à partir du code postal)
+        department = postal_code[:2] if postal_code else None
         
-        return None
-    
-    def _extract_salary(self, profile, salary_type):
-        """
-        Extrait les informations de salaire du profil.
+        # Essayer d'extraire la ville (mot avant ou après le code postal, ou premier mot)
+        city = None
         
-        Args:
-            profile: Dictionnaire contenant les informations
-            salary_type: Type de salaire à extraire (expected, offered, etc.)
-            
-        Returns:
-            dict: Informations de salaire (min, max, currency)
-        """
-        if not profile:
-            return None
-        
-        salary_info = None
-        
-        # Champs possibles selon le type de salaire
-        if salary_type == "expected":
-            fields = ["expected_salary", "salary_expectation", "desired_salary", "salary"]
-        else:  # offered
-            fields = ["salary", "salary_range", "compensation", "remuneration"]
-        
-        # Chercher dans les champs appropriés
-        for field in fields:
-            if field in profile:
-                salary = profile[field]
-                if isinstance(salary, dict):
-                    # Si le salaire est déjà structuré
-                    return {
-                        "min": salary.get("min", salary.get("minimum", salary.get("from"))),
-                        "max": salary.get("max", salary.get("maximum", salary.get("to"))),
-                        "currency": salary.get("currency", "EUR"),
-                        "period": salary.get("period", "annual")
-                    }
-                elif isinstance(salary, str):
-                    # Tenter d'extraire les informations de salaire à partir du texte
-                    return self._parse_salary_string(salary)
-        
-        # Si aucune information de salaire n'est trouvée
-        return None
-    
-    def _parse_salary_string(self, salary_str):
-        """
-        Analyse une chaîne de caractères contenant des informations de salaire.
-        
-        Args:
-            salary_str: Chaîne contenant des informations de salaire
-            
-        Returns:
-            dict: Informations de salaire extraites
-        """
-        if not salary_str:
-            return None
-        
-        salary_info = {"min": None, "max": None, "currency": "EUR", "period": "annual"}
-        
-        # Détecter la devise
-        currency_patterns = {
-            "EUR": [r'€', r'eur', r'euro', r'euros'],
-            "USD": [r'\$', r'usd', r'dollar', r'dollars'],
-            "GBP": [r'£', r'gbp', r'pound', r'pounds', r'livre', r'livres'],
-            "CHF": [r'chf', r'franc', r'francs']
-        }
-        
-        for currency, patterns in currency_patterns.items():
-            if any(re.search(pattern, salary_str.lower()) for pattern in patterns):
-                salary_info["currency"] = currency
-                break
-        
-        # Détecter la période
-        period_patterns = {
-            "annual": [r'an', r'année', r'annual', r'annuel', r'par an', r'par année', r'/an', r'/a', r'/year', r'/y', r'year', r'yearly'],
-            "monthly": [r'mois', r'month', r'mensuel', r'par mois', r'/mois', r'/m', r'/month', r'monthly'],
-            "daily": [r'jour', r'day', r'journalier', r'par jour', r'/jour', r'/j', r'/day', r'daily'],
-            "hourly": [r'heure', r'hour', r'horaire', r'par heure', r'/heure', r'/h', r'/hour', r'hourly']
-        }
-        
-        for period, patterns in period_patterns.items():
-            if any(re.search(pattern, salary_str.lower()) for pattern in patterns):
-                salary_info["period"] = period
-                break
-        
-        # Extraire les montants
-        numbers = re.findall(r'(\d+[.,]?\d*)', salary_str.replace(' ', ''))
-        if len(numbers) >= 2:
-            # Supposer que les deux premiers nombres sont min et max
-            salary_info["min"] = float(numbers[0].replace(',', '.'))
-            salary_info["max"] = float(numbers[1].replace(',', '.'))
-            
-            # Vérifier si les valeurs sont en milliers ou en k
-            if salary_info["min"] < 1000 and ("k" in salary_str.lower() or "k€" in salary_str or "k$" in salary_str):
-                salary_info["min"] *= 1000
-                salary_info["max"] *= 1000
-        elif len(numbers) == 1:
-            # S'il n'y a qu'un seul nombre, l'utiliser comme valeur min et max
-            value = float(numbers[0].replace(',', '.'))
-            
-            # Vérifier si la valeur est en milliers ou en k
-            if value < 1000 and ("k" in salary_str.lower() or "k€" in salary_str or "k$" in salary_str):
-                value *= 1000
-                
-            salary_info["min"] = value
-            salary_info["max"] = value
-        
-        # Normaliser à une base annuelle pour les comparaisons
-        if salary_info["min"] is not None and salary_info["max"] is not None:
-            if salary_info["period"] == "monthly":
-                salary_info["min"] *= 12
-                salary_info["max"] *= 12
-            elif salary_info["period"] == "daily":
-                salary_info["min"] *= 220  # environ 220 jours travaillés par an
-                salary_info["max"] *= 220
-            elif salary_info["period"] == "hourly":
-                salary_info["min"] *= 1600  # environ 1600 heures par an
-                salary_info["max"] *= 1600
-            
-            # Conversion en euros si nécessaire (taux approximatifs)
-            if salary_info["currency"] == "USD":
-                salary_info["min"] *= 0.85
-                salary_info["max"] *= 0.85
-            elif salary_info["currency"] == "GBP":
-                salary_info["min"] *= 1.15
-                salary_info["max"] *= 1.15
-            elif salary_info["currency"] == "CHF":
-                salary_info["min"] *= 0.95
-                salary_info["max"] *= 0.95
-            
-            # Normaliser la devise en EUR pour la comparaison
-            salary_info["currency"] = "EUR"
-            salary_info["period"] = "annual"
-            
-            return salary_info
-        
-        return None
-    
-    def _extract_job_category(self, job_profile):
-        """
-        Détermine la catégorie de poste (tech, marketing, etc.).
-        
-        Args:
-            job_profile: Profil du poste
-            
-        Returns:
-            str: Catégorie du poste
-        """
-        if not job_profile:
-            return "default"
-        
-        # Catégories et mots-clés associés
-        categories = {
-            "tech": ["développeur", "developer", "ingénieur", "engineer", "programmeur", "programmer", 
-                    "informatique", "it ", "frontend", "front-end", "backend", "back-end", "fullstack", 
-                    "data", "devops", "sre", "système", "system", "réseau", "network", "cloud", "web",
-                    "mobile", "software", "logiciel", "tech", "technical", "cybersecurity"],
-            
-            "marketing": ["marketing", "communication", "digital", "seo", "sea", "sem", "content",
-                         "contenu", "social media", "réseaux sociaux", "brand", "marque", "growth",
-                         "acquisition", "crm", "marketing", "commercial", "adwords", "analytics"],
-            
-            "sales": ["commercial", "sales", "vente", "account", "business", "développement", 
-                     "développeur d'affaires", "business developer", "commercial", "account manager", 
-                     "client", "customer", "adc", "bdr", "sdr"],
-            
-            "finance": ["finance", "comptable", "comptabilité", "accounting", "financial", "financier",
-                      "contrôleur", "controller", "trésorier", "treasurer", "audit", "auditeur", "auditor"],
-            
-            "hr": ["rh", "hr", "ressources humaines", "human resources", "recrutement", "recruitment",
-                 "talent", "paie", "payroll", "formation", "training", "développement rh"]
-        }
-        
-        # Construire un texte avec les champs importants
-        job_text = ""
-        for field in ["title", "description", "requirements", "skills", "department"]:
-            if field in job_profile and isinstance(job_profile[field], str):
-                job_text += " " + job_profile[field].lower()
-            elif field in job_profile and isinstance(job_profile[field], list):
-                job_text += " " + " ".join([str(item) for item in job_profile[field]])
-        
-        # Détecter la catégorie
-        best_category = "default"
-        best_score = 0
-        
-        for category, keywords in categories.items():
-            score = sum(1 for kw in keywords if re.search(r'\b' + re.escape(kw) + r'\b', job_text.lower()))
-            if score > best_score:
-                best_score = score
-                best_category = category
-        
-        return best_category
-    
-    def _extract_experience_level(self, profile):
-        """
-        Détermine le niveau d'expérience du candidat.
-        
-        Args:
-            profile: Profil du candidat
-            
-        Returns:
-            str: Niveau d'expérience (junior, mid, senior, executive)
-        """
-        if not profile:
-            return "mid"  # Valeur par défaut
-        
-        # Essayer d'extraire les années d'expérience
-        experience_years = None
-        for field in ["years_of_experience", "experience_years", "years_experience", "experience"]:
-            if field in profile:
-                value = profile[field]
-                if isinstance(value, (int, float)):
-                    experience_years = value
-                elif isinstance(value, str) and re.search(r'\d+', value):
-                    # Extraire le premier nombre trouvé
-                    match = re.search(r'(\d+)', value)
-                    if match:
-                        experience_years = int(match.group(1))
-                break
-        
-        # Si nous avons trouvé les années d'expérience
-        if experience_years is not None:
-            if experience_years < 3:
-                return "junior"
-            elif experience_years < 7:
-                return "mid"
-            elif experience_years < 15:
-                return "senior"
+        if postal_match:
+            # Chercher le mot avant le code postal
+            before_match = re.search(r'\b(\w+)\s+\d{5}\b', location)
+            if before_match:
+                city = before_match.group(1).lower()
             else:
-                return "executive"
+                # Chercher le mot après le code postal
+                after_match = re.search(r'\b\d{5}\s+(\w+)\b', location)
+                if after_match:
+                    city = after_match.group(1).lower()
         
-        # Sinon, chercher des mots-clés dans le titre ou l'expérience
-        text = ""
-        for field in ["title", "current_position", "experience", "profile"]:
-            if field in profile:
-                value = profile[field]
-                if isinstance(value, str):
-                    text += " " + value.lower()
-                elif isinstance(value, list) and all(isinstance(item, str) for item in value):
-                    text += " " + " ".join(value).lower()
-                elif isinstance(value, list) and all(isinstance(item, dict) for item in value):
-                    for item in value:
-                        for k, v in item.items():
-                            if isinstance(v, str):
-                                text += " " + v.lower()
+        # Si aucune ville n'a été trouvée, prendre le premier "mot" (potentiellement la ville)
+        if not city:
+            words = re.findall(r'\b[a-zA-ZÀ-ÿ]+\b', location)
+            if words:
+                city = words[0].lower()
         
-        # Vérifier les mots-clés
-        if any(kw in text for kw in ["junior", "débutant", "stagiaire", "stage", "intern", "entry level", "entry-level"]):
-            return "junior"
-        elif any(kw in text for kw in ["senior", "lead", "principal", "chef", "responsable", "head"]):
-            return "senior"
-        elif any(kw in text for kw in ["directeur", "director", "executive", "vp", "chief", "cto", "ceo", "cfo", "coo"]):
-            return "executive"
-        
-        # Par défaut, retourner un niveau intermédiaire
-        return "mid"
+        return city, department
     
-    def calculate_salary_match(self, candidate_salary, job_salary, job_category, experience_level):
+    def _extract_preferred_contract(self, candidate_profile):
         """
-        Calcule la compatibilité entre le salaire souhaité et le salaire proposé.
+        Extrait le type de contrat préféré par le candidat.
         
         Args:
-            candidate_salary: Informations sur le salaire souhaité
-            job_salary: Informations sur le salaire proposé
-            job_category: Catégorie du poste
-            experience_level: Niveau d'expérience du candidat
+            candidate_profile: Profil du candidat
             
         Returns:
-            float: Score de compatibilité (0.0 - 1.0)
+            str: Type de contrat préféré
         """
-        # Si l'une des informations est manquante, utiliser des estimations basées sur la catégorie et l'expérience
-        if not candidate_salary and not job_salary:
-            return 0.5  # Valeur neutre
+        if not candidate_profile:
+            return ""
         
-        # Si l'un des deux est manquant, utiliser les fourchettes typiques
-        salary_ranges = self.salary_ranges.get(experience_level, self.salary_ranges["mid"])
-        category_ranges = salary_ranges.get(job_category, salary_ranges["default"])
+        # Chemins possibles pour le type de contrat
+        contract_fields = [
+            "preferred_contract", "contract_preference", "desired_contract_type",
+            "work_preferences.contract_type", "job_preferences.contract_type"
+        ]
         
-        if not candidate_salary:
-            candidate_min = category_ranges["min"]
-            candidate_max = category_ranges["max"]
-        else:
-            candidate_min = candidate_salary.get("min", category_ranges["min"])
-            candidate_max = candidate_salary.get("max", candidate_salary.get("min", category_ranges["max"]))
-        
-        if not job_salary:
-            job_min = category_ranges["min"]
-            job_max = category_ranges["max"]
-        else:
-            job_min = job_salary.get("min", category_ranges["min"])
-            job_max = job_salary.get("max", job_salary.get("min", category_ranges["max"]))
-        
-        # Calculer le chevauchement des fourchettes de salaire
-        # Si les intervalles ne se chevauchent pas
-        if candidate_min > job_max:
-            # Le candidat veut plus que ce que l'entreprise propose (max)
-            return max(0.1, 1 - min(1, (candidate_min - job_max) / job_max))
-        elif job_min > candidate_max:
-            # L'entreprise offre plus que ce que le candidat demande (max)
-            return 0.9  # Bon pour le candidat
-        else:
-            # Les intervalles se chevauchent
-            overlap_min = max(candidate_min, job_min)
-            overlap_max = min(candidate_max, job_max)
-            overlap_size = overlap_max - overlap_min
+        for field in contract_fields:
+            parts = field.split('.')
+            current = candidate_profile
             
-            candidate_range = candidate_max - candidate_min
-            job_range = job_max - job_min
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
             
-            # Si l'une des plages est de taille nulle (valeur unique)
-            if candidate_range == 0:
-                candidate_range = 0.01 * candidate_min
-            if job_range == 0:
-                job_range = 0.01 * job_min
-                
-            # Calculer le pourcentage de chevauchement
-            overlap_ratio = overlap_size / max(candidate_range, job_range)
-            
-            # Si le salaire du candidat est dans la fourchette du poste
-            if candidate_min >= job_min and candidate_max <= job_max:
-                return min(1.0, 0.7 + 0.3 * overlap_ratio)
-            # Si le salaire du poste est dans la fourchette du candidat
-            elif job_min >= candidate_min and job_max <= candidate_max:
-                return min(1.0, 0.7 + 0.3 * overlap_ratio)
-            # Si le salaire du candidat est partiellement dans la fourchette
-            else:
-                return min(0.9, 0.5 + 0.4 * overlap_ratio)
-    
-    def _extract_work_mode(self, profile, mode_type):
-        """
-        Extrait le mode de travail (présentiel, télétravail, hybride).
+            if current and isinstance(current, str) and current.strip():
+                return current.strip().lower()
         
-        Args:
-            profile: Dictionnaire contenant les informations
-            mode_type: Type de mode à extraire (preferred, offered)
-            
-        Returns:
-            str: Mode de travail
-        """
-        if not profile:
-            return None
+        # Recherche dans d'autres champs textuels
+        text_fields = ["about_me", "job_preferences", "work_preferences"]
         
-        # Champs possibles selon le type
-        if mode_type == "preferred":
-            fields = ["preferred_work_mode", "work_mode", "work_type", "work_preference"]
-        else:  # offered
-            fields = ["work_mode", "location_type", "work_type", "remote_policy"]
+        combined_text = ""
+        for field in text_fields:
+            if field in candidate_profile and isinstance(candidate_profile[field], str):
+                combined_text += " " + candidate_profile[field].lower()
         
-        # Chercher dans les champs appropriés
-        for field in fields:
-            if field in profile:
-                value = profile[field]
-                if isinstance(value, str):
-                    return self._normalize_work_mode(value)
-        
-        # Rechercher dans d'autres champs
-        text = ""
-        search_fields = ["description", "benefits", "perks"] if mode_type == "offered" else ["about", "preferences"]
-        
-        for field in search_fields:
-            if field in profile and isinstance(profile[field], str):
-                text += profile[field].lower() + " "
-        
-        if text:
-            return self._extract_work_mode_from_text(text)
-        
-        return None
-    
-    def _normalize_work_mode(self, mode):
-        """
-        Normalise le mode de travail dans un format standard.
-        
-        Args:
-            mode: Chaîne décrivant le mode de travail
-            
-        Returns:
-            str: Mode de travail normalisé ('remote', 'hybrid', 'office')
-        """
-        if not mode:
-            return None
-            
-        mode_lower = mode.lower()
-        
-        for standard_mode, keywords in self.work_mode_mapping.items():
-            if any(kw in mode_lower for kw in keywords):
-                return standard_mode
-        
-        return None
-    
-    def _extract_work_mode_from_text(self, text):
-        """
-        Extrait le mode de travail à partir d'un texte.
-        
-        Args:
-            text: Texte décrivant le poste ou les préférences
-            
-        Returns:
-            str: Mode de travail
-        """
-        # Compter les occurrences de chaque catégorie
-        scores = {mode: 0 for mode in self.work_mode_mapping}
-        
-        for mode, keywords in self.work_mode_mapping.items():
+        # Recherche des types de contrat dans le texte
+        for contract_type, keywords in self.contract_types.items():
             for keyword in keywords:
-                if re.search(r'\b' + re.escape(keyword) + r'\b', text.lower()):
-                    scores[mode] += 1
+                if keyword in combined_text:
+                    return contract_type
         
-        # Identifier le mode avec le score le plus élevé
-        best_mode = max(scores.items(), key=lambda x: x[1])
-        
-        # Retourner le mode s'il y a des correspondances
-        if best_mode[1] > 0:
-            return best_mode[0]
-        
-        return None
+        return ""
     
-    def calculate_work_mode_match(self, candidate_mode, job_mode):
+    def _extract_job_contract(self, job_profile):
         """
-        Calcule la compatibilité entre les modes de travail.
+        Extrait le type de contrat du poste.
         
         Args:
-            candidate_mode: Mode de travail préféré du candidat
-            job_mode: Mode de travail proposé par le poste
-            
-        Returns:
-            float: Score de compatibilité (0.0 - 1.0)
-        """
-        if not candidate_mode or not job_mode:
-            return 0.5  # Valeur neutre
-        
-        # Créer une matrice de compatibilité
-        compatibility = {
-            "remote": {"remote": 1.0, "hybrid": 0.7, "office": 0.2},
-            "hybrid": {"remote": 0.7, "hybrid": 1.0, "office": 0.7},
-            "office": {"office": 1.0, "hybrid": 0.7, "remote": 0.2}
-        }
-        
-        # Récupérer le score de compatibilité
-        if candidate_mode in compatibility and job_mode in compatibility[candidate_mode]:
-            return compatibility[candidate_mode][job_mode]
-        
-        return 0.5  # Valeur par défaut
-    
-    def _extract_contract_type(self, profile, type_name):
-        """
-        Extrait le type de contrat (CDI, CDD, etc.).
-        
-        Args:
-            profile: Dictionnaire contenant les informations
-            type_name: Type de contrat à extraire (preferred, offered)
-            
-        Returns:
-            str: Type de contrat normalisé
-        """
-        if not profile:
-            return None
-            
-        # Champs possibles selon le type
-        if type_name == "preferred":
-            fields = ["preferred_contract", "contract_type", "employment_type"]
-        else:  # offered
-            fields = ["contract_type", "employment_type", "contract"]
-        
-        # Chercher dans les champs appropriés
-        for field in fields:
-            if field in profile:
-                value = profile[field]
-                if isinstance(value, str):
-                    return self._normalize_contract_type(value)
-        
-        # Rechercher dans d'autres champs
-        text = ""
-        search_fields = ["description", "details"] if type_name == "offered" else ["about", "preferences"]
-        
-        for field in search_fields:
-            if field in profile and isinstance(profile[field], str):
-                text += profile[field].lower() + " "
-        
-        if text:
-            return self._extract_contract_type_from_text(text)
-        
-        return None
-    
-    def _normalize_contract_type(self, contract_type):
-        """
-        Normalise le type de contrat dans un format standard.
-        
-        Args:
-            contract_type: Chaîne décrivant le type de contrat
-            
-        Returns:
-            str: Type de contrat normalisé
-        """
-        if not contract_type:
-            return None
-            
-        contract_lower = contract_type.lower()
-        
-        for standard_type, keywords in self.contract_type_mapping.items():
-            if any(kw in contract_lower for kw in keywords):
-                return standard_type
-        
-        return None
-    
-    def _extract_contract_type_from_text(self, text):
-        """
-        Extrait le type de contrat à partir d'un texte.
-        
-        Args:
-            text: Texte décrivant le poste ou les préférences
+            job_profile: Profil de l'offre d'emploi
             
         Returns:
             str: Type de contrat
         """
-        # Compter les occurrences de chaque type
-        scores = {contract_type: 0 for contract_type in self.contract_type_mapping}
+        if not job_profile:
+            return ""
         
-        for contract_type, keywords in self.contract_type_mapping.items():
+        # Chemins possibles pour le type de contrat
+        contract_fields = [
+            "contract_type", "job_type", "employment_type", "type_de_contrat"
+        ]
+        
+        for field in contract_fields:
+            if field in job_profile:
+                value = job_profile[field]
+                if isinstance(value, str) and value.strip():
+                    contract_value = value.strip().lower()
+                    
+                    # Correspondance directe avec un type connu
+                    for contract_type, keywords in self.contract_types.items():
+                        if any(keyword in contract_value for keyword in keywords):
+                            return contract_type
+                    
+                    # Retourner la valeur telle quelle
+                    return contract_value
+        
+        # Recherche dans la description ou d'autres champs
+        text_fields = ["description", "job_description", "details"]
+        
+        combined_text = ""
+        for field in text_fields:
+            if field in job_profile and isinstance(job_profile[field], str):
+                combined_text += " " + job_profile[field].lower()
+        
+        # Recherche des types de contrat dans le texte
+        for contract_type, keywords in self.contract_types.items():
             for keyword in keywords:
-                if re.search(r'\b' + re.escape(keyword) + r'\b', text.lower()):
-                    scores[contract_type] += 1
+                if keyword in combined_text:
+                    return contract_type
         
-        # Identifier le type avec le score le plus élevé
-        best_type = max(scores.items(), key=lambda x: x[1])
-        
-        # Retourner le type s'il y a des correspondances
-        if best_type[1] > 0:
-            return best_type[0]
-        
-        return None
+        return ""
     
-    def calculate_contract_type_match(self, candidate_type, job_type):
+    def calculate_contract_type_match(self, candidate_contract, job_contract):
         """
-        Calcule la compatibilité entre les types de contrat.
+        Calcule la correspondance entre les types de contrat.
         
         Args:
-            candidate_type: Type de contrat préféré par le candidat
-            job_type: Type de contrat proposé par le poste
+            candidate_contract: Type de contrat préféré par le candidat
+            job_contract: Type de contrat du poste
             
         Returns:
-            float: Score de compatibilité (0.0 - 1.0)
+            float: Score de correspondance (0.0 - 1.0)
         """
-        if not candidate_type or not job_type:
-            return 0.5  # Valeur neutre
+        if not candidate_contract or not job_contract:
+            return 0.5  # Valeur neutre si l'information est manquante
         
-        # Matrice de compatibilité
+        # Normaliser les types de contrat
+        candidate_contract = candidate_contract.lower()
+        job_contract = job_contract.lower()
+        
+        # Correspondance exacte
+        if candidate_contract == job_contract:
+            return 1.0
+        
+        # Matrice de compatibilité entre types de contrat
         compatibility = {
-            "permanent": {"permanent": 1.0, "temporary": 0.3, "freelance": 0.2, "internship": 0.1, "apprenticeship": 0.2, "part_time": 0.4, "interim": 0.2},
-            "temporary": {"permanent": 0.7, "temporary": 1.0, "freelance": 0.5, "internship": 0.3, "apprenticeship": 0.3, "part_time": 0.6, "interim": 0.7},
-            "freelance": {"permanent": 0.4, "temporary": 0.5, "freelance": 1.0, "internship": 0.1, "apprenticeship": 0.1, "part_time": 0.7, "interim": 0.6},
-            "internship": {"permanent": 0.6, "temporary": 0.6, "freelance": 0.2, "internship": 1.0, "apprenticeship": 0.8, "part_time": 0.5, "interim": 0.3},
-            "apprenticeship": {"permanent": 0.6, "temporary": 0.5, "freelance": 0.2, "internship": 0.7, "apprenticeship": 1.0, "part_time": 0.5, "interim": 0.3},
-            "part_time": {"permanent": 0.5, "temporary": 0.6, "freelance": 0.7, "internship": 0.5, "apprenticeship": 0.5, "part_time": 1.0, "interim": 0.7},
-            "interim": {"permanent": 0.3, "temporary": 0.7, "freelance": 0.6, "internship": 0.3, "apprenticeship": 0.3, "part_time": 0.7, "interim": 1.0}
+            "cdi": {"cdi": 1.0, "cdd": 0.7, "interim": 0.4, "freelance": 0.5, "alternance": 0.6, "stage": 0.3},
+            "cdd": {"cdi": 0.8, "cdd": 1.0, "interim": 0.7, "freelance": 0.6, "alternance": 0.5, "stage": 0.4},
+            "interim": {"cdi": 0.5, "cdd": 0.7, "interim": 1.0, "freelance": 0.8, "alternance": 0.3, "stage": 0.2},
+            "freelance": {"cdi": 0.4, "cdd": 0.5, "interim": 0.7, "freelance": 1.0, "alternance": 0.2, "stage": 0.2},
+            "alternance": {"cdi": 0.6, "cdd": 0.5, "interim": 0.3, "freelance": 0.2, "alternance": 1.0, "stage": 0.7},
+            "stage": {"cdi": 0.3, "cdd": 0.4, "interim": 0.2, "freelance": 0.2, "alternance": 0.7, "stage": 1.0}
         }
         
-        # Récupérer le score de compatibilité
-        if candidate_type in compatibility and job_type in compatibility[candidate_type]:
+        if candidate_contract in compatibility and job_contract in compatibility[candidate_contract]:
+            return compatibility[candidate_contract][job_contract]
+        
+        # Correspondance partielle basée sur les mots-clés
+        candidate_type = None
+        job_type = None
+        
+        for contract_type, keywords in self.contract_types.items():
+            for keyword in keywords:
+                if keyword in candidate_contract:
+                    candidate_type = contract_type
+                if keyword in job_contract:
+                    job_type = contract_type
+        
+        if candidate_type and job_type and candidate_type in compatibility and job_type in compatibility[candidate_type]:
             return compatibility[candidate_type][job_type]
         
-        return 0.5  # Valeur par défaut
+        # Si l'un n'est pas reconnu, on applique une heuristique simple
+        if candidate_type in compatibility and job_type is None:
+            # Si le type du candidat est CDI, attribuer 0.7 (potentiellement compatible)
+            if candidate_type == "cdi":
+                return 0.7
+            # Sinon attribuer 0.5 (neutre)
+            return 0.5
+        
+        # Valeur par défaut
+        return 0.5
     
-    def _extract_company_size(self, profile, size_type):
+    def _extract_preferred_work_mode(self, candidate_profile):
         """
-        Extrait la taille d'entreprise préférée ou réelle.
+        Extrait le mode de travail préféré par le candidat.
         
         Args:
-            profile: Dictionnaire contenant les informations
-            size_type: Type de taille à extraire (preferred, actual)
+            candidate_profile: Profil du candidat
             
         Returns:
-            str: Taille d'entreprise normalisée
+            str: Mode de travail préféré
         """
-        if not profile:
-            return None
+        if not candidate_profile:
+            return ""
+        
+        # Chemins possibles pour le mode de travail
+        mode_fields = [
+            "preferred_work_mode", "work_mode_preference", "remote_preference",
+            "work_preferences.work_mode", "work_preferences.remote"
+        ]
+        
+        for field in mode_fields:
+            parts = field.split('.')
+            current = candidate_profile
             
-        # Champs possibles selon le type
-        if size_type == "preferred":
-            fields = ["preferred_company_size", "company_size", "desired_company_size"]
-        else:  # actual
-            fields = ["company_size", "size", "employees"]
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
+            
+            if current is not None:
+                if isinstance(current, str) and current.strip():
+                    value = current.strip().lower()
+                    
+                    # Correspondance avec un mode connu
+                    for mode_type, keywords in self.work_modes.items():
+                        if any(keyword in value for keyword in keywords):
+                            return mode_type
+                    
+                    # Valeurs booléennes
+                    if value in ["yes", "true", "1", "oui"]:
+                        return "remote"
+                    elif value in ["no", "false", "0", "non"]:
+                        return "onsite"
+                    
+                    return value
+                elif isinstance(current, bool):
+                    return "remote" if current else "onsite"
+                elif isinstance(current, (int, float)):
+                    # Interprétation comme pourcentage de télétravail
+                    if current == 0:
+                        return "onsite"
+                    elif current >= 80:
+                        return "remote"
+                    else:
+                        return "hybrid"
         
-        # Chercher dans les champs appropriés
-        for field in fields:
-            if field in profile:
-                value = profile[field]
-                if isinstance(value, str):
-                    return self._normalize_company_size(value)
-                elif isinstance(value, (int, float)):
-                    return self._normalize_company_size_from_number(value)
+        # Recherche dans d'autres champs textuels
+        text_fields = ["about_me", "job_preferences", "work_preferences"]
         
-        # Rechercher dans d'autres champs
-        text = ""
-        search_fields = ["company_description", "about_company"] if size_type == "actual" else ["preferences", "about"]
+        combined_text = ""
+        for field in text_fields:
+            if field in candidate_profile and isinstance(candidate_profile[field], str):
+                combined_text += " " + candidate_profile[field].lower()
         
-        for field in search_fields:
-            if field in profile and isinstance(profile[field], str):
-                text += profile[field].lower() + " "
+        # Recherche des modes de travail dans le texte
+        for mode_type, keywords in self.work_modes.items():
+            for keyword in keywords:
+                if keyword in combined_text:
+                    return mode_type
         
-        if text:
-            return self._extract_company_size_from_text(text)
-        
-        return None
+        return ""
     
-    def _normalize_company_size(self, size):
+    def _extract_job_work_mode(self, job_profile):
         """
-        Normalise la taille de l'entreprise dans un format standard.
+        Extrait le mode de travail du poste.
         
         Args:
-            size: Chaîne décrivant la taille de l'entreprise
+            job_profile: Profil de l'offre d'emploi
             
         Returns:
-            str: Taille normalisée ('startup', 'small', 'medium', 'large')
+            str: Mode de travail
         """
-        if not size:
-            return None
+        if not job_profile:
+            return ""
+        
+        # Chemins possibles pour le mode de travail
+        mode_fields = [
+            "work_mode", "remote", "remote_work", "work_type",
+            "workplace_type", "workplace.type"
+        ]
+        
+        for field in mode_fields:
+            parts = field.split('.')
+            current = job_profile
             
-        size_lower = size.lower()
-        
-        # Vérifier les correspondances directes
-        for standard_size, keywords in self.company_size_mapping.items():
-            if any(kw in size_lower for kw in keywords):
-                return standard_size
-        
-        # Essayer d'extraire un nombre
-        match = re.search(r'(\d+)[\s-]*(\d*)', size_lower)
-        if match:
-            min_size = int(match.group(1))
-            max_size = int(match.group(2)) if match.group(2) else min_size
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
             
-            # Utiliser la moyenne si une plage est fournie
-            avg_size = (min_size + max_size) / 2
-            return self._normalize_company_size_from_number(avg_size)
+            if current is not None:
+                if isinstance(current, str) and current.strip():
+                    value = current.strip().lower()
+                    
+                    # Correspondance avec un mode connu
+                    for mode_type, keywords in self.work_modes.items():
+                        if any(keyword in value for keyword in keywords):
+                            return mode_type
+                    
+                    # Valeurs booléennes
+                    if value in ["yes", "true", "1", "oui"]:
+                        return "remote"
+                    elif value in ["no", "false", "0", "non"]:
+                        return "onsite"
+                    
+                    return value
+                elif isinstance(current, bool):
+                    return "remote" if current else "onsite"
+                elif isinstance(current, (int, float)):
+                    # Interprétation comme pourcentage de télétravail
+                    if current == 0:
+                        return "onsite"
+                    elif current >= 80:
+                        return "remote"
+                    else:
+                        return "hybrid"
         
-        return None
+        # Recherche dans la description ou d'autres champs
+        text_fields = ["description", "job_description", "details"]
+        
+        combined_text = ""
+        for field in text_fields:
+            if field in job_profile and isinstance(job_profile[field], str):
+                combined_text += " " + job_profile[field].lower()
+        
+        # Recherche des modes de travail dans le texte
+        for mode_type, keywords in self.work_modes.items():
+            for keyword in keywords:
+                if keyword in combined_text:
+                    return mode_type
+        
+        return ""
     
-    def _normalize_company_size_from_number(self, num_employees):
+    def calculate_work_mode_match(self, candidate_mode, job_mode):
         """
-        Normalise la taille de l'entreprise en fonction du nombre d'employés.
+        Calcule la correspondance entre les modes de travail.
         
         Args:
-            num_employees: Nombre d'employés
+            candidate_mode: Mode de travail préféré par le candidat
+            job_mode: Mode de travail du poste
             
         Returns:
-            str: Taille normalisée ('startup', 'small', 'medium', 'large')
+            float: Score de correspondance (0.0 - 1.0)
         """
-        if num_employees < 20:
-            return "startup"
-        elif num_employees < 100:
-            return "small"
-        elif num_employees < 1000:
-            return "medium"
+        if not candidate_mode or not job_mode:
+            return 0.5  # Valeur neutre si l'information est manquante
+        
+        # Normaliser les modes de travail
+        candidate_mode = candidate_mode.lower()
+        job_mode = job_mode.lower()
+        
+        # Correspondance exacte
+        if candidate_mode == job_mode:
+            return 1.0
+        
+        # Matrice de compatibilité entre modes de travail
+        compatibility = {
+            "remote": {"remote": 1.0, "hybrid": 0.7, "onsite": 0.2},
+            "hybrid": {"remote": 0.8, "hybrid": 1.0, "onsite": 0.7},
+            "onsite": {"remote": 0.3, "hybrid": 0.7, "onsite": 1.0}
+        }
+        
+        if candidate_mode in compatibility and job_mode in compatibility[candidate_mode]:
+            return compatibility[candidate_mode][job_mode]
+        
+        # Valeur par défaut
+        return 0.5
+    
+    def _extract_expected_salary(self, candidate_profile):
+        """
+        Extrait les attentes salariales du candidat.
+        
+        Args:
+            candidate_profile: Profil du candidat
+            
+        Returns:
+            Dict: Attentes salariales {min, max, currency}
+        """
+        if not candidate_profile:
+            return {}
+        
+        salary_info = {}
+        
+        # Chemins possibles pour les attentes salariales
+        salary_fields = [
+            "expected_salary", "salary_expectation", "desired_salary",
+            "salary_requirements", "compensation.expected"
+        ]
+        
+        for field in salary_fields:
+            parts = field.split('.')
+            current = candidate_profile
+            
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
+            
+            if current is not None:
+                if isinstance(current, dict):
+                    # Structure de salaire avec min/max/exact
+                    if "min" in current:
+                        salary_info["min"] = self._parse_salary_value(current["min"])
+                    if "max" in current:
+                        salary_info["max"] = self._parse_salary_value(current["max"])
+                    if "expected" in current:
+                        salary_info["expected"] = self._parse_salary_value(current["expected"])
+                    if "currency" in current:
+                        salary_info["currency"] = current["currency"]
+                    
+                    break
+                elif isinstance(current, (int, float)):
+                    # Valeur numérique directe
+                    salary_info["expected"] = current
+                    break
+                elif isinstance(current, str) and current.strip():
+                    # Essayer d'extraire des valeurs numériques de la chaîne
+                    parsed = self._parse_salary_string(current)
+                    if parsed:
+                        salary_info.update(parsed)
+                        break
+        
+        # Si aucune information n'a été trouvée, chercher dans d'autres champs textuels
+        if not salary_info:
+            text_fields = ["about_me", "job_preferences", "work_preferences"]
+            
+            for field in text_fields:
+                if field in candidate_profile and isinstance(candidate_profile[field], str):
+                    text = candidate_profile[field]
+                    
+                    # Recherche de patterns de salaire
+                    parsed = self._parse_salary_string(text)
+                    if parsed:
+                        salary_info.update(parsed)
+                        break
+        
+        return salary_info
+    
+    def _extract_job_salary(self, job_profile):
+        """
+        Extrait les informations salariales du poste.
+        
+        Args:
+            job_profile: Profil de l'offre d'emploi
+            
+        Returns:
+            Dict: Informations salariales {min, max, currency}
+        """
+        if not job_profile:
+            return {}
+        
+        salary_info = {}
+        
+        # Chemins possibles pour les informations salariales
+        salary_fields = [
+            "salary", "compensation", "salary_range",
+            "remuneration", "package"
+        ]
+        
+        for field in salary_fields:
+            if field in job_profile:
+                current = job_profile[field]
+                
+                if isinstance(current, dict):
+                    # Structure de salaire avec min/max
+                    if "min" in current:
+                        salary_info["min"] = self._parse_salary_value(current["min"])
+                    if "max" in current:
+                        salary_info["max"] = self._parse_salary_value(current["max"])
+                    if "currency" in current:
+                        salary_info["currency"] = current["currency"]
+                    
+                    break
+                elif isinstance(current, (int, float)):
+                    # Valeur numérique directe
+                    salary_info["min"] = current
+                    salary_info["max"] = current
+                    break
+                elif isinstance(current, str) and current.strip():
+                    # Essayer d'extraire des valeurs numériques de la chaîne
+                    parsed = self._parse_salary_string(current)
+                    if parsed:
+                        salary_info.update(parsed)
+                        break
+        
+        # Si aucune information n'a été trouvée, chercher dans la description
+        if not salary_info and "description" in job_profile:
+            description = job_profile["description"]
+            if isinstance(description, str):
+                # Recherche de patterns de salaire
+                parsed = self._parse_salary_string(description)
+                if parsed:
+                    salary_info.update(parsed)
+        
+        return salary_info
+    
+    def _parse_salary_value(self, value):
+        """
+        Convertit une valeur salariale en nombre.
+        
+        Args:
+            value: Valeur à convertir
+            
+        Returns:
+            float: Valeur salariale normalisée
+        """
+        if isinstance(value, (int, float)):
+            return float(value)
+        elif isinstance(value, str):
+            # Supprimer les caractères non numériques, sauf les points et virgules
+            numeric_str = re.sub(r'[^\d\.,]', '', value)
+            
+            # Remplacer les virgules par des points
+            numeric_str = numeric_str.replace(',', '.')
+            
+            # Essayer de convertir en nombre
+            try:
+                return float(numeric_str)
+            except:
+                pass
+        
+        return 0.0
+    
+    def _parse_salary_string(self, text):
+        """
+        Extrait les informations salariales d'une chaîne de texte.
+        
+        Args:
+            text: Texte à analyser
+            
+        Returns:
+            Dict: Informations salariales extraites
+        """
+        if not text:
+            return {}
+        
+        salary_info = {}
+        text = text.lower()
+        
+        # Détection de la devise
+        currencies = {
+            "€": "EUR",
+            "euros": "EUR",
+            "eur": "EUR",
+            "$": "USD",
+            "usd": "USD",
+            "dollars": "USD",
+            "£": "GBP",
+            "gbp": "GBP",
+            "livres": "GBP",
+            "pounds": "GBP",
+            "chf": "CHF",
+            "francs": "CHF"
+        }
+        
+        for symbol, code in currencies.items():
+            if symbol in text:
+                salary_info["currency"] = code
+                break
+        
+        # Détection du rythme (annuel, mensuel, journalier, horaire)
+        rhythm_multipliers = {
+            "annuel": 1,
+            "annual": 1,
+            "an": 1,
+            "année": 1,
+            "year": 1,
+            "yearly": 1,
+            "mensuel": 12,
+            "monthly": 12,
+            "mois": 12,
+            "month": 12,
+            "jour": 220,  # Environ 220 jours travaillés par an
+            "journalier": 220,
+            "daily": 220,
+            "day": 220,
+            "heure": 1750,  # Environ 1750 heures travaillées par an
+            "horaire": 1750,
+            "hourly": 1750,
+            "hour": 1750
+        }
+        
+        rhythm_multiplier = 1  # Par défaut, supposer annuel
+        
+        for rhythm, multiplier in rhythm_multipliers.items():
+            if rhythm in text:
+                rhythm_multiplier = multiplier
+                break
+        
+        # Détection de la fourchette salariale avec pattern matching
+        # Format: XX-YY, XX à YY, XX to YY, entre XX et YY, from XX to YY
+        range_patterns = [
+            r'(\d+[\d\s.,]*)\s*[-–—]\s*(\d+[\d\s.,]*)',           # XX-YY
+            r'(\d+[\d\s.,]*)\s*à\s*(\d+[\d\s.,]*)',              # XX à YY
+            r'(\d+[\d\s.,]*)\s*to\s*(\d+[\d\s.,]*)',             # XX to YY
+            r'entre\s*(\d+[\d\s.,]*)\s*et\s*(\d+[\d\s.,]*)',     # entre XX et YY
+            r'from\s*(\d+[\d\s.,]*)\s*to\s*(\d+[\d\s.,]*)'       # from XX to YY
+        ]
+        
+        for pattern in range_patterns:
+            match = re.search(pattern, text)
+            if match:
+                min_value = self._normalize_number(match.group(1))
+                max_value = self._normalize_number(match.group(2))
+                
+                if min_value and max_value:
+                    # Convert to annual rate if needed
+                    if rhythm_multiplier > 1:
+                        min_value *= rhythm_multiplier
+                        max_value *= rhythm_multiplier
+                    
+                    salary_info["min"] = min_value
+                    salary_info["max"] = max_value
+                    return salary_info
+        
+        # Si aucune fourchette n'est trouvée, chercher une valeur unique
+        # Format: XX, XX K, XX,XXX, etc.
+        single_patterns = [
+            r'(\d+[\d\s.,]*k)',                        # 50k, 50 k
+            r'(\d+[\d\s.,]*)\s*k€',                    # 50k€
+            r'(\d+[\d\s.,]*)\s*k\$',                   # 50k$
+            r'(\d+[\d\s.,]*)\s*k£',                    # 50k£
+            r'(\d+[\d\s.,]*)\s*mille',                 # 50 mille
+            r'(\d+[\d\s.,]*)\s*thousand',              # 50 thousand
+            r'(\d+[\d\s.,]*)[\s€£$]*'                  # Nombre simple avec ou sans symbole
+        ]
+        
+        for pattern in single_patterns:
+            match = re.search(pattern, text)
+            if match:
+                value = self._normalize_number(match.group(1))
+                
+                if 'k' in match.group(1).lower():
+                    value *= 1000
+                
+                if value:
+                    # Convert to annual rate if needed
+                    if rhythm_multiplier > 1:
+                        value *= rhythm_multiplier
+                    
+                    # Déduire min/max (±10%)
+                    salary_info["min"] = value * 0.9
+                    salary_info["max"] = value * 1.1
+                    salary_info["expected"] = value
+                    return salary_info
+        
+        return salary_info
+    
+    def _normalize_number(self, text):
+        """
+        Normalise une chaîne numérique en un nombre.
+        
+        Args:
+            text: Chaîne à normaliser
+            
+        Returns:
+            float: Nombre normalisé
+        """
+        if not text:
+            return 0.0
+        
+        # Supprimer les caractères non numériques, sauf les points et virgules
+        numeric_str = re.sub(r'[^\d\.,]', '', text)
+        
+        # Remplacer les virgules par des points
+        numeric_str = numeric_str.replace(',', '.')
+        
+        # Essayer de convertir en nombre
+        try:
+            return float(numeric_str)
+        except:
+            return 0.0
+    
+    def calculate_salary_match(self, candidate_salary, job_salary):
+        """
+        Calcule la correspondance entre les attentes salariales et l'offre.
+        
+        Args:
+            candidate_salary: Attentes salariales du candidat
+            job_salary: Informations salariales du poste
+            
+        Returns:
+            float: Score de correspondance (0.0 - 1.0)
+        """
+        if not candidate_salary or not job_salary:
+            return 0.5  # Valeur neutre si l'information est manquante
+        
+        # Extraire les valeurs min/max pour les deux côtés
+        candidate_min = candidate_salary.get("min", 0)
+        candidate_max = candidate_salary.get("max", 0)
+        candidate_expected = candidate_salary.get("expected", 0)
+        
+        job_min = job_salary.get("min", 0)
+        job_max = job_salary.get("max", 0)
+        
+        # Si le candidat a seulement une valeur attendue
+        if candidate_min == 0 and candidate_max == 0 and candidate_expected > 0:
+            candidate_min = candidate_expected * 0.9
+            candidate_max = candidate_expected * 1.1
+        
+        # Si l'offre a seulement une valeur minimale
+        if job_min > 0 and job_max == 0:
+            job_max = job_min * 1.2  # Estimer un maximum à +20%
+        
+        # Si le candidat a seulement une valeur minimale
+        if candidate_min > 0 and candidate_max == 0:
+            candidate_max = candidate_min * 1.3  # Estimer un maximum à +30%
+        
+        # Vérifier les devises
+        candidate_currency = candidate_salary.get("currency", "EUR")
+        job_currency = job_salary.get("currency", "EUR")
+        
+        # Si les devises sont différentes, appliquer une conversion approximative
+        if candidate_currency != job_currency:
+            # Conversion simplifiée (à remplacer par une vraie API de conversion)
+            exchange_rates = {
+                "EUR_USD": 1.1,  # 1 EUR = 1.1 USD
+                "USD_EUR": 0.9,  # 1 USD = 0.9 EUR
+                "GBP_EUR": 1.2,  # 1 GBP = 1.2 EUR
+                "EUR_GBP": 0.85  # 1 EUR = 0.85 GBP
+            }
+            
+            conversion_key = f"{candidate_currency}_{job_currency}"
+            inverse_key = f"{job_currency}_{candidate_currency}"
+            
+            if conversion_key in exchange_rates:
+                candidate_min *= exchange_rates[conversion_key]
+                candidate_max *= exchange_rates[conversion_key]
+                candidate_expected *= exchange_rates[conversion_key]
+            elif inverse_key in exchange_rates:
+                candidate_min /= exchange_rates[inverse_key]
+                candidate_max /= exchange_rates[inverse_key]
+                candidate_expected /= exchange_rates[inverse_key]
+        
+        # Calculer le chevauchement des fourchettes
+        if candidate_min == 0 or job_min == 0:
+            # Si les données sont incomplètes
+            if candidate_expected > 0 and job_min > 0 and job_max > 0:
+                # Voir si le salaire attendu est dans la fourchette du poste
+                if job_min <= candidate_expected <= job_max:
+                    return 1.0
+                elif candidate_expected < job_min:
+                    # Candidat demande moins que l'offre (bon pour l'employeur)
+                    return 0.9
+                else:
+                    # Candidat demande plus que le maximum
+                    ratio = job_max / candidate_expected
+                    return max(0.0, min(0.8, ratio))
+            else:
+                return 0.5  # Valeur neutre si les données sont trop incomplètes
+        
+        # Calculer le chevauchement des fourchettes
+        overlap_min = max(candidate_min, job_min)
+        overlap_max = min(candidate_max, job_max)
+        
+        if overlap_max < overlap_min:
+            # Aucun chevauchement
+            if candidate_max < job_min:
+                # Le candidat demande moins que le minimum offert
+                ratio = candidate_max / job_min
+                return min(1.0, 0.7 + ratio * 0.3)  # Max 1.0, min 0.7
+            else:
+                # Le candidat demande plus que le maximum offert
+                ratio = job_max / candidate_min
+                return max(0.0, ratio * 0.8)  # Max 0.8, min 0.0
         else:
-            return "large"
+            # Chevauchement des fourchettes
+            overlap_size = overlap_max - overlap_min
+            candidate_range = candidate_max - candidate_min
+            job_range = job_max - job_min
+            
+            # Calculer le ratio de chevauchement par rapport aux deux fourchettes
+            candidate_overlap_ratio = overlap_size / candidate_range if candidate_range > 0 else 0
+            job_overlap_ratio = overlap_size / job_range if job_range > 0 else 0
+            
+            # Moyenne pondérée des ratios
+            weighted_ratio = (candidate_overlap_ratio * 0.7) + (job_overlap_ratio * 0.3)
+            
+            return min(1.0, weighted_ratio)
     
-    def _extract_company_size_from_text(self, text):
+    def _extract_preferred_company_size(self, candidate_profile):
         """
-        Extrait la taille de l'entreprise à partir d'un texte.
+        Extrait la taille d'entreprise préférée par le candidat.
         
         Args:
-            text: Texte décrivant l'entreprise ou les préférences
+            candidate_profile: Profil du candidat
+            
+        Returns:
+            str: Taille d'entreprise préférée
+        """
+        if not candidate_profile:
+            return ""
+        
+        # Chemins possibles pour la taille d'entreprise
+        size_fields = [
+            "preferred_company_size", "company_size_preference",
+            "work_preferences.company_size", "preferred_employer.size"
+        ]
+        
+        for field in size_fields:
+            parts = field.split('.')
+            current = candidate_profile
+            
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
+            
+            if current and isinstance(current, str) and current.strip():
+                value = current.strip().lower()
+                
+                # Correspondance avec une taille connue
+                for size_type, keywords in self.company_sizes.items():
+                    if any(keyword in value for keyword in keywords):
+                        return size_type
+                
+                return value
+        
+        # Recherche dans d'autres champs textuels
+        text_fields = ["about_me", "job_preferences", "work_preferences"]
+        
+        combined_text = ""
+        for field in text_fields:
+            if field in candidate_profile and isinstance(candidate_profile[field], str):
+                combined_text += " " + candidate_profile[field].lower()
+        
+        # Recherche des tailles d'entreprise dans le texte
+        for size_type, keywords in self.company_sizes.items():
+            for keyword in keywords:
+                if keyword in combined_text:
+                    return size_type
+        
+        return ""
+    
+    def _extract_company_size(self, job_profile):
+        """
+        Extrait la taille de l'entreprise proposant le poste.
+        
+        Args:
+            job_profile: Profil de l'offre d'emploi
             
         Returns:
             str: Taille de l'entreprise
         """
-        # Compter les occurrences de chaque type
-        scores = {size: 0 for size in self.company_size_mapping}
+        if not job_profile:
+            return ""
         
-        for size, keywords in self.company_size_mapping.items():
+        # Chemins possibles pour la taille d'entreprise
+        size_fields = [
+            "company_size", "company.size", "employer_size",
+            "organization_size", "workforce"
+        ]
+        
+        for field in size_fields:
+            parts = field.split('.')
+            current = job_profile
+            
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
+            
+            if current is not None:
+                if isinstance(current, str) and current.strip():
+                    value = current.strip().lower()
+                    
+                    # Correspondance avec une taille connue
+                    for size_type, keywords in self.company_sizes.items():
+                        if any(keyword in value for keyword in keywords):
+                            return size_type
+                    
+                    # Analyse numérique
+                    if re.search(r'\d+', value):
+                        numbers = re.findall(r'\d+', value)
+                        if numbers:
+                            num = int(numbers[0])
+                            
+                            if num < 20:
+                                return "startup"
+                            elif num < 250:
+                                return "sme"
+                            elif num < 1000:
+                                return "large"
+                            else:
+                                return "multinational"
+                    
+                    return value
+                elif isinstance(current, (int, float)):
+                    # Interprétation numérique directe
+                    num = int(current)
+                    
+                    if num < 20:
+                        return "startup"
+                    elif num < 250:
+                        return "sme"
+                    elif num < 1000:
+                        return "large"
+                    else:
+                        return "multinational"
+        
+        # Recherche dans la description ou le nom de l'entreprise
+        text_fields = ["company_description", "about_company", "company_name"]
+        
+        combined_text = ""
+        for field in text_fields:
+            if field in job_profile and isinstance(job_profile[field], str):
+                combined_text += " " + job_profile[field].lower()
+        
+        # Recherche des indices de taille dans le texte
+        for size_type, keywords in self.company_sizes.items():
             for keyword in keywords:
-                if re.search(r'\b' + re.escape(keyword) + r'\b', text.lower()):
-                    scores[size] += 1
+                if keyword in combined_text:
+                    return size_type
         
-        # Identifier le type avec le score le plus élevé
-        best_size = max(scores.items(), key=lambda x: x[1])
+        # Cas des grands groupes connus
+        if "company_name" in job_profile and isinstance(job_profile["company_name"], str):
+            company_name = job_profile["company_name"].lower()
+            
+            # Liste indicative de grands groupes
+            large_companies = ["google", "amazon", "microsoft", "apple", "facebook", "meta", 
+                             "ibm", "oracle", "sap", "accenture", "capgemini", "atos",
+                             "orange", "edf", "total", "bnp", "société générale", "axa"]
+            
+            for large_company in large_companies:
+                if large_company in company_name:
+                    return "multinational"
         
-        # Retourner le type s'il y a des correspondances
-        if best_size[1] > 0:
-            return best_size[0]
-        
-        # Chercher des nombres d'employés
-        for match in re.finditer(r'(\d+)[\s\-]*(\d*)\s*(personnes|salariés|employés|collaborateurs|employees|staff|people)', text.lower()):
-            min_size = int(match.group(1))
-            max_size = int(match.group(2)) if match.group(2) else min_size
-            avg_size = (min_size + max_size) / 2
-            return self._normalize_company_size_from_number(avg_size)
-        
-        return None
+        return ""
     
-    def calculate_company_size_match(self, candidate_size, company_size):
+    def calculate_company_size_match(self, candidate_preference, company_size):
         """
-        Calcule la compatibilité entre les tailles d'entreprise.
+        Calcule la correspondance entre les tailles d'entreprise.
         
         Args:
-            candidate_size: Taille d'entreprise préférée par le candidat
-            company_size: Taille réelle de l'entreprise
+            candidate_preference: Taille préférée par le candidat
+            company_size: Taille de l'entreprise
             
         Returns:
-            float: Score de compatibilité (0.0 - 1.0)
+            float: Score de correspondance (0.0 - 1.0)
         """
-        if not candidate_size or not company_size:
-            return 0.5  # Valeur neutre
+        if not candidate_preference or not company_size:
+            return 0.5  # Valeur neutre si l'information est manquante
         
-        # Matrice de compatibilité
+        # Normaliser les tailles
+        candidate_preference = candidate_preference.lower()
+        company_size = company_size.lower()
+        
+        # Correspondance exacte
+        if candidate_preference == company_size:
+            return 1.0
+        
+        # Matrice de compatibilité entre tailles d'entreprise
         compatibility = {
-            "startup": {"startup": 1.0, "small": 0.8, "medium": 0.4, "large": 0.2},
-            "small": {"startup": 0.7, "small": 1.0, "medium": 0.7, "large": 0.3},
-            "medium": {"startup": 0.3, "medium": 1.0, "small": 0.7, "large": 0.7},
-            "large": {"startup": 0.2, "small": 0.3, "medium": 0.7, "large": 1.0}
+            "startup": {"startup": 1.0, "sme": 0.8, "large": 0.4, "multinational": 0.2},
+            "sme": {"startup": 0.7, "sme": 1.0, "large": 0.7, "multinational": 0.5},
+            "large": {"startup": 0.3, "sme": 0.7, "large": 1.0, "multinational": 0.8},
+            "multinational": {"startup": 0.2, "sme": 0.5, "large": 0.8, "multinational": 1.0}
         }
         
-        # Récupérer le score de compatibilité
-        if candidate_size in compatibility and company_size in compatibility[candidate_size]:
-            return compatibility[candidate_size][company_size]
+        if candidate_preference in compatibility and company_size in compatibility[candidate_preference]:
+            return compatibility[candidate_preference][company_size]
         
-        return 0.5  # Valeur par défaut
-        
-    def _extract_work_environment(self, profile, env_type, type_name):
-        """
-        Extrait les préférences d'environnement de travail.
-        
-        Args:
-            profile: Dictionnaire contenant les informations
-            env_type: Type d'environnement (pace, formality, hierarchy, management)
-            type_name: Type de préférence (preferred ou actual)
-            
-        Returns:
-            str: Préférence d'environnement normalisée
-        """
-        if not profile or not env_type or env_type not in self.work_environment_mapping:
-            return None
-            
-        # Champs possibles selon le type
-        if type_name == "preferred":
-            fields = ["preferred_environment", "work_preferences", "environment_preferences"]
-        else:  # actual
-            fields = ["work_environment", "environment", "culture", "company_culture"]
-        
-        # Vérifier d'abord les structures imbriquées
-        for field in fields:
-            if field in profile:
-                value = profile[field]
-                if isinstance(value, dict) and env_type in value:
-                    return self._normalize_work_environment(value[env_type], env_type)
-        
-        # Chercher dans les champs généraux
-        text = ""
-        for field in fields + ["description", "about"]:
-            if field in profile and isinstance(profile[field], str):
-                text += profile[field].lower() + " "
-        
-        if text:
-            return self._extract_work_environment_from_text(text, env_type)
-        
-        return None
+        # Valeur par défaut
+        return 0.5
     
-    def _normalize_work_environment(self, value, env_type):
+    def _extract_preferred_industries(self, candidate_profile):
         """
-        Normalise une valeur d'environnement de travail.
+        Extrait les secteurs d'activité préférés par le candidat.
         
         Args:
-            value: Valeur à normaliser
-            env_type: Type d'environnement
+            candidate_profile: Profil du candidat
             
         Returns:
-            str: Valeur normalisée
+            List: Secteurs préférés
         """
-        if not value or not env_type or env_type not in self.work_environment_mapping:
-            return None
+        if not candidate_profile:
+            return []
+        
+        industries = []
+        
+        # Chemins possibles pour les secteurs préférés
+        industry_fields = [
+            "preferred_industries", "preferred_sectors", "industry_preference",
+            "work_preferences.industries", "desired_industries"
+        ]
+        
+        for field in industry_fields:
+            parts = field.split('.')
+            current = candidate_profile
             
-        value_lower = value.lower()
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
+            
+            if current is not None:
+                if isinstance(current, list):
+                    for item in current:
+                        if isinstance(item, str) and item.strip():
+                            industries.append(item.strip().lower())
+                elif isinstance(current, str) and current.strip():
+                    for industry in current.split(','):
+                        if industry.strip():
+                            industries.append(industry.strip().lower())
         
-        # Vérifier les correspondances directes
-        for standard_value, keywords in self.work_environment_mapping[env_type].items():
-            if any(kw in value_lower for kw in keywords):
-                return standard_value
+        # Si aucune préférence explicite n'est trouvée, déduire des expériences passées
+        if not industries and "experience" in candidate_profile:
+            experiences = candidate_profile["experience"]
+            
+            if isinstance(experiences, list):
+                for exp in experiences:
+                    if isinstance(exp, dict) and "industry" in exp:
+                        industry = exp["industry"]
+                        if isinstance(industry, str) and industry.strip():
+                            industries.append(industry.strip().lower())
         
-        return None
+        # Enlever les doublons
+        return list(set(industries))
     
-    def _extract_work_environment_from_text(self, text, env_type):
+    def _extract_job_industry(self, job_profile):
         """
-        Extrait une préférence d'environnement de travail à partir d'un texte.
+        Extrait le secteur d'activité du poste/de l'entreprise.
         
         Args:
-            text: Texte décrivant l'environnement ou les préférences
-            env_type: Type d'environnement
+            job_profile: Profil de l'offre d'emploi
             
         Returns:
-            str: Valeur d'environnement
-        """
-        if not text or not env_type or env_type not in self.work_environment_mapping:
-            return None
-            
-        # Compter les occurrences de chaque valeur
-        scores = {value: 0 for value in self.work_environment_mapping[env_type]}
-        
-        for value, keywords in self.work_environment_mapping[env_type].items():
-            for keyword in keywords:
-                if re.search(r'\b' + re.escape(keyword) + r'\b', text.lower()):
-                    scores[value] += 1
-        
-        # Identifier la valeur avec le score le plus élevé
-        best_value = max(scores.items(), key=lambda x: x[1])
-        
-        # Retourner la valeur s'il y a des correspondances
-        if best_value[1] > 0:
-            return best_value[0]
-        
-        return None
-    
-    def calculate_work_environment_match(self, candidate_pref, company_env):
-        """
-        Calcule la compatibilité entre les préférences d'environnement de travail.
-        
-        Args:
-            candidate_pref: Préférence d'environnement du candidat
-            company_env: Environnement de l'entreprise
-            
-        Returns:
-            float: Score de compatibilité (0.0 - 1.0)
-        """
-        if not candidate_pref or not company_env:
-            return 0.5  # Valeur neutre
-        
-        # Compatibilité simple: 1.0 si identique, 0.5 sinon
-        if candidate_pref == company_env:
-            return 1.0
-        else:
-            # Pour certaines combinaisons, la compatibilité peut être moyenne
-            if (candidate_pref in ["balanced", "medium"] or 
-                company_env in ["balanced", "medium"]):
-                return 0.7
-            
-            return 0.3
-    
-    def _extract_industry(self, profile, type_name):
-        """
-        Extrait le secteur d'activité préféré ou réel.
-        
-        Args:
-            profile: Dictionnaire contenant les informations
-            type_name: Type (preferred, company)
-            
-        Returns:
-            str ou list: Secteur(s) d'activité
-        """
-        if not profile:
-            return None
-            
-        # Champs possibles selon le type
-        if type_name == "preferred":
-            fields = ["preferred_industry", "industry_preference", "sectors"]
-        else:  # company
-            fields = ["industry", "sector", "business_sector", "domain"]
-        
-        # Chercher dans les champs appropriés
-        for field in fields:
-            if field in profile:
-                value = profile[field]
-                if isinstance(value, str):
-                    return self._normalize_industry(value)
-                elif isinstance(value, list) and all(isinstance(item, str) for item in value):
-                    return [self._normalize_industry(item) for item in value if self._normalize_industry(item)]
-        
-        # Rechercher dans d'autres champs
-        text = ""
-        search_fields = ["description", "about", "company_description"] if type_name == "company" else ["preferences", "about"]
-        
-        for field in search_fields:
-            if field in profile and isinstance(profile[field], str):
-                text += profile[field].lower() + " "
-        
-        if text:
-            return self._extract_industry_from_text(text)
-        
-        return None
-    
-    def _normalize_industry(self, industry):
-        """
-        Normalise un secteur d'activité.
-        
-        Args:
-            industry: Chaîne décrivant le secteur
-            
-        Returns:
-            str: Secteur normalisé
-        """
-        if not industry:
-            return None
-            
-        industry_lower = industry.lower()
-        
-        for standard_industry, keywords in self.industry_mapping.items():
-            if any(kw in industry_lower for kw in keywords):
-                return standard_industry
-        
-        return None
-    
-    def _extract_industry_from_text(self, text):
-        """
-        Extrait les secteurs d'activité à partir d'un texte.
-        
-        Args:
-            text: Texte décrivant l'entreprise ou les préférences
-            
-        Returns:
-            list: Liste des secteurs identifiés
-        """
-        if not text:
-            return None
-            
-        # Compter les occurrences de chaque secteur
-        scores = {industry: 0 for industry in self.industry_mapping}
-        
-        for industry, keywords in self.industry_mapping.items():
-            for keyword in keywords:
-                pattern = r'\b' + re.escape(keyword) + r'\b'
-                matches = re.findall(pattern, text.lower())
-                scores[industry] += len(matches)
-        
-        # Filtrer les secteurs avec des correspondances
-        found_industries = [industry for industry, score in scores.items() if score > 0]
-        
-        if found_industries:
-            return found_industries
-        
-        return None
-    
-    def calculate_industry_match(self, candidate_industries, company_industries):
-        """
-        Calcule la compatibilité entre les secteurs d'activité.
-        
-        Args:
-            candidate_industries: Secteurs préférés du candidat
-            company_industries: Secteurs de l'entreprise
-            
-        Returns:
-            float: Score de compatibilité (0.0 - 1.0)
-        """
-        if not candidate_industries or not company_industries:
-            return 0.5  # Valeur neutre
-        
-        # Normaliser en listes
-        if isinstance(candidate_industries, str):
-            candidate_industries = [candidate_industries]
-        if isinstance(company_industries, str):
-            company_industries = [company_industries]
-        
-        # Compter les correspondances
-        matches = sum(1 for ind in candidate_industries if ind in company_industries)
-        
-        if not matches:
-            return 0.2  # Pas de correspondance
-        
-        # Calculer le score en fonction du nombre de correspondances
-        max_possible = min(len(candidate_industries), len(company_industries))
-        return min(1.0, 0.5 + (matches / max_possible) * 0.5)
-    
-    def _extract_travel_willingness(self, profile):
-        """
-        Extrait la volonté de déplacement du candidat.
-        
-        Args:
-            profile: Profil du candidat
-            
-        Returns:
-            str: Niveau de volonté de déplacement
-        """
-        if not profile:
-            return None
-            
-        # Champs possibles
-        fields = ["travel_willingness", "willing_to_travel", "travel_preference", "mobility"]
-        
-        # Chercher dans les champs appropriés
-        for field in fields:
-            if field in profile:
-                value = profile[field]
-                if isinstance(value, str):
-                    return self._normalize_travel_willingness(value)
-                elif isinstance(value, (int, float)):
-                    # Si c'est un pourcentage
-                    return self._normalize_travel_percentage(value)
-        
-        # Rechercher dans d'autres champs
-        text = ""
-        for field in ["about", "preferences", "mobility"]:
-            if field in profile and isinstance(profile[field], str):
-                text += profile[field].lower() + " "
-        
-        if text:
-            return self._extract_travel_willingness_from_text(text)
-        
-        return None
-    
-    def _normalize_travel_willingness(self, willingness):
-        """
-        Normalise la volonté de déplacement.
-        
-        Args:
-            willingness: Chaîne décrivant la volonté de déplacement
-            
-        Returns:
-            str: Niveau normalisé (none, low, medium, high)
-        """
-        if not willingness:
-            return None
-            
-        willingness_lower = willingness.lower()
-        
-        # Chercher des mots-clés
-        if any(kw in willingness_lower for kw in ["no", "non", "aucun", "pas", "jamais", "0%"]):
-            return "none"
-        elif any(kw in willingness_lower for kw in ["peu", "faible", "minimal", "occasionnel", "rare", "low", "little", "<25%", "< 25%", "moins de 25%"]):
-            return "low"
-        elif any(kw in willingness_lower for kw in ["moyen", "medium", "modéré", "occasionnel", "25-50%", "25%-50%", "25 à 50%"]):
-            return "medium"
-        elif any(kw in willingness_lower for kw in ["élevé", "high", "fréquent", "frequent", "souvent", "often", ">50%", "> 50%", "plus de 50%"]):
-            return "high"
-        
-        # Chercher un pourcentage
-        match = re.search(r'(\d+)%', willingness_lower)
-        if match:
-            percentage = int(match.group(1))
-            return self._normalize_travel_percentage(percentage)
-        
-        return None
-    
-    def _normalize_travel_percentage(self, percentage):
-        """
-        Normalise un pourcentage de déplacement.
-        
-        Args:
-            percentage: Pourcentage de déplacement
-            
-        Returns:
-            str: Niveau normalisé (none, low, medium, high)
-        """
-        if percentage == 0:
-            return "none"
-        elif percentage < 25:
-            return "low"
-        elif percentage < 50:
-            return "medium"
-        else:
-            return "high"
-    
-    def _extract_travel_willingness_from_text(self, text):
-        """
-        Extrait la volonté de déplacement à partir d'un texte.
-        
-        Args:
-            text: Texte décrivant les préférences
-            
-        Returns:
-            str: Niveau de volonté de déplacement
-        """
-        if not text:
-            return None
-            
-        # Chercher des mots-clés
-        if re.search(r'\b(pas de (déplacement|voyage)|aucun (déplacement|voyage)|no travel|sans (déplacement|voyage))\b', text.lower()):
-            return "none"
-        elif re.search(r'\b(peu( de)? (déplacement|voyage)|occasionnel|rare|low travel|déplacement rare)\b', text.lower()):
-            return "low"
-        elif re.search(r'\b(déplacement|voyage)s?\s+(occasionnel|modéré|moyen|ponctuel|régulier)\b', text.lower()) or re.search(r'\b(medium|moderate) travel\b', text.lower()):
-            return "medium"
-        elif re.search(r'\b((beaucoup|nombreux|fréquent)s? (déplacement|voyage)s?|voyager (souvent|beaucoup|fréquemment)|high travel|frequent travel)\b', text.lower()):
-            return "high"
-        
-        # Chercher un pourcentage
-        match = re.search(r'(\d+)%\s*(de|du temps)?\s*(voyage|déplacement|travel)', text.lower())
-        if match:
-            percentage = int(match.group(1))
-            return self._normalize_travel_percentage(percentage)
-        
-        return None
-    
-    def _extract_travel_requirements(self, job_profile):
-        """
-        Extrait les exigences de déplacement d'un poste.
-        
-        Args:
-            job_profile: Profil du poste
-            
-        Returns:
-            str: Niveau d'exigence de déplacement
+            str: Secteur d'activité
         """
         if not job_profile:
-            return None
+            return ""
+        
+        # Chemins possibles pour le secteur d'activité
+        industry_fields = [
+            "industry", "sector", "company_industry",
+            "company.industry", "business_sector"
+        ]
+        
+        for field in industry_fields:
+            parts = field.split('.')
+            current = job_profile
             
-        # Champs possibles
-        fields = ["travel", "travel_requirements", "deplacements", "mobility"]
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
+            
+            if current and isinstance(current, str) and current.strip():
+                return current.strip().lower()
         
-        # Chercher dans les champs appropriés
-        for field in fields:
-            if field in job_profile:
-                value = job_profile[field]
-                if isinstance(value, str):
-                    return self._normalize_travel_willingness(value)
-                elif isinstance(value, (int, float)):
-                    return self._normalize_travel_percentage(value)
+        # Recherche dans d'autres champs
+        text_fields = ["company_description", "about_company", "job_description"]
         
-        # Rechercher dans d'autres champs
-        text = ""
-        for field in ["description", "job_description", "requirements"]:
+        for field in text_fields:
             if field in job_profile and isinstance(job_profile[field], str):
-                text += job_profile[field].lower() + " "
+                # Essayer de détecter le secteur dans le texte
+                text = job_profile[field].lower()
+                
+                for industry_type, keywords in self.industry_types.items():
+                    for keyword in keywords:
+                        if keyword in text:
+                            return industry_type
         
-        if text:
-            return self._extract_travel_willingness_from_text(text)
-        
-        return None
+        return ""
     
-    def calculate_travel_match(self, candidate_willingness, job_requirement):
+    def calculate_industry_match(self, candidate_industries, job_industry):
         """
-        Calcule la compatibilité entre la volonté de déplacement et les exigences.
+        Calcule la correspondance entre les secteurs d'activité.
         
         Args:
-            candidate_willingness: Volonté de déplacement du candidat
-            job_requirement: Exigences de déplacement du poste
+            candidate_industries: Secteurs préférés par le candidat
+            job_industry: Secteur du poste
             
         Returns:
-            float: Score de compatibilité (0.0 - 1.0)
+            float: Score de correspondance (0.0 - 1.0)
         """
-        if not candidate_willingness or not job_requirement:
-            return 0.5  # Valeur neutre
+        if not candidate_industries or not job_industry:
+            return 0.5  # Valeur neutre si l'information est manquante
         
-        # Matrice de compatibilité
+        # Si correspondance directe
+        if job_industry in candidate_industries:
+            return 1.0
+        
+        # Vérifier les correspondances partielles
+        for candidate_industry in candidate_industries:
+            # Correspondance textuelle partielle
+            if candidate_industry in job_industry or job_industry in candidate_industry:
+                return 0.9
+            
+            # Vérifier via la taxonomie des industries
+            for industry_type, keywords in self.industry_types.items():
+                if industry_type == job_industry or job_industry in keywords:
+                    # L'industrie du poste correspond à cette catégorie
+                    if industry_type == candidate_industry or candidate_industry in keywords:
+                        # Le candidat préfère cette même catégorie
+                        return 0.9
+        
+        # Si aucune correspondance n'est trouvée mais le candidat a plusieurs préférences
+        if len(candidate_industries) > 2:
+            return 0.4  # Le candidat semble flexible sur l'industrie
+        
+        # Faible correspondance
+        return 0.2
+    
+    def _extract_preferred_work_hours(self, candidate_profile):
+        """
+        Extrait les préférences d'horaires de travail du candidat.
+        
+        Args:
+            candidate_profile: Profil du candidat
+            
+        Returns:
+            Dict: Préférences d'horaires {type, min_hours, max_hours}
+        """
+        if not candidate_profile:
+            return {}
+        
+        hours_info = {}
+        
+        # Chemins possibles pour les préférences d'horaires
+        hours_fields = [
+            "preferred_work_hours", "work_hours_preference",
+            "work_preferences.hours", "work_time_preference"
+        ]
+        
+        for field in hours_fields:
+            parts = field.split('.')
+            current = candidate_profile
+            
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
+            
+            if current is not None:
+                if isinstance(current, dict):
+                    # Structure détaillée
+                    for key, value in current.items():
+                        hours_info[key] = value
+                    break
+                elif isinstance(current, str) and current.strip():
+                    # Analyse textuelle
+                    text = current.strip().lower()
+                    
+                    # Détecter le type (temps plein, partiel, etc.)
+                    if "plein" in text or "full" in text:
+                        hours_info["type"] = "full_time"
+                    elif "partiel" in text or "part" in text:
+                        hours_info["type"] = "part_time"
+                    elif "flexible" in text:
+                        hours_info["type"] = "flexible"
+                    
+                    # Essayer d'extraire les heures
+                    hours_match = re.search(r'(\d+)(?:\s*-\s*(\d+))?\s*(?:h|hour|heure)', text)
+                    if hours_match:
+                        if hours_match.group(2):  # Fourchette d'heures
+                            hours_info["min_hours"] = int(hours_match.group(1))
+                            hours_info["max_hours"] = int(hours_match.group(2))
+                        else:  # Valeur unique
+                            hours_value = int(hours_match.group(1))
+                            if hours_value < 30:
+                                hours_info["type"] = "part_time"
+                                hours_info["hours"] = hours_value
+                            else:
+                                hours_info["type"] = "full_time"
+                                hours_info["hours"] = hours_value
+                    
+                    break
+        
+        # Si aucune information spécifique n'est trouvée, chercher dans d'autres champs
+        if not hours_info:
+            text_fields = ["about_me", "job_preferences", "work_preferences"]
+            
+            combined_text = ""
+            for field in text_fields:
+                if field in candidate_profile and isinstance(candidate_profile[field], str):
+                    combined_text += " " + candidate_profile[field].lower()
+            
+            # Analyse simplifiée du texte combiné
+            if "temps plein" in combined_text or "full time" in combined_text:
+                hours_info["type"] = "full_time"
+            elif "temps partiel" in combined_text or "part time" in combined_text:
+                hours_info["type"] = "part_time"
+            elif "flexible" in combined_text:
+                hours_info["type"] = "flexible"
+        
+        return hours_info
+    
+    def _extract_job_work_hours(self, job_profile):
+        """
+        Extrait les horaires de travail du poste.
+        
+        Args:
+            job_profile: Profil de l'offre d'emploi
+            
+        Returns:
+            Dict: Horaires de travail {type, hours, min_hours, max_hours}
+        """
+        if not job_profile:
+            return {}
+        
+        hours_info = {}
+        
+        # Chemins possibles pour les horaires
+        hours_fields = [
+            "work_hours", "hours", "working_hours",
+            "job_type", "employment_type"
+        ]
+        
+        for field in hours_fields:
+            if field in job_profile:
+                value = job_profile[field]
+                
+                if isinstance(value, dict):
+                    # Structure détaillée
+                    for key, val in value.items():
+                        hours_info[key] = val
+                    break
+                elif isinstance(value, str) and value.strip():
+                    # Analyse textuelle
+                    text = value.strip().lower()
+                    
+                    # Détecter le type (temps plein, partiel, etc.)
+                    if "plein" in text or "full" in text or "cdi" in text:
+                        hours_info["type"] = "full_time"
+                    elif "partiel" in text or "part" in text:
+                        hours_info["type"] = "part_time"
+                    elif "flexible" in text:
+                        hours_info["type"] = "flexible"
+                    elif "stage" in text or "internship" in text:
+                        hours_info["type"] = "full_time"  # Supposer temps plein pour les stages
+                    
+                    # Essayer d'extraire les heures
+                    hours_match = re.search(r'(\d+)(?:\s*-\s*(\d+))?\s*(?:h|hour|heure)', text)
+                    if hours_match:
+                        if hours_match.group(2):  # Fourchette d'heures
+                            hours_info["min_hours"] = int(hours_match.group(1))
+                            hours_info["max_hours"] = int(hours_match.group(2))
+                        else:  # Valeur unique
+                            hours_value = int(hours_match.group(1))
+                            if hours_value < 35:
+                                hours_info["type"] = "part_time"
+                                hours_info["hours"] = hours_value
+                            else:
+                                hours_info["type"] = "full_time"
+                                hours_info["hours"] = hours_value
+                    
+                    break
+        
+        # Si aucune information spécifique n'est trouvée, chercher dans la description
+        if not hours_info and "description" in job_profile:
+            description = job_profile["description"]
+            if isinstance(description, str):
+                text = description.lower()
+                
+                # Analyse simplifiée du texte
+                if "temps plein" in text or "full time" in text or "cdi" in text:
+                    hours_info["type"] = "full_time"
+                elif "temps partiel" in text or "part time" in text:
+                    hours_info["type"] = "part_time"
+                elif "flexible" in text:
+                    hours_info["type"] = "flexible"
+                
+                # Chercher les heures spécifiques
+                hours_match = re.search(r'(\d+)(?:\s*-\s*(\d+))?\s*(?:h|hour|heure)', text)
+                if hours_match:
+                    if hours_match.group(2):  # Fourchette d'heures
+                        hours_info["min_hours"] = int(hours_match.group(1))
+                        hours_info["max_hours"] = int(hours_match.group(2))
+                    else:  # Valeur unique
+                        hours_value = int(hours_match.group(1))
+                        hours_info["hours"] = hours_value
+        
+        # Valeur par défaut si rien n'est trouvé
+        if not hours_info:
+            hours_info["type"] = "full_time"  # Supposer temps plein par défaut
+        
+        return hours_info
+    
+    def calculate_work_hours_match(self, candidate_hours, job_hours):
+        """
+        Calcule la correspondance entre les préférences d'horaires.
+        
+        Args:
+            candidate_hours: Préférences d'horaires du candidat
+            job_hours: Horaires du poste
+            
+        Returns:
+            float: Score de correspondance (0.0 - 1.0)
+        """
+        if not candidate_hours or not job_hours:
+            return 0.5  # Valeur neutre si l'information est manquante
+        
+        # Extraction des types d'horaires
+        candidate_type = candidate_hours.get("type", "")
+        job_type = job_hours.get("type", "")
+        
+        # Correspondance exacte des types
+        if candidate_type and job_type and candidate_type == job_type:
+            return 1.0
+        
+        # Matrice de compatibilité des types d'horaires
         compatibility = {
-            "none": {"none": 1.0, "low": 0.5, "medium": 0.1, "high": 0.0},
-            "low": {"none": 1.0, "low": 1.0, "medium": 0.6, "high": 0.2},
-            "medium": {"none": 1.0, "low": 1.0, "medium": 1.0, "high": 0.7},
-            "high": {"none": 1.0, "low": 1.0, "medium": 1.0, "high": 1.0}
+            "full_time": {"full_time": 1.0, "part_time": 0.3, "flexible": 0.8},
+            "part_time": {"full_time": 0.2, "part_time": 1.0, "flexible": 0.8},
+            "flexible": {"full_time": 0.7, "part_time": 0.8, "flexible": 1.0}
         }
         
-        # Récupérer le score de compatibilité
-        if candidate_willingness in compatibility and job_requirement in compatibility[candidate_willingness]:
-            return compatibility[candidate_willingness][job_requirement]
+        if candidate_type in compatibility and job_type in compatibility[candidate_type]:
+            type_score = compatibility[candidate_type][job_type]
+        else:
+            type_score = 0.5  # Valeur neutre si les types ne sont pas reconnus
         
-        return 0.5  # Valeur par défaut
+        # Vérification des heures spécifiques
+        hours_score = 0.5  # Valeur par défaut
+        
+        candidate_hours_value = candidate_hours.get("hours", 0)
+        job_hours_value = job_hours.get("hours", 0)
+        
+        candidate_min = candidate_hours.get("min_hours", 0)
+        candidate_max = candidate_hours.get("max_hours", 0)
+        
+        job_min = job_hours.get("min_hours", 0)
+        job_max = job_hours.get("max_hours", 0)
+        
+        # Si les deux ont des valeurs d'heures spécifiques
+        if candidate_hours_value > 0 and job_hours_value > 0:
+            # Calculer la proximité
+            diff = abs(candidate_hours_value - job_hours_value)
+            if diff == 0:
+                hours_score = 1.0
+            elif diff <= 5:
+                hours_score = 0.9
+            elif diff <= 10:
+                hours_score = 0.7
+            else:
+                hours_score = 0.5
+        
+        # Si les deux ont des fourchettes d'heures
+        elif candidate_min > 0 and candidate_max > 0 and job_min > 0 and job_max > 0:
+            # Calculer le chevauchement
+            overlap_min = max(candidate_min, job_min)
+            overlap_max = min(candidate_max, job_max)
+            
+            if overlap_max >= overlap_min:
+                # Il y a chevauchement
+                overlap_size = overlap_max - overlap_min
+                candidate_range = candidate_max - candidate_min
+                job_range = job_max - job_min
+                
+                overlap_ratio = overlap_size / min(candidate_range, job_range)
+                hours_score = overlap_ratio
+            else:
+                # Pas de chevauchement, calcul de proximité
+                if candidate_max < job_min:
+                    diff = job_min - candidate_max
+                else:
+                    diff = candidate_min - job_max
+                
+                if diff <= 5:
+                    hours_score = 0.5
+                elif diff <= 10:
+                    hours_score = 0.3
+                else:
+                    hours_score = 0.1
+        
+        # Combinaison des scores de type et d'heures
+        if hours_score == 0.5:  # Si pas d'information spécifique sur les heures
+            return type_score
+        else:
+            # Pondération : 60% type, 40% heures
+            return (type_score * 0.6) + (hours_score * 0.4)
+    
+    def _extract_max_commute_time(self, candidate_profile):
+        """
+        Extrait le temps de trajet maximal accepté par le candidat.
+        
+        Args:
+            candidate_profile: Profil du candidat
+            
+        Returns:
+            int: Temps de trajet maximal en minutes
+        """
+        if not candidate_profile:
+            return 0
+        
+        # Chemins possibles pour le temps de trajet
+        commute_fields = [
+            "max_commute_time", "commute_preference", "commute_max",
+            "work_preferences.commute_time", "mobility.max_commute"
+        ]
+        
+        for field in commute_fields:
+            parts = field.split('.')
+            current = candidate_profile
+            
+            for part in parts:
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    current = None
+                    break
+            
+            if current is not None:
+                if isinstance(current, (int, float)):
+                    return int(current)
+                elif isinstance(current, str):
+                    # Essayer d'extraire un nombre
+                    match = re.search(r'(\d+)', current)
+                    if match:
+                        value = int(match.group(1))
+                        
+                        # Convertir en minutes si nécessaire
+                        if "h" in current.lower() or "hour" in current.lower() or "heure" in current.lower():
+                            value *= 60
+                        
+                        return value
+        
+        # Recherche dans d'autres champs textuels
+        text_fields = ["about_me", "job_preferences", "work_preferences"]
+        
+        for field in text_fields:
+            if field in candidate_profile and isinstance(candidate_profile[field], str):
+                text = candidate_profile[field].lower()
+                
+                # Chercher des patterns comme "30 min max", "maximum 1h", etc.
+                hour_match = re.search(r'(?:max|maximum|moins de|jusqu\'à)\s*(\d+)\s*(?:h|hour|heure)', text)
+                if hour_match:
+                    return int(hour_match.group(1)) * 60
+                
+                min_match = re.search(r'(?:max|maximum|moins de|jusqu\'à)\s*(\d+)\s*(?:min|minute)', text)
+                if min_match:
+                    return int(min_match.group(1))
+        
+        # Valeur par défaut (60 minutes, une heure de trajet)
+        return 60
+    
+    def calculate_commute_time_match(self, max_commute_time, candidate_address, job_location):
+        """
+        Estime la correspondance de temps de trajet.
+        Note: Dans un système réel, on utiliserait une API de calcul de temps de trajet.
+        
+        Args:
+            max_commute_time: Temps de trajet maximal accepté (minutes)
+            candidate_address: Adresse du candidat
+            job_location: Localisation du poste
+            
+        Returns:
+            float: Score de correspondance (0.0 - 1.0)
+        """
+        if not max_commute_time or not candidate_address or not job_location:
+            return 0.5  # Valeur neutre si l'information est manquante
+        
+        # Simplification: vérifier si les villes correspondent directement
+        candidate_city, _ = self._extract_city_region(candidate_address)
+        job_city, _ = self._extract_city_region(job_location)
+        
+        if candidate_city and job_city and candidate_city == job_city:
+            # Même ville, très bonne correspondance
+            return 1.0
+        
+        # Simplification: estimation du temps de trajet basée sur une heuristique
+        # (Dans un vrai système, utiliser Google Maps Distance Matrix API)
+        
+        # Supposer un temps de trajet de 30min si même département, 90min sinon
+        _, candidate_dept = self._extract_city_region(candidate_address)
+        _, job_dept = self._extract_city_region(job_location)
+        
+        estimated_commute_time = 30 if candidate_dept and job_dept and candidate_dept == job_dept else 90
+        
+        # Calculer le ratio par rapport au temps maximal accepté
+        if estimated_commute_time <= max_commute_time:
+            # Le trajet estimé est acceptable
+            ratio = 1 - (estimated_commute_time / max_commute_time)
+            return 0.7 + (ratio * 0.3)  # Score entre 0.7 et 1.0
+        else:
+            # Le trajet estimé dépasse le maximum accepté
+            overage = estimated_commute_time / max_commute_time
+            if overage <= 1.5:
+                # Dépassement modéré (jusqu'à 50% de plus)
+                return 0.5 - ((overage - 1) * 0.6)  # Score entre 0.2 et 0.5
+            else:
+                # Dépassement important
+                return 0.2
