@@ -1,177 +1,145 @@
-# Backend NLP pour Commitment
+# API Commitment - Phase 5
 
-Ce backend implémente un système de parsing intelligent pour traiter automatiquement les fiches de poste, les CV et les questionnaires entreprises.
+API RESTful pour intégrer tous les composants ML du projet Commitment. Cette API permet l'upload et l'analyse de fiches de poste, l'analyse des réponses aux questionnaires, la génération de recommandations de matching, et l'enregistrement des feedbacks pour amélioration continue.
 
 ## Fonctionnalités
 
-- Détection automatique du type de document (CV ou fiche de poste)
-- Extraction des informations pertinentes:
-  - Pour les fiches de poste: titre, expérience requise, compétences, formation, type de contrat, localisation, rémunération
-  - Pour les CV: nom, contact, titre, compétences, formation, expérience, langues
-  - Pour les questionnaires entreprises: valeurs, culture d'entreprise, environnement de travail, technologies, secteur d'activité
-- Système de matching entre candidats et entreprises
-- Calcul des scores de confiance pour chaque champ extrait
-- API RESTful pour l'intégration avec le frontend
+- **Analyse de fiches de poste**: Extraction automatique d'informations clés à partir de fichiers PDF, DOCX ou texte brut
+- **Analyse de questionnaires**: Traitement des réponses pour identifier compétences, expériences et préférences
+- **Algorithme de matching**: Génération de recommandations de matching basées sur la compatibilité des profils
+- **Système de feedback**: Collecte et analyse des feedbacks pour amélioration continue des modèles ML
 
-### Nouvelles fonctionnalités (2025)
+## Technologies
 
-- **Classification avancée des documents** avec approche ML et règles heuristiques
-- **Extraction intelligente des sections** avec détection multi-stratégies
-- **Base de connaissances de compétences** avec taxonomie structurée
-- **Support multi-format amélioré** pour PDF, DOCX, HTML
-- **Pipeline robuste** avec gestion d'erreurs et journalisation
-- **Matching intelligent** entre candidats et entreprises basé sur des critères multiples
-- **Analyse des questionnaires entreprises** pour compréhension de la culture et des valeurs
+- [FastAPI](https://fastapi.tiangolo.com/): Framework API hautes performances
+- [Pydantic](https://docs.pydantic.dev/): Validation des données et sérialisation
+- [SQLAlchemy](https://www.sqlalchemy.org/): ORM pour la persistance des données
+- [spaCy](https://spacy.io/): NLP pour l'extraction d'informations et l'analyse de texte
+- [scikit-learn](https://scikit-learn.org/): Algorithmes de ML pour le matching et les recommandations
+- [pytest](https://docs.pytest.org/): Tests automatisés
+- [Swagger/OpenAPI](https://swagger.io/): Documentation interactive de l'API
 
 ## Installation
 
+1. Cloner ce dépôt:
 ```bash
-# Installer les dépendances
+git clone https://github.com/Bapt252/Commitment-.git
+cd Commitment-/backend
+```
+
+2. Créer un environnement virtuel Python:
+```bash
+python -m venv venv
+source venv/bin/activate  # Sur Windows: venv\Scripts\activate
+```
+
+3. Installer les dépendances:
+```bash
 pip install -r requirements.txt
-
-# Configurer automatiquement les modèles NLP et créer les répertoires nécessaires
-python setup_nlp.py
 ```
 
-## Utilisation de l'API
+4. Créer un fichier `.env` basé sur `.env.example` et configurer les variables d'environnement
 
-### 1. Lancer le serveur
+## Démarrage
+
+### Mode développement
 
 ```bash
-python run.py
+uvicorn app.main:app --reload --port 8000
 ```
 
-Le serveur sera accessible sur http://localhost:8000 par défaut.
+### Mode production
 
-### 2. Endpoints disponibles
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
 
-#### Parsing de documents
-- `POST /api/jobs/parse`: Analyse un texte (CV ou fiche de poste)
-  ```json
-  {
-    "text": "Votre texte à analyser ici..."
-  }
-  ```
+### Avec Docker
 
-- `POST /api/jobs/parse-file`: Analyse un fichier uploadé (CV ou fiche de poste)
+```bash
+docker compose up -d
+```
 
-#### Analyse des questionnaires entreprises
-- `POST /api/companies/questionnaire`: Analyse un questionnaire d'entreprise
-  ```json
-  {
-    "company_info": {
-      "name": "Entreprise XYZ",
-      "website": "https://xyz.com"
-    },
-    "company_values": "Nous valorisons l'innovation et la collaboration...",
-    "work_environment": {
-      "remote_policy": "hybrid",
-      "office_locations": ["Paris", "Lyon"]
-    },
-    "technologies": ["Python", "React", "AWS"]
-  }
-  ```
+## Structure du projet
 
-#### Matching candidats-entreprises
-- `GET /api/companies/match/{company_id}/candidates`: Trouve les candidats correspondant à une entreprise
-- `GET /api/users/match/{user_id}/companies`: Trouve les entreprises correspondant à un candidat
+```
+backend/
+├── app/                  # Code principal de l'application
+│   ├── api/              # Endpoints de l'API
+│   │   ├── endpoints/    # Endpoints organisés par fonctionnalité
+│   │   └── api.py        # Router principal
+│   ├── core/             # Configuration et fonctionnalités de base
+│   ├── ml/               # Modèles et composants ML
+│   ├── models/           # Modèles Pydantic pour la validation
+│   ├── db/               # Modèles SQLAlchemy et opérations CRUD
+│   ├── utils/            # Utilitaires divers
+│   └── main.py           # Point d'entrée de l'application
+├── data/                 # Données pour les modèles ML
+├── logs/                 # Fichiers de logs
+├── tests/                # Tests automatisés
+├── .env.example          # Exemple de configuration
+├── requirements.txt      # Dépendances Python
+└── run.py                # Script de démarrage
+```
 
-### 3. Format de réponse
+## Documentation API
 
-```json
-{
-  "doc_type": "cv" ou "job_posting" ou "company_questionnaire",
-  "extracted_data": {
-    "titre": "...",
-    "experience": [...],
-    "competences": [...],
-    "competences_categories": {
-      "langages_programmation": [...],
-      "technologies_web": [...],
-      "soft_skills": [...]
-    },
-    "values": {
-      "detected_values": {
-        "innovation": 0.8,
-        "collaboration": 0.7
-      }
-    },
-    ...
-  },
-  "confidence_scores": {
-    "titre": 0.95,
-    "experience": 0.85,
-    ...,
-    "global": 0.88
-  },
-  "metadata": {
-    "processing_time": 0.42,
-    "char_count": 4832,
-    "sections": ["header", "contact", ...],
-    "language": "fr",
-    "format_source": "PDF"
-  }
+L'API est documentée via Swagger/OpenAPI. Une fois l'API démarrée, accédez à:
+
+- Documentation Swagger: http://localhost:8000/docs
+- Documentation ReDoc: http://localhost:8000/redoc
+
+Pour plus de détails sur les endpoints, voir [backend/app/api/README.md](app/api/README.md).
+
+## Tests
+
+Pour exécuter les tests:
+
+```bash
+pytest -v
+```
+
+## Déploiement
+
+### Docker
+
+Un `Dockerfile` et un fichier `docker-compose.yml` sont fournis pour faciliter le déploiement.
+
+```bash
+docker compose up -d
+```
+
+### Kubernetes
+
+Des exemples de configurations Kubernetes sont disponibles dans le dossier `k8s/`.
+
+## Intégration avec le frontend
+
+Le frontend peut communiquer avec l'API REST aux endpoints définis. Exemple d'intégration:
+
+```javascript
+// Exemple d'appel pour l'analyse d'une fiche de poste
+async function parseJobPost(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await fetch('http://localhost:8000/api/v1/job-posts/parse', {
+    method: 'POST',
+    body: formData
+  });
+  
+  return response.json();
 }
 ```
 
-### Résultats de matching
+## Contribuer
 
-```json
-{
-  "results": [
-    {
-      "candidate_id": "c1",
-      "candidate_name": "Jean Dupont",
-      "match_score": 85.7,
-      "category_scores": {
-        "skills": 90.0,
-        "experience": 80.0,
-        "values": 85.0,
-        "work_environment": 75.0,
-        "education": 70.0
-      },
-      "title": "Développeur Full Stack"
-    },
-    ...
-  ],
-  "count": 10,
-  "company_id": "company123"
-}
-```
+1. Créer une branche pour votre fonctionnalité
+2. Ajouter vos changements
+3. Écrire des tests pour vos changements
+4. S'assurer que tous les tests passent
+5. Soumettre une Pull Request
 
-## Architecture
+## Licence
 
-- `document_classifier.py`: Détecte automatiquement le type de document avec ML
-- `section_extractor.py`: Identifie et extrait les sections du document
-- `skills_extractor.py`: Catégorise et extrait les compétences avec base de connaissances
-- `document_converter.py`: Convertit différents formats de documents
-- `job_parser.py`: Extrait les informations des fiches de poste
-- `cv_parser.py`: Extrait les informations des CV
-- `company_questionnaire_parser.py`: Analyse les questionnaires d'entreprise
-- `matching_engine.py`: Système de matching intelligent
-- `document_parser.py`: Pipeline principal de traitement
-
-## Technologies utilisées
-
-- spaCy pour l'analyse linguistique en français
-- scikit-learn pour les approches ML et le calcul de similarité
-- pdfminer.six et docx2txt pour le traitement de documents
-- joblib pour la sérialisation des modèles
-- Expressions régulières pour les patterns standards
-- FastAPI pour l'API RESTful
-
-## Tests et débogage
-
-Des logs détaillés sont disponibles dans le dossier `logs/`. Pour consulter les détails du traitement :
-
-```bash
-tail -f logs/document_parser.log
-```
-
-## Structure des données
-
-Le répertoire `data/` contient des ressources comme:
-- `skills_taxonomy.json`: Taxonomie des compétences
-- `company_values_taxonomy.json`: Taxonomie des valeurs d'entreprise
-- `industry_sectors.json`: Classification des secteurs d'activité
-- `matching_config.json`: Configuration des poids pour le matching
+Voir le fichier LICENSE à la racine du projet.
