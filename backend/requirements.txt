@@ -31,3 +31,12 @@ html2text==2020.1.16
 lxml==4.9.3
 beautifulsoup4==4.12.2
 chardet==5.2.0
+
+# Nouvelles dépendances pour l'API ML
+plotly==5.18.0
+matplotlib==3.8.0
+scipy==1.11.3
+nltk==3.8.1
+gensim==4.3.2
+sentence-transformers==2.2.2
+opencv-python==4.8.1.78
