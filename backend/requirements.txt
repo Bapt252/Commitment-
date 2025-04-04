@@ -31,3 +31,7 @@ html2text==2020.1.16
 lxml==4.9.3
 beautifulsoup4==4.12.2
 chardet==5.2.0
+
+# Dépendances pour le système de matching XGBoost
+xgboost==1.7.5
+shap==0.41.0
