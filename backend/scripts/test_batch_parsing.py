@@ -191,6 +191,12 @@ def batch_parsing(docs_folder="documents_a_analyser/"):
         json.dump(results, f, indent=2, ensure_ascii=False)
     
     print(f"Données exportées en JSON dans {json_file}")
+    
+    # Affiche les résultats dans la console pour un meilleur retour visuel
+    print("\n=== RÉSUMÉ DES DOCUMENTS ANALYSÉS ===")
+    print(json.dumps(results, indent=2, ensure_ascii=False))
+    print("\nNombre total de documents traités:", len(results))
+    return results
 
 # Point d'entrée si le script est exécuté directement
 if __name__ == "__main__":
