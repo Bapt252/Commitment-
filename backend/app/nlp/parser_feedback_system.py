@@ -368,6 +368,40 @@ class ParserFeedbackSystem:
             with open(export_file, 'w', encoding='utf-8') as f:
                 json.dump(export_data, f, ensure_ascii=False, indent=2)
             
+            # Créer également des fichiers séparés pour chaque type de document si on exporte tout
+            if not doc_type:
+                doc_types = set(item.get("doc_type", "unknown") for item in training_data)
+                for dt in doc_types:
+                    if dt == "unknown":
+                        continue
+                        
+                    dt_data = [item for item in export_data if item.get("doc_type") == dt]
+                    if dt_data:
+                        dt_export_file = output_path / f"training_data_{dt}.json"
+                        with open(dt_export_file, 'w', encoding='utf-8') as f:
+                            json.dump(dt_data, f, ensure_ascii=False, indent=2)
+                        logger.info(f"Données d'entraînement pour {dt} exportées dans {dt_export_file} ({len(dt_data)} éléments)")
+            
+            # Créer également un format compatible avec le fine-tuning BERT
+            bert_format = []
+            for item in export_data:
+                if "text" in item and "extraction" in item:
+                    # Pour chaque paire clé-valeur dans l'extraction, créer un exemple d'entraînement
+                    for key, value in item["extraction"].items():
+                        if isinstance(value, str):
+                            bert_item = {
+                                "text": item["text"],
+                                "field": key,
+                                "value": value
+                            }
+                            bert_format.append(bert_item)
+            
+            if bert_format:
+                bert_file = output_path / "bert_training_data.json"
+                with open(bert_file, 'w', encoding='utf-8') as f:
+                    json.dump(bert_format, f, ensure_ascii=False, indent=2)
+                logger.info(f"Format d'entraînement BERT exporté dans {bert_file} ({len(bert_format)} exemples)")
+            
             logger.info(f"Données d'entraînement exportées dans {export_file} ({len(export_data)} éléments)")
             return True
         except Exception as e:
@@ -399,13 +433,10 @@ class ParserFeedbackSystem:
                 logger.info(f"Aucune donnée d'entraînement disponible pour le type {doc_type}")
                 return extraction_result
             
-            # Pour l'instant, une approche simple: vérifier les champs manquants ou mal formatés
-            # Une approche plus sophistiquée nécessiterait un modèle d'apprentissage
-            
             # Copie du résultat original pour ne pas le modifier directement
             updated_result = extraction_result.copy()
             
-            # Liste des champs potentiellement manquants dans le résultat original
+            # 1. Vérifier les champs manquants
             if "extracted_data" in updated_result:
                 original_fields = set(updated_result["extracted_data"].keys())
                 
@@ -424,8 +455,93 @@ class ParserFeedbackSystem:
                         updated_result["improvement_suggestions"] = {}
                     
                     updated_result["improvement_suggestions"]["missing_fields"] = list(missing_fields)
-                    
                     logger.info(f"Champs potentiellement manquants identifiés: {missing_fields}")
+            
+            # 2. Corriger les formats et valeurs erronés basés sur des patterns connus
+            corrections_applied = []
+            
+            if "extracted_data" in updated_result:
+                extracted_data = updated_result["extracted_data"]
+                
+                # Pour chaque champ dans les données extraites
+                for field, value in extracted_data.items():
+                    # Chercher des modèles de correction dans les données d'entraînement
+                    potential_corrections = {}
+                    
+                    for training_item in training_data:
+                        if "corrected_extraction" in training_item and field in training_item["corrected_extraction"]:
+                            # Si le champ existe à la fois dans l'extraction originale et corrigée
+                            if "original_extraction" in training_item and field in training_item["original_extraction"]:
+                                orig_val = training_item["original_extraction"][field]
+                                corrected_val = training_item["corrected_extraction"][field]
+                                
+                                # Si une correction a été appliquée et que la valeur originale est similaire à notre valeur actuelle
+                                if orig_val != corrected_val and str(orig_val) == str(value):
+                                    # Enregistrer cette correction comme potentielle
+                                    if str(orig_val) not in potential_corrections:
+                                        potential_corrections[str(orig_val)] = []
+                                    potential_corrections[str(orig_val)].append(corrected_val)
+                    
+                    # Appliquer la correction la plus fréquente si disponible
+                    if str(value) in potential_corrections and potential_corrections[str(value)]:
+                        # Compter les occurrences de chaque correction
+                        correction_counts = {}
+                        for correction in potential_corrections[str(value)]:
+                            correction_str = str(correction)
+                            correction_counts[correction_str] = correction_counts.get(correction_str, 0) + 1
+                        
+                        # Trouver la correction la plus fréquente
+                        most_common_correction = max(correction_counts.items(), key=lambda x: x[1])[0]
+                        
+                        # Appliquer la correction si elle est significativement différente
+                        if most_common_correction != str(value):
+                            # Convertir au bon type si nécessaire
+                            if isinstance(value, int):
+                                try:
+                                    updated_result["extracted_data"][field] = int(most_common_correction)
+                                except ValueError:
+                                    updated_result["extracted_data"][field] = most_common_correction
+                            elif isinstance(value, float):
+                                try:
+                                    updated_result["extracted_data"][field] = float(most_common_correction)
+                                except ValueError:
+                                    updated_result["extracted_data"][field] = most_common_correction
+                            else:
+                                updated_result["extracted_data"][field] = most_common_correction
+                            
+                            corrections_applied.append({
+                                "field": field,
+                                "original": value,
+                                "corrected": updated_result["extracted_data"][field]
+                            })
+            
+            # 3. Ajouter des métadonnées sur les corrections appliquées
+            if corrections_applied:
+                if "feedback_applied" not in updated_result:
+                    updated_result["feedback_applied"] = {}
+                
+                updated_result["feedback_applied"]["corrections"] = corrections_applied
+                updated_result["feedback_applied"]["timestamp"] = datetime.datetime.now().isoformat()
+                updated_result["feedback_applied"]["source"] = "automatic"
+                
+                logger.info(f"{len(corrections_applied)} corrections appliquées basées sur le feedback utilisateur.")
+            
+            # 4. Calculer un score de confiance pour les corrections
+            if corrections_applied or ("improvement_suggestions" in updated_result and "missing_fields" in updated_result["improvement_suggestions"]):
+                confidence_adjustment = min(0.2, 0.05 * len(corrections_applied))
+                
+                if "confidence_scores" not in updated_result:
+                    updated_result["confidence_scores"] = {}
+                
+                # Ajuster le score global d'extraction
+                if "extraction" in updated_result["confidence_scores"]:
+                    # Diminuer le score car des corrections ont été nécessaires
+                    updated_result["confidence_scores"]["extraction"] = max(
+                        0.3, updated_result["confidence_scores"]["extraction"] - confidence_adjustment
+                    )
+                
+                # Ajouter un score pour les corrections appliquées
+                updated_result["confidence_scores"]["feedback_correction"] = min(0.9, 0.5 + 0.1 * len(corrections_applied))
             
             return updated_result
         except Exception as e:
