@@ -9,7 +9,7 @@ from app.nlp.document_classifier import DocumentClassifier
 from app.nlp.section_extractor import SectionExtractor
 from app.nlp.skills_extractor import SkillsKnowledgeBase
 from app.nlp.cv_parser import CVExtractor, parse_cv
-from app.nlp.job_parser import JobDescriptionExtractor, parse_job_description
+from app.nlp.job_parser import JobPostingExtractor, parse_job_description
 
 # Configuration du logging
 logging_configured = False
@@ -57,7 +57,7 @@ class DocumentParserPipeline:
             self.cv_extractor = None
             
         try:
-            self.job_extractor = JobDescriptionExtractor() if 'JobDescriptionExtractor' in globals() else None
+            self.job_extractor = JobPostingExtractor() if 'JobPostingExtractor' in globals() else None
         except Exception as e:
             self.logger.error(f"Erreur lors de l'initialisation de l'extracteur job: {e}")
             self.job_extractor = None
