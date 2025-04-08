@@ -1,9 +1,14 @@
 import re
 import spacy
 import torch
+import logging
+import io
 from typing import Dict, List, Tuple, Any, Optional, Union
 from transformers import CamembertTokenizer, CamembertModel
 from app.core.config import settings
+
+# Configurer le logging
+logger = logging.getLogger(__name__)
 
 # Chargement des modèles à l'initialisation
 nlp = None
@@ -11,25 +16,61 @@ tokenizer = None
 model = None
 
 def load_models():
-    """Charge les modèles NLP nécessaires"""
+    """Charge les modèles NLP nécessaires avec gestion d'erreurs robuste"""
     global nlp, tokenizer, model
     
     if nlp is None:
         try:
             nlp = spacy.load(settings.SPACY_MODEL)
-        except OSError:
-            # Télécharger si non disponible
-            spacy.cli.download(settings.SPACY_MODEL)
-            nlp = spacy.load(settings.SPACY_MODEL)
+            logger.info(f"Modèle spaCy {settings.SPACY_MODEL} chargé avec succès")
+        except OSError as e:
+            logger.warning(f"Modèle spaCy {settings.SPACY_MODEL} non trouvé, téléchargement en cours...")
+            try:
+                spacy.cli.download(settings.SPACY_MODEL)
+                nlp = spacy.load(settings.SPACY_MODEL)
+                logger.info(f"Modèle spaCy {settings.SPACY_MODEL} téléchargé et chargé avec succès")
+            except Exception as download_error:
+                logger.error(f"Échec du téléchargement du modèle spaCy: {str(download_error)}")
+                # Fallback vers un modèle plus léger si disponible
+                try:
+                    fallback_model = "fr_core_news_sm" if "fr_" in settings.SPACY_MODEL else "en_core_web_sm"
+                    logger.warning(f"Tentative de chargement du modèle de secours {fallback_model}")
+                    spacy.cli.download(fallback_model)
+                    nlp = spacy.load(fallback_model)
+                    logger.info(f"Modèle de secours {fallback_model} chargé")
+                except Exception as fallback_error:
+                    logger.critical(f"Échec critique des modèles NLP: {str(fallback_error)}")
+                    # Créer un modèle vide comme dernier recours
+                    nlp = spacy.blank("fr" if "fr_" in settings.SPACY_MODEL else "en")
+                    logger.warning("Modèle spaCy vide chargé comme solution de dernier recours")
     
     if tokenizer is None or model is None:
-        tokenizer = CamembertTokenizer.from_pretrained(settings.CAMEMBERT_MODEL)
-        model = CamembertModel.from_pretrained(settings.CAMEMBERT_MODEL)
+        try:
+            tokenizer = CamembertTokenizer.from_pretrained(settings.CAMEMBERT_MODEL)
+            model = CamembertModel.from_pretrained(settings.CAMEMBERT_MODEL)
+            logger.info(f"Modèle CamemBERT {settings.CAMEMBERT_MODEL} chargé avec succès")
+        except Exception as e:
+            logger.error(f"Erreur lors du chargement du modèle CamemBERT: {str(e)}")
+            # Utiliser un modèle plus léger comme fallback
+            try:
+                fallback_camembert = "camembert-base"
+                logger.warning(f"Tentative de chargement du modèle de secours {fallback_camembert}")
+                tokenizer = CamembertTokenizer.from_pretrained(fallback_camembert)
+                model = CamembertModel.from_pretrained(fallback_camembert)
+                logger.info(f"Modèle de secours CamemBERT {fallback_camembert} chargé")
+            except Exception as fallback_error:
+                logger.critical(f"Échec critique des modèles CamemBERT: {str(fallback_error)}")
+                # Ici on pourrait définir un modèle factice, mais ce n'est pas idéal
+                # Mieux vaut désactiver les fonctionnalités qui en dépendent
 
 def preprocess_text(text: str) -> Dict[str, Any]:
     """Nettoie et prépare le texte pour l'analyse"""
     # Chargement des modèles si nécessaire
     load_models()
+    
+    if text is None or not isinstance(text, str):
+        logger.warning(f"Texte invalide reçu pour preprocessing: {type(text)}")
+        text = str(text) if text is not None else ""
     
     # Normalisation du texte
     text = text.replace('\xa0', ' ')  # Remplace les espaces insécables
@@ -54,13 +95,50 @@ def preprocess_text(text: str) -> Dict[str, Any]:
             sections[current_section].append(line)
     
     # Traitement par SpaCy pour analyse linguistique
-    doc = nlp(text)
+    try:
+        doc = nlp(text[:1000000]) # Limiter la taille pour éviter les erreurs de mémoire
+    except Exception as e:
+        logger.error(f"Erreur lors du traitement SpaCy: {str(e)}")
+        # Création d'un doc vide en fallback
+        doc = nlp("")
     
     return {
         "text": text,
         "sections": sections,
         "doc": doc
     }
+
+def extract_text_from_pdf(file_content: bytes) -> str:
+    """Extraction robuste de texte à partir de PDF avec méthodes de fallback"""
+    try:
+        from pdfminer.high_level import extract_text
+        # Première méthode avec pdfminer
+        with io.BytesIO(file_content) as pdf_file:
+            text = extract_text(pdf_file)
+        
+        # Vérifier si le texte est exploitable
+        if not text.strip() or len(text) < 100:
+            logger.warning("Extraction primaire PDF insuffisante, tentative avec méthode alternative")
+            # Utiliser PyPDF2 comme fallback
+            try:
+                import PyPDF2
+                with io.BytesIO(file_content) as pdf_file:
+                    reader = PyPDF2.PdfReader(pdf_file)
+                    text = ""
+                    for page in reader.pages:
+                        text += page.extract_text() + "\n"
+            except ImportError:
+                logger.warning("PyPDF2 non disponible pour l'extraction de secours")
+        
+        # Si toujours vide, potentiellement un PDF scanné
+        if not text.strip():
+            logger.warning("PDF probablement scanné ou protégé - extraction d'image nécessaire")
+            # Ici, on pourrait ajouter un appel à un service OCR
+        
+        return text
+    except Exception as e:
+        logger.error(f"Erreur d'extraction PDF: {str(e)}", exc_info=True)
+        return ""
 
 class JobPostingExtractor:
     def __init__(self):
@@ -84,25 +162,55 @@ class JobPostingExtractor:
         
     def parse_job_posting(self, text: str) -> Dict[str, Any]:
         """Parse une fiche de poste complète et retourne les informations extraites avec scores"""
-        preprocessed = preprocess_text(text)
-        
-        results = {}
-        confidence = {}
-        
-        # Extraction de chaque champ
-        for field, extractor in self.extractors.items():
-            value, score = extractor(preprocessed)
-            results[field] = value
-            confidence[field] = score
-        
-        # Calculer un score global
-        global_score = self.calculate_confidence_scores(results, preprocessed["doc"])
-        confidence.update(global_score)
-        
-        return {
-            "extracted_data": results,
-            "confidence_scores": confidence
-        }
+        try:
+            preprocessed = preprocess_text(text)
+            
+            results = {}
+            confidence = {}
+            
+            # Extraction de chaque champ
+            for field, extractor in self.extractors.items():
+                try:
+                    value, score = extractor(preprocessed)
+                    results[field] = value
+                    confidence[field] = score
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'extraction du champ {field}: {str(e)}")
+                    results[field] = "Non spécifié"
+                    confidence[field] = 0.1
+            
+            # Calculer un score global
+            global_score = self.calculate_confidence_scores(results, preprocessed["doc"])
+            confidence.update(global_score)
+            
+            return {
+                "extracted_data": results,
+                "confidence_scores": confidence
+            }
+        except Exception as e:
+            logger.error(f"Erreur lors du parsing de l'offre: {str(e)}", exc_info=True)
+            # Retourner un résultat vide mais structuré en cas d'erreur
+            return {
+                "extracted_data": {
+                    "titre": "Erreur de parsing",
+                    "experience": "Non spécifié",
+                    "competences": [],
+                    "formation": "Non spécifié",
+                    "contrat": "Non spécifié",
+                    "localisation": "Non spécifié",
+                    "remuneration": "Non spécifié"
+                },
+                "confidence_scores": {
+                    "titre": 0.0,
+                    "experience": 0.0,
+                    "competences": 0.0,
+                    "formation": 0.0,
+                    "contrat": 0.0,
+                    "localisation": 0.0,
+                    "remuneration": 0.0,
+                    "global": 0.0
+                }
+            }
     
     def extract_title(self, preprocessed: Dict[str, Any]) -> Tuple[str, float]:
         """Extrait le titre du poste"""
@@ -186,7 +294,7 @@ class JobPostingExtractor:
         return "Non spécifié", 0.3
 
     def extract_skills(self, preprocessed: Dict[str, Any]) -> Tuple[List[str], float]:
-        """Extrait les compétences techniques demandées"""
+        """Extrait les compétences techniques demandées avec une approche hybride"""
         doc = preprocessed["doc"]
         text = preprocessed["text"]
         
@@ -208,19 +316,64 @@ class JobPostingExtractor:
                     section_skills.append(item.strip())
                 
                 # Traiter le texte avec spaCy pour extraire les entités SKILL
-                section_doc = nlp(section_text)
-                for ent in section_doc.ents:
-                    if ent.label_ == "SKILL" or ent.label_ == "PRODUCT":
-                        section_skills.append(ent.text)
+                try:
+                    section_doc = nlp(section_text)
+                    for ent in section_doc.ents:
+                        if ent.label_ == "SKILL" or ent.label_ == "PRODUCT":
+                            section_skills.append(ent.text)
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'analyse SpaCy des compétences: {str(e)}")
                         
         if section_skills:
             top_skills = section_skills
             score = 0.9
         
         # Stratégie 2: Recherche de technologies standards
-        tech_stack = ["python", "java", "javascript", "c++", "sql", "react", "angular", "vue", 
-                      "node.js", "django", "flask", "spring", "aws", "azure", "docker", "kubernetes",
-                      "tensorflow", "pytorch", "nlp", "machine learning", "git", "devops"]
+        # Liste étendue de technologies et compétences techniques
+        tech_stack = [
+            # Langages de programmation
+            "python", "java", "javascript", "typescript", "c#", "c++", "c", "go", "golang", "ruby", "php", 
+            "swift", "kotlin", "rust", "scala", "perl", "r", "bash", "shell", "powershell", "objective-c",
+            
+            # Frontend
+            "html", "css", "sass", "less", "react", "angular", "vue", "jquery", "bootstrap", "material-ui",
+            "redux", "webpack", "babel", "typescript", "d3.js", "ember", "stimulus", "svelte",
+            
+            # Backend & frameworks
+            "node.js", "django", "flask", "spring", "symfony", "laravel", "rails", "express", "fastapi",
+            "asp.net", ".net", "dotnet", "spring boot", "hibernate", "struts",
+            
+            # Cloud & infrastructure
+            "aws", "azure", "gcp", "google cloud", "kubernetes", "docker", "terraform", "ansible", "chef",
+            "puppet", "jenkins", "gitlab ci", "github actions", "circleci", "travis",
+            
+            # Base de données
+            "sql", "mysql", "postgresql", "mongodb", "sqlite", "oracle", "cassandra", "redis", "elasticsearch",
+            "dynamodb", "mariadb", "nosql", "neo4j", "graphql", "datomic",
+            
+            # Data science & ML
+            "tensorflow", "pytorch", "scikit-learn", "pandas", "numpy", "scipy", "matplotlib", "keras",
+            "hadoop", "spark", "machine learning", "deep learning", "nlp", "computer vision", 
+            "natural language processing", "data mining", "apache beam", "airflow",
+            
+            # DevOps & SRE
+            "devops", "sre", "ci/cd", "monitoring", "prometheus", "grafana", "elk", "nagios", "zabbix",
+            "istio", "service mesh", "chaos engineering", "site reliability",
+            
+            # Gestion de versions & outils
+            "git", "svn", "mercurial", "github", "gitlab", "bitbucket", "jira", "confluence", "trello",
+            
+            # Méthodologies
+            "agile", "scrum", "kanban", "tdd", "bdd", "xp", "waterfall", "lean", "safe",
+            
+            # Mobile
+            "android", "ios", "flutter", "react native", "ionic", "xamarin", "cordova", "swift ui",
+            "jetpack compose",
+            
+            # Sécurité
+            "cybersecurity", "pentesting", "owasp", "encryption", "authentication", "authorization",
+            "oauth", "jwt", "saml", "sso"
+        ]
         
         tech_matches = []
         for tech in tech_stack:
@@ -248,7 +401,7 @@ class JobPostingExtractor:
                 score = 0.6
         
         if not top_skills:
-            return "Non spécifié", 0.3
+            return [], 0.3
         
         # Nettoyer et dédupliquer
         clean_skills = []
@@ -389,10 +542,13 @@ class JobPostingExtractor:
                 section_text = " ".join(preprocessed["sections"][section_name])
                 
                 # Réutiliser spaCy NER
-                section_doc = nlp(section_text)
-                for ent in section_doc.ents:
-                    if ent.label_ in ["LOC", "GPE"]:
-                        locations.append(ent.text)
+                try:
+                    section_doc = nlp(section_text)
+                    for ent in section_doc.ents:
+                        if ent.label_ in ["LOC", "GPE"]:
+                            locations.append(ent.text)
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'analyse SpaCy des localisations: {str(e)}")
         
         if locations:
             # Nettoyer et dédupliquer
