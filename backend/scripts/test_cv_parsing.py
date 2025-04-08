@@ -1,5 +1,5 @@
-from backend.app.utils.document_converter import DocumentConverter
-from backend.app.nlp.document_parser import process_document
+from app.utils.document_converter import DocumentConverter
+from app.nlp.document_parser import process_document
 import json
 
 # 🔁 Remplace ici par le nom exact de ton fichier glissé dans le dossier
@@ -14,7 +14,7 @@ format_type, mime_type = DocumentConverter.detect_format(content, file_path)
 print(f"📄 Format détecté : {format_type} ({mime_type})")
 
 # 🔄 Convertir le contenu en texte
-from backend.app.utils.file_extractor import extract_text_from_bytes
+from app.utils.file_extractor import extract_text_from_bytes
 text = extract_text_from_bytes(content, format_type)
 
 # 🧠 Lancer l'analyse du texte
