@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
           // Fallback: redirection standard
           document.getElementById('loading-overlay').classList.add('active');
           setTimeout(() => {
-            window.location.href = window.location.origin + '/Commitment-/templates/candidate-matching-improved.html';
+            window.location.href = 'candidate-matching-improved.html';
           }, 2000);
         }
       };
