@@ -1,5 +1,5 @@
 // API de traitement des questionnaires candidats
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'https://bapt252.github.io/Commitment-/api/v1';
 
 /**
  * Analyse les réponses du questionnaire candidat
@@ -8,20 +8,9 @@ const API_BASE_URL = 'http://localhost:8000/api/v1';
  */
 async function analyzeAnswers(answers) {
   try {
-    const response = await fetch(`${API_BASE_URL}/candidates/analyze`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ answers }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Erreur lors de l\'analyse du questionnaire');
-    }
-
-    return await response.json();
+    // Dans GitHub Pages, nous utilisons directement les données de test
+    console.log('Simulation d\'analyse sur les réponses:', answers);
+    return generateMockAnalysisResults();
   } catch (error) {
     console.error('Erreur:', error);
     throw error;
