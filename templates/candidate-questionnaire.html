@@ -1226,7 +1226,25 @@
     <script src="../static/scripts/candidate-analyzer.js"></script>
     <script src="../static/scripts/candidate-questionnaire-analyzer.js"></script>
     <script>
+        // Fonction pour rediriger directement vers les matchings en cas d'échec du système d'analyse
+        function redirectToMatchingPage() {
+            document.getElementById('loading-overlay').classList.add('active');
+            setTimeout(function() {
+                window.location.href = 'candidate-matching-improved.html';
+            }, 2000);
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
+            // En cas d'erreur d'analyse, ajouter un bouton de secours
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.addEventListener('dblclick', function(e) {
+                    e.preventDefault();
+                    console.log("Double-clic détecté - redirection de secours activée");
+                    redirectToMatchingPage();
+                });
+            }
+            
             // Création des particules pour l'arrière-plan hero
             const heroParticles = document.querySelector('.hero-particles');
             
