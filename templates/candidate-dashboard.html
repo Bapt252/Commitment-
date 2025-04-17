@@ -678,6 +678,406 @@
             width: auto;
             margin-bottom: 20px;
         }
+
+        /* Styles pour le mode fantôme */
+        /* Toggle switch pour le mode fantôme */
+        .ghost-toggle {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+            margin-right: 8px;
+        }
+        
+        .ghost-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .ghost-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-light);
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .ghost-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .ghost-slider {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+        }
+        
+        input:checked + .ghost-slider:before {
+            transform: translateX(24px);
+        }
+        
+        .ghost-info-icon {
+            color: var(--purple-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .ghost-info-icon:hover {
+            color: var(--purple);
+            transform: scale(1.2);
+        }
+        
+        /* Popup d'information du mode fantôme */
+        .ghost-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .ghost-popup.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .ghost-popup-content {
+            background-color: var(--white);
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transform: translateY(30px);
+            transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .ghost-popup.active .ghost-popup-content {
+            transform: translateY(0);
+        }
+        
+        .ghost-popup-header {
+            padding: var(--spacing-md);
+            background: linear-gradient(145deg, var(--purple-glass) 0%, rgba(255, 255, 255, 0.5) 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--cream-dark);
+        }
+        
+        .ghost-popup-header h3 {
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--purple);
+        }
+        
+        .ghost-popup-header h3 i {
+            font-size: 1.2rem;
+        }
+        
+        .ghost-popup-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .ghost-popup-close:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--black);
+            transform: rotate(90deg);
+        }
+        
+        .ghost-popup-body {
+            padding: var(--spacing-lg);
+        }
+        
+        .ghost-popup-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: var(--spacing-md);
+            color: var(--gray);
+        }
+        
+        .ghost-popup-features {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .ghost-feature {
+            display: flex;
+            gap: var(--spacing-md);
+            background-color: var(--cream);
+            padding: var(--spacing-md);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .ghost-feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .ghost-feature-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--purple-light) 0%, var(--purple) 100%);
+            color: var(--white);
+            border-radius: 12px;
+            flex-shrink: 0;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .ghost-feature:hover .ghost-feature-icon {
+            transform: scale(1.1) rotate(10deg);
+        }
+        
+        .ghost-feature-text h4 {
+            margin: 0 0 5px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+        
+        .ghost-feature:hover .ghost-feature-text h4 {
+            color: var(--purple);
+        }
+        
+        .ghost-feature-text p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .ghost-popup-actions {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+        
+        #activate-ghost-mode {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            color: var(--white);
+            border: none;
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.2);
+            font-weight: 500;
+        }
+        
+        #activate-ghost-mode:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+        }
+        
+        .ghost-popup-later {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 12px 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .ghost-popup-later:hover {
+            color: var(--black);
+            transform: translateY(-3px);
+        }
+        
+        /* Toast de notification */
+        .ghost-toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            width: 350px;
+            max-width: 90vw;
+            z-index: 1001;
+            overflow: hidden;
+            display: none;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        .ghost-toast.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .ghost-toast::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--purple) 0%, var(--purple-light) 100%);
+        }
+        
+        .ghost-toast-content {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-md);
+            gap: var(--spacing-md);
+        }
+        
+        .ghost-toast-icon {
+            font-size: 1.5rem;
+            color: var(--purple);
+            flex-shrink: 0;
+        }
+        
+        .ghost-toast-message {
+            flex: 1;
+        }
+        
+        .ghost-toast-message strong {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .ghost-toast-message p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .ghost-toast-close {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .ghost-toast-close:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--black);
+            transform: rotate(90deg);
+        }
+        
+        /* Badge mode fantôme */
+        .ghost-badge {
+            position: absolute;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.9) 0%, rgba(91, 33, 182, 0.9) 100%);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            animation: pulseGhost 2s infinite alternate;
+        }
+        
+        @keyframes pulseGhost {
+            0% {
+                box-shadow: 0 5px 15px rgba(124, 58, 237, 0.2);
+            }
+            100% {
+                box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+            }
+        }
+        
+        /* Animation pour la photo de profil quand le mode fantôme est activé */
+        .profile-photo.ghost-active {
+            animation: ghostEffect 3s infinite alternate;
+            border: 3px solid var(--purple-light);
+        }
+        
+        @keyframes ghostEffect {
+            0% {
+                opacity: 1;
+                box-shadow: 0 10px 25px rgba(124, 58, 237, 0.1);
+            }
+            100% {
+                opacity: 0.7;
+                box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+            }
+        }
+        
+        /* Media queries pour la responsivité du mode fantôme */
+        @media (max-width: 768px) {
+            .ghost-popup-content {
+                width: 95%;
+            }
+            
+            .ghost-popup-features {
+                grid-template-columns: 1fr;
+            }
+            
+            .ghost-feature {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .ghost-toast {
+                width: 90vw;
+                right: 5vw;
+                left: 5vw;
+            }
+        }
     </style>
 </head>
 <body>
@@ -722,6 +1122,11 @@
         <div class="candidate-dashboard-section fade-in">
             <div class="profile-container">
                 <div class="profile-header">
+                    <!-- Badge du mode fantôme -->
+                    <div class="ghost-badge" id="ghost-badge" style="display: none;">
+                        <i class="fas fa-ghost"></i> Mode fantôme actif
+                    </div>
+                    
                     <div class="profile-photo-container">
                         <div class="profile-photo"></div>
                         <div class="profile-actions">
@@ -750,6 +1155,17 @@
                                     <i class="fas fa-search"></i> En recherche active
                                 </span>
                             </p>
+                        </div>
+                        <!-- Ajout du mode fantôme -->
+                        <div class="info-line ghost-mode-container">
+                            <h3 class="profile-label"><i class="fas fa-ghost"></i> Mode Fantôme :</h3>
+                            <div class="profile-value">
+                                <label class="ghost-toggle">
+                                    <input type="checkbox" id="ghost-mode-toggle">
+                                    <span class="ghost-slider"></span>
+                                </label>
+                                <i class="fas fa-info-circle ghost-info-icon" id="ghost-info-trigger"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -919,6 +1335,70 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Popup d'information pour le mode fantôme -->
+    <div class="ghost-popup" id="ghost-popup">
+        <div class="ghost-popup-content">
+            <div class="ghost-popup-header">
+                <h3><i class="fas fa-ghost"></i> Mode Fantôme</h3>
+                <button class="ghost-popup-close" id="ghost-popup-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="ghost-popup-body">
+                <p class="ghost-popup-description">Le <strong>Mode Fantôme</strong> vous permet de protéger votre recherche d'emploi en masquant votre profil aux recruteurs de vos entreprises actuelles et passées.</p>
+                
+                <div class="ghost-popup-features">
+                    <div class="ghost-feature">
+                        <div class="ghost-feature-icon">
+                            <i class="fas fa-eye-slash"></i>
+                        </div>
+                        <div class="ghost-feature-text">
+                            <h4>Confidentialité assurée</h4>
+                            <p>Votre profil sera invisible pour les recruteurs des entreprises où vous travaillez actuellement ou avez déjà travaillé.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="ghost-feature">
+                        <div class="ghost-feature-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="ghost-feature-text">
+                            <h4>Recherche sereine</h4>
+                            <p>Cherchez de nouvelles opportunités sans craindre que votre employeur actuel ne soit au courant.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="ghost-feature">
+                        <div class="ghost-feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="ghost-feature-text">
+                            <h4>Protection intelligente</h4>
+                            <p>Reste visible pour tous les autres recruteurs, maximisant vos chances de trouver votre prochain poste.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ghost-popup-actions">
+                    <button class="action-btn" id="activate-ghost-mode">
+                        <i class="fas fa-ghost"></i> Activer le mode fantôme
+                    </button>
+                    <button class="ghost-popup-later" id="ghost-popup-later">Plus tard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de notification -->
+    <div class="ghost-toast" id="ghost-toast">
+        <div class="ghost-toast-content">
+            <i class="fas fa-ghost ghost-toast-icon"></i>
+            <div class="ghost-toast-message">
+                <strong id="ghost-toast-title">Mode fantôme activé</strong>
+                <p id="ghost-toast-text">Votre profil est invisible aux recruteurs de vos entreprises actuelles et passées.</p>
+            </div>
+            <button class="ghost-toast-close" id="ghost-toast-close"><i class="fas fa-times"></i></button>
         </div>
     </div>
 
@@ -1101,6 +1581,132 @@
                         item.classList.remove('pulsate');
                     }, 1000);
                 }, index * 200);
+            });
+            
+            // Gestion du mode fantôme
+            // Éléments DOM
+            const ghostToggle = document.getElementById('ghost-mode-toggle');
+            const ghostInfoTrigger = document.getElementById('ghost-info-trigger');
+            const ghostPopup = document.getElementById('ghost-popup');
+            const ghostPopupClose = document.getElementById('ghost-popup-close');
+            const ghostPopupLater = document.getElementById('ghost-popup-later');
+            const activateGhostBtn = document.getElementById('activate-ghost-mode');
+            const ghostToast = document.getElementById('ghost-toast');
+            const ghostToastClose = document.getElementById('ghost-toast-close');
+            const ghostToastTitle = document.getElementById('ghost-toast-title');
+            const ghostToastText = document.getElementById('ghost-toast-text');
+            const ghostBadge = document.getElementById('ghost-badge');
+            const profilePhoto = document.querySelector('.profile-photo');
+            
+            // Vérifier si c'est la première visite
+            const isFirstVisit = !localStorage.getItem('ghostModeIntroShown');
+            
+            // Afficher le popup d'introduction au mode fantôme lors de la première visite
+            if (isFirstVisit) {
+                setTimeout(() => {
+                    openGhostPopup();
+                    localStorage.setItem('ghostModeIntroShown', 'true');
+                }, 2000);
+            }
+            
+            // Vérifier l'état actuel du mode fantôme
+            const ghostModeEnabled = localStorage.getItem('ghostModeEnabled') === 'true';
+            if (ghostModeEnabled) {
+                enableGhostMode(false); // Activer sans notification
+            }
+            
+            // Ouvrir la popup d'information
+            function openGhostPopup() {
+                ghostPopup.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // Fermer la popup d'information
+            function closeGhostPopup() {
+                ghostPopup.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            // Afficher une notification toast
+            function showToast(title, message, duration = 5000) {
+                ghostToastTitle.textContent = title;
+                ghostToastText.textContent = message;
+                ghostToast.classList.add('active');
+                
+                setTimeout(() => {
+                    ghostToast.classList.remove('active');
+                }, duration);
+            }
+            
+            // Activer le mode fantôme
+            function enableGhostMode(showNotification = true) {
+                ghostToggle.checked = true;
+                ghostBadge.style.display = 'flex';
+                
+                if (profilePhoto) {
+                    profilePhoto.classList.add('ghost-active');
+                }
+                
+                localStorage.setItem('ghostModeEnabled', 'true');
+                
+                if (showNotification) {
+                    showToast(
+                        'Mode fantôme activé', 
+                        'Votre profil est invisible aux recruteurs de vos entreprises actuelles et passées.'
+                    );
+                }
+            }
+            
+            // Désactiver le mode fantôme
+            function disableGhostMode() {
+                ghostToggle.checked = false;
+                ghostBadge.style.display = 'none';
+                
+                if (profilePhoto) {
+                    profilePhoto.classList.remove('ghost-active');
+                }
+                
+                localStorage.setItem('ghostModeEnabled', 'false');
+                
+                showToast(
+                    'Mode fantôme désactivé', 
+                    'Votre profil est à nouveau visible à tous les recruteurs.'
+                );
+            }
+            
+            // Event listeners
+            ghostInfoTrigger.addEventListener('click', openGhostPopup);
+            ghostPopupClose.addEventListener('click', closeGhostPopup);
+            ghostPopupLater.addEventListener('click', closeGhostPopup);
+            ghostToastClose.addEventListener('click', () => ghostToast.classList.remove('active'));
+            
+            // Bouton d'activation dans le popup
+            activateGhostBtn.addEventListener('click', () => {
+                enableGhostMode();
+                closeGhostPopup();
+            });
+            
+            // Toggle du mode fantôme
+            ghostToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    enableGhostMode();
+                } else {
+                    disableGhostMode();
+                }
+            });
+            
+            // Fermer la popup en cliquant à l'extérieur
+            ghostPopup.addEventListener('click', function(e) {
+                if (e.target === ghostPopup) {
+                    closeGhostPopup();
+                }
+            });
+            
+            // Fermer avec la touche Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && ghostPopup.classList.contains('active')) {
+                    closeGhostPopup();
+                }
             });
         });
     </script>
