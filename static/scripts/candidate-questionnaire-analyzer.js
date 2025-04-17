@@ -10,6 +10,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const questionnaireForm = document.getElementById('questionnaire-form');
   if (!questionnaireForm) return;
   
+  // NOUVEAU: Fonction de redirection directe
+  function goToMatchingPage() {
+    console.log("Redirection vers la page de matching...");
+    document.getElementById('loading-overlay').classList.add('active');
+    setTimeout(() => {
+      window.location.href = 'candidate-matching-improved.html';
+    }, 2000);
+  }
+  
   // Vérifier que l'analyseur est disponible
   if (!window.candidateAnalyzer) {
     console.error('L\'analyseur de questionnaires candidats n\'est pas disponible');
@@ -113,6 +122,12 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
+    // NOUVEAU: Redirection simplifiée - aller directement à la page de matching
+    goToMatchingPage();
+    return;
+    
+    // Le code ci-dessous est l'ancien comportement, qui a été désactivé pour simplifier
+    /*
     // Désactiver le bouton et afficher un état de chargement
     const originalButtonContent = submitButton.innerHTML;
     submitButton.disabled = true;
@@ -203,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
       submitButton.disabled = false;
       submitButton.innerHTML = originalButtonContent;
     }
+    */
   };
   
   console.log('Intégration de l\'analyseur de questionnaires candidats terminée');
