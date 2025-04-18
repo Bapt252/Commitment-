@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300">
-  <!-- Version blanche du logo pour les fonds sombres -->
+  <!-- Version blanche du logo pour le footer -->
   <style>
-    .nexten-logo-white {
+    .nexten-logo-color {
       fill: #FFFFFF;
     }
     .nexten-logo-center {
@@ -13,43 +13,43 @@
   <!-- Emblème avec connexions -->
   <g transform="translate(150, 150)">
     <!-- Cercle central -->
-    <circle cx="0" cy="0" r="25" class="nexten-logo-white" />
+    <circle cx="0" cy="0" r="25" class="nexten-logo-color" />
     <circle cx="0" cy="0" r="15" class="nexten-logo-center" />
     
     <!-- Huit connexions avec points -->
     <!-- Connexion haut -->
     <line x1="0" y1="-25" x2="0" y2="-70" stroke-width="10" stroke="#FFFFFF" />
-    <circle cx="0" cy="-80" r="15" class="nexten-logo-white" />
+    <circle cx="0" cy="-80" r="15" class="nexten-logo-color" />
     
     <!-- Connexion haut-droite -->
     <line x1="18" y1="-18" x2="50" y2="-50" stroke-width="10" stroke="#FFFFFF" />
-    <circle cx="58" cy="-58" r="15" class="nexten-logo-white" />
+    <circle cx="58" cy="-58" r="15" class="nexten-logo-color" />
     
     <!-- Connexion droite -->
     <line x1="25" y1="0" x2="70" y2="0" stroke-width="10" stroke="#FFFFFF" />
-    <circle cx="80" cy="0" r="15" class="nexten-logo-white" />
+    <circle cx="80" cy="0" r="15" class="nexten-logo-color" />
     
     <!-- Connexion bas-droite -->
     <line x1="18" y1="18" x2="50" y2="50" stroke-width="10" stroke="#FFFFFF" />
-    <circle cx="58" cy="58" r="15" class="nexten-logo-white" />
+    <circle cx="58" cy="58" r="15" class="nexten-logo-color" />
     
     <!-- Connexion bas -->
     <line x1="0" y1="25" x2="0" y2="70" stroke-width="10" stroke="#FFFFFF" />
-    <circle cx="0" cy="80" r="15" class="nexten-logo-white" />
+    <circle cx="0" cy="80" r="15" class="nexten-logo-color" />
     
     <!-- Connexion bas-gauche -->
     <line x1="-18" y1="18" x2="-50" y2="50" stroke-width="10" stroke="#FFFFFF" />
-    <circle cx="-58" cy="58" r="15" class="nexten-logo-white" />
+    <circle cx="-58" cy="58" r="15" class="nexten-logo-color" />
     
     <!-- Connexion gauche -->
     <line x1="-25" y1="0" x2="-70" y2="0" stroke-width="10" stroke="#FFFFFF" />
-    <circle cx="-80" cy="0" r="15" class="nexten-logo-white" />
+    <circle cx="-80" cy="0" r="15" class="nexten-logo-color" />
     
     <!-- Connexion haut-gauche -->
     <line x1="-18" y1="-18" x2="-50" y2="-50" stroke-width="10" stroke="#FFFFFF" />
-    <circle cx="-58" cy="-58" r="15" class="nexten-logo-white" />
+    <circle cx="-58" cy="-58" r="15" class="nexten-logo-color" />
   </g>
   
   <!-- Texte NEXTEN -->
-  <text x="300" y="170" font-family="Arial, sans-serif" font-weight="bold" font-size="100" class="nexten-logo-white">NEXTEN</text>
+  <text x="300" y="170" font-family="Arial, sans-serif" font-weight="bold" font-size="100" class="nexten-logo-color">NEXTEN</text>
 </svg>

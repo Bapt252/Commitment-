@@ -1,0 +1,635 @@
+/**
+ * Nexten - Styles pour la page Tarifs
+ * Compléments au fichier principal nexten-modern-interactive.css
+ */
+
+/* Variables spécifiques à la page tarifs */
+:root {
+    --purple: #7C3AED;
+    --purple-light: #A78BFA;
+    --purple-dark: #5B21B6;
+    --purple-glass: rgba(124, 58, 237, 0.1);
+    --cream: #F8F7F3;
+    --cream-dark: #EFEEE9;
+    --black: #1A1A1A;
+    --gray: #666666;
+    --gray-light: #9CA3AF;
+    --white: #FFFFFF;
+    --accent: #FF6B6B;
+}
+
+/* Hero Section Tarifs */
+.pricing-hero {
+    background-color: var(--cream);
+    padding: 120px 0 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.pricing-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top right, var(--purple-glass), transparent 60%);
+    z-index: 1;
+}
+
+.pricing-hero h1 {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 1rem;
+}
+
+.pricing-subtitle {
+    font-size: 1.2rem;
+    color: var(--gray);
+    max-width: 600px;
+    margin: 0 auto 50px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Toggle Switch pour basculer entre mensuel et annuel */
+.pricing-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.toggle-label {
+    margin: 0 15px;
+    font-weight: 500;
+    color: var(--gray);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-label.active {
+    color: var(--purple);
+    font-weight: 600;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--cream-dark);
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: var(--white);
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--purple);
+}
+
+input:checked + .slider:before {
+    transform: translateX(30px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.savings-badge {
+    background-color: var(--accent);
+    color: var(--white);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: absolute;
+    right: -60px;
+    top: 0;
+}
+
+/* Pricing Cards */
+.pricing-plans {
+    padding: 40px 0 80px;
+    background-color: var(--white);
+}
+
+.pricing-plans .container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    max-width: 1400px;
+}
+
+.pricing-card {
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    width: calc(25% - 30px);
+    min-width: 280px;
+    position: relative;
+    border: 1px solid var(--cream-dark);
+}
+
+.pricing-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.pricing-card.recommended {
+    border: 2px solid var(--purple);
+    transform: scale(1.05);
+}
+
+.pricing-card.recommended:hover {
+    transform: scale(1.05) translateY(-10px);
+}
+
+.recommended-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--purple);
+    color: var(--white);
+    padding: 8px 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-bottom-left-radius: 12px;
+    z-index: 10;
+}
+
+.card-header {
+    background-color: var(--cream);
+    padding: 30px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--cream-dark);
+    position: relative;
+}
+
+.card-header h3 {
+    color: var(--purple);
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--black);
+    margin: 0;
+}
+
+.price-subtitle {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.price-container {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.price-container.hidden {
+    display: none;
+}
+
+.discount-badge {
+    background-color: var(--accent);
+    color: var(--white);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.card-body {
+    padding: 30px 20px;
+}
+
+.plan-subtitle {
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--purple);
+    font-size: 1rem;
+}
+
+.features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 25px 0;
+}
+
+.features li {
+    margin-bottom: 12px;
+    padding-left: 25px;
+    position: relative;
+}
+
+.features li i {
+    color: var(--purple);
+    position: absolute;
+    left: 0;
+    top: 3px;
+}
+
+.ideal-for {
+    text-align: center;
+    font-style: italic;
+    color: var(--gray);
+    margin-bottom: 25px;
+}
+
+.pricing-options {
+    margin-bottom: 25px;
+    border: 1px solid var(--cream-dark);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.option {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--cream-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+.option:last-child {
+    border-bottom: none;
+}
+
+.option:hover {
+    background-color: var(--cream);
+}
+
+.option label {
+    font-weight: 500;
+}
+
+.option p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.option .savings {
+    background-color: var(--accent);
+    color: var(--white);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+/* Additional Offers Section */
+.additional-offers {
+    background-color: var(--cream);
+    padding: 80px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.offers-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.offer-card {
+    background-color: var(--white);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    width: calc(33.33% - 30px);
+    min-width: 300px;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.offer-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+    width: 70px;
+    height: 70px;
+    background-color: var(--purple-light);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    transition: all 0.3s ease;
+}
+
+.card-icon i {
+    font-size: 1.8rem;
+}
+
+.offer-card:hover .card-icon {
+    transform: scale(1.1) rotate(10deg);
+    background-color: var(--purple);
+    box-shadow: 0 10px 20px rgba(124, 58, 237, 0.2);
+}
+
+.offer-card h3 {
+    color: var(--purple);
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.offer-card .price {
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.add-on {
+    background-color: var(--cream);
+    border-radius: 12px;
+    padding: 15px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.add-on h4 {
+    color: var(--purple);
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.add-on p {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.add-on ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.add-on li {
+    margin-bottom: 8px;
+    padding-left: 25px;
+    position: relative;
+    font-size: 0.9rem;
+}
+
+.add-on li i {
+    color: var(--purple);
+    position: absolute;
+    left: 0;
+    top: 3px;
+}
+
+/* FAQ Section */
+.pricing-faq {
+    padding: 80px 0;
+    background-color: var(--white);
+}
+
+.accordion {
+    max-width: 800px;
+    margin: 40px auto 0;
+}
+
+.accordion-item {
+    margin-bottom: 15px;
+    border: 1px solid var(--cream-dark);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.accordion-button {
+    width: 100%;
+    background-color: var(--white);
+    padding: 20px;
+    text-align: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+    color: var(--black);
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+}
+
+.accordion-button:hover {
+    background-color: var(--cream);
+}
+
+.accordion-button i {
+    transition: transform 0.3s ease;
+    color: var(--purple);
+}
+
+.accordion-item.active .accordion-button i {
+    transform: rotate(180deg);
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background-color: var(--white);
+}
+
+.accordion-item.active .accordion-content {
+    max-height: 300px;
+}
+
+.accordion-content p {
+    padding: 20px;
+    margin: 0;
+    border-top: 1px solid var(--cream-dark);
+    color: var(--gray);
+    line-height: 1.7;
+}
+
+/* CTA Section */
+.pricing-cta {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+    color: var(--white);
+    padding: 80px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.pricing-cta::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.pricing-cta h2 {
+    color: var(--white);
+    font-size: 2.2rem;
+    margin-bottom: 20px;
+}
+
+.pricing-cta h2::after {
+    background: var(--white);
+}
+
+.pricing-cta p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.pricing-cta .btn {
+    min-width: 180px;
+}
+
+.pricing-cta .btn-primary {
+    background-color: var(--white);
+    color: var(--purple);
+    border-color: var(--white);
+}
+
+.pricing-cta .btn-primary:hover {
+    background-color: transparent;
+    color: var(--white);
+}
+
+.pricing-cta .btn-outline {
+    border-color: var(--white);
+    color: var(--white);
+}
+
+.pricing-cta .btn-outline:hover {
+    background-color: var(--white);
+    color: var(--purple);
+}
+
+/* Animations pour les cartes */
+.pricing-card, .offer-card {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.pricing-card.animate-in, .offer-card.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Responsive Styles */
+@media (max-width: 1200px) {
+    .pricing-card {
+        width: calc(33.33% - 30px);
+    }
+}
+
+@media (max-width: 992px) {
+    .pricing-card {
+        width: calc(50% - 30px);
+    }
+    
+    .pricing-card.recommended {
+        transform: scale(1);
+    }
+    
+    .pricing-card.recommended:hover {
+        transform: translateY(-10px);
+    }
+    
+    .offer-card {
+        width: calc(50% - 30px);
+    }
+}
+
+@media (max-width: 768px) {
+    .pricing-card {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .offer-card {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .cta-buttons .btn {
+        width: 100%;
+    }
+    
+    .pricing-toggle {
+        flex-wrap: wrap;
+    }
+    
+    .savings-badge {
+        position: static;
+        margin-top: 10px;
+    }
+}
