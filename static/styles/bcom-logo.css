@@ -1,0 +1,47 @@
+/* Styles pour le logo Bcom HR */
+
+.logo-bcom {
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 600;
+  background: linear-gradient(135deg, #7124B3, #9654D8);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(113, 36, 179, 0.2);
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.logo-bcom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(113, 36, 179, 0.3);
+}
+
+.logo-bcom span.hr {
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+/* Classe modifiée pour utilisation dans d'autres contextes */
+.logo-bcom.small {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+}
+
+.logo-bcom.large {
+  padding: 12px 20px;
+  font-size: 1.2rem;
+}
+
+/* Version inversée pour fonds sombres */
+.logo-bcom.inverted {
+  background: white;
+  color: #7124B3;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+.logo-bcom.inverted:hover {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+}
