@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Nexten - Découvrez nos tarifs pour une solution de recrutement innovante basée sur 10 connexions stratégiques">
+    <title>Nexten - Tarifs et forfaits</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/styles/nexten-tarifs.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Notification bar -->
+    <div class="notification-bar">
+        Votre recrutement change, votre approche aussi : découvrez notre diagnostic
+    </div>
+
+    <!-- Lien d'accessibilité pour sauter au contenu principal -->
+    <a href="#main-content" class="skip-to-content">Aller au contenu principal</a>
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../static/images/nexten-logo.svg" alt="Nexten Logo" class="site-logo">
+                </a>
+            </div>
+            
+            <button class="menu-toggle" aria-label="Menu principal">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="candidate-login.html">Espace candidat</a></li>
+                    <li><a href="company-login.html">Espace entreprise</a></li>
+                    <li><a href="tarifs.html" class="active">Tarifs</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section Tarifs -->
+    <section class="pricing-hero" id="main-content">
+        <div class="container">
+            <h1>Découvrez nos offres et tarifs</h1>
+            <p class="pricing-subtitle">Des solutions adaptées à tous vos besoins de recrutement</p>
+            
+            <div class="pricing-toggle">
+                <span class="toggle-label active">Mensuel</span>
+                <label class="switch">
+                    <input type="checkbox" id="billing-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label">Annuel</span>
+                <span class="savings-badge">Économisez jusqu'à 15%</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Formules principales -->
+    <section class="pricing-plans">
+        <div class="container">
+            <!-- Offre Starter -->
+            <div class="pricing-card starter">
+                <div class="card-header">
+                    <h3>Offre Starter</h3>
+                    <p class="price">0 €</p>
+                    <p class="price-subtitle">Freemium</p>
+                </div>
+                <div class="card-body">
+                    <ul class="features">
+                        <li><i class="fas fa-check"></i> 1 publication d'offre</li>
+                        <li><i class="fas fa-check"></i> Matching optimisé avec pondération des critères</li>
+                        <li><i class="fas fa-check"></i> 10 profils envoyés automatiquement</li>
+                        <li><i class="fas fa-check"></i> Accès à l'interface de suivi du recrutement</li>
+                    </ul>
+                    <p class="ideal-for">Idéal pour tester NexTen gratuitement</p>
+                    <a href="company-login.html" class="btn btn-outline">Commencer gratuitement</a>
+                </div>
+            </div>
+            
+            <!-- Offre Standard -->
+            <div class="pricing-card standard">
+                <div class="card-header">
+                    <h3>Offre Standard</h3>
+                    <div class="price-container monthly">
+                        <p class="price">290 €</p>
+                        <p class="price-subtitle">par mois</p>
+                    </div>
+                    <div class="price-container annually hidden">
+                        <p class="price">250 €</p>
+                        <p class="price-subtitle">par mois (facturé annuellement)</p>
+                        <span class="discount-badge">-15%</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="plan-subtitle">Jusqu'à 3 offres actives</p>
+                    <ul class="features">
+                        <li><i class="fas fa-check"></i> Matching intelligent + suivi du recrutement</li>
+                        <li><i class="fas fa-check"></i> Intégration API avec ATS</li>
+                        <li><i class="fas fa-check"></i> Idéal pour les PME en phase de croissance</li>
+                    </ul>
+                    <div class="pricing-options">
+                        <div class="option monthly">
+                            <label>Mensuel</label>
+                            <p>290 € / mois</p>
+                        </div>
+                        <div class="option quarterly">
+                            <label>Trimestriel</label>
+                            <p>830 € (276 €/mois)</p>
+                        </div>
+                        <div class="option biannually">
+                            <label>Semestriel</label>
+                            <p>1 590 € (265 €/mois)</p>
+                        </div>
+                        <div class="option annually">
+                            <label>Annuel</label>
+                            <p>3 000 € (250 €/mois)</p>
+                            <span class="savings">-15%</span>
+                        </div>
+                    </div>
+                    <a href="company-login.html" class="btn btn-primary">Choisir cette offre</a>
+                </div>
+            </div>
+            
+            <!-- Offre Premium -->
+            <div class="pricing-card premium recommended">
+                <div class="recommended-badge">Recommandé</div>
+                <div class="card-header">
+                    <h3>Offre Premium</h3>
+                    <div class="price-container monthly">
+                        <p class="price">490 €</p>
+                        <p class="price-subtitle">par mois</p>
+                    </div>
+                    <div class="price-container annually hidden">
+                        <p class="price">430 €</p>
+                        <p class="price-subtitle">par mois (facturé annuellement)</p>
+                        <span class="discount-badge">-12%</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="plan-subtitle">Jusqu'à 5 offres actives</p>
+                    <ul class="features">
+                        <li><i class="fas fa-check"></i> Accès prioritaire aux profils disponibles</li>
+                        <li><i class="fas fa-check"></i> Interface de gestion avancée (exports, reporting)</li>
+                        <li><i class="fas fa-check"></i> Intégration API complète</li>
+                    </ul>
+                    <div class="pricing-options">
+                        <div class="option monthly">
+                            <label>Mensuel</label>
+                            <p>490 € / mois</p>
+                        </div>
+                        <div class="option quarterly">
+                            <label>Trimestriel</label>
+                            <p>1 390 € (463 €/mois)</p>
+                        </div>
+                        <div class="option biannually">
+                            <label>Semestriel</label>
+                            <p>2 690 € (448 €/mois)</p>
+                        </div>
+                        <div class="option annually">
+                            <label>Annuel</label>
+                            <p>5 160 € (430 €/mois)</p>
+                            <span class="savings">-12%</span>
+                        </div>
+                    </div>
+                    <a href="company-login.html" class="btn btn-primary">Choisir cette offre</a>
+                </div>
+            </div>
+            
+            <!-- Offre Plus -->
+            <div class="pricing-card plus">
+                <div class="card-header">
+                    <h3>Offre Plus</h3>
+                    <div class="price-container monthly">
+                        <p class="price">990 €</p>
+                        <p class="price-subtitle">par mois</p>
+                    </div>
+                    <div class="price-container annually hidden">
+                        <p class="price">860 €</p>
+                        <p class="price-subtitle">par mois (facturé annuellement)</p>
+                        <span class="discount-badge">-13%</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="plan-subtitle">Jusqu'à 10 offres actives</p>
+                    <ul class="features">
+                        <li><i class="fas fa-check"></i> Matching ultra-précis (IA adaptative)</li>
+                        <li><i class="fas fa-check"></i> Accès aux meilleurs talents en priorité</li>
+                        <li><i class="fas fa-check"></i> Gestion multi-utilisateurs incluse</li>
+                    </ul>
+                    <div class="pricing-options">
+                        <div class="option monthly">
+                            <label>Mensuel</label>
+                            <p>990 € / mois</p>
+                        </div>
+                        <div class="option quarterly">
+                            <label>Trimestriel</label>
+                            <p>2 790 € (930 €/mois)</p>
+                        </div>
+                        <div class="option biannually">
+                            <label>Semestriel</label>
+                            <p>5 390 € (898 €/mois)</p>
+                        </div>
+                        <div class="option annually">
+                            <label>Annuel</label>
+                            <p>10 320 € (860 €/mois)</p>
+                            <span class="savings">-13%</span>
+                        </div>
+                    </div>
+                    <a href="company-login.html" class="btn btn-primary">Choisir cette offre</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Offres additionnelles -->
+    <section class="additional-offers">
+        <div class="container">
+            <h2 class="section-title">Autres options de tarification</h2>
+            
+            <div class="offers-grid">
+                <!-- Offre Grands Comptes -->
+                <div class="offer-card enterprise">
+                    <div class="card-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>Offre Grands Comptes</h3>
+                    <p class="price">Sur devis</p>
+                    <ul class="features">
+                        <li><i class="fas fa-check"></i> Volume de recrutement élevé</li>
+                        <li><i class="fas fa-check"></i> Onboarding personnalisé + formations</li>
+                        <li><i class="fas fa-check"></i> Customer Success dédié</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline">Demander un devis</a>
+                </div>
+                
+                <!-- Offre Pay-Per-Use -->
+                <div class="offer-card pay-per-use">
+                    <div class="card-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <h3>Pay-Per-Use</h3>
+                    <p class="price">Dès 149 €</p>
+                    <ul class="features">
+                        <li><i class="fas fa-check"></i> Publication d'une offre unique – 149 €</li>
+                        <li><i class="fas fa-check"></i> Matching automatisé avec 10 profils max</li>
+                        <li><i class="fas fa-check"></i> Offre visible 30 jours</li>
+                        <li><i class="fas fa-check"></i> Accès au suivi du recrutement</li>
+                    </ul>
+                    <div class="add-on">
+                        <h4>Mise en avant Premium</h4>
+                        <p>+99 €</p>
+                        <ul>
+                            <li><i class="fas fa-check"></i> Priorité dans les résultats de matching</li>
+                            <li><i class="fas fa-check"></i> Boost de visibilité ciblée</li>
+                        </ul>
+                    </div>
+                    <a href="company-login.html" class="btn btn-outline">Commander</a>
+                </div>
+                
+                <!-- Offre Accompagnement -->
+                <div class="offer-card consultancy">
+                    <div class="card-icon">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <h3>Accompagnement Recrutement</h3>
+                    <p class="price">Dès 2 500 €</p>
+                    <p class="price-subtitle">Clé en main</p>
+                    <ul class="features">
+                        <li><i class="fas fa-check"></i> Suivi complet par un consultant Bcom HR</li>
+                        <li><i class="fas fa-check"></i> Entretiens préqualifiés</li>
+                        <li><i class="fas fa-check"></i> Garantie de remplacement</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline">Nous contacter</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="pricing-faq">
+        <div class="container">
+            <h2 class="section-title">Questions fréquentes</h2>
+            
+            <div class="accordion">
+                <div class="accordion-item">
+                    <button class="accordion-button">
+                        Comment choisir la bonne offre pour mon entreprise ?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Nous vous recommandons de choisir en fonction du volume de recrutement prévu. L'offre Starter est parfaite pour un test, l'offre Standard convient aux PME avec quelques recrutements, l'offre Premium pour une activité régulière et l'offre Plus pour les entreprises avec un volume important. Contactez-nous pour un conseil personnalisé.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-button">
+                        Est-il possible de changer d'offre en cours d'abonnement ?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Oui, vous pouvez passer à une offre supérieure à tout moment. La différence sera calculée au prorata de la période restante. Pour passer à une offre inférieure, le changement sera effectif à la fin de votre période d'engagement en cours.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-button">
+                        Qu'est-ce que l'intégration API avec ATS ?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>L'intégration API permet de connecter NexTen avec votre système ATS (Applicant Tracking System) existant. Cela permet de synchroniser automatiquement les offres d'emploi, les candidatures et les statuts des candidats entre les deux plateformes, évitant ainsi les doubles saisies.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-button">
+                        Quelle est la différence entre l'offre Premium et l'offre Plus ?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>L'offre Plus inclut toutes les fonctionnalités de l'offre Premium, mais permet de publier jusqu'à 10 offres actives simultanément (contre 5 pour l'offre Premium). Elle offre également une IA adaptative plus performante et la gestion multi-utilisateurs incluse, idéale pour les équipes RH plus importantes.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-button">
+                        Comment fonctionne l'option Pay-Per-Use ?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>L'option Pay-Per-Use vous permet de publier une offre à l'unité pour 149€. Celle-ci restera active pendant 30 jours avec un matching automatisé pour jusqu'à 10 profils. C'est une solution flexible si vous n'avez pas besoin d'un abonnement continu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="pricing-cta">
+        <div class="container">
+            <h2>Prêt à révolutionner votre processus de recrutement ?</h2>
+            <p>Rejoignez les entreprises qui font confiance à NexTen pour trouver les meilleurs talents.</p>
+            <div class="cta-buttons">
+                <a href="company-login.html" class="btn btn-primary">Essayer gratuitement</a>
+                <a href="#contact" class="btn btn-outline">Nous contacter</a>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <div class="footer-logo">
+                        <img src="../static/images/nexten-logo-white.svg" alt="Nexten Logo" style="height: 60px; width: auto; margin-bottom: 20px;">
+                    </div>
+                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
+                        <li><a href="candidate-login.html"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
+                        <li><a href="company-login.html"><i class="fas fa-chevron-right"></i> Espace entreprise</a></li>
+                        <li><a href="tarifs.html"><i class="fas fa-chevron-right"></i> Tarifs</a></li>
+                        <li><a href="about.html"><i class="fas fa-chevron-right"></i> À propos</a></li>
+                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Contact</h4>
+                    <div class="footer-contact">
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
+                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="privacy.html">Politique de confidentialité</a> | <a href="terms.html">Conditions d'utilisation</a></p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bouton de retour en haut -->
+    <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script src="../static/services/interactions.js"></script>
+    <script src="../static/services/tarifs.js"></script>
+</body>
+</html>
