@@ -1165,7 +1165,7 @@
                                     <input type="checkbox" id="ghost-mode-toggle">
                                     <span class="ghost-slider"></span>
                                 </label>
-                                <button id="ghost-info-trigger" class="ghost-info-icon" style="background:none; border:none; cursor:pointer;">
+                                <button id="ghost-info-trigger" class="ghost-info-icon" aria-label="Informations sur le mode fantôme">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
                             </div>
@@ -1602,11 +1602,13 @@
             const profilePhoto = document.querySelector('.profile-photo');
             
             // Ajouter l'écouteur d'événement pour l'icône d'info
-            ghostInfoTrigger.addEventListener('click', function() {
-                console.log('Clic sur le bouton info du mode fantôme');
-                ghostPopup.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
+            if (ghostInfoTrigger) {
+                ghostInfoTrigger.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Clic sur le bouton info du mode fantôme');
+                    openGhostPopup();
+                });
+            }
             
             // Vérifier l'état actuel du mode fantôme
             const ghostModeEnabled = localStorage.getItem('ghostModeEnabled') === 'true';
@@ -1616,94 +1618,120 @@
             
             // Ouvrir la popup d'information
             function openGhostPopup() {
-                console.log("Ouverture de la popup du mode fantôme");
-                ghostPopup.classList.add('active');
-                document.body.style.overflow = 'hidden';
+                if (ghostPopup) {
+                    console.log("Ouverture de la popup du mode fantôme");
+                    ghostPopup.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
             }
             
             // Fermer la popup d'information
             function closeGhostPopup() {
-                ghostPopup.classList.remove('active');
-                document.body.style.overflow = '';
+                if (ghostPopup) {
+                    ghostPopup.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
             }
             
             // Afficher une notification toast
             function showToast(title, message, duration = 5000) {
-                ghostToastTitle.textContent = title;
-                ghostToastText.textContent = message;
-                ghostToast.classList.add('active');
-                
-                setTimeout(() => {
-                    ghostToast.classList.remove('active');
-                }, duration);
+                if (ghostToast && ghostToastTitle && ghostToastText) {
+                    ghostToastTitle.textContent = title;
+                    ghostToastText.textContent = message;
+                    ghostToast.classList.add('active');
+                    
+                    setTimeout(() => {
+                        ghostToast.classList.remove('active');
+                    }, duration);
+                }
             }
             
             // Activer le mode fantôme
             function enableGhostMode(showNotification = true) {
-                ghostToggle.checked = true;
-                ghostBadge.style.display = 'flex';
-                
-                if (profilePhoto) {
-                    profilePhoto.classList.add('ghost-active');
-                }
-                
-                localStorage.setItem('ghostModeEnabled', 'true');
-                
-                if (showNotification) {
-                    showToast(
-                        'Mode fantôme activé', 
-                        'Votre profil est invisible aux recruteurs de vos entreprises actuelles et passées.'
-                    );
+                if (ghostToggle && ghostBadge) {
+                    ghostToggle.checked = true;
+                    ghostBadge.style.display = 'flex';
+                    
+                    if (profilePhoto) {
+                        profilePhoto.classList.add('ghost-active');
+                    }
+                    
+                    localStorage.setItem('ghostModeEnabled', 'true');
+                    
+                    if (showNotification) {
+                        showToast(
+                            'Mode fantôme activé', 
+                            'Votre profil est invisible aux recruteurs de vos entreprises actuelles et passées.'
+                        );
+                    }
                 }
             }
             
             // Désactiver le mode fantôme
             function disableGhostMode() {
-                ghostToggle.checked = false;
-                ghostBadge.style.display = 'none';
-                
-                if (profilePhoto) {
-                    profilePhoto.classList.remove('ghost-active');
+                if (ghostToggle && ghostBadge) {
+                    ghostToggle.checked = false;
+                    ghostBadge.style.display = 'none';
+                    
+                    if (profilePhoto) {
+                        profilePhoto.classList.remove('ghost-active');
+                    }
+                    
+                    localStorage.setItem('ghostModeEnabled', 'false');
+                    
+                    showToast(
+                        'Mode fantôme désactivé', 
+                        'Votre profil est à nouveau visible à tous les recruteurs.'
+                    );
                 }
-                
-                localStorage.setItem('ghostModeEnabled', 'false');
-                
-                showToast(
-                    'Mode fantôme désactivé', 
-                    'Votre profil est à nouveau visible à tous les recruteurs.'
-                );
             }
             
             // Event listeners
-            ghostPopupClose.addEventListener('click', closeGhostPopup);
-            ghostPopupLater.addEventListener('click', closeGhostPopup);
-            ghostToastClose.addEventListener('click', () => ghostToast.classList.remove('active'));
+            if (ghostPopupClose) {
+                ghostPopupClose.addEventListener('click', closeGhostPopup);
+            }
+            if (ghostPopupLater) {
+                ghostPopupLater.addEventListener('click', closeGhostPopup);
+            }
+            if (ghostToastClose) {
+                ghostToastClose.addEventListener('click', () => {
+                    if (ghostToast) {
+                        ghostToast.classList.remove('active');
+                    }
+                });
+            }
             
             // Bouton d'activation dans le popup
-            activateGhostBtn.addEventListener('click', () => {
-                enableGhostMode();
-                closeGhostPopup();
-            });
+            if (activateGhostBtn) {
+                activateGhostBtn.addEventListener('click', () => {
+                    enableGhostMode();
+                    closeGhostPopup();
+                });
+            }
             
             // Toggle du mode fantôme
-            ghostToggle.addEventListener('change', function() {
-                if (this.checked) {
-                    enableGhostMode();
-                } else {
-                    disableGhostMode();
-                }
-            });
+            if (ghostToggle) {
+                ghostToggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        enableGhostMode();
+                    } else {
+                        disableGhostMode();
+                    }
+                });
+            }
             
             // Fermer la popup en cliquant à l'extérieur
-            ghostPopup.addEventListener('click', function(e) {
-                if (e.target === ghostPopup) {
-                    closeGhostPopup();
-                }
-            });
+            if (ghostPopup) {
+                ghostPopup.addEventListener('click', function(e) {
+                    if (e.target === ghostPopup) {
+                        closeGhostPopup();
+                    }
+                });
+            }
             
             // Fermer avec la touche Escape
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && ghostPopup.classList.contains('active')) {
+                if (e.key === 'Escape' && ghostPopup && ghostPopup.classList.contains('active')) {
                     closeGhostPopup();
                 }
             });
