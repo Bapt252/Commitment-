@@ -732,6 +732,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 1.1rem;
+            padding: 5px;
         }
         
         .ghost-info-icon:hover {
@@ -1164,7 +1165,9 @@
                                     <input type="checkbox" id="ghost-mode-toggle">
                                     <span class="ghost-slider"></span>
                                 </label>
-                                <i class="fas fa-info-circle ghost-info-icon" id="ghost-info-trigger"></i>
+                                <button id="ghost-info-trigger" class="ghost-info-icon" style="background:none; border:none; cursor:pointer;">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1598,12 +1601,12 @@
             const ghostBadge = document.getElementById('ghost-badge');
             const profilePhoto = document.querySelector('.profile-photo');
             
-            // CORRECTION ICI: Définir directement la fonction du clic sur l'info icon
-            ghostInfoTrigger.onclick = function(e) {
-                e.preventDefault();
-                openGhostPopup();
-                return false; // Important pour arrêter la propagation
-            };
+            // Ajouter l'écouteur d'événement pour l'icône d'info
+            ghostInfoTrigger.addEventListener('click', function() {
+                console.log('Clic sur le bouton info du mode fantôme');
+                ghostPopup.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
             
             // Vérifier l'état actuel du mode fantôme
             const ghostModeEnabled = localStorage.getItem('ghostModeEnabled') === 'true';
