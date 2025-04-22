@@ -1,0 +1,387 @@
+/* Styles pour le modal d'édition de profil */
+.profile-edit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.profile-edit-modal.active {
+    opacity: 1;
+}
+
+.profile-edit-content {
+    background-color: var(--white);
+    width: 90%;
+    max-width: 600px;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    transform: translateY(30px);
+    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-edit-modal.active .profile-edit-content {
+    transform: translateY(0);
+}
+
+.profile-edit-header {
+    padding: var(--spacing-md);
+    background: linear-gradient(145deg, var(--purple-glass) 0%, rgba(255, 255, 255, 0.5) 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--cream-dark);
+}
+
+.profile-edit-header h3 {
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--purple);
+}
+
+.profile-edit-header h3 i {
+    font-size: 1.2rem;
+}
+
+.profile-edit-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--gray);
+    transition: all 0.3s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.profile-edit-close:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--black);
+    transform: rotate(90deg);
+}
+
+.profile-edit-body {
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--black);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-group label i {
+    color: var(--purple);
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--cream-dark);
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input[type="text"]:focus {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+    outline: none;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.radio-group input[type="radio"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--purple);
+}
+
+.profile-picture-upload {
+    margin-top: 25px;
+}
+
+.upload-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.current-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--purple-light);
+    background-size: cover;
+    background-position: center;
+    border: 2px solid var(--purple-light);
+}
+
+.upload-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upload-btn {
+    background: linear-gradient(135deg, var(--purple-light) 0%, var(--purple) 100%);
+    color: var(--white);
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.upload-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(124, 58, 237, 0.2);
+}
+
+.remove-photo-btn {
+    background: rgba(237, 58, 58, 0.1);
+    color: #e53e3e;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.remove-photo-btn:hover {
+    background: rgba(237, 58, 58, 0.2);
+    transform: translateY(-3px);
+}
+
+.profile-edit-footer {
+    padding: 15px var(--spacing-lg);
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    background-color: var(--cream);
+    border-top: 1px solid var(--cream-dark);
+}
+
+.cancel-btn {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--gray);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.cancel-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--black);
+}
+
+.save-btn {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+    color: var(--white);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    box-shadow: 0 5px 15px rgba(124, 58, 237, 0.2);
+}
+
+.save-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
+}
+
+/* Styles pour le toast de confirmation */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    width: 350px;
+    max-width: 90vw;
+    z-index: 1001;
+    overflow: hidden;
+    display: none;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.toast.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--purple) 0%, var(--purple-light) 100%);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    gap: 15px;
+}
+
+.toast-icon {
+    font-size: 1.5rem;
+    color: var(--purple);
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+}
+
+.toast-message strong {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.toast-message p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: var(--gray);
+    transition: all 0.3s ease;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.toast-close:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--black);
+    transform: rotate(90deg);
+}
+
+/* Style pour les différents états de statut */
+.status-badge.passive {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: var(--white);
+}
+
+.status-badge.not-available {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: var(--white);
+}
+
+/* Responsive pour le modal */
+@media (max-width: 768px) {
+    .profile-edit-content {
+        width: 95%;
+    }
+    
+    .upload-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .upload-buttons {
+        width: 100%;
+        margin-top: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-edit-modal {
+        align-items: flex-start;
+        padding: 10px;
+    }
+    
+    .profile-edit-content {
+        max-height: 95vh;
+    }
+    
+    .profile-edit-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .cancel-btn, .save-btn {
+        width: 100%;
+    }
+}
