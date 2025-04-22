@@ -1472,166 +1472,6 @@
     <!-- JavaScript -->
     <script src="../static/js/footer-functions.js"></script>
     
-    <!-- JavaScript spécifique pour le mode fantôme - Séparé pour garantir le fonctionnement -->
-    <script>
-        // Script spécifique pour le bouton d'information du mode fantôme
-        document.addEventListener('DOMContentLoaded', function() {
-            // Éléments DOM pour le mode fantôme
-            const ghostInfoTrigger = document.getElementById('ghost-info-trigger');
-            const ghostPopup = document.getElementById('ghost-popup');
-            const ghostPopupClose = document.getElementById('ghost-popup-close');
-            const ghostPopupLater = document.getElementById('ghost-popup-later');
-            const activateGhostBtn = document.getElementById('activate-ghost-mode');
-            const ghostToggle = document.getElementById('ghost-mode-toggle');
-            const ghostToast = document.getElementById('ghost-toast');
-            const ghostToastClose = document.getElementById('ghost-toast-close');
-            const ghostBadge = document.getElementById('ghost-badge');
-            const profilePhoto = document.querySelector('.profile-photo');
-            
-            // Fonction pour ouvrir la popup d'information
-            function openGhostPopup() {
-                ghostPopup.style.display = 'flex';
-                setTimeout(() => {
-                    ghostPopup.classList.add('active');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-            }
-            
-            // Fonction pour fermer la popup
-            function closeGhostPopup() {
-                ghostPopup.classList.remove('active');
-                setTimeout(() => {
-                    ghostPopup.style.display = 'none';
-                }, 300);
-                document.body.style.overflow = '';
-            }
-            
-            // Fonction pour afficher une notification toast
-            function showToast(title, message, duration = 5000) {
-                const ghostToastTitle = document.getElementById('ghost-toast-title');
-                const ghostToastText = document.getElementById('ghost-toast-text');
-                
-                ghostToastTitle.textContent = title;
-                ghostToastText.textContent = message;
-                ghostToast.style.display = 'block';
-                
-                setTimeout(() => {
-                    ghostToast.classList.add('active');
-                }, 10);
-                
-                setTimeout(() => {
-                    ghostToast.classList.remove('active');
-                    setTimeout(() => {
-                        ghostToast.style.display = 'none';
-                    }, 300);
-                }, duration);
-            }
-            
-            // Fonction pour activer le mode fantôme
-            function enableGhostMode(showNotification = true) {
-                ghostToggle.checked = true;
-                ghostBadge.style.display = 'flex';
-                
-                if (profilePhoto) {
-                    profilePhoto.classList.add('ghost-active');
-                }
-                
-                localStorage.setItem('ghostModeEnabled', 'true');
-                
-                if (showNotification) {
-                    showToast(
-                        'Mode fantôme activé',
-                        'Votre profil est invisible aux recruteurs de vos entreprises actuelles et passées.'
-                    );
-                }
-            }
-            
-            // Fonction pour désactiver le mode fantôme
-            function disableGhostMode() {
-                ghostToggle.checked = false;
-                ghostBadge.style.display = 'none';
-                
-                if (profilePhoto) {
-                    profilePhoto.classList.remove('ghost-active');
-                }
-                
-                localStorage.setItem('ghostModeEnabled', 'false');
-                
-                showToast(
-                    'Mode fantôme désactivé',
-                    'Votre profil est à nouveau visible à tous les recruteurs.'
-                );
-            }
-
-            // Ajout de l'écouteur d'événement spécifique pour le bouton d'info
-            if (ghostInfoTrigger) {
-                ghostInfoTrigger.onclick = function(e) {
-                    e.preventDefault();
-                    openGhostPopup();
-                    return false;
-                };
-            }
-            
-            // Écouteurs d'événements pour les boutons de la popup
-            if (ghostPopupClose) {
-                ghostPopupClose.addEventListener('click', closeGhostPopup);
-            }
-            
-            if (ghostPopupLater) {
-                ghostPopupLater.addEventListener('click', closeGhostPopup);
-            }
-            
-            // Fermer la popup en cliquant à l'extérieur
-            ghostPopup.addEventListener('click', function(e) {
-                if (e.target === ghostPopup) {
-                    closeGhostPopup();
-                }
-            });
-            
-            // Bouton d'activation dans la popup
-            if (activateGhostBtn) {
-                activateGhostBtn.addEventListener('click', function() {
-                    enableGhostMode();
-                    closeGhostPopup();
-                });
-            }
-            
-            // Toggle du mode fantôme
-            if (ghostToggle) {
-                ghostToggle.addEventListener('change', function() {
-                    if (this.checked) {
-                        enableGhostMode();
-                    } else {
-                        disableGhostMode();
-                    }
-                });
-            }
-            
-            // Fermer le toast
-            if (ghostToastClose) {
-                ghostToastClose.addEventListener('click', function() {
-                    ghostToast.classList.remove('active');
-                    setTimeout(() => {
-                        ghostToast.style.display = 'none';
-                    }, 300);
-                });
-            }
-            
-            // Fermer avec la touche Escape
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && ghostPopup.classList.contains('active')) {
-                    closeGhostPopup();
-                }
-            });
-            
-            // Vérifier l'état actuel du mode fantôme
-            const ghostModeEnabled = localStorage.getItem('ghostModeEnabled') === 'true';
-            if (ghostModeEnabled) {
-                enableGhostMode(false); // Activer sans notification
-            }
-        });
-    </script>
-    
     <!-- JavaScript de base -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1747,6 +1587,171 @@
                     }, 1000);
                 }, index * 200);
             });
+            
+            // Gestion du mode fantôme
+            // Éléments DOM
+            const ghostToggle = document.getElementById('ghost-mode-toggle');
+            const ghostInfoTrigger = document.getElementById('ghost-info-trigger');
+            const ghostPopup = document.getElementById('ghost-popup');
+            const ghostPopupClose = document.getElementById('ghost-popup-close');
+            const ghostPopupLater = document.getElementById('ghost-popup-later');
+            const activateGhostBtn = document.getElementById('activate-ghost-mode');
+            const ghostToast = document.getElementById('ghost-toast');
+            const ghostToastClose = document.getElementById('ghost-toast-close');
+            const ghostToastTitle = document.getElementById('ghost-toast-title');
+            const ghostToastText = document.getElementById('ghost-toast-text');
+            const ghostBadge = document.getElementById('ghost-badge');
+            const profilePhoto = document.querySelector('.profile-photo');
+            
+            // Fonction directe pour ouvrir la popup d'information
+            function openGhostPopup() {
+                if (ghostPopup) {
+                    ghostPopup.style.display = 'flex';
+                    setTimeout(() => {
+                        ghostPopup.classList.add('active');
+                    }, 10);
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+            
+            // Fonction pour fermer la popup
+            function closeGhostPopup() {
+                if (ghostPopup) {
+                    ghostPopup.classList.remove('active');
+                    setTimeout(() => {
+                        ghostPopup.style.display = 'none';
+                    }, 300);
+                    document.body.style.overflow = '';
+                }
+            }
+            
+            // Fonction pour afficher une notification toast
+            function showToast(title, message, duration = 5000) {
+                if (ghostToast && ghostToastTitle && ghostToastText) {
+                    ghostToastTitle.textContent = title;
+                    ghostToastText.textContent = message;
+                    ghostToast.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        ghostToast.classList.add('active');
+                    }, 10);
+                    
+                    setTimeout(() => {
+                        ghostToast.classList.remove('active');
+                        setTimeout(() => {
+                            ghostToast.style.display = 'none';
+                        }, 300);
+                    }, duration);
+                }
+            }
+            
+            // Fonction pour activer le mode fantôme
+            function enableGhostMode(showNotification = true) {
+                if (ghostToggle && ghostBadge) {
+                    ghostToggle.checked = true;
+                    ghostBadge.style.display = 'flex';
+                    
+                    if (profilePhoto) {
+                        profilePhoto.classList.add('ghost-active');
+                    }
+                    
+                    localStorage.setItem('ghostModeEnabled', 'true');
+                    
+                    if (showNotification) {
+                        showToast(
+                            'Mode fantôme activé',
+                            'Votre profil est invisible aux recruteurs de vos entreprises actuelles et passées.'
+                        );
+                    }
+                }
+            }
+            
+            // Fonction pour désactiver le mode fantôme
+            function disableGhostMode() {
+                if (ghostToggle && ghostBadge) {
+                    ghostToggle.checked = false;
+                    ghostBadge.style.display = 'none';
+                    
+                    if (profilePhoto) {
+                        profilePhoto.classList.remove('ghost-active');
+                    }
+                    
+                    localStorage.setItem('ghostModeEnabled', 'false');
+                    
+                    showToast(
+                        'Mode fantôme désactivé',
+                        'Votre profil est à nouveau visible à tous les recruteurs.'
+                    );
+                }
+            }
+            
+            // Ajout de l'écouteur d'événement pour l'icône d'info
+            if (ghostInfoTrigger) {
+                ghostInfoTrigger.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openGhostPopup();
+                });
+            }
+            
+            // Écouteurs d'événements pour les boutons de la popup
+            if (ghostPopupClose) {
+                ghostPopupClose.addEventListener('click', closeGhostPopup);
+            }
+            
+            if (ghostPopupLater) {
+                ghostPopupLater.addEventListener('click', closeGhostPopup);
+            }
+            
+            // Fermer la popup en cliquant à l'extérieur
+            if (ghostPopup) {
+                ghostPopup.addEventListener('click', function(e) {
+                    if (e.target === ghostPopup) {
+                        closeGhostPopup();
+                    }
+                });
+            }
+            
+            // Bouton d'activation dans la popup
+            if (activateGhostBtn) {
+                activateGhostBtn.addEventListener('click', function() {
+                    enableGhostMode();
+                    closeGhostPopup();
+                });
+            }
+            
+            // Toggle du mode fantôme
+            if (ghostToggle) {
+                ghostToggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        enableGhostMode();
+                    } else {
+                        disableGhostMode();
+                    }
+                });
+            }
+            
+            // Fermer le toast
+            if (ghostToastClose) {
+                ghostToastClose.addEventListener('click', function() {
+                    ghostToast.classList.remove('active');
+                    setTimeout(() => {
+                        ghostToast.style.display = 'none';
+                    }, 300);
+                });
+            }
+            
+            // Fermer avec la touche Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && ghostPopup && ghostPopup.classList.contains('active')) {
+                    closeGhostPopup();
+                }
+            });
+            
+            // Vérifier l'état actuel du mode fantôme
+            const ghostModeEnabled = localStorage.getItem('ghostModeEnabled') === 'true';
+            if (ghostModeEnabled) {
+                enableGhostMode(false); // Activer sans notification
+            }
         });
     </script>
     
