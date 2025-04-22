@@ -1598,14 +1598,12 @@
             const ghostBadge = document.getElementById('ghost-badge');
             const profilePhoto = document.querySelector('.profile-photo');
             
-            // Vérifier si c'est la première visite
-            const isFirstVisit = !localStorage.getItem('ghostModeIntroShown');
-            
-            // Amélioration: Toujours afficher le popup lorsqu'on clique sur l'icône d'information
-            ghostInfoTrigger.addEventListener('click', function(e) {
+            // CORRECTION ICI: Définir directement la fonction du clic sur l'info icon
+            ghostInfoTrigger.onclick = function(e) {
                 e.preventDefault();
                 openGhostPopup();
-            });
+                return false; // Important pour arrêter la propagation
+            };
             
             // Vérifier l'état actuel du mode fantôme
             const ghostModeEnabled = localStorage.getItem('ghostModeEnabled') === 'true';
@@ -1615,6 +1613,7 @@
             
             // Ouvrir la popup d'information
             function openGhostPopup() {
+                console.log("Ouverture de la popup du mode fantôme");
                 ghostPopup.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
