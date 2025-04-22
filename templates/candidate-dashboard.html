@@ -1601,13 +1601,11 @@
             // Vérifier si c'est la première visite
             const isFirstVisit = !localStorage.getItem('ghostModeIntroShown');
             
-            // Afficher le popup d'introduction au mode fantôme lors de la première visite
-            if (isFirstVisit) {
-                setTimeout(() => {
-                    openGhostPopup();
-                    localStorage.setItem('ghostModeIntroShown', 'true');
-                }, 2000);
-            }
+            // Amélioration: Toujours afficher le popup lorsqu'on clique sur l'icône d'information
+            ghostInfoTrigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                openGhostPopup();
+            });
             
             // Vérifier l'état actuel du mode fantôme
             const ghostModeEnabled = localStorage.getItem('ghostModeEnabled') === 'true';
@@ -1675,7 +1673,6 @@
             }
             
             // Event listeners
-            ghostInfoTrigger.addEventListener('click', openGhostPopup);
             ghostPopupClose.addEventListener('click', closeGhostPopup);
             ghostPopupLater.addEventListener('click', closeGhostPopup);
             ghostToastClose.addEventListener('click', () => ghostToast.classList.remove('active'));
