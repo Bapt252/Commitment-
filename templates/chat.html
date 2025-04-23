@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat GPT - Commitment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .chat-messages {
+            height: 60vh;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            max-width: 80%;
+            position: relative;
+        }
+        
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .assistant-message {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+        
+        .message-input {
+            border-radius: 20px;
+        }
+        
+        .btn-send {
+            border-radius: 20px;
+        }
+        
+        .typing-indicator {
+            display: none;
+            margin-bottom: 10px;
+            font-style: italic;
+            color: #6c757d;
+        }
+
+        .system-message {
+            background-color: #ffe6cc;
+            color: #664d03;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Commitment</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/chat.html">Assistant ChatGPT</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container chat-container mt-4">
+        <h1 class="text-center mb-4">Assistant ChatGPT</h1>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant-message">
+                Bonjour ! Je suis l'assistant IA de Commitment. Comment puis-je vous aider aujourd'hui ?
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            L'assistant est en train d'écrire...
+        </div>
+        
+        <div class="input-group">
+            <input type="text" id="messageInput" class="form-control message-input" placeholder="Tapez votre message ici...">
+            <button class="btn btn-primary btn-send" id="sendButton">Envoyer</button>
+        </div>
+
+        <div class="mt-3">
+            <select class="form-select" id="modelSelect">
+                <option value="gpt-4o-mini" selected>gpt-4o-mini (par défaut)</option>
+                <option value="gpt-4">gpt-4 (plus précis)</option>
+                <option value="gpt-3.5-turbo">gpt-3.5-turbo (plus rapide)</option>
+            </select>
+        </div>
+
+        <div class="mt-4">
+            <h5>Suggestions :</h5>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-outline-secondary suggestion-btn">Comment optimiser mon CV ?</button>
+                <button class="btn btn-sm btn-outline-secondary suggestion-btn">Aide-moi à rédiger une offre d'emploi</button>
+                <button class="btn btn-sm btn-outline-secondary suggestion-btn">Quelles questions poser en entretien ?</button>
+                <button class="btn btn-sm btn-outline-secondary suggestion-btn">Compétences recherchées en data science</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const typingIndicator = document.getElementById('typingIndicator');
+            const modelSelect = document.getElementById('modelSelect');
+            const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+            
+            let chatHistory = [];
+            
+            // Initialiser avec un message système
+            chatHistory.push({
+                role: "system",
+                content: "Tu es un assistant intelligent et utile pour Commitment, une plateforme de matching entre candidats et offres d'emploi."
+            });
+            
+            // Fonction pour ajouter un message dans l'interface
+            function addMessage(content, role) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(role === 'user' ? 'user-message' : 'assistant-message');
+                
+                // Convertir les blocs de code markdown en HTML
+                const formattedContent = formatMessage(content);
+                messageDiv.innerHTML = formattedContent;
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Ajouter au chatHistory
+                if (role !== 'system') {
+                    chatHistory.push({
+                        role: role,
+                        content: content
+                    });
+                }
+            }
+            
+            // Formater le message pour afficher correctement les blocs de code, etc.
+            function formatMessage(content) {
+                // Remplacer les blocs de code
+                let formatted = content.replace(/```(.*?)\n([\s\S]*?)```/g, function(match, language, code) {
+                    return `<pre><code class="language-${language}">${code}</code></pre>`;
+                });
+                
+                // Remplacer les sauts de ligne
+                formatted = formatted.replace(/\n/g, '<br>');
+                
+                return formatted;
+            }
+            
+            // Fonction pour envoyer un message à l'API
+            async function sendMessage(message) {
+                try {
+                    // Afficher l'indicateur de frappe
+                    typingIndicator.style.display = 'block';
+                    
+                    const endpoint = chatHistory.length <= 1 ? '/api/chat-gpt/chat/session' : '/api/chat-gpt/chat';
+                    const model = modelSelect.value;
+                    
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            history: chatHistory.length > 1 ? chatHistory : null,
+                            model: model
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Erreur réseau: ' + response.status);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Masquer l'indicateur de frappe
+                    typingIndicator.style.display = 'none';
+                    
+                    // Mettre à jour l'historique complet
+                    chatHistory = data.history;
+                    
+                    // Afficher la réponse de l'assistant
+                    addMessage(data.response, 'assistant');
+                    
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    typingIndicator.style.display = 'none';
+                    addMessage("Désolé, une erreur s'est produite lors de l'envoi du message. Veuillez réessayer.", 'assistant');
+                }
+            }
+            
+            // Gérer l'envoi de message
+            function handleSendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    addMessage(message, 'user');
+                    messageInput.value = '';
+                    sendMessage(message);
+                }
+            }
+            
+            // Event listeners
+            sendButton.addEventListener('click', handleSendMessage);
+            
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleSendMessage();
+                }
+            });
+            
+            // Suggestions
+            suggestionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const suggestion = this.textContent;
+                    messageInput.value = suggestion;
+                    handleSendMessage();
+                });
+            });
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
