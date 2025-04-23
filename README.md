@@ -1,106 +1,98 @@
-# Commitment
+# Nexten (Commitment)
 
-Plateforme de recrutement avec analyse de CV assistée par IA
+Plateforme de recrutement avec analyse de CV assistée par IA et matching intelligent, basée sur une architecture microservices.
+
+## Architecture microservices
+
+Le projet est organisé selon une architecture microservices pour permettre une meilleure scalabilité et une maintenance simplifiée:
+
+1. **Gateway API** : Point d'entrée centralisé pour toutes les requêtes
+2. **User Service** : Gestion des utilisateurs et authentification
+3. **CV Parser Service** : Parsing automatisé des CV avec IA
+4. **Profile Service** : Gestion des profils candidats
+5. **Matching Service** : Algorithmes de matching intelligent
+6. **Job Service** : Gestion des offres d'emploi
+7. **Notification Service** : Gestion des emails et alertes
+8. **Frontend** : Interface utilisateur en Next.js
+
+## Structure du projet
+
+```
+nexten/
+├── gateway/                  # Service de passerelle API
+├── user-service/             # Gestion des utilisateurs
+├── cv-parser-service/        # Service de parsing de CV
+├── profile-service/          # Gestion des profils
+├── matching-service/         # Algorithmes de matching
+├── job-service/              # Gestion des offres d'emploi
+├── notification-service/     # Notifications et emails
+├── frontend/                 # Application Next.js
+└── docker-compose.yml        # Configuration des services
+```
 
 ## Fonctionnalités
 
 - Parsing de CV automatisé avec GPT-4o-mini
-- Interface utilisateur intuitive pour le téléchargement de CV
-- Système de chat avec l'IA pour obtenir des conseils sur le CV
-- Extraction automatique des informations clés : nom, poste actuel, compétences, etc.
+- Interface utilisateur intuitive basée sur Next.js
+- Matching intelligent entre profils et offres d'emploi
+- Architecture scalable pour supporter la croissance
+- API RESTful pour tous les services
 
-## Architecture
+## Technologies
 
-Le projet est divisé en deux parties principales :
-
-1. **Frontend** : Interface utilisateur HTML/CSS/JS située dans le dossier `templates/`
-2. **Backend** : API Flask qui gère le parsing des CV avec GPT dans le dossier `backend/`
+- **Backend** : Flask pour les services, RabbitMQ pour la communication asynchrone
+- **Frontend** : Next.js
+- **Bases de données** : MongoDB pour les profils et PostgreSQL pour les données relationnelles
+- **Déploiement** : Docker, Docker Compose (dev), Kubernetes (prod)
 
 ## Configuration
 
 ### Prérequis
 
 - Python 3.8 ou supérieur
-- Node.js et npm (optionnel, pour le développement frontend)
-- Clé API OpenAI (gpt-4o-mini)
+- Node.js et npm
+- Docker et Docker Compose
+- Clé API OpenAI
 
-### Installation du Backend
+### Installation en développement
 
 1. Clonez le dépôt :
    ```bash
    git clone https://github.com/Bapt252/Commitment-.git
-   cd Commitment-/backend
+   cd Commitment-
    ```
 
-2. Créez un environnement virtuel :
+2. Lancez les services avec Docker Compose :
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # Sur Windows : venv\Scripts\activate
+   docker-compose up
    ```
 
-3. Installez les dépendances :
-   ```bash
-   pip install -r requirements.txt
-   ```
+Le serveur de développement sera disponible sur `http://localhost:3000` pour le frontend et `http://localhost:8000` pour l'API gateway.
 
-4. Configurez votre clé API OpenAI :
-   ```bash
-   cp .env.example .env
-   ```
-   Puis modifiez le fichier `.env` pour y ajouter votre clé API OpenAI.
+## Utilisation des microservices
 
-### Lancement du Backend
-
-```bash
-flask run
-```
-
-Le serveur sera disponible sur `http://localhost:5000`.
-
-## Configuration pour le déploiement
-
-Pour déployer l'application en production, suivez ces étapes :
-
-1. Configurez vos variables d'environnement sur votre serveur :
-   ```
-   OPENAI=votre_clé_api_openai
-   FLASK_ENV=production
-   ```
-
-2. Lancez l'application avec Gunicorn :
-   ```bash
-   cd backend
-   gunicorn app:app
-   ```
-
-## Utilisation du Frontend
-
-Le frontend est accessible directement via GitHub Pages à l'adresse :
-https://bapt252.github.io/Commitment-/templates/candidate-upload.html
-
-En développement local, vous pouvez utiliser le serveur Flask qui sert les fichiers statiques, ou simplement ouvrir les fichiers HTML dans votre navigateur.
-
-## Intégration Frontend-Backend
-
-Pour que le frontend se connecte correctement au backend :
-
-1. En développement local, le frontend est configuré pour se connecter à `http://localhost:5000`
-2. Pour un déploiement en production, modifiez la variable `API_BASE_URL` dans le fichier `templates/candidate-upload.html` pour pointer vers l'URL de votre backend déployé.
-
-## Sécurité
-
-- La clé API OpenAI est stockée en tant que variable d'environnement "OPENAI"
-- CORS est configuré sur le backend pour permettre les requêtes depuis n'importe quelle origine (à ajuster en production)
-- Les fichiers téléchargés sont traités de manière sécurisée et supprimés après analyse
+Chaque service expose sa propre API RESTful, mais toutes les communications doivent passer par la Gateway API pour assurer l'authentification et le routage appropriés.
 
 ## Développement
 
-### Structure des fichiers backend
+### Structure type d'un microservice
 
-- `app.py` : Point d'entrée de l'application Flask
-- `parsing_service.py` : Service pour l'extraction de texte et l'interaction avec l'API OpenAI
-- `requirements.txt` : Dépendances Python
-- `.env` : Variables d'environnement (ne pas committer)
+```
+service-name/
+├── app/
+│   ├── __init__.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── routes.py
+│   ├── core/
+│   │   ├── __init__.py
+│   │   └── service_logic.py
+│   ├── models/
+│   └── utils/
+├── config.py
+├── Dockerfile
+└── requirements.txt
+```
 
 ## Licence
 
