@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Parsing - Commitment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .app-container {
+            display: flex;
+            min-height: calc(100vh - 56px);
+        }
+        
+        .sidebar {
+            width: 350px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            max-width: 80%;
+            position: relative;
+        }
+        
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .assistant-message {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+        
+        .message-input {
+            border-radius: 20px;
+        }
+        
+        .btn-send {
+            border-radius: 20px;
+        }
+        
+        .typing-indicator {
+            display: none;
+            margin-bottom: 10px;
+            font-style: italic;
+            color: #6c757d;
+        }
+
+        .system-message {
+            background-color: #ffe6cc;
+            color: #664d03;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+        }
+        
+        .document-preview {
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .document-data {
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        
+        .document-section {
+            margin-bottom: 10px;
+        }
+        
+        .document-section h5 {
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .confidence-meter {
+            height: 8px;
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-top: 2px;
+        }
+        
+        .confidence-value {
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        .drop-zone {
+            padding: 30px;
+            text-align: center;
+            border: 2px dashed #adb5bd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .drop-zone:hover {
+            border-color: #007bff;
+            background-color: #f1f8ff;
+        }
+        
+        .suggestions {
+            margin-top: 15px;
+        }
+        
+        .control-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .control-bar select, .control-bar button {
+            font-size: 0.9rem;
+        }
+        
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        #uploadForm {
+            margin-bottom: 20px;
+        }
+        
+        #documentTypeSelect {
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 300px;
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Commitment</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/chat.html">Assistant ChatGPT</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/parsing-chat.html">Analyse Document</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="app-container">
+        <!-- Sidebar pour l'upload et la visualisation des données -->
+        <div class="sidebar">
+            <h4 class="text-center mb-3">Document</h4>
+            
+            <!-- Formulaire d'upload -->
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="drop-zone" id="dropZone">
+                    <i class="fas fa-file-upload fa-2x mb-2"></i>
+                    <p class="mb-1">Glissez un fichier ici</p>
+                    <p class="text-muted small">ou</p>
+                    <input type="file" id="fileInput" class="d-none">
+                    <button type="button" class="btn btn-primary btn-sm" id="browseButton">Parcourir</button>
+                </div>
+                
+                <select class="form-select mt-2" id="documentTypeSelect">
+                    <option value="">Type de document automatique</option>
+                    <option value="cv">CV</option>
+                    <option value="job_posting">Offre d'emploi</option>
+                    <option value="company_questionnaire">Questionnaire</option>
+                </select>
+                
+                <button type="submit" class="btn btn-success w-100 mt-2" id="uploadButton" disabled>
+                    <i class="fas fa-upload me-1"></i> Analyser le document
+                </button>
+            </form>
+            
+            <!-- Prévisualisation des données du document -->
+            <div id="documentPreview" class="document-preview" style="display: none;">
+                <div class="section-title">
+                    <h5>Données extraites</h5>
+                    <span class="badge bg-primary" id="docTypeIndicator"></span>
+                </div>
+                <div id="documentData" class="document-data"></div>
+            </div>
+        </div>
+        
+        <!-- Conteneur principal du chat -->
+        <div class="chat-container">
+            <h3 class="mb-3">Assistant d'analyse de document</h3>
+            
+            <!-- Barre de contrôles -->
+            <div class="control-bar">
+                <select class="form-select form-select-sm" id="modelSelect" style="max-width: 200px;">
+                    <option value="gpt-4o-mini" selected>gpt-4o-mini (par défaut)</option>
+                    <option value="gpt-4">gpt-4 (plus précis)</option>
+                    <option value="gpt-3.5-turbo">gpt-3.5-turbo (plus rapide)</option>
+                </select>
+                
+                <button class="btn btn-sm btn-outline-secondary" id="clearChatButton">
+                    <i class="fas fa-trash-alt me-1"></i> Effacer la conversation
+                </button>
+            </div>
+            
+            <!-- Zone des messages -->
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant-message">
+                    Bienvenue dans l'assistant d'analyse de document ! Chargez un document (CV, offre d'emploi, questionnaire...) pour commencer l'analyse et posez-moi des questions à son sujet.
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                L'assistant est en train d'écrire...
+            </div>
+            
+            <!-- Zone de saisie -->
+            <div class="input-group">
+                <input type="text" id="messageInput" class="form-control message-input" placeholder="Posez une question sur le document..." disabled>
+                <button class="btn btn-primary btn-send" id="sendButton" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            
+            <!-- Suggestions -->
+            <div class="suggestions mt-3">
+                <div class="d-flex flex-wrap gap-2" id="suggestionButtons">
+                    <button class="btn btn-sm btn-outline-secondary suggestion-btn" disabled>Résume ce document</button>
+                    <button class="btn btn-sm btn-outline-secondary suggestion-btn" disabled>Quelles sont les compétences principales ?</button>
+                    <button class="btn btn-sm btn-outline-secondary suggestion-btn" disabled>Analyse la pertinence de ce profil</button>
+                    <button class="btn btn-sm btn-outline-secondary suggestion-btn" disabled>Propose des améliorations</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Éléments DOM
+            const chatMessages = document.getElementById('chatMessages');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const typingIndicator = document.getElementById('typingIndicator');
+            const modelSelect = document.getElementById('modelSelect');
+            const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+            const uploadForm = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('fileInput');
+            const browseButton = document.getElementById('browseButton');
+            const dropZone = document.getElementById('dropZone');
+            const uploadButton = document.getElementById('uploadButton');
+            const documentTypeSelect = document.getElementById('documentTypeSelect');
+            const documentPreview = document.getElementById('documentPreview');
+            const documentData = document.getElementById('documentData');
+            const docTypeIndicator = document.getElementById('docTypeIndicator');
+            const clearChatButton = document.getElementById('clearChatButton');
+            
+            // Variables globales
+            let chatHistory = [];
+            let documentInfo = null;
+            
+            // Initialiser avec un message système
+            chatHistory.push({
+                role: "system",
+                content: "Tu es un assistant intelligent spécialisé dans l'analyse de documents pour Commitment, une plateforme de matching entre candidats et offres d'emploi."
+            });
+            
+            // Événements pour l'upload de fichier
+            browseButton.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    dropZone.innerHTML = `<i class="fas fa-file fa-2x mb-2"></i><p>${fileInput.files[0].name}</p>`;
+                    uploadButton.disabled = false;
+                }
+            });
+            
+            // Gestion du drag and drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropZone.classList.add('bg-light');
+            }
+            
+            function unhighlight() {
+                dropZone.classList.remove('bg-light');
+            }
+            
+            dropZone.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    dropZone.innerHTML = `<i class="fas fa-file fa-2x mb-2"></i><p>${files[0].name}</p>`;
+                    uploadButton.disabled = false;
+                }
+            }
+            
+            // Soumission du formulaire d'upload
+            uploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!fileInput.files.length) {
+                    alert('Veuillez sélectionner un fichier');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                
+                const docType = documentTypeSelect.value;
+                if (docType) {
+                    formData.append('doc_type', docType);
+                }
+                
+                // Modifier le bouton d'upload pour indiquer le chargement
+                const originalButtonText = uploadButton.innerHTML;
+                uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Analyse en cours...';
+                uploadButton.disabled = true;
+                
+                try {
+                    const response = await fetch('/api/parsing-chat/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Erreur réseau: ' + response.status);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Stocker les données du document
+                        documentInfo = {
+                            document_data: data.document_data,
+                            confidence_scores: data.confidence_scores,
+                            doc_type: data.doc_type
+                        };
+                        
+                        // Afficher les données extraites
+                        displayDocumentData(documentInfo);
+                        
+                        // Activer le chat
+                        messageInput.disabled = false;
+                        sendButton.disabled = false;
+                        suggestionBtns.forEach(btn => btn.disabled = false);
+                        
+                        // Ajouter un message système pour informer de l'analyse
+                        const messageDiv = document.createElement('div');
+                        messageDiv.classList.add('system-message');
+                        messageDiv.innerHTML = `
+                            <i class="fas fa-check-circle me-1"></i>
+                            Document analysé avec succès. Vous pouvez maintenant poser des questions à son sujet.
+                        `;
+                        chatMessages.appendChild(messageDiv);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        
+                        // Réinitialiser l'historique de chat avec le nouveau document
+                        chatHistory = [{
+                            role: "system",
+                            content: "Tu es un assistant intelligent spécialisé dans l'analyse de documents pour Commitment, une plateforme de matching entre candidats et offres d'emploi."
+                        }];
+                        
+                    } else {
+                        throw new Error('Échec de l\'analyse');
+                    }
+                    
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de l\'analyse du document: ' + error.message);
+                } finally {
+                    // Restaurer le bouton d'upload
+                    uploadButton.innerHTML = originalButtonText;
+                    uploadButton.disabled = false;
+                }
+            });
+            
+            // Afficher les données extraites du document
+            function displayDocumentData(info) {
+                documentPreview.style.display = 'block';
+                docTypeIndicator.textContent = getDocTypeName(info.doc_type);
+                
+                // Formater les données en JSON pour l'affichage
+                const formattedData = JSON.stringify(info.document_data, null, 2);
+                documentData.textContent = formattedData;
+            }
+            
+            // Obtenir un nom convivial pour le type de document
+            function getDocTypeName(docType) {
+                const docTypeMap = {
+                    'cv': 'CV',
+                    'job_posting': 'Offre d\'emploi',
+                    'company_questionnaire': 'Questionnaire',
+                    'unknown': 'Document'
+                };
+                
+                return docTypeMap[docType] || 'Document';
+            }
+            
+            // Fonction pour ajouter un message dans l'interface
+            function addMessage(content, role) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(role === 'user' ? 'user-message' : 'assistant-message');
+                
+                // Convertir les blocs de code markdown en HTML
+                const formattedContent = formatMessage(content);
+                messageDiv.innerHTML = formattedContent;
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Ajouter au chatHistory
+                if (role !== 'system') {
+                    chatHistory.push({
+                        role: role,
+                        content: content
+                    });
+                }
+            }
+            
+            // Formater le message pour afficher correctement les blocs de code, etc.
+            function formatMessage(content) {
+                // Remplacer les blocs de code
+                let formatted = content.replace(/```(.*?)\n([\s\S]*?)```/g, function(match, language, code) {
+                    return `<pre><code class="language-${language}">${code}</code></pre>`;
+                });
+                
+                // Remplacer les sauts de ligne
+                formatted = formatted.replace(/\n/g, '<br>');
+                
+                return formatted;
+            }
+            
+            // Fonction pour envoyer un message à l'API
+            async function sendMessage(message) {
+                try {
+                    // Afficher l'indicateur de frappe
+                    typingIndicator.style.display = 'block';
+                    
+                    const model = modelSelect.value;
+                    
+                    const response = await fetch('/api/parsing-chat/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            history: chatHistory,
+                            document_data: documentInfo ? documentInfo.document_data : null,
+                            doc_type: documentInfo ? documentInfo.doc_type : null,
+                            model: model
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Erreur réseau: ' + response.status);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Masquer l'indicateur de frappe
+                    typingIndicator.style.display = 'none';
+                    
+                    // Mettre à jour l'historique complet
+                    chatHistory = data.history;
+                    
+                    // Afficher la réponse de l'assistant
+                    addMessage(data.response, 'assistant');
+                    
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    typingIndicator.style.display = 'none';
+                    addMessage("Désolé, une erreur s'est produite lors de l'envoi du message. Veuillez réessayer.", 'assistant');
+                }
+            }
+            
+            // Gérer l'envoi de message
+            function handleSendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    addMessage(message, 'user');
+                    messageInput.value = '';
+                    sendMessage(message);
+                }
+            }
+            
+            // Event listeners
+            sendButton.addEventListener('click', handleSendMessage);
+            
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleSendMessage();
+                }
+            });
+            
+            // Suggestions
+            suggestionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!this.disabled) {
+                        const suggestion = this.textContent;
+                        messageInput.value = suggestion;
+                        handleSendMessage();
+                    }
+                });
+            });
+            
+            // Effacer la conversation
+            clearChatButton.addEventListener('click', function() {
+                // Garder uniquement le message système initial
+                chatHistory = [{
+                    role: "system",
+                    content: "Tu es un assistant intelligent spécialisé dans l'analyse de documents pour Commitment, une plateforme de matching entre candidats et offres d'emploi."
+                }];
+                
+                // Effacer tous les messages affichés sauf le premier
+                while (chatMessages.childElementCount > 1) {
+                    chatMessages.removeChild(chatMessages.lastChild);
+                }
+                
+                // Ajouter un message système pour informer
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('system-message');
+                messageDiv.innerHTML = 'Conversation réinitialisée.';
+                chatMessages.appendChild(messageDiv);
+            });
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+</body>
+</html>
