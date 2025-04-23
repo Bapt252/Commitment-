@@ -1,88 +1,107 @@
 # Commitment
 
-Commitment est une plateforme de matching entre candidats et offres d'emploi.
+Plateforme de recrutement avec analyse de CV assistée par IA
 
-## Fonctionnalités principales
+## Fonctionnalités
 
-- Analyse des offres d'emploi pour extraction automatique des compétences et exigences
-- Questionnaires personnalisés pour les candidats
-- Algorithme de matching intelligent
-- Interface utilisateur intuitive pour explorer les matchings
+- Parsing de CV automatisé avec GPT-4o-mini
+- Interface utilisateur intuitive pour le téléchargement de CV
+- Système de chat avec l'IA pour obtenir des conseils sur le CV
+- Extraction automatique des informations clés : nom, poste actuel, compétences, etc.
 
-## Architecture technique
+## Architecture
 
-- Backend: FastAPI (Python)
-- Frontend: HTML/CSS/JavaScript 
-- Base de données: PostgreSQL
-- Machine Learning: scikit-learn, TensorFlow
+Le projet est divisé en deux parties principales :
 
-## Structure du projet
+1. **Frontend** : Interface utilisateur HTML/CSS/JS située dans le dossier `templates/`
+2. **Backend** : API Flask qui gère le parsing des CV avec GPT dans le dossier `backend/`
 
-```
-├── backend/            # API FastAPI
-├── ml_engine/          # Modèles de machine learning
-├── airflow_dags/       # DAGs Airflow pour les traitements planifiés
-└── docs/               # Documentation
-```
-
-## Système d'amélioration continue
-
-Le projet intègre désormais un système complet d'amélioration continue basé sur les feedbacks utilisateurs qui permet:
-
-1. **Collecte de feedback**:
-   - Feedback explicite sur les matchings (ratings, commentaires)
-   - Mesures implicites (taux d'interaction post-matching)
-
-2. **Analyse et entraînement**:
-   - Réentraînement périodique des modèles 
-   - Validation croisée et métriques de qualité
-   - Déploiement automatisé des modèles améliorés
-
-3. **Monitoring**:
-   - Alertes en cas de détérioration des performances
-   - Tableaux de bord de suivi des métriques
-   - Détection proactive des problèmes
-
-Consultez la [documentation du système de feedback](./docs/feedback_system.md) pour plus de détails.
-
-## Installation et configuration
+## Configuration
 
 ### Prérequis
 
-- Python 3.9+
-- PostgreSQL
-- Node.js/npm (pour certaines parties frontend)
+- Python 3.8 ou supérieur
+- Node.js et npm (optionnel, pour le développement frontend)
+- Clé API OpenAI (gpt-4o-mini)
 
-### Installation
+### Installation du Backend
 
-1. Clonez le repository
-   ```
+1. Clonez le dépôt :
+   ```bash
    git clone https://github.com/Bapt252/Commitment-.git
-   cd Commitment-
+   cd Commitment-/backend
    ```
 
-2. Installez les dépendances du backend
+2. Créez un environnement virtuel :
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Sur Windows : venv\Scripts\activate
    ```
-   cd backend
+
+3. Installez les dépendances :
+   ```bash
    pip install -r requirements.txt
    ```
 
-3. Configurez la base de données
+4. Configurez votre clé API OpenAI :
+   ```bash
+   cp .env.example .env
    ```
-   # Créez un fichier .env basé sur .env.example
-   # Puis exécutez les migrations
-   alembic upgrade head
+   Puis modifiez le fichier `.env` pour y ajouter votre clé API OpenAI.
+
+### Lancement du Backend
+
+```bash
+flask run
+```
+
+Le serveur sera disponible sur `http://localhost:5000`.
+
+## Configuration pour le déploiement
+
+Pour déployer l'application en production, suivez ces étapes :
+
+1. Configurez vos variables d'environnement sur votre serveur :
+   ```
+   OPENAI=votre_clé_api_openai
+   FLASK_ENV=production
    ```
 
-4. Lancez l'API
-   ```
-   python run.py
+2. Lancez l'application avec Gunicorn :
+   ```bash
+   cd backend
+   gunicorn app:app
    ```
 
-## Contribuer au projet
+## Utilisation du Frontend
 
-Veuillez consulter [CONTRIBUTING.md](CONTRIBUTING.md) pour les détails sur notre code de conduite et le processus de soumission des pull requests.
+Le frontend est accessible directement via GitHub Pages à l'adresse :
+https://bapt252.github.io/Commitment-/templates/candidate-upload.html
+
+En développement local, vous pouvez utiliser le serveur Flask qui sert les fichiers statiques, ou simplement ouvrir les fichiers HTML dans votre navigateur.
+
+## Intégration Frontend-Backend
+
+Pour que le frontend se connecte correctement au backend :
+
+1. En développement local, le frontend est configuré pour se connecter à `http://localhost:5000`
+2. Pour un déploiement en production, modifiez la variable `API_BASE_URL` dans le fichier `templates/candidate-upload.html` pour pointer vers l'URL de votre backend déployé.
+
+## Sécurité
+
+- La clé API OpenAI est stockée en tant que variable d'environnement "OPENAI"
+- CORS est configuré sur le backend pour permettre les requêtes depuis n'importe quelle origine (à ajuster en production)
+- Les fichiers téléchargés sont traités de manière sécurisée et supprimés après analyse
+
+## Développement
+
+### Structure des fichiers backend
+
+- `app.py` : Point d'entrée de l'application Flask
+- `parsing_service.py` : Service pour l'extraction de texte et l'interaction avec l'API OpenAI
+- `requirements.txt` : Dépendances Python
+- `.env` : Variables d'environnement (ne pas committer)
 
 ## Licence
 
-Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+MIT
