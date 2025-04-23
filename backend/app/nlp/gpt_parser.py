@@ -15,12 +15,18 @@ from dotenv import load_dotenv
 # Configuration du logging
 logger = logging.getLogger(__name__)
 
-# Chargement des variables d'environnement
-load_dotenv()
+# Configuration de l'API OpenAI - priorité aux secrets GitHub
+if "OPENAI" in os.environ:
+    openai.api_key = os.environ["OPENAI"]
+    logger.info("Utilisation de la clé API OpenAI depuis les secrets GitHub")
+else:
+    # Fallback vers le fichier .env pour les environnements de développement
+    load_dotenv()
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    logger.info("Utilisation de la clé API OpenAI depuis le fichier .env")
 
-# Configuration de l'API OpenAI
-openai.api_key = os.getenv("OPENAI_API_KEY")
-GPT_MODEL = os.getenv("GPT_MODEL", "gpt-4")
+# Modèle par défaut - maintenant gpt-4o-mini
+GPT_MODEL = os.getenv("GPT_MODEL", "gpt-4o-mini")
 
 
 class GPTParser:
@@ -39,7 +45,7 @@ class GPTParser:
         self.model = model or GPT_MODEL
         
         if not openai.api_key:
-            logger.warning("Clé API OpenAI non définie. Veuillez définir OPENAI_API_KEY dans le fichier .env")
+            logger.warning("Clé API OpenAI non définie. Veuillez définir OPENAI dans les secrets GitHub ou OPENAI_API_KEY dans le fichier .env")
         
         # Vérifier que le modèle est supporté
         self._check_model()
@@ -48,10 +54,10 @@ class GPTParser:
     
     def _check_model(self):
         """Vérifie que le modèle spécifié est valide et disponible."""
-        valid_models = ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"]
+        valid_models = ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo", "gpt-4o-mini"]
         if self.model not in valid_models:
-            logger.warning(f"Modèle {self.model} non reconnu. Utilisation de gpt-4 par défaut.")
-            self.model = "gpt-4"
+            logger.warning(f"Modèle {self.model} non reconnu. Utilisation de gpt-4o-mini par défaut.")
+            self.model = "gpt-4o-mini"
     
     def parse_cv(self, text: str) -> Dict[str, Any]:
         """
@@ -181,7 +187,7 @@ class GPTParser:
             str: Réponse de l'API
         """
         try:
-            response = openai.ChatCompletion.create(
+            response = openai.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": "Tu es un assistant spécialisé dans l'analyse de texte et l'extraction d'informations structurées. Tu dois extraire les informations demandées et les formater en JSON valide."},
@@ -194,7 +200,7 @@ class GPTParser:
                 presence_penalty=0
             )
             
-            return response.choices[0].message['content'].strip()
+            return response.choices[0].message.content.strip()
         except Exception as e:
             logger.error(f"Erreur lors de l'appel à l'API GPT: {e}")
             raise
