@@ -1,6 +1,7 @@
 import os
 import tempfile
 import json
+import datetime
 from flask import Blueprint, request, jsonify, current_app
 from app.core.parser import extract_text_from_file, parse_cv_with_gpt, chat_with_cv_data
 from werkzeug.utils import secure_filename
