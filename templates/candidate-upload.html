@@ -443,6 +443,228 @@
             margin-top: 1.5rem;
             text-align: center;
         }
+        
+        /* Styles pour le chat AI */
+        .chat-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        .chat-button:hover {
+            background-color: #6a3de8;
+        }
+        
+        .chat-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chat-modal {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .chat-close:hover {
+            opacity: 0.8;
+        }
+        
+        .chat-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .chat-document {
+            width: 300px;
+            padding: 1rem;
+            border-right: 1px solid #eee;
+            background-color: #f8f9fa;
+            overflow-y: auto;
+        }
+        
+        .chat-document-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .chat-document-data {
+            max-height: calc(80vh - 130px);
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+            background-color: white;
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            border: 1px solid #eee;
+        }
+        
+        .chat-messages-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            word-wrap: break-word;
+        }
+        
+        .message.user {
+            align-self: flex-end;
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+        
+        .message.assistant {
+            align-self: flex-start;
+            background-color: #f0f0f0;
+            color: var(--text-color);
+            border-bottom-left-radius: 0.25rem;
+        }
+        
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: #f0f0f0;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            border-bottom-left-radius: 0.25rem;
+            color: var(--gray-dark);
+            font-style: italic;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 1.5rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .chat-input:focus {
+            border-color: var(--primary-color);
+        }
+        
+        .chat-send {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .chat-send:hover {
+            background-color: #6a3de8;
+        }
+        
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0 1rem 1rem;
+        }
+        
+        .suggestion {
+            background-color: #f0f0f0;
+            color: var(--gray-dark);
+            border: none;
+            border-radius: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .suggestion:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
 
         @media (max-width: 768px) {
             .header {
@@ -464,6 +686,17 @@
             
             .btn {
                 width: 100%;
+            }
+            
+            .chat-body {
+                flex-direction: column;
+            }
+            
+            .chat-document {
+                width: 100%;
+                max-height: 200px;
+                border-right: none;
+                border-bottom: 1px solid #eee;
             }
         }
     </style>
@@ -575,6 +808,12 @@
                 </table>
                 
                 <p>Ces informations seront utilisées pour pré-remplir votre profil. Vous pourrez les modifier lors de l'étape suivante.</p>
+                
+                <!-- Bouton pour ouvrir le chat avec l'IA -->
+                <button class="chat-button" id="openChatBtn">
+                    <i class="fas fa-comment-dots"></i>
+                    Discuter de mon CV avec l'IA
+                </button>
             </div>
             
             <div class="success-message" id="successMessage">
@@ -599,11 +838,54 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal de chat avec l'IA -->
+    <div class="chat-modal-overlay" id="chatModalOverlay">
+        <div class="chat-modal">
+            <div class="chat-header">
+                <h3><i class="fas fa-robot"></i> Assistant d'analyse de CV</h3>
+                <button class="chat-close" id="closeChatBtn">&times;</button>
+            </div>
+            <div class="chat-body">
+                <div class="chat-document">
+                    <div class="chat-document-title">
+                        <i class="fas fa-file-alt"></i>
+                        Données extraites
+                    </div>
+                    <div class="chat-document-data" id="chatDocumentData">
+                        <!-- Les données extraites du CV seront affichées ici -->
+                    </div>
+                </div>
+                <div class="chat-messages-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message assistant">
+                            Bonjour ! Je suis votre assistant IA. J'ai analysé votre CV et je peux répondre à vos questions ou vous fournir des conseils pour l'améliorer. Comment puis-je vous aider ?
+                        </div>
+                    </div>
+                    <div class="typing-indicator" id="chatTypingIndicator">
+                        L'assistant est en train d'écrire...
+                    </div>
+                    <div class="suggestions">
+                        <button class="suggestion">Comment puis-je améliorer mon CV ?</button>
+                        <button class="suggestion">Quelles sont mes forces ?</button>
+                        <button class="suggestion">Quelles compétences devrais-je développer ?</button>
+                        <button class="suggestion">Quels types d'emploi me correspondent ?</button>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Posez une question sur votre CV...">
+                        <button class="chat-send" id="chatSendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Éléments DOM
+            // Éléments DOM pour l'upload de CV
             const uploadContainer = document.getElementById('uploadContainer');
             const fileInput = document.getElementById('cvFile');
             const fileInfo = document.getElementById('fileInfo');
@@ -618,6 +900,21 @@
             const nextBtn = document.getElementById('nextBtn');
             const skipBtn = document.getElementById('skipBtn');
             const stepperProgress = document.querySelector('.stepper-progress');
+            const openChatBtn = document.getElementById('openChatBtn');
+            
+            // Éléments DOM pour le chat
+            const chatModalOverlay = document.getElementById('chatModalOverlay');
+            const closeChatBtn = document.getElementById('closeChatBtn');
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInput = document.getElementById('chatInput');
+            const chatSendBtn = document.getElementById('chatSendBtn');
+            const chatTypingIndicator = document.getElementById('chatTypingIndicator');
+            const chatDocumentData = document.getElementById('chatDocumentData');
+            const suggestionBtns = document.querySelectorAll('.suggestion');
+            
+            // Variables pour le chat
+            let chatHistory = [];
+            let documentData = null;
             
             // Par défaut, le bouton Continuer est activé
             nextBtn.disabled = false;
@@ -625,7 +922,7 @@
             // Mise à jour de la barre de progression
             stepperProgress.style.width = '0%';
             
-            // Événements
+            // Événements pour l'upload de CV
             uploadContainer.addEventListener('click', function() {
                 fileInput.click();
             });
@@ -691,7 +988,143 @@
                 window.location.href = 'candidate-questionnaire.html';
             });
             
-            // Fonctions
+            // Événements pour le chat
+            openChatBtn.addEventListener('click', function() {
+                // Afficher le chat modal
+                chatModalOverlay.style.display = 'flex';
+                
+                // Préparer les données du CV pour le chat
+                const cvData = {
+                    name: document.getElementById('parsedName').textContent,
+                    jobTitle: document.getElementById('parsedJobTitle').textContent,
+                    email: document.getElementById('parsedEmail').textContent,
+                    phone: document.getElementById('parsedPhone').textContent,
+                    skills: document.getElementById('parsedSkills').textContent,
+                    experience: document.getElementById('parsedExperience').textContent
+                };
+                
+                // Stocker les données pour le chat
+                documentData = cvData;
+                
+                // Afficher les données dans le panneau latéral
+                chatDocumentData.textContent = JSON.stringify(cvData, null, 2);
+                
+                // Initialiser l'historique du chat avec un message système
+                chatHistory = [
+                    {
+                        role: "system",
+                        content: `Tu es un assistant spécialisé dans l'analyse de CV. Tu dois aider le candidat à comprendre les forces et faiblesses de son CV, et lui donner des conseils pour l'améliorer. Voici les données extraites de son CV: ${JSON.stringify(cvData)}`
+                    }
+                ];
+                
+                // Faire défiler vers le bas pour voir les messages
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Mettre le focus sur le champ de saisie
+                chatInput.focus();
+            });
+            
+            closeChatBtn.addEventListener('click', function() {
+                chatModalOverlay.style.display = 'none';
+            });
+            
+            // Fermer le chat en cliquant en dehors
+            chatModalOverlay.addEventListener('click', function(e) {
+                if (e.target === chatModalOverlay) {
+                    chatModalOverlay.style.display = 'none';
+                }
+            });
+            
+            // Envoyer un message en appuyant sur Entrée
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+            
+            // Envoyer un message en cliquant sur le bouton
+            chatSendBtn.addEventListener('click', sendChatMessage);
+            
+            // Gérer les suggestions
+            suggestionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    chatInput.value = this.textContent;
+                    sendChatMessage();
+                });
+            });
+            
+            // Fonction pour envoyer un message au chat
+            function sendChatMessage() {
+                const message = chatInput.value.trim();
+                
+                if (!message) return;
+                
+                // Ajouter le message de l'utilisateur à l'interface
+                addChatMessage(message, 'user');
+                
+                // Vider le champ de saisie
+                chatInput.value = '';
+                
+                // Afficher l'indicateur de frappe
+                chatTypingIndicator.style.display = 'block';
+                
+                // Simuler une requête API pour obtenir une réponse
+                // En production, remplacer par une vraie requête à l'API de parsing chat
+                setTimeout(() => {
+                    // Générer une réponse basée sur la question et les données du CV
+                    const response = generateAIResponse(message, documentData);
+                    
+                    // Masquer l'indicateur de frappe
+                    chatTypingIndicator.style.display = 'none';
+                    
+                    // Ajouter la réponse à l'interface
+                    addChatMessage(response, 'assistant');
+                }, 1500);
+            }
+            
+            // Fonction pour ajouter un message au chat
+            function addChatMessage(content, role) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.classList.add(role);
+                messageElement.textContent = content;
+                
+                chatMessages.appendChild(messageElement);
+                
+                // Faire défiler vers le bas
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Ajouter le message à l'historique
+                chatHistory.push({
+                    role: role,
+                    content: content
+                });
+            }
+            
+            // Fonction qui simule une réponse de l'IA basée sur les données du CV
+            // Dans un environnement de production, cette fonction serait remplacée par un appel API
+            function generateAIResponse(message, cvData) {
+                const lowerMessage = message.toLowerCase();
+                
+                // Réponses prédéfinies basées sur des mots-clés
+                if (lowerMessage.includes('améliorer') || lowerMessage.includes('amélioration')) {
+                    return `D'après l'analyse de votre CV, voici quelques conseils pour l'améliorer :\n\n1. Ajoutez plus de détails sur vos réalisations en tant que ${cvData.jobTitle}\n2. Quantifiez vos résultats avec des chiffres précis\n3. Mettez davantage en avant vos compétences en ${cvData.skills.split(',')[0]}\n4. Ajoutez une section sur vos certifications professionnelles`;
+                } 
+                else if (lowerMessage.includes('force') || lowerMessage.includes('point fort')) {
+                    return `Vos principales forces basées sur votre CV sont :\n\n1. Votre expertise en ${cvData.skills.split(',').slice(0, 2).join(' et ')}\n2. Votre expérience significative de ${cvData.experience}\n3. Votre poste actuel de ${cvData.jobTitle} qui montre votre niveau de compétence`;
+                }
+                else if (lowerMessage.includes('compétence') || lowerMessage.includes('développer')) {
+                    return `Pour compléter votre profil de ${cvData.jobTitle}, je vous suggère de développer ces compétences :\n\n1. Intelligence artificielle et machine learning\n2. DevOps et CI/CD\n3. Architecture cloud\n\nCes compétences sont très recherchées dans votre domaine et compléteraient bien votre expertise en ${cvData.skills.split(',')[0]}.`;
+                }
+                else if (lowerMessage.includes('emploi') || lowerMessage.includes('poste') || lowerMessage.includes('travail')) {
+                    return `Avec votre profil de ${cvData.jobTitle} et vos compétences en ${cvData.skills}, vous pourriez être un excellent candidat pour ces types de postes :\n\n1. Senior ${cvData.jobTitle}\n2. Lead Developer\n3. Architecte technique\n4. CTO dans une startup\n\nVotre expérience de ${cvData.experience} vous qualifie pour des postes à responsabilité.`;
+                }
+                else {
+                    return `Merci pour votre question. D'après votre CV, vous êtes ${cvData.name}, actuellement ${cvData.jobTitle} avec ${cvData.experience} d'expérience et des compétences en ${cvData.skills}. Pour obtenir des conseils plus spécifiques, n'hésitez pas à me poser des questions sur l'amélioration de votre CV, vos forces, les compétences à développer ou les types d'emploi qui pourraient vous correspondre.`;
+                }
+            }
+            
+            // Fonctions pour le traitement du CV
             function handleFile(file) {
                 // Liste étendue des types de fichiers acceptés
                 const allowedTypes = [
