@@ -1,131 +1,70 @@
 version: '3.8'
 
 services:
-  # Base de données PostgreSQL
   postgres:
-    image: postgres:14-alpine
-    container_name: nexten-postgres
+    image: postgres:14
+    container_name: commitment-postgres
     environment:
-      POSTGRES_DB: nexten
-      POSTGRES_USER: nexten_user
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_MULTIPLE_DATABASES: profiles,jobs,matching
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: commitment
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/init-multiple-postgres-databases.sh
-    ports:
-      - "5432:5432"
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - nexten-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nexten_user -d nexten"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Cache Redis
   redis:
-    image: redis:7-alpine
-    container_name: nexten-redis
-    ports:
-      - "6379:6379"
+    image: redis:alpine
+    container_name: commitment-redis
     volumes:
-      - redis_data:/data
+      - redis-data:/data
     networks:
       - nexten-network
     restart: unless-stopped
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Service backend Flask
+  storage:
+    image: minio/minio
+    container_name: commitment-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - nexten-network
+    restart: unless-stopped
+
   api:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: nexten-api
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      - FLASK_APP=app.py
-      - FLASK_ENV=development
-      - DATABASE_URL=postgresql://nexten_user:${POSTGRES_PASSWORD:-postgres}@postgres:5432/nexten
-      - REDIS_URL=redis://redis:6379/0
-      - STORAGE_URL=http://storage:9000
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
-    volumes:
-      - ./backend:/app
+    container_name: commitment-api
     ports:
-      - "5000:5000"
+      - "5050:5000"
+    depends_on:
+      - postgres
+      - redis
+      - storage
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/commitment
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: storage:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
     networks:
       - nexten-network
     restart: unless-stopped
-
-  # Service de stockage pour les CV (MinIO - compatible S3)
-  storage:
-    image: minio/minio
-    container_name: nexten-storage
-    volumes:
-      - minio_data:/data
-    ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
-    command: server --console-address ":9001" /data
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-
-  # API Gateway - Point d'entrée unique
-  gateway:
-    build: ./gateway
-    ports:
-      - "8000:8000"
-    environment:
-      - FLASK_APP=app/__init__.py
-      - FLASK_ENV=development
-      - SECRET_KEY=${SECRET_KEY:-your_secret_key}
-    volumes:
-      - ./gateway:/app
-    depends_on:
-      - api
-    networks:
-      - nexten-network
-
-  # Frontend Next.js
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-    volumes:
-      - ./frontend:/app
-    depends_on:
-      - gateway
-    networks:
-      - nexten-network
-
-volumes:
-  postgres_data:
-  redis_data:
-  minio_data:
 
 networks:
   nexten-network:
     driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
