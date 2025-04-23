@@ -1,6 +1,96 @@
 version: '3.8'
 
 services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:14-alpine
+    container_name: nexten-postgres
+    environment:
+      POSTGRES_DB: nexten
+      POSTGRES_USER: nexten_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: profiles,jobs,matching
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/init-multiple-postgres-databases.sh
+    ports:
+      - "5432:5432"
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexten_user -d nexten"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cache Redis
+  redis:
+    image: redis:7-alpine
+    container_name: nexten-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Service backend Flask
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nexten-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://nexten_user:${POSTGRES_PASSWORD}@postgres:5432/nexten
+      - REDIS_URL=redis://redis:6379/0
+      - STORAGE_URL=http://storage:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+    volumes:
+      - ./backend:/app
+    ports:
+      - "5000:5000"
+    networks:
+      - nexten-network
+    restart: unless-stopped
+
+  # Service de stockage pour les CV (MinIO - compatible S3)
+  storage:
+    image: minio/minio
+    container_name: nexten-storage
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    command: server --console-address ":9001" /data
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
   # API Gateway - Point d'entrée unique
   gateway:
     build: ./gateway
@@ -9,10 +99,11 @@ services:
     environment:
       - FLASK_APP=app/__init__.py
       - FLASK_ENV=development
-      - SECRET_KEY=your-secret-key-here
+      - SECRET_KEY=${SECRET_KEY}
     volumes:
       - ./gateway:/app
     depends_on:
+      - api
       - user-service
       - cv-parser-service
       - profile-service
@@ -44,11 +135,15 @@ services:
       - FLASK_ENV=development
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - MONGODB_URI=mongodb://mongodb:27017/cv_data
+      - STORAGE_URL=http://storage:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
     volumes:
       - ./cv-parser-service:/app
     depends_on:
       - mongodb
       - rabbitmq
+      - storage
     networks:
       - nexten-network
 
@@ -58,7 +153,7 @@ services:
     environment:
       - FLASK_APP=app/__init__.py
       - FLASK_ENV=development
-      - POSTGRES_URI=postgresql://postgres:postgres@postgres:5432/profiles
+      - POSTGRES_URI=postgresql://nexten_user:${POSTGRES_PASSWORD}@postgres:5432/profiles
     volumes:
       - ./profile-service:/app
     depends_on:
@@ -73,7 +168,7 @@ services:
     environment:
       - FLASK_APP=app/__init__.py
       - FLASK_ENV=development
-      - POSTGRES_URI=postgresql://postgres:postgres@postgres:5432/matching
+      - POSTGRES_URI=postgresql://nexten_user:${POSTGRES_PASSWORD}@postgres:5432/matching
       - MONGODB_URI=mongodb://mongodb:27017/matching_data
     volumes:
       - ./matching-service:/app
@@ -90,7 +185,7 @@ services:
     environment:
       - FLASK_APP=app/__init__.py
       - FLASK_ENV=development
-      - POSTGRES_URI=postgresql://postgres:postgres@postgres:5432/jobs
+      - POSTGRES_URI=postgresql://nexten_user:${POSTGRES_PASSWORD}@postgres:5432/jobs
     volumes:
       - ./job-service:/app
     depends_on:
@@ -104,10 +199,10 @@ services:
     environment:
       - FLASK_APP=app/__init__.py
       - FLASK_ENV=development
-      - SMTP_HOST=smtp.example.com
-      - SMTP_PORT=587
-      - SMTP_USER=your-email@example.com
-      - SMTP_PASSWORD=your-password
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
     volumes:
       - ./notification-service:/app
     depends_on:
@@ -139,27 +234,12 @@ services:
     networks:
       - nexten-network
 
-  # Base de données PostgreSQL
-  postgres:
-    image: postgres:latest
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_MULTIPLE_DATABASES=profiles,jobs,matching
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/init-multiple-postgres-databases.sh
-    networks:
-      - nexten-network
-
   # RabbitMQ pour la communication entre services
   rabbitmq:
     image: rabbitmq:3-management
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -172,6 +252,7 @@ volumes:
   mongodb_data:
   postgres_data:
   rabbitmq_data:
+  minio_data:
 
 networks:
   nexten-network:
