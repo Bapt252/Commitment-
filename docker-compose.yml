@@ -1,0 +1,178 @@
+version: '3.8'
+
+services:
+  # API Gateway - Point d'entrée unique
+  gateway:
+    build: ./gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=development
+      - SECRET_KEY=your-secret-key-here
+    volumes:
+      - ./gateway:/app
+    depends_on:
+      - user-service
+      - cv-parser-service
+      - profile-service
+      - matching-service
+      - job-service
+      - notification-service
+    networks:
+      - nexten-network
+
+  # Service pour la gestion des utilisateurs
+  user-service:
+    build: ./user-service
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/users
+    volumes:
+      - ./user-service:/app
+    depends_on:
+      - mongodb
+    networks:
+      - nexten-network
+
+  # Service pour le parsing de CV
+  cv-parser-service:
+    build: ./cv-parser-service
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=development
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MONGODB_URI=mongodb://mongodb:27017/cv_data
+    volumes:
+      - ./cv-parser-service:/app
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - nexten-network
+
+  # Service pour la gestion des profils
+  profile-service:
+    build: ./profile-service
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=development
+      - POSTGRES_URI=postgresql://postgres:postgres@postgres:5432/profiles
+    volumes:
+      - ./profile-service:/app
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - nexten-network
+
+  # Service pour le matching
+  matching-service:
+    build: ./matching-service
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=development
+      - POSTGRES_URI=postgresql://postgres:postgres@postgres:5432/matching
+      - MONGODB_URI=mongodb://mongodb:27017/matching_data
+    volumes:
+      - ./matching-service:/app
+    depends_on:
+      - postgres
+      - mongodb
+      - rabbitmq
+    networks:
+      - nexten-network
+
+  # Service pour la gestion des offres d'emploi
+  job-service:
+    build: ./job-service
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=development
+      - POSTGRES_URI=postgresql://postgres:postgres@postgres:5432/jobs
+    volumes:
+      - ./job-service:/app
+    depends_on:
+      - postgres
+    networks:
+      - nexten-network
+
+  # Service pour les notifications
+  notification-service:
+    build: ./notification-service
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=development
+      - SMTP_HOST=smtp.example.com
+      - SMTP_PORT=587
+      - SMTP_USER=your-email@example.com
+      - SMTP_PASSWORD=your-password
+    volumes:
+      - ./notification-service:/app
+    depends_on:
+      - rabbitmq
+    networks:
+      - nexten-network
+
+  # Frontend Next.js
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - gateway
+    networks:
+      - nexten-network
+
+  # Base de données MongoDB
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - nexten-network
+
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_MULTIPLE_DATABASES=profiles,jobs,matching
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/init-multiple-postgres-databases.sh
+    networks:
+      - nexten-network
+
+  # RabbitMQ pour la communication entre services
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - nexten-network
+
+volumes:
+  mongodb_data:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  nexten-network:
+    driver: bridge
