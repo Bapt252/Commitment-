@@ -1,31 +1,47 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
+from fastapi.staticfiles import StaticFiles
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+
 from app.api.api import api_router
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    title="Commitment API",
+    description="API pour la plateforme de matching Commitment",
+    version="1.0.0",
 )
 
 # Configuration CORS
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:3000",
-    "https://bapt252.github.io"
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # En production, limitez aux domaines réels
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(api_router, prefix=settings.API_V1_STR)
+# Ajout des routes API
+app.include_router(api_router, prefix="/api")
 
-@app.get("/")
-def read_root():
-    return {"message": "Bienvenue sur l'API Commitment"}
+# Documentation personnalisée
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="/api/openapi.json",
+        title="Commitment API - Documentation",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui.css",
+    )
+
+@app.get("/api/openapi.json", include_in_schema=False)
+async def get_open_api_endpoint():
+    return get_openapi(
+        title="Commitment API",
+        version="1.0.0",
+        description="API pour la plateforme de matching Commitment",
+        routes=app.routes,
+    )
+
+# Servir les fichiers statiques
+app.mount("/", StaticFiles(directory="../", html=True), name="static")
