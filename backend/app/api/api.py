@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.endpoints import matching, feedback, jobs, job_posts, questionnaires, companies, users, chat
+from app.api.endpoints import matching, feedback, jobs, job_posts, questionnaires, companies, users, chat, parsing
 from app.feedback_system import collector, monitoring
 
 api_router = APIRouter()
@@ -20,3 +20,6 @@ api_router.include_router(monitoring.router, prefix="/monitoring", tags=["monito
 
 # Nouvelle route pour l'API ChatGPT
 api_router.include_router(chat.router, prefix="/chat-gpt", tags=["chat_gpt"])
+
+# Nouvelle route pour le parsing de documents
+api_router.include_router(parsing.router, prefix="/parsing", tags=["parsing"])
