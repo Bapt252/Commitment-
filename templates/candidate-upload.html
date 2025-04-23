@@ -917,8 +917,8 @@
             let documentData = null;
             
             // URL de base pour les API
-            // Pour la démo en développement, nous utilisons des URL relatives
-            const API_BASE_URL = '';
+            // Pour la démo en développement, nous utilisons l'URL du backend Flask
+            const API_BASE_URL = 'http://localhost:5000';
             
             // Par défaut, le bouton Continuer est activé
             nextBtn.disabled = false;
@@ -1077,7 +1077,8 @@
                     const response = await fetch(`${API_BASE_URL}/api/parsing-chat/chat`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
                         },
                         body: JSON.stringify({
                             message: message,
@@ -1212,11 +1213,15 @@
                     
                     // Appel à l'API de parsing
                     let responseData;
+                    
                     try {
-                        // Essayer d'appeler l'API réelle
+                        // Appel à l'API réelle
                         const response = await fetch(`${API_BASE_URL}/api/parsing-chat/upload`, {
                             method: 'POST',
-                            body: formData
+                            body: formData,
+                            headers: {
+                                'Access-Control-Allow-Origin': '*'
+                            }
                         });
                         
                         if (!response.ok) {
@@ -1226,7 +1231,7 @@
                         responseData = await response.json();
                     } catch (apiError) {
                         console.error('Erreur lors de l\'appel à l\'API de parsing:', apiError);
-                        // En cas d'erreur API, utiliser des données simulées
+                        // En cas d'erreur API, utiliser des données simulées (solution de secours)
                         responseData = simulateParsingResponse(file.name);
                     }
                     
@@ -1238,10 +1243,10 @@
                         const extractedData = responseData.document_data || {};
                         
                         // Mettre à jour l'interface avec les données
-                        document.getElementById('parsedName').textContent = extractedData.name || extractedData.personal_info?.name || 'Non détecté';
-                        document.getElementById('parsedJobTitle').textContent = extractedData.job_title || extractedData.personal_info?.job_title || 'Non détecté';
-                        document.getElementById('parsedEmail').textContent = extractedData.email || extractedData.personal_info?.email || 'Non détecté';
-                        document.getElementById('parsedPhone').textContent = extractedData.phone || extractedData.personal_info?.phone || 'Non détecté';
+                        document.getElementById('parsedName').textContent = extractedData.name || 'Non détecté';
+                        document.getElementById('parsedJobTitle').textContent = extractedData.job_title || 'Non détecté';
+                        document.getElementById('parsedEmail').textContent = extractedData.email || 'Non détecté';
+                        document.getElementById('parsedPhone').textContent = extractedData.phone || 'Non détecté';
                         
                         // Traiter les compétences qui peuvent être un tableau ou une chaîne
                         let skillsText;
@@ -1263,6 +1268,11 @@
                         // Afficher les résultats
                         parsedData.style.display = 'block';
                         successMessage.style.display = 'block';
+                        
+                        // Masquer le message de succès après 3 secondes
+                        setTimeout(() => {
+                            successMessage.style.display = 'none';
+                        }, 3000);
                     } else {
                         // Gérer l'erreur
                         errorText.textContent = 'Échec de l\'analyse du CV.';
