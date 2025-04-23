@@ -21,12 +21,13 @@ RUN mkdir -p logs uploads
 COPY . .
 
 # Exposition du port
-EXPOSE 5000
+EXPOSE 8000
 
 # Variables d'environnement par défaut
-ENV FLASK_APP=app/__init__.py
-ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
+ENV PORT=8000
+ENV ENVIRONMENT=production
+ENV LOG_LEVEL=info
 
-# Commande de démarrage avec Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "app:app"]
+# Commande de démarrage avec uvicorn
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
