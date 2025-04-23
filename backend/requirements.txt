@@ -26,3 +26,6 @@ PyPDF2==3.0.1           # Extraction de texte des PDF
 python-docx==0.8.11     # Extraction de texte des DOCX
 beautifulsoup4==4.12.2  # Extraction de texte des HTML
 torch==2.0.0            # Support des modèles BERT
+
+# Dépendance pour l'API GPT
+openai==1.14.0          # Client API OpenAI pour GPT
