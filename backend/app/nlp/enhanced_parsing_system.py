@@ -6,6 +6,7 @@ Ce module orchestre tous les composants du système amélioré de parsing:
 - advanced_nlp: Extraction d'informations implicites avec BERT
 - environment_preference_extractor: Déduction des préférences d'environnement/travail
 - parser_feedback_system: Collection et utilisation des feedbacks utilisateurs
+- gpt_parser: Extraction d'informations améliorée via l'API GPT
 """
 
 import os
@@ -20,6 +21,7 @@ from app.nlp.adaptive_parser import AdaptiveParser, extract_text_from_file, prep
 from app.nlp.advanced_nlp import BERTExtractor, has_advanced_nlp_capabilities
 from app.nlp.environment_preference_extractor import WorkPreferenceExtractor, extract_work_preferences
 from app.nlp.parser_feedback_system import ParserFeedbackSystem, improve_extraction_with_feedback
+from app.nlp.gpt_parser import parse_document_with_gpt, extract_work_preferences_with_gpt
 
 # Configuration du logging
 logger = logging.getLogger(__name__)
@@ -30,14 +32,23 @@ class EnhancedParsingSystem:
     Cette classe fournit une interface unifiée pour le parsing de documents.
     """
     
-    def __init__(self):
+    def __init__(self, use_gpt=True):
         """
         Initialise le système de parsing amélioré avec tous ses composants.
+        
+        Args:
+            use_gpt: Indique si le système doit utiliser l'API GPT (défaut: True)
         """
         # Initialiser les composants
         self.adaptive_parser = AdaptiveParser()
         self.feedback_system = ParserFeedbackSystem()
         self.preference_extractor = WorkPreferenceExtractor()
+        self.use_gpt = use_gpt
+        
+        # Vérifier si la clé API OpenAI est disponible
+        if self.use_gpt and not os.getenv("OPENAI_API_KEY"):
+            logger.warning("Clé API OpenAI non définie. L'utilisation de GPT sera désactivée.")
+            self.use_gpt = False
         
         # Initialiser le module NLP avancé conditionnellement
         self.has_advanced_nlp = has_advanced_nlp_capabilities()
@@ -47,13 +58,20 @@ class EnhancedParsingSystem:
         else:
             self.bert_extractor = None
             logger.info("Système de parsing amélioré initialisé avec capacités NLP de base uniquement.")
+        
+        # Log pour GPT
+        if self.use_gpt:
+            logger.info("Système de parsing amélioré initialisé avec support GPT.")
+        else:
+            logger.info("Système de parsing amélioré initialisé sans support GPT.")
     
     def parse_document(self, 
                        file_path: Optional[str] = None, 
                        file_content: Optional[BinaryIO] = None, 
                        text_content: Optional[str] = None,
                        file_name: Optional[str] = None,
-                       doc_type: Optional[str] = None) -> Dict[str, Any]:
+                       doc_type: Optional[str] = None,
+                       use_gpt: Optional[bool] = None) -> Dict[str, Any]:
         """
         Parse un document avec le système amélioré.
         
@@ -63,10 +81,14 @@ class EnhancedParsingSystem:
             text_content: Contenu textuel si déjà disponible (optionnel)
             file_name: Nom du fichier pour détection de format (optionnel)
             doc_type: Type de document si connu ('cv', 'job_posting', etc.) (optionnel)
+            use_gpt: Forcer l'utilisation ou non de GPT pour ce document (optionnel)
             
         Returns:
             Dict: Résultat complet du parsing avec métadonnées
         """
+        # Déterminer si GPT doit être utilisé pour cette requête
+        use_gpt_for_request = self.use_gpt if use_gpt is None else use_gpt
+        
         # Vérifier qu'au moins une source de données est fournie
         if not file_path and not file_content and not text_content:
             raise ValueError("Aucune source de données fournie pour le parsing.")
@@ -153,18 +175,42 @@ class EnhancedParsingSystem:
                 "confidence_scores": {}
             }
             
-            # 7. Extraction d'informations basée sur le type de document
-            if doc_type:
-                result = self._extract_document_data(result, doc_type)
+            # 7. Extraction d'informations avec GPT si activé
+            if use_gpt_for_request and doc_type:
+                logger.info(f"Utilisation de GPT pour le parsing du document de type {doc_type}")
+                try:
+                    gpt_result = parse_document_with_gpt(text, doc_type)
+                    
+                    if gpt_result and "extracted_data" in gpt_result:
+                        result["extracted_data"].update(gpt_result.get("extracted_data", {}))
+                        result["confidence_scores"].update(gpt_result.get("confidence_scores", {}))
+                        result["parsing_method"] = "gpt"
+                        
+                        # On peut s'arrêter ici si GPT a fourni un résultat complet
+                        if result["extracted_data"]:
+                            # Mais on continue quand même avec les préférences et le feedback
+                            # pour avoir un traitement complet
+                            logger.info("Parsing GPT réussi, enrichissement avec préférences et feedback")
+                except Exception as e:
+                    logger.error(f"Erreur lors du parsing avec GPT: {e}")
+                    logger.info("Fallback vers les méthodes de parsing traditionnelles")
+                    # Continue with traditional parsing methods
             
-            # 8. Enrichir avec des analyses NLP avancées si disponibles
+            # 8. Extraction d'informations basée sur le type de document (approche traditionnelle)
+            # Toujours exécuté si GPT est désactivé OU si GPT a échoué
+            if not result.get("parsing_method") == "gpt" or not result["extracted_data"]:
+                logger.info(f"Utilisation des méthodes traditionnelles pour le parsing du document")
+                result = self._extract_document_data(result, doc_type)
+                result["parsing_method"] = "traditional"
+            
+            # 9. Enrichir avec des analyses NLP avancées si disponibles
             if self.has_advanced_nlp and self.bert_extractor:
                 result = self._enrich_with_advanced_nlp(result)
             
-            # 9. Extraire les préférences d'environnement de travail
-            result = self._extract_work_preferences(result)
+            # 10. Extraire les préférences d'environnement de travail
+            result = self._extract_work_preferences(result, use_gpt_for_request)
             
-            # 10. Appliquer des corrections basées sur le feedback précédent
+            # 11. Appliquer des corrections basées sur le feedback précédent
             result = self.feedback_system.update_extraction_with_feedback(result)
             
             return result
@@ -306,12 +352,13 @@ class EnhancedParsingSystem:
             logger.error(f"Erreur lors de l'enrichissement avec NLP avancé: {e}")
             return result
     
-    def _extract_work_preferences(self, result: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_work_preferences(self, result: Dict[str, Any], use_gpt: bool = False) -> Dict[str, Any]:
         """
         Extrait les préférences d'environnement de travail.
         
         Args:
             result: Résultat de parsing en cours
+            use_gpt: Utiliser GPT pour l'extraction des préférences
             
         Returns:
             Dict: Résultat enrichi avec les préférences de travail
@@ -319,6 +366,33 @@ class EnhancedParsingSystem:
         try:
             # Seuls les CV sont concernés par l'extraction de préférences
             if result.get("doc_type") == "cv":
+                if use_gpt:
+                    # Utiliser GPT pour extraire les préférences
+                    try:
+                        preferences = extract_work_preferences_with_gpt(result["original_text"])
+                        
+                        if preferences:
+                            if "extracted_data" not in result:
+                                result["extracted_data"] = {}
+                            
+                            result["extracted_data"]["preferences"] = {
+                                "environment": preferences["environment_preferences"],
+                                "work_style": preferences["work_style_preferences"]
+                            }
+                            
+                            if "confidence_scores" not in result:
+                                result["confidence_scores"] = {}
+                            
+                            result["confidence_scores"]["preferences"] = preferences["confidence_scores"]
+                            
+                            # Indiquer la méthode d'extraction utilisée
+                            result["preference_extraction_method"] = "gpt"
+                            return result
+                    except Exception as e:
+                        logger.error(f"Erreur lors de l'extraction des préférences avec GPT: {e}")
+                        # Fallback vers la méthode traditionnelle
+                
+                # Méthode traditionnelle (fallback ou si GPT n'est pas activé)
                 preferences = self.preference_extractor.extract_preferences_from_cv(result["original_text"])
                 
                 if preferences:
@@ -334,6 +408,9 @@ class EnhancedParsingSystem:
                         result["confidence_scores"] = {}
                     
                     result["confidence_scores"]["preferences"] = preferences["confidence_scores"]
+                    
+                    # Indiquer la méthode d'extraction utilisée
+                    result["preference_extraction_method"] = "traditional"
             
             return result
         except Exception as e:
@@ -395,7 +472,8 @@ def parse_document(file_path: Optional[str] = None,
                    file_content: Optional[BinaryIO] = None, 
                    text_content: Optional[str] = None,
                    file_name: Optional[str] = None,
-                   doc_type: Optional[str] = None) -> Dict[str, Any]:
+                   doc_type: Optional[str] = None,
+                   use_gpt: Optional[bool] = None) -> Dict[str, Any]:
     """
     Fonction d'interface pour parser un document avec le système amélioré.
     
@@ -405,6 +483,7 @@ def parse_document(file_path: Optional[str] = None,
         text_content: Contenu textuel si déjà disponible (optionnel)
         file_name: Nom du fichier pour détection de format (optionnel)
         doc_type: Type de document si connu (optionnel)
+        use_gpt: Utiliser GPT pour ce document (optionnel)
         
     Returns:
         Dict: Résultat complet du parsing
@@ -415,7 +494,8 @@ def parse_document(file_path: Optional[str] = None,
         file_content=file_content,
         text_content=text_content,
         file_name=file_name,
-        doc_type=doc_type
+        doc_type=doc_type,
+        use_gpt=use_gpt
     )
 
 def save_parsing_feedback(original_result: Dict[str, Any], 
