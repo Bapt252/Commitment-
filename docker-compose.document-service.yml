@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  document-service:
+    build:
+      context: ./document-service
+      dockerfile: Dockerfile
+    container_name: nexten-document-service
+    restart: always
+    volumes:
+      - ./document-service:/app
+      - ./document-service/logs:/app/logs
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-nexten}
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=storage:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+      - DOCUMENT_BUCKET=nexten-documents
+      - ARCHIVE_BUCKET=nexten-archives
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key}
+      - JWT_ALGORITHM=HS256
+      - JWT_AUDIENCE=nexten-api
+      - CLAMAV_HOST=clamav
+      - CLAMAV_PORT=3310
+    ports:
+      - "5053:5000"
+    networks:
+      - nexten-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  document-service-worker:
+    build:
+      context: ./document-service
+      dockerfile: Dockerfile
+    container_name: nexten-document-service-worker
+    command: python worker.py
+    restart: always
+    volumes:
+      - ./document-service:/app
+      - ./document-service/logs:/app/logs
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-nexten}
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=storage:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+      - DOCUMENT_BUCKET=nexten-documents
+      - ARCHIVE_BUCKET=nexten-archives
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key}
+      - JWT_ALGORITHM=HS256
+      - JWT_AUDIENCE=nexten-api
+      - CLAMAV_HOST=clamav
+      - CLAMAV_PORT=3310
+    networks:
+      - nexten-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    deploy:
+      replicas: 2
+
+  clamav:
+    image: clamav/clamav:latest
+    container_name: nexten-clamav
+    restart: always
+    volumes:
+      - clamav-data:/var/lib/clamav
+    ports:
+      - "3310:3310"
+    networks:
+      - nexten-network
+
+volumes:
+  clamav-data:
+
+networks:
+  nexten-network:
+    external: true
