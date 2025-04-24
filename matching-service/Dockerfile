@@ -2,26 +2,26 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Installation des dépendances système
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    libpq-dev \
-    gcc \
+# Variables d'environnement
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+
+# Installation des dépendances de build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copie des fichiers requirements et installation des dépendances
+# Copie des requirements d'abord pour un meilleur cache
 COPY requirements.txt .
+
+# Installation des dépendances
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copie du code source
+# Copie de l'application
 COPY . .
 
-# Exposition du port
-EXPOSE 5000
-
-# Variable d'environnement pour Flask
-ENV FLASK_APP=app/__init__.py
-ENV FLASK_ENV=production
-
-# Commande de démarrage
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:create_app()"]
+# La commande sera fournie dans docker-compose.yml
+# Pour l'API: python main.py
+# Pour le worker: python worker.py
