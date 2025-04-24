@@ -120,7 +120,7 @@ services:
       USE_MINIO_FOR_FILES: "true"
       STORE_RESULTS_IN_REDIS: "true"
       REDIS_RESULT_TTL: 3600
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI: ${OPENAI:-}
       OPENAI_MODEL: gpt-4o-mini
       CIRCUIT_BREAKER_ENABLED: "true"
       MAX_RETRIES: 3
@@ -163,7 +163,7 @@ services:
       USE_MINIO_FOR_FILES: "true"
       STORE_RESULTS_IN_REDIS: "true"
       REDIS_RESULT_TTL: 3600
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI: ${OPENAI:-}
       OPENAI_MODEL: gpt-4o-mini
       CIRCUIT_BREAKER_ENABLED: "true"
       MAX_RETRIES: 3
