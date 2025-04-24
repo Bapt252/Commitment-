@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Variables d'environnement communes
 x-common-env: &common-redis-env
   REDIS_HOST: redis
@@ -146,7 +144,7 @@ services:
     build:
       context: ./cv-parser-service
       dockerfile: Dockerfile
-    container_name: nexten-cv-parser-worker
+    # container_name: nexten-cv-parser-worker  # Retiré car incompatible avec replicas
     command: python worker.py
     volumes:
       - ./cv-parser-service/logs:/app/logs
@@ -221,7 +219,7 @@ services:
     build:
       context: ./matching-service
       dockerfile: Dockerfile
-    container_name: nexten-matching-worker-high
+    # container_name: nexten-matching-worker-high  # Retiré car incompatible avec replicas
     command: python worker.py
     depends_on:
       redis:
@@ -252,7 +250,7 @@ services:
     build:
       context: ./matching-service
       dockerfile: Dockerfile
-    container_name: nexten-matching-worker-standard
+    # container_name: nexten-matching-worker-standard  # Retiré car incompatible avec replicas
     command: python worker.py
     depends_on:
       redis:
@@ -283,7 +281,7 @@ services:
     build:
       context: ./matching-service
       dockerfile: Dockerfile
-    container_name: nexten-matching-worker-bulk
+    # container_name: nexten-matching-worker-bulk  # Retiré car incompatible avec replicas
     command: python worker.py
     depends_on:
       redis:
