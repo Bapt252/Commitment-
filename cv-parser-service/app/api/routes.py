@@ -1,186 +1,278 @@
+# CV Parser Service - Routes API
+
 import os
-import tempfile
-import json
-import datetime
-from flask import Blueprint, request, jsonify, current_app
-from app.core.parser import extract_text_from_file, parse_cv_with_gpt, chat_with_cv_data
-from werkzeug.utils import secure_filename
-from pymongo import MongoClient
+import time
 import uuid
+import logging
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query, Header, BackgroundTasks, Depends, Request
+from starlette import status
+from typing import Optional, Dict, Any, List
+import redis
+from rq import Queue
+from rq.job import Job
 
-api = Blueprint('api', __name__)
+from app.core.config import settings
+from app.core.dependencies import validate_api_key, RateLimiter
+from app.services.storage import save_temp_file, get_file_from_storage, get_result_multi_tier
+from app.utils.validation import validate_cv_file, validate_webhook_url
+from app.workers.tasks import parse_cv_task
 
-# Connexion à MongoDB
-def get_mongo_client():
-    return MongoClient(current_app.config['MONGODB_URI'])
+# Setup logging
+logger = logging.getLogger(__name__)
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+# Setup Redis connection
+redis_conn = redis.Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB,
+    password=settings.REDIS_PASSWORD or None,
+    decode_responses=False
+)
 
-@api.route('/upload', methods=['POST'])
-def upload_file():
-    """Point d'entrée pour télécharger et analyser un CV"""
+# Configuration des priorités et queues
+QUEUE_PRIORITIES = {
+    "premium": {
+        "name": "cv_parsing_premium",
+        "timeout": 600,  # 10 minutes
+        "ttl": 86400,    # 24 heures
+        "max_retries": 5
+    },
+    "standard": {
+        "name": "cv_parsing_standard",
+        "timeout": 300,  # 5 minutes
+        "ttl": 43200,    # 12 heures
+        "max_retries": 3
+    },
+    "batch": {
+        "name": "cv_parsing_batch",
+        "timeout": 1800,  # 30 minutes
+        "ttl": 172800,   # 48 heures
+        "max_retries": 2
+    }
+}
+
+# Créer les queues
+queues = {}
+for priority, config in QUEUE_PRIORITIES.items():
+    queues[priority] = Queue(config["name"], connection=redis_conn)
+
+# Créer le router FastAPI
+router = APIRouter()
+
+# Fonctions utilitaires
+def get_estimated_wait_time(priority: str) -> str:
+    """Estime le temps d'attente en fonction de la priorité et des jobs en attente"""
     try:
-        # Vérification de la présence du fichier
-        if 'file' not in request.files:
-            return jsonify({"success": False, "error": "Aucun fichier trouvé"}), 400
-        
-        file = request.files['file']
-        
-        # Vérification du nom de fichier
-        if file.filename == '':
-            return jsonify({"success": False, "error": "Nom de fichier invalide"}), 400
-        
-        # Vérification du type de fichier
-        if not allowed_file(file.filename):
-            return jsonify({"success": False, "error": "Type de fichier non autorisé"}), 400
-        
-        # Vérification du type de document (cv ou autre)
-        doc_type = request.form.get('doc_type', 'cv')
-        if doc_type not in ['cv', 'job_description']:
-            return jsonify({"success": False, "error": "Type de document non supporté"}), 400
-        
-        # Création d'un fichier temporaire pour stocker le fichier téléchargé
-        temp_file = tempfile.NamedTemporaryFile(delete=False)
-        file.save(temp_file.name)
-        
-        # Extraction du texte du fichier
-        file_extension = file.filename.rsplit('.', 1)[1].lower()
-        file_content = extract_text_from_file(temp_file.name, file_extension)
-        
-        # Suppression du fichier temporaire
-        os.unlink(temp_file.name)
-        
-        # Analyse du contenu avec GPT selon le type de document
-        if doc_type == 'cv':
-            result = parse_cv_with_gpt(file_content, file_extension)
+        queue = queues.get(priority)
+        if not queue:
+            return "inconnu"
             
-            # Stockage des données dans MongoDB
-            if result["success"]:
-                # Générer un ID unique pour le document
-                document_id = str(uuid.uuid4())
-                
-                # Ajouter l'ID au résultat
-                result["document_id"] = document_id
-                
-                # Récupérer les informations de l'utilisateur si disponibles
-                user_id = request.headers.get('X-User-ID', 'anonymous')
-                
-                # Préparer le document pour MongoDB
-                cv_document = {
-                    "_id": document_id,
-                    "user_id": user_id,
-                    "filename": secure_filename(file.filename),
-                    "file_type": file_extension,
-                    "content": file_content,
-                    "parsed_data": result["document_data"],
-                    "confidence_scores": result["confidence_scores"],
-                    "created_at": datetime.datetime.utcnow()
+        count = queue.count
+        
+        # Logique simplifiée d'estimation
+        if priority == "premium":
+            return f"{max(count * 2, 5)}s" if count > 0 else "immédiat"
+        elif priority == "standard":
+            return f"{max(count * 5, 30)}s" if count > 0 else "30s"
+        else:  # batch
+            return f"{max(count * 10, 60)}s" if count > 0 else "60s"
+    except Exception as e:
+        logger.error(f"Erreur lors de l'estimation du temps d'attente: {e}")
+        return "inconnu"
+
+@router.post("/queue", status_code=status.HTTP_202_ACCEPTED)
+async def queue_cv_parsing(
+    request: Request,
+    file: UploadFile = File(...),
+    priority: str = Query("standard", enum=list(QUEUE_PRIORITIES.keys())),
+    webhook_url: Optional[str] = Query(None, description="URL pour notification de fin de traitement"),
+    webhook_secret: Optional[str] = Query(None, description="Secret pour signer le webhook"),
+    api_key: Optional[str] = Header(None, description="Clé API pour authentification"),
+    rate_limiter: bool = Depends(RateLimiter(limit=10, window=60)),  # 10 req/min
+):
+    """File d'attente pour le parsing de CV - Traitement asynchrone"""
+    
+    # 1. Valider l'API key si configureée
+    if settings.REQUIRE_API_KEY:
+        validate_api_key(api_key)
+    
+    try:
+        # 2. Générer un ID unique pour le job
+        job_id = str(uuid.uuid4())
+        
+        # 3. Valider le fichier (taille, type, signature, etc.)
+        await validate_cv_file(file)
+        
+        # 4. Valider l'URL de webhook si fournie
+        if webhook_url:
+            webhook_url = validate_webhook_url(webhook_url)
+        
+        # 5. Enregistrer le fichier dans le stockage temporaire (MinIO ou local)
+        file_path = await save_temp_file(file, job_id)
+        
+        # 6. Obtenir la configuration de queue selon la priorité
+        queue_config = QUEUE_PRIORITIES[priority]
+        queue = queues[priority]
+        
+        # 7. Enregistrer les informations de webhook si fournies
+        if webhook_url:
+            redis_conn.hset(
+                f"cv:webhook:{job_id}",
+                mapping={
+                    "url": webhook_url,
+                    "secret": webhook_secret or "",
+                    "created_at": time.time()
+                }
+            )
+            redis_conn.expire(f"cv:webhook:{job_id}", queue_config["ttl"])
+        
+        # 8. Enqueue le job
+        job = queue.enqueue(
+            parse_cv_task,
+            job_id=job_id,
+            file_path=file_path,
+            file_name=file.filename,
+            file_format=os.path.splitext(file.filename)[1].lower(),
+            timeout=queue_config["timeout"],
+            result_ttl=queue_config["ttl"],
+            failure_ttl=queue_config["ttl"],
+            ttl=queue_config["ttl"],
+            max_retries=queue_config["max_retries"]
+        )
+        
+        # 9. Enregistrer les métadonnées du job
+        redis_conn.hset(
+            f"cv:meta:{job_id}",
+            mapping={
+                "priority": priority,
+                "filename": file.filename,
+                "content_type": file.content_type,
+                "size": file.size if hasattr(file, "size") else 0,
+                "queued_at": time.time(),
+                "queue": queue_config["name"],
+                "client_ip": request.client.host,
+                "user_agent": request.headers.get("user-agent", "")
+            }
+        )
+        redis_conn.expire(f"cv:meta:{job_id}", queue_config["ttl"])
+        
+        logger.info(f"Job de parsing CV {job_id} mis en queue avec priorité {priority}")
+        
+        # 10. Retourner la réponse
+        return {
+            "job_id": job_id,
+            "status": "queued",
+            "priority": priority,
+            "estimated_wait": get_estimated_wait_time(priority),
+            "webhook_configured": webhook_url is not None
+        }
+        
+    except ValueError as e:
+        # Erreurs de validation
+        logger.warning(f"Erreur de validation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        # Erreurs inattendues
+        logger.error(f"Erreur lors de la mise en queue du job: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors de la mise en queue du job: {str(e)}"
+        )
+
+@router.get("/result/{job_id}", status_code=status.HTTP_200_OK)
+async def get_parsing_result(
+    job_id: str,
+    api_key: Optional[str] = Header(None, description="Clé API pour authentification"),
+):
+    """Récupérer le résultat d'un job de parsing CV"""
+    
+    # Valider l'API key si configurée
+    if settings.REQUIRE_API_KEY:
+        validate_api_key(api_key)
+    
+    try:
+        # 1. Essayer de récupérer le job depuis Redis RQ
+        try:
+            job = Job.fetch(job_id, connection=redis_conn)
+            
+            # 2. Vérifier le statut du job
+            if job.is_finished:
+                # Job terminé avec succès
+                result = await get_result_multi_tier(job_id)
+                return {
+                    "status": "done",
+                    "job_id": job_id,
+                    "result": result,
+                    "completed_at": job.ended_at.isoformat() if job.ended_at else None
                 }
                 
-                # Sauvegarder dans MongoDB
-                with get_mongo_client() as client:
-                    db = client.get_database()
-                    db.cv_documents.insert_one(cv_document)
-        else:
-            # Pour d'autres types de documents, à implémenter selon les besoins
-            result = {"success": False, "error": "Type de document non implémenté"}
-        
-        return jsonify(result)
-    
-    except Exception as e:
-        current_app.logger.error(f"Erreur lors du traitement du fichier: {str(e)}", exc_info=True)
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@api.route('/chat', methods=['POST'])
-def chat():
-    """Point d'entrée pour le chat avec l'IA sur le CV"""
-    try:
-        data = request.json
-        
-        # Vérification des paramètres requis
-        if not data or 'message' not in data:
-            return jsonify({"error": "Message manquant"}), 400
-        
-        message = data.get('message')
-        history = data.get('history', [])
-        document_data = data.get('document_data', {})
-        doc_type = data.get('doc_type', 'cv')
-        
-        # Chat avec l'IA à propos du document
-        if doc_type == 'cv':
-            response = chat_with_cv_data(message, history, document_data)
-            
-            # Stocker l'historique des conversations si un document_id est fourni
-            document_id = data.get('document_id')
-            if document_id:
-                user_id = request.headers.get('X-User-ID', 'anonymous')
-                chat_entry = {
-                    "document_id": document_id,
-                    "user_id": user_id,
-                    "message": message,
-                    "response": response["response"],
-                    "timestamp": datetime.datetime.utcnow()
+            elif job.is_failed:
+                # Job en échec
+                error_message = str(job.exc_info) if job.exc_info else "Erreur inconnue"
+                return {
+                    "status": "failed",
+                    "job_id": job_id,
+                    "error": error_message,
+                    "failed_at": job.ended_at.isoformat() if job.ended_at else None
                 }
                 
-                with get_mongo_client() as client:
-                    db = client.get_database()
-                    db.chat_history.insert_one(chat_entry)
-        else:
-            # Pour d'autres types de documents, à implémenter selon les besoins
-            response = {"error": "Type de document non supporté pour le chat"}
+            elif job.is_started:
+                # Job en cours d'exécution
+                return {
+                    "status": "running",
+                    "job_id": job_id,
+                    "started_at": job.started_at.isoformat() if job.started_at else None
+                }
+                
+            else:
+                # Job en attente
+                queue_position = job.get_position()
+                return {
+                    "status": "pending",
+                    "job_id": job_id,
+                    "enqueued_at": job.enqueued_at.isoformat() if job.enqueued_at else None,
+                    "position_in_queue": queue_position
+                }
+                
+        except Exception as e:
+            # Le job n'existe pas dans RQ, vérifier s'il est déjà terminé et stocké
+            if "No such job" in str(e):
+                # 3. Vérifier dans notre stockage multi-tier
+                result = await get_result_multi_tier(job_id)
+                
+                if result:
+                    # Résultat trouvé dans le stockage persistant
+                    return {
+                        "status": "done",
+                        "job_id": job_id,
+                        "result": result,
+                        "note": "Résultat récupéré depuis le stockage permanent"
+                    }
+                else:
+                    # Aucun résultat trouvé
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Aucun job ou résultat trouvé pour l'ID: {job_id}"
+                    )
+            else:
+                # Autre erreur Redis
+                logger.error(f"Erreur Redis lors de la récupération du job {job_id}: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Erreur lors de la récupération du job: {str(e)}"
+                )
+                
+    except HTTPException:
+        # On laisse les HTTPException se propager
+        raise
         
-        return jsonify(response)
-    
     except Exception as e:
-        current_app.logger.error(f"Erreur lors du chat: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
-
-# Endpoint pour récupérer un CV analysé par ID
-@api.route('/documents/<document_id>', methods=['GET'])
-def get_document(document_id):
-    """Récupérer un document CV analysé par son ID"""
-    try:
-        with get_mongo_client() as client:
-            db = client.get_database()
-            document = db.cv_documents.find_one({"_id": document_id})
-            
-        if not document:
-            return jsonify({"error": "Document non trouvé"}), 404
-        
-        # Convertir _id en chaîne pour la sérialisation JSON
-        document["_id"] = str(document["_id"])
-        
-        # Supprimer le contenu brut pour alléger la réponse
-        if "content" in document:
-            del document["content"]
-        
-        return jsonify(document)
-    
-    except Exception as e:
-        current_app.logger.error(f"Erreur lors de la récupération du document: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
-
-# Endpoint pour lister les documents CV d'un utilisateur
-@api.route('/documents', methods=['GET'])
-def list_documents():
-    """Lister les documents CV d'un utilisateur"""
-    try:
-        user_id = request.headers.get('X-User-ID', 'anonymous')
-        
-        with get_mongo_client() as client:
-            db = client.get_database()
-            documents = list(db.cv_documents.find(
-                {"user_id": user_id},
-                {"_id": 1, "filename": 1, "parsed_data": 1, "created_at": 1}
-            ))
-        
-        # Convertir _id en chaîne pour la sérialisation JSON
-        for doc in documents:
-            doc["_id"] = str(doc["_id"])
-        
-        return jsonify(documents)
-    
-    except Exception as e:
-        current_app.logger.error(f"Erreur lors de la récupération des documents: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        # Erreurs inattendues
+        logger.error(f"Erreur lors de la récupération du résultat pour job {job_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors de la récupération du résultat: {str(e)}"
+        )
