@@ -1,130 +1,294 @@
+
 """
-Définition des tâches asynchrones pour le service de matching.
+Nexten Matching Tasks
+--------------------
+Tâches asynchrones de matching pour l'algorithme Nexten
+
+Auteur: Claude/Anthropic
+Date: 24/04/2025
 """
+
 import logging
-import time
+import json
+from typing import Dict, List, Any, Optional, Union
+
 from rq import get_current_job
-from sqlalchemy.orm import Session
+from app.services.matching_service import nexten_matching_process, bulk_matching_process, job_candidates_matching_process
+from app.core.notification import send_webhook_notification
 
-from app.core.database import get_db_session
-from app.core.redis import get_redis_connection, update_job_status, update_job_meta
-from app.core.resilience import retry_with_backoff, CircuitBreaker
-from app.core.config import settings
-from app.services.matching import MatchingService
-from app.services.notification import NotificationService
-
+# Configuration du logger
 logger = logging.getLogger(__name__)
 
-# Circuit breaker pour les opérations de matching
-matching_circuit = CircuitBreaker(
-    failure_threshold=5,
-    recovery_timeout=30,
-    name="matching_circuit"
-)
-
-@retry_with_backoff(max_retries=settings.MAX_RETRIES, delay=settings.RETRY_DELAY)
-def calculate_matching_score_task(candidate_id: int, job_id: int):
+async def calculate_matching_score_task(candidate_id: int, job_id: int, db: Any, openai_client: Any) -> Dict[str, Any]:
     """
-    Tâche de worker pour calculer le score de matching entre un candidat et une offre d'emploi
+    Tâche RQ pour calculer le score de matching entre un candidat et une offre
     
     Args:
         candidate_id: ID du candidat
         job_id: ID de l'offre d'emploi
+        db: Connexion à la base de données
+        openai_client: Client OpenAI configuré
         
     Returns:
-        dict: Résultats du matching avec score et détails
+        dict: Résultat du matching
     """
     job = get_current_job()
-    redis_conn = get_redis_connection()
     
     try:
-        # Mise à jour du statut du job
-        update_job_status(redis_conn, job.id, "processing")
-        logger.info(f"Démarrage du calcul de matching pour le candidat {candidate_id} et l'offre {job_id} (Job ID: {job.id})")
+        logger.info(f"Début du calcul de matching pour candidat={candidate_id}, job={job_id}")
         
-        # Récupération des données du candidat et de l'offre depuis la base de données
-        with get_db_session() as db:
-            # Utilisation du pattern circuit breaker pour le calcul du matching
-            with matching_circuit:
-                # Initialisation du service de matching
-                matching_service = MatchingService(db)
-                
-                # Calcul du score de matching
-                start_time = time.time()
-                matching_result = matching_service.calculate_matching_score(candidate_id, job_id)
-                duration = time.time() - start_time
-                
-                # Journalisation des métriques de performance
-                logger.info(f"Calcul de matching terminé en {duration:.2f}s (Job ID: {job.id})")
-                
-                # Stockage du résultat dans la base de données
-                db_result = matching_service.store_matching_result(
-                    job.id, 
-                    candidate_id, 
-                    job_id, 
-                    matching_result["score"], 
-                    matching_result["details"]
-                )
-                
-                # Mise à jour des métadonnées du job
-                update_job_meta(redis_conn, job.id, {
-                    "score": matching_result["score"],
-                    "db_result_id": db_result.id,
-                    "processing_time": duration
-                })
+        # Processus complet avec les 3 phases
+        result = await nexten_matching_process(candidate_id, job_id, db, openai_client)
         
-        # Résultat à retourner (sera stocké dans Redis)
-        result = {
-            "job_id": job.id,
-            "candidate_id": candidate_id,
-            "job_posting_id": job_id,
-            "score": matching_result["score"],
-            "details": matching_result["details"],
-            "processing_time": duration
-        }
+        # Mise à jour des métadonnées du job
+        if job:
+            job.meta['status'] = 'completed'
+            job.meta['score'] = result['score']
+            job.meta['category'] = result['category']
+            job.save_meta()
         
-        # Mise à jour du statut du job à terminé
-        update_job_status(redis_conn, job.id, "completed")
+        # Notification webhook si configurée
+        webhook_url = job.meta.get('webhook_url') if job else None
+        if webhook_url:
+            await send_webhook_notification(webhook_url, {
+                'job_id': job.id if job else None,
+                'status': 'completed',
+                'candidate_id': candidate_id,
+                'job_id': job_id,
+                'score': result['score'],
+                'category': result['category']
+            })
         
-        # Envoi de notification webhook si une URL est fournie
-        if job.meta.get("webhook_url"):
-            notification_service = NotificationService()
-            notification_service.send_webhook(
-                job.meta.get("webhook_url"),
-                {
-                    "job_id": job.id,
-                    "status": "completed",
-                    "result": result
-                }
-            )
+        logger.info(f"Fin du calcul de matching pour candidat={candidate_id}, job={job_id}, score={result['score']}")
         
-        logger.info(f"Calcul de matching terminé avec succès pour le candidat {candidate_id} et l'offre {job_id} (Job ID: {job.id})")
         return result
-        
+    
     except Exception as e:
-        # Mise à jour du statut du job à échoué
-        update_job_status(redis_conn, job.id, "failed")
+        logger.error(f"Erreur lors du calcul de matching: {str(e)}", exc_info=True)
         
-        error_details = {
-            "error": str(e),
-            "candidate_id": candidate_id,
-            "job_id": job_id
+        # Mise à jour des métadonnées du job en cas d'erreur
+        if job:
+            job.meta['status'] = 'failed'
+            job.meta['error'] = str(e)
+            job.save_meta()
+        
+        # Notification webhook en cas d'erreur
+        webhook_url = job.meta.get('webhook_url') if job else None
+        if webhook_url:
+            await send_webhook_notification(webhook_url, {
+                'job_id': job.id if job else None,
+                'status': 'failed',
+                'candidate_id': candidate_id,
+                'job_id': job_id,
+                'error': str(e)
+            })
+        
+        # Relancer l'exception pour que la tâche soit marquée comme échouée
+        raise
+
+async def calculate_bulk_matching_task(candidate_id: int, job_ids: List[int], db: Any, openai_client: Any, min_score: float = 0.3) -> List[Dict[str, Any]]:
+    """
+    Tâche RQ pour calculer le matching entre un candidat et plusieurs offres
+    
+    Args:
+        candidate_id: ID du candidat
+        job_ids: Liste des IDs d'offres d'emploi
+        db: Connexion à la base de données
+        openai_client: Client OpenAI configuré
+        min_score: Score minimum pour inclure un match
+        
+    Returns:
+        list: Liste des résultats de matching triés par score
+    """
+    job = get_current_job()
+    
+    try:
+        logger.info(f"Début du calcul de matching en masse pour candidat={candidate_id}, {len(job_ids)} jobs")
+        
+        # Processus de matching en masse
+        results = await bulk_matching_process(candidate_id, job_ids, db, openai_client, min_score)
+        
+        # Mise à jour des métadonnées du job
+        if job:
+            job.meta['status'] = 'completed'
+            job.meta['matches_count'] = len(results)
+            job.save_meta()
+        
+        # Notification webhook si configurée
+        webhook_url = job.meta.get('webhook_url') if job else None
+        if webhook_url:
+            await send_webhook_notification(webhook_url, {
+                'job_id': job.id if job else None,
+                'status': 'completed',
+                'candidate_id': candidate_id,
+                'matches_count': len(results),
+                'top_match': results[0] if results else None
+            })
+        
+        logger.info(f"Fin du calcul de matching en masse pour candidat={candidate_id}, {len(results)} matchs trouvés")
+        
+        return results
+    
+    except Exception as e:
+        logger.error(f"Erreur lors du calcul de matching en masse: {str(e)}", exc_info=True)
+        
+        # Mise à jour des métadonnées du job en cas d'erreur
+        if job:
+            job.meta['status'] = 'failed'
+            job.meta['error'] = str(e)
+            job.save_meta()
+        
+        # Notification webhook en cas d'erreur
+        webhook_url = job.meta.get('webhook_url') if job else None
+        if webhook_url:
+            await send_webhook_notification(webhook_url, {
+                'job_id': job.id if job else None,
+                'status': 'failed',
+                'candidate_id': candidate_id,
+                'error': str(e)
+            })
+        
+        # Relancer l'exception pour que la tâche soit marquée comme échouée
+        raise
+
+async def find_candidates_for_job_task(job_id: int, candidate_ids: List[int], db: Any, openai_client: Any, limit: int = 10) -> List[Dict[str, Any]]:
+    """
+    Tâche RQ pour trouver les meilleurs candidats pour une offre d'emploi
+    
+    Args:
+        job_id: ID de l'offre d'emploi
+        candidate_ids: Liste des IDs de candidats à évaluer
+        db: Connexion à la base de données
+        openai_client: Client OpenAI configuré
+        limit: Nombre maximum de résultats à retourner
+        
+    Returns:
+        list: Liste des candidats correspondants triés par score
+    """
+    job = get_current_job()
+    
+    try:
+        logger.info(f"Début de la recherche de candidats pour job={job_id}, {len(candidate_ids)} candidats")
+        
+        # Processus de matching pour trouver les meilleurs candidats
+        results = await job_candidates_matching_process(job_id, candidate_ids, db, openai_client, limit)
+        
+        # Mise à jour des métadonnées du job
+        if job:
+            job.meta['status'] = 'completed'
+            job.meta['matches_count'] = len(results)
+            job.save_meta()
+        
+        # Notification webhook si configurée
+        webhook_url = job.meta.get('webhook_url') if job else None
+        if webhook_url:
+            await send_webhook_notification(webhook_url, {
+                'job_id': job.id if job else None,
+                'status': 'completed',
+                'job_id': job_id,
+                'matches_count': len(results),
+                'top_candidates': [result['candidate'] for result in results[:3]] if results else []
+            })
+        
+        logger.info(f"Fin de la recherche de candidats pour job={job_id}, {len(results)} candidats trouvés")
+        
+        return results
+    
+    except Exception as e:
+        logger.error(f"Erreur lors de la recherche de candidats: {str(e)}", exc_info=True)
+        
+        # Mise à jour des métadonnées du job en cas d'erreur
+        if job:
+            job.meta['status'] = 'failed'
+            job.meta['error'] = str(e)
+            job.save_meta()
+        
+        # Notification webhook en cas d'erreur
+        webhook_url = job.meta.get('webhook_url') if job else None
+        if webhook_url:
+            await send_webhook_notification(webhook_url, {
+                'job_id': job.id if job else None,
+                'status': 'failed',
+                'job_id': job_id,
+                'error': str(e)
+            })
+        
+        # Relancer l'exception pour que la tâche soit marquée comme échouée
+        raise
+
+async def process_cv_and_match_task(candidate_id: int, cv_file_path: str, job_ids: List[int], db: Any, openai_client: Any) -> Dict[str, Any]:
+    """
+    Tâche RQ qui combine le parsing d'un CV et le matching avec plusieurs offres
+    
+    Args:
+        candidate_id: ID du candidat
+        cv_file_path: Chemin vers le fichier CV
+        job_ids: Liste des IDs d'offres d'emploi à matcher
+        db: Connexion à la base de données
+        openai_client: Client OpenAI configuré
+        
+    Returns:
+        dict: Résultats du parsing et du matching
+    """
+    job = get_current_job()
+    
+    try:
+        logger.info(f"Début du traitement CV et matching pour candidat={candidate_id}")
+        
+        # 1. Parsing du CV
+        from app.services.matching_service import parse_cv_with_openai
+        cv_data = await parse_cv_with_openai(cv_file_path, openai_client)
+        
+        # 2. Mise à jour des données du candidat
+        await db.update_candidate_cv_data(candidate_id, cv_data)
+        
+        # 3. Matching avec les offres spécifiées
+        results = await bulk_matching_process(candidate_id, job_ids, db, openai_client)
+        
+        # Mise à jour des métadonnées du job
+        if job:
+            job.meta['status'] = 'completed'
+            job.meta['cv_parsed'] = True
+            job.meta['matches_count'] = len(results)
+            job.save_meta()
+        
+        # Notification webhook si configurée
+        webhook_url = job.meta.get('webhook_url') if job else None
+        if webhook_url:
+            await send_webhook_notification(webhook_url, {
+                'job_id': job.id if job else None,
+                'status': 'completed',
+                'candidate_id': candidate_id,
+                'cv_parsed': True,
+                'matches_count': len(results),
+                'top_matches': results[:3] if results else []
+            })
+        
+        logger.info(f"Fin du traitement CV et matching pour candidat={candidate_id}, {len(results)} matchs trouvés")
+        
+        return {
+            'cv_data': cv_data,
+            'matching_results': results
         }
+    
+    except Exception as e:
+        logger.error(f"Erreur lors du traitement CV et matching: {str(e)}", exc_info=True)
         
-        # Journalisation de l'erreur
-        logger.error(f"Erreur dans le calcul de matching pour le candidat {candidate_id} et l'offre {job_id}: {str(e)}", exc_info=True)
+        # Mise à jour des métadonnées du job en cas d'erreur
+        if job:
+            job.meta['status'] = 'failed'
+            job.meta['error'] = str(e)
+            job.save_meta()
         
-        # Envoi de notification webhook sur l'échec si une URL est fournie
-        if job.meta.get("webhook_url"):
-            notification_service = NotificationService()
-            notification_service.send_webhook(
-                job.meta.get("webhook_url"),
-                {
-                    "job_id": job.id,
-                    "status": "failed",
-                    "error": str(e)
-                }
-            )
+        # Notification webhook en cas d'erreur
+        webhook_url = job.meta.get('webhook_url') if job else None
+        if webhook_url:
+            await send_webhook_notification(webhook_url, {
+                'job_id': job.id if job else None,
+                'status': 'failed',
+                'candidate_id': candidate_id,
+                'error': str(e)
+            })
         
-        # Lève à nouveau l'exception pour le mécanisme de retry
+        # Relancer l'exception pour que la tâche soit marquée comme échouée
         raise
