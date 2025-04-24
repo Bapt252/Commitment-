@@ -3,18 +3,18 @@ version: '3.8'
 services:
   postgres:
     image: postgres:14
-    container_name: commitment-postgres
+    container_name: nexten-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: commitment
+      POSTGRES_DB: nexten
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - nexten-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d commitment"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nexten"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: commitment-redis
+    container_name: nexten-redis
     volumes:
       - redis-data:/data
     networks:
@@ -37,7 +37,7 @@ services:
 
   storage:
     image: minio/minio
-    container_name: commitment-minio
+    container_name: nexten-minio
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
@@ -61,7 +61,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: commitment-api
+    container_name: nexten-api
     ports:
       - "5050:5000"
     depends_on:
@@ -72,11 +72,13 @@ services:
       storage:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/commitment
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: storage:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
+      CV_PARSER_SERVICE_URL: http://cv-parser:5000
+      MATCHING_SERVICE_URL: http://matching:5000
       PORT: 5000
     networks:
       - nexten-network
@@ -87,6 +89,66 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+
+  cv-parser:
+    build:
+      context: ./cv-parser-service
+      dockerfile: Dockerfile
+    container_name: nexten-cv-parser
+    ports:
+      - "5051:5000"
+    depends_on:
+      - storage
+    environment:
+      PORT: 5000
+      MINIO_ENDPOINT: storage:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  matching:
+    build:
+      context: ./matching-service
+      dockerfile: Dockerfile
+    container_name: nexten-matching
+    ports:
+      - "5052:5000"
+    depends_on:
+      - postgres
+    environment:
+      PORT: 5000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nexten-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:5050
+    depends_on:
+      - api
+    networks:
+      - nexten-network
+    restart: unless-stopped
 
 networks:
   nexten-network:
