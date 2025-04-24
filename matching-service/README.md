@@ -1,83 +1,227 @@
-# Service de Matching pour Nexten
+# Service de Matching - Nexten
 
-Ce microservice gère le matching entre les candidats et les offres d'emploi en utilisant l'algorithme modulaire implémenté dans PostgreSQL.
+Ce service permet de calculer et gérer les scores de matching entre candidats et offres d'emploi, avec un système de files d'attente prioritaires basé sur Redis/RQ.
 
 ## Fonctionnalités
 
-- Calcul de scores de matching entre candidats et emplois
-- Gestion des algorithmes de matching (configuration, pondérations)
-- Génération de recommandations personnalisées
-- Explicabilité des scores (détails des critères de matching)
+- **Calcul asynchrone de matching** entre candidats et offres d'emploi
+- **Files d'attente prioritaires** :
+  - `matching_high` : Pour les calculs urgents/prioritaires
+  - `matching_standard` : Pour les calculs standard
+  - `matching_bulk` : Pour les calculs en masse/batch
+- **Chaînage de jobs** : Possibilité de déclencher un calcul de matching après un parsing de CV
+- **Notifications webhooks** avec signature HMAC
+- **Résilience** : Circuit breaker, retries, dead letter queue, etc.
+- **Monitoring** via RQ Dashboard
 
 ## Architecture
 
+Le service est composé de plusieurs composants :
+
+- **API FastAPI** : Points d'entrée pour mettre en file d'attente les calculs et récupérer les résultats
+- **Workers RQ** : Travailleurs qui exécutent les calculs de matching de manière asynchrone
+- **Redis** : Stockage des jobs et des résultats temporaires
+- **PostgreSQL** : Stockage persistant des résultats de matching
+- **MinIO** : Stockage des résultats volumineux (optionnel)
+
+## Structure du projet
+
 ```
 matching-service/
-├── app/                 # Module principal
-│   ├── __init__.py      # Initialisation de l'application Flask
-│   ├── api/             # Endpoints API REST
-│   │   ├── __init__.py
-│   │   └── routes.py    # Routes API
-│   ├── core/            # Logique métier
-│   │   ├── __init__.py
-│   │   └── matching.py  # Fonctions de matching
-│   ├── models/          # Modèles de données
-│   │   ├── __init__.py
-│   │   └── match.py     # Modèle de matching
-│   └── utils/           # Utilitaires
-│       ├── __init__.py
-│       └── db.py        # Connexion base de données
-├── config.py            # Configuration de l'application
-├── Dockerfile           # Instructions de construction du conteneur
-└── requirements.txt     # Dépendances Python
+├── app/
+│   ├── main.py                    # Point d'entrée FastAPI
+│   ├── api/
+│   │   └── routes.py              # Routes API
+│   ├── core/
+│   │   ├── config.py              # Configuration
+│   │   ├── database.py            # Utilitaires DB
+│   │   ├── logging.py             # Configuration logging
+│   │   ├── redis.py               # Utilitaires Redis
+│   │   └── resilience.py          # Circuit breaker, retry
+│   ├── models/
+│   │   └── matching.py            # Modèles de données
+│   ├── services/
+│   │   ├── matching.py            # Service de matching
+│   │   └── notification.py        # Service de notification
+│   └── workers/
+│       ├── tasks.py               # Tâches RQ
+│       └── worker.py              # Configuration worker
+├── Dockerfile
+├── main.py                        # Point d'entrée FastAPI
+├── requirements.txt
+└── worker.py                      # Point d'entrée worker
 ```
 
-## Endpoints API
+## Utilisation via API
 
-- `GET /api/matches/job/{job_id}` - Obtenir les meilleurs candidats pour un job
-- `GET /api/matches/candidate/{candidate_id}` - Obtenir les meilleurs jobs pour un candidat
-- `POST /api/matches/calculate` - Calculer un score de matching spécifique
-- `GET /api/matches/{match_id}` - Obtenir les détails d'un match
-- `PUT /api/matches/{match_id}/status` - Mettre à jour le statut d'un match
-- `GET /api/algorithms` - Lister les algorithmes disponibles
-- `POST /api/algorithms` - Créer un nouvel algorithme
-- `GET /api/algorithms/{algorithm_id}` - Obtenir les détails d'un algorithme
-- `PUT /api/algorithms/{algorithm_id}` - Mettre à jour un algorithme
+### Mettre en file d'attente un calcul de matching
 
-## Utilisation
+```bash
+curl -X POST "http://localhost:5052/api/v1/queue-matching" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "candidate_id": 123,
+    "job_id": 456,
+    "webhook_url": "https://example.com/webhook"
+  }' \
+  -G -d "priority=matching_high"
+```
+
+### Mettre en file d'attente plusieurs calculs (bulk)
+
+```bash
+curl -X POST "http://localhost:5052/api/v1/queue-matching/bulk" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "candidate_id": 123,
+    "job_ids": [101, 102, 103],
+    "webhook_url": "https://example.com/webhook"
+  }' \
+  -G -d "priority=matching_bulk"
+```
+
+### Récupérer le résultat d'un calcul
+
+```bash
+curl -X GET "http://localhost:5052/api/v1/result/job-id-12345"
+```
+
+### Vérifier le statut d'un job
+
+```bash
+curl -X GET "http://localhost:5052/api/v1/status/job-id-12345"
+```
+
+## Utilisation via Python
+
+```python
+import redis
+from rq import Queue
+
+# Connexion directe à Redis
+redis_conn = redis.Redis(host='redis', port=6379)
+
+# Création d'une file d'attente
+queue = Queue('matching_high', connection=redis_conn)
+
+# Enchaînement simple
+job = queue.enqueue(
+    'app.workers.tasks.calculate_matching_score_task',
+    args=(123, 456),  # candidate_id, job_id
+    job_id="matching-123-456",
+    meta={"webhook_url": "https://example.com/webhook"}
+)
+
+# Pour un job avec dépendance (après parsing)
+job = queue.enqueue(
+    'app.workers.tasks.calculate_matching_score_task',
+    args=(123, 456),
+    depends_on="parsing-job-id-123",
+    job_id="matching-123-456-after-parsing",
+    meta={"webhook_url": "https://example.com/webhook"}
+)
+```
+
+## Chaînage avec le service de Parsing CV
+
+Le service de matching peut être automatiquement déclenché après un parsing de CV :
+
+```python
+# Dans cv-parser-service
+from app.utils.job_chaining import chain_cv_parsing_with_matching
+
+# Après parsing d'un CV
+result = chain_cv_parsing_with_matching(
+    candidate_id=candidate_id,
+    job_ids=[101, 102, 103],
+    parsing_job_id=parsing_job.id,
+    matching_api_url="http://matching-api:5000",
+    webhook_url="https://example.com/webhook"
+)
+```
+
+## Configuration
+
+Le service utilise les variables d'environnement suivantes (avec valeurs par défaut) :
+
+```
+# Service
+SERVICE_NAME=matching-service
+DEBUG=false
+LOG_LEVEL=INFO
+PORT=5000
+
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_JOB_TIMEOUT=3600
+REDIS_JOB_TTL=86400
+
+# PostgreSQL
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/nexten
+
+# MinIO
+MINIO_ENDPOINT=storage:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET_NAME=matching-results
+
+# Webhook
+WEBHOOK_SECRET=your-secret-key
+WEBHOOK_RETRY_COUNT=3
+
+# Worker
+MAX_RETRIES=3
+WORKER_CONCURRENCY=4
+```
+
+## Déploiement
+
+Le service peut être déployé avec Docker et Docker Compose :
+
+```bash
+docker-compose up -d
+```
+
+Cela démarre :
+- L'API matching-api 
+- Les workers avec différentes priorités
+- Les services associés (Redis, PostgreSQL, MinIO, etc.)
+
+## Monitoring
+
+Le service peut être surveillé via :
+
+- **RQ Dashboard** : Disponible sur http://localhost:9181
+- **Redis Commander** : Disponible sur http://localhost:8081
+- **Logs** : Générés au format JSON ou texte selon la configuration
+
+## Développement
+
+### Prérequis
+
+- Python 3.9+
+- Redis
+- PostgreSQL
 
 ### Installation
 
 ```bash
+# Créer un environnement virtuel
+python -m venv venv
+source venv/bin/activate
+
+# Installer les dépendances
 pip install -r requirements.txt
 ```
 
-### Variables d'environnement
-
-- `POSTGRES_USER` - Nom d'utilisateur PostgreSQL
-- `POSTGRES_PASSWORD` - Mot de passe PostgreSQL
-- `POSTGRES_HOST` - Hôte PostgreSQL
-- `POSTGRES_PORT` - Port PostgreSQL (défaut: 5432)
-- `POSTGRES_DB` - Nom de la base de données
-- `JWT_SECRET_KEY` - Clé secrète pour JWT
-- `API_PREFIX` - Préfixe pour les routes API (défaut: /api)
-
-### Lancement
+### Démarrage local
 
 ```bash
-python -m app.run
+# Terminal 1 : API FastAPI
+python main.py
+
+# Terminal 2 : Worker
+python worker.py
 ```
-
-### Docker
-
-```bash
-docker build -t nexten-matching-service .
-docker run -p 5003:5000 --name matching-service nexten-matching-service
-```
-
-## Interaction avec les autres services
-
-Le service de matching interagit principalement avec :
-- Service de profils (pour les données des candidats)
-- Service d'emploi (pour les données des offres)
-- Service d'analyse (pour les statistiques de matching)
