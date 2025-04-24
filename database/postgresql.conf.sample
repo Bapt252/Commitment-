@@ -1,0 +1,170 @@
+# postgresql.conf.sample pour Nexten
+# Configuration PostgreSQL optimisée pour une plateforme de recrutement à forte charge
+# À adapter selon les spécifications du serveur
+
+#------------------------------------------------------------------------------
+# CONNEXIONS ET AUTHENTIFICATION
+#------------------------------------------------------------------------------
+
+listen_addresses = '*'           # Écouter sur toutes les interfaces
+max_connections = 200            # Nombre maximal de connexions simultanées
+superuser_reserved_connections = 3
+
+# Si vous utilisez un pool de connexions (recommandé), réduisez max_connections
+# et augmentez plutôt la taille du pool dans votre application
+
+#------------------------------------------------------------------------------
+# RESSOURCES MÉMOIRE
+#------------------------------------------------------------------------------
+
+# Ajustez ces valeurs en fonction de la mémoire disponible sur votre serveur
+# Cette configuration est optimisée pour un serveur avec 16 GB de RAM
+
+shared_buffers = 4GB             # 25% de la RAM du serveur
+huge_pages = try                 # Activer si le système le supporte
+temp_buffers = 16MB              # Par session
+work_mem = 64MB                  # Par opération (ORDER BY, JOIN...)
+maintenance_work_mem = 1GB       # Pour maintenance (VACUUM, CREATE INDEX...)
+autovacuum_work_mem = 512MB      # Pour autovacuum
+
+# Cache effectif - important pour les performances de lecture
+effective_cache_size = 12GB      # 75% de la RAM du serveur
+
+#------------------------------------------------------------------------------
+# ÉCRITURE ET TRANSACTION
+#------------------------------------------------------------------------------
+
+# Paramètres WAL (Write-Ahead Logging)
+wal_level = replica              # Niveau minimum pour réplication
+max_wal_size = 16GB
+min_wal_size = 2GB
+checkpoint_timeout = 15min
+checkpoint_completion_target = 0.9
+
+# Paramètres d'engagement des transactions
+# Attention: 'off' améliore les performances mais augmente le risque de perte de données
+# Pour une base de données critique, utilisez 'on'
+synchronous_commit = on          # Pour sécurité maximale (on) vs performance (off)
+
+# Paramètres de journalisation
+wal_buffers = 16MB               # Augmente la performance d'écriture des WAL
+
+#------------------------------------------------------------------------------
+# PARALLÉLISME ET CONCURRENCE
+#------------------------------------------------------------------------------
+
+# Si votre serveur a plusieurs cœurs, ajustez ces paramètres
+max_worker_processes = 8         # Dépend du nombre de cœurs CPU disponibles
+max_parallel_workers_per_gather = 4  # Nombre de workers par gather
+max_parallel_maintenance_workers = 4 # Nombre de workers pour maintenance
+max_parallel_workers = 8         # Nombre total de workers parallèles
+
+# Pour les serveurs avec haute concurrence
+effective_io_concurrency = 200   # Pour SSD (2 pour disques classiques)
+random_page_cost = 1.1           # Pour SSD (4.0 est la valeur par défaut)
+
+#------------------------------------------------------------------------------
+# AUTO-VACUUM ET MAINTENANCE
+#------------------------------------------------------------------------------
+
+# Configuration autovacuum - très important pour les performances à long terme
+autovacuum = on
+autovacuum_max_workers = 5
+autovacuum_naptime = 10s         # Plus fréquent qu'en standard
+autovacuum_vacuum_threshold = 50 # Nombre de mises à jour avant vacuum
+autovacuum_analyze_threshold = 50
+autovacuum_vacuum_scale_factor = 0.05  # % de la table modifié pour déclencher vacuum
+autovacuum_analyze_scale_factor = 0.025
+autovacuum_vacuum_cost_delay = 2ms     # Pause entre les opérations coûteuses
+autovacuum_vacuum_cost_limit = 1000
+
+#------------------------------------------------------------------------------
+# MONITORING ET STATISTIQUES
+#------------------------------------------------------------------------------
+
+# Extensions à précharger
+shared_preload_libraries = 'pg_stat_statements,auto_explain'
+
+# Configuration pg_stat_statements
+pg_stat_statements.max = 10000
+pg_stat_statements.track = all
+
+# Configuration auto_explain
+auto_explain.log_min_duration = '3s'
+auto_explain.log_analyze = true
+auto_explain.log_verbose = true
+auto_explain.log_buffers = true
+auto_explain.log_timing = true
+auto_explain.log_nested_statements = true
+
+# Statistiques et suivi
+track_io_timing = on
+track_functions = all
+track_activity_query_size = 4096
+
+#------------------------------------------------------------------------------
+# JOURNALISATION
+#------------------------------------------------------------------------------
+
+log_destination = 'csvlog'
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_rotation_age = 1d
+log_rotation_size = 100MB
+
+# Quelles requêtes journaliser
+log_min_duration_statement = 1000  # Enregistrer les requêtes > 1000ms
+log_checkpoints = on
+log_connections = on
+log_disconnections = on
+log_lock_waits = on
+log_temp_files = 0
+
+# Format des logs
+log_line_prefix = '%m [%p] %q%u@%d '
+log_statement = 'ddl'           # Enregistrer toutes les opérations DDL
+log_duration = off
+log_error_verbosity = verbose
+
+#------------------------------------------------------------------------------
+# RÉGLAGES SPÉCIFIQUES À L'APPLICATION
+#------------------------------------------------------------------------------
+
+# Optimisations pour les jointures fréquentes entre candidats et skills
+default_statistics_target = 500  # Augmenter la qualité des statistiques pour le planificateur
+
+# Optimisations pour les requêtes JSONB fréquentes
+# Les champs JSONB sont utilisés pour les préférences et les résultats de matching
+jsonb_validation_parser = snappy  # Le plus rapide
+
+# Meilleure compression des données
+default_toast_compression = 'lz4'  # Meilleur équilibre vitesse/compression
+
+#------------------------------------------------------------------------------
+# REPLICATION ET BACKUP
+#------------------------------------------------------------------------------
+
+# Si vous configurez de la réplication, activez ces paramètres
+# wal_level = replica  # Déjà configuré plus haut
+# max_wal_senders = 10
+# wal_keep_segments = 32
+# hot_standby = on
+
+# Archivers pour les solutions de backup
+archive_mode = off              # Désactivé par défaut, activez pour les backups WAL
+# archive_command = 'cp %p /path/to/archive/%f'  # À personnaliser
+
+#------------------------------------------------------------------------------
+# NOTES D'UTILISATION
+#------------------------------------------------------------------------------
+
+# Ce fichier est un exemple. Adaptez les valeurs à votre matériel.
+# Pour un serveur avec moins de RAM, réduisez proportionnellement:
+# - shared_buffers (25% de la RAM)
+# - effective_cache_size (75% de la RAM)
+# - work_mem et maintenance_work_mem
+
+# Pour appliquer les modifications:
+# 1. Copiez ce fichier vers postgresql.conf
+# 2. Redémarrez PostgreSQL avec: pg_ctl restart -D /chemin/vers/data
