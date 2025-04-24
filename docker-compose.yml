@@ -90,20 +90,42 @@ services:
       retries: 3
       start_period: 15s
 
+  # Service API de parsing CV - FastAPI
   cv-parser:
     build:
       context: ./cv-parser-service
       dockerfile: Dockerfile
     container_name: nexten-cv-parser
+    command: python main.py
     ports:
       - "5051:5000"
+    volumes:
+      - ./cv-parser-service/logs:/app/logs
+      - ./cv-parser-service/temp:/app/temp
     depends_on:
-      - storage
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
     environment:
+      DEBUG: "false"
       PORT: 5000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
       MINIO_ENDPOINT: storage:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_NAME: cv-files
+      USE_MINIO_FOR_FILES: "true"
+      STORE_RESULTS_IN_REDIS: "true"
+      REDIS_RESULT_TTL: 3600
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: gpt-4o-mini
+      CIRCUIT_BREAKER_ENABLED: "true"
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
     networks:
       - nexten-network
     restart: unless-stopped
@@ -112,6 +134,75 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 5s
+
+  # Service Worker de parsing CV - RQ
+  cv-parser-worker:
+    build:
+      context: ./cv-parser-service
+      dockerfile: Dockerfile
+    container_name: nexten-cv-parser-worker
+    command: python worker.py
+    volumes:
+      - ./cv-parser-service/logs:/app/logs
+      - ./cv-parser-service/temp:/app/temp
+    depends_on:
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    environment:
+      DEBUG: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      MINIO_ENDPOINT: storage:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_NAME: cv-files
+      USE_MINIO_FOR_FILES: "true"
+      STORE_RESULTS_IN_REDIS: "true"
+      REDIS_RESULT_TTL: 3600
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: gpt-4o-mini
+      CIRCUIT_BREAKER_ENABLED: "true"
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    # Possibilité de scaler ce service pour plus de performances
+    deploy:
+      replicas: 2
+
+  # Interface pour monitorer Redis
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: nexten-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    networks:
+      - nexten-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # Interface pour monitorer RQ
+  rq-dashboard:
+    image: eoranged/rq-dashboard
+    container_name: nexten-rq-dashboard
+    ports:
+      - "9181:9181"
+    environment:
+      - RQ_DASHBOARD_REDIS_URL=redis://redis:6379/0
+    networks:
+      - nexten-network
+    depends_on:
+      - redis
+    restart: unless-stopped
 
   matching:
     build:
