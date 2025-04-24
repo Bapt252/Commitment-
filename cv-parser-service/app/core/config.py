@@ -1,7 +1,8 @@
 # CV Parser Service - Configuration
 
 import os
-from pydantic_settings import BaseSettings, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field
 from typing import Optional, Dict, Any, List
 
 class Settings(BaseSettings):
