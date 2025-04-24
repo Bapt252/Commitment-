@@ -1,5 +1,14 @@
 version: '3.8'
 
+# Variables d'environnement communes
+x-common-env: &common-redis-env
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  MINIO_ENDPOINT: storage:9000
+  MINIO_ACCESS_KEY: minioadmin
+  MINIO_SECRET_KEY: minioadmin
+
 services:
   postgres:
     image: postgres:14
@@ -78,7 +87,7 @@ services:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       CV_PARSER_SERVICE_URL: http://cv-parser:5000
-      MATCHING_SERVICE_URL: http://matching:5000
+      MATCHING_SERVICE_URL: http://matching-api:5000
       PORT: 5000
     networks:
       - nexten-network
@@ -108,14 +117,9 @@ services:
       storage:
         condition: service_healthy
     environment:
+      <<: *common-redis-env
       DEBUG: "false"
       PORT: 5000
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
-      MINIO_ENDPOINT: storage:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET_NAME: cv-files
       USE_MINIO_FOR_FILES: "true"
       STORE_RESULTS_IN_REDIS: "true"
@@ -126,6 +130,7 @@ services:
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json
+      MATCHING_API_URL: http://matching-api:5000
     networks:
       - nexten-network
     restart: unless-stopped
@@ -152,13 +157,8 @@ services:
       storage:
         condition: service_healthy
     environment:
+      <<: *common-redis-env
       DEBUG: "false"
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
-      MINIO_ENDPOINT: storage:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET_NAME: cv-files
       USE_MINIO_FOR_FILES: "true"
       STORE_RESULTS_IN_REDIS: "true"
@@ -169,12 +169,145 @@ services:
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json
+      MATCHING_API_URL: http://matching-api:5000
     networks:
       - nexten-network
     restart: unless-stopped
     # Possibilité de scaler ce service pour plus de performances
     deploy:
       replicas: 2
+
+  # Service API de matching - FastAPI
+  matching-api:
+    build:
+      context: ./matching-service
+      dockerfile: Dockerfile
+    container_name: nexten-matching-api
+    command: python main.py
+    ports:
+      - "5052:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      PORT: 5000
+      SERVICE_NAME: matching-api
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+      MINIO_BUCKET_NAME: matching-results
+      REDIS_JOB_TIMEOUT: 3600
+      REDIS_JOB_TTL: 86400
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Worker de matching - Haute priorité
+  matching-worker-high:
+    build:
+      context: ./matching-service
+      dockerfile: Dockerfile
+    container_name: nexten-matching-worker-high
+    command: python worker.py
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      SERVICE_NAME: matching-worker-high
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+      MINIO_BUCKET_NAME: matching-results
+      QUEUE_DEFAULT: matching_high
+      REDIS_JOB_TIMEOUT: 3600
+      REDIS_JOB_TTL: 86400
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+
+  # Worker de matching - Priorité standard
+  matching-worker-standard:
+    build:
+      context: ./matching-service
+      dockerfile: Dockerfile
+    container_name: nexten-matching-worker-standard
+    command: python worker.py
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      SERVICE_NAME: matching-worker-standard
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+      MINIO_BUCKET_NAME: matching-results
+      QUEUE_DEFAULT: matching_standard
+      REDIS_JOB_TIMEOUT: 3600
+      REDIS_JOB_TTL: 86400
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    deploy:
+      replicas: 3
+
+  # Worker de matching - Traitement en masse
+  matching-worker-bulk:
+    build:
+      context: ./matching-service
+      dockerfile: Dockerfile
+    container_name: nexten-matching-worker-bulk
+    command: python worker.py
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      SERVICE_NAME: matching-worker-bulk
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+      MINIO_BUCKET_NAME: matching-results
+      QUEUE_DEFAULT: matching_bulk
+      REDIS_JOB_TIMEOUT: 3600
+      REDIS_JOB_TTL: 86400
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    deploy:
+      replicas: 1
 
   # Interface pour monitorer Redis
   redis-commander:
@@ -203,27 +336,6 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
-
-  matching:
-    build:
-      context: ./matching-service
-      dockerfile: Dockerfile
-    container_name: nexten-matching
-    ports:
-      - "5052:5000"
-    depends_on:
-      - postgres
-    environment:
-      PORT: 5000
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   frontend:
     build:
