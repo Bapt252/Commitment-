@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     MINIO_SECURE: bool = Field(default=False, env="MINIO_SECURE")
     
     # OpenAI API Settings
-    OPENAI_API_KEY: str = Field(default="", env="OPENAI_API_KEY")
+    OPENAI_API_KEY: str = Field(default="", env=["OPENAI", "OPENAI_API_KEY"])  # Accepte OPENAI ou OPENAI_API_KEY
     OPENAI_MODEL: str = Field(default="gpt-4o-mini", env="OPENAI_MODEL")
     
     # RQ Settings
