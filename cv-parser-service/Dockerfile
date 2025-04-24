@@ -1,33 +1,45 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
+# Définir le répertoire de travail
 WORKDIR /app
 
-# Installation des dépendances système pour PyPDF2
-RUN apt-get update && apt-get install -y \
-    poppler-utils \
-    antiword \
+# Définir les variables d'environnement
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+
+# Installer les dépendances système
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libmagic1 \
+    libpq-dev \
+    curl \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copie des fichiers requis
+# Copier les requirements d'abord pour optimiser le cache
 COPY requirements.txt .
 
-# Installation des dépendances
+# Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Création des répertoires nécessaires
-RUN mkdir -p logs uploads
-
-# Copie du reste du code source
+# Copier le code de l'application
 COPY . .
 
-# Exposition du port
-EXPOSE 8000
+# Créer les répertoires nécessaires
+RUN mkdir -p /app/logs /app/temp
 
-# Variables d'environnement par défaut
-ENV PYTHONPATH=/app
-ENV PORT=8000
-ENV ENVIRONMENT=production
-ENV LOG_LEVEL=info
+# Créer un utilisateur non-root pour la sécurité
+RUN adduser --disabled-password --gecos "" appuser
+RUN chown -R appuser:appuser /app /app/logs /app/temp
+USER appuser
 
-# Commande de démarrage avec uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Exposer le port
+EXPOSE 5000
+
+# Vérification de santé
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# La commande sera spécifiée dans docker-compose pour les différents services (API ou worker)
+CMD ["python", "main.py"]
