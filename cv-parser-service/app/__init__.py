@@ -1,27 +1,29 @@
 from flask import Flask
-from flask_cors import CORS
+import logging
 import os
-from config import config
 
-def create_app(config_name='default'):
+def create_app():
+    """
+    Create and configure the Flask application
+    
+    Returns:
+        Flask app instance
+    """
     app = Flask(__name__)
     
-    # Chargement de la configuration
-    app.config.from_object(config[config_name])
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
     
-    # Configuration CORS
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    # Register blueprints
+    from app.routes import bp
+    app.register_blueprint(bp)
     
-    # Enregistrement des blueprints
-    from app.api.routes import api as api_blueprint
-    app.register_blueprint(api_blueprint)
-    
-    # Route de santé
+    # Health check route
     @app.route('/health')
     def health():
-        return {'status': 'ok'}
+        return {'status': 'healthy'}
     
     return app
-
-# Création d'une instance de l'application
-app = create_app(os.getenv('FLASK_ENV', 'development'))
