@@ -1,117 +1,79 @@
-"""
-API pour l'intégration du chat GPT avec le système de parsing.
-Permet d'utiliser l'API ChatGPT pour analyser et discuter des documents parsés.
-"""
-
-from fastapi import APIRouter, Body, HTTPException, UploadFile, File, Form
-from typing import List, Dict, Any, Optional
+from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Depends, BackgroundTasks
+from fastapi.responses import JSONResponse
+import tempfile
+import os
+import uuid
 from pydantic import BaseModel
-import json
+from typing import List, Dict, Any, Optional
 
-from app.nlp.chat_gpt import ChatGPTSession, get_chat_response
-from app.nlp.enhanced_parsing_system import parse_document
-from app.nlp.gpt_parser import parse_document_with_gpt
+from app.services.parsing_service import extract_text_from_file, parse_cv_with_gpt, chat_with_cv_data
 
 router = APIRouter()
 
-# Modèles de données pour l'API
 class ChatMessage(BaseModel):
-    role: str
-    content: str
-
-class ParsingChatRequest(BaseModel):
     message: str
-    history: Optional[List[ChatMessage]] = None
-    document_data: Optional[Dict[str, Any]] = None
-    doc_type: Optional[str] = None
-    model: Optional[str] = None
-
-class ParsingChatResponse(BaseModel):
-    response: str
-    history: List[ChatMessage]
-    enhanced_data: Optional[Dict[str, Any]] = None
-
-@router.post("/chat", response_model=ParsingChatResponse)
-def chat_about_parsed_document(request: ParsingChatRequest = Body(...)):
-    """
-    Permet de discuter avec ChatGPT à propos d'un document parsé.
-    """
-    # Convertir l'historique si présent
-    history = None
-    if request.history:
-        history = [{"role": msg.role, "content": msg.content} for msg in request.history]
-    
-    # Si nous avons des données de document et qu'il s'agit du premier message (pas d'historique)
-    if request.document_data and (not history or len(history) <= 1):
-        # Créer un prompt système qui inclut les données du document
-        doc_data_str = json.dumps(request.document_data, ensure_ascii=False, indent=2)
-        doc_type = request.doc_type or "document"
-        
-        system_prompt = f"""Tu es un assistant spécialisé dans l'analyse de documents.
-Tu réponds aux questions concernant le {doc_type} dont voici les données extraites:
-
-{doc_data_str}
-
-Utilise ces informations pour répondre aux questions de l'utilisateur.
-Ne mentionne pas que tu as reçu ces données structurées, agis comme si tu avais analysé directement le document."""
-
-        # Créer une session avec ce prompt spécial
-        session = ChatGPTSession(system_prompt=system_prompt, model=request.model)
-        response = session.send_message(request.message)
-        
-        # Convertir l'historique pour la réponse
-        history_response = [ChatMessage(role=msg["role"], content=msg["content"]) 
-                           for msg in session.get_history()]
-        
-        return ParsingChatResponse(
-            response=response,
-            history=history_response,
-            enhanced_data=request.document_data
-        )
-    
-    # Sinon, utiliser l'API standard
-    result = get_chat_response(request.message, history, request.model)
-    
-    # Convertir l'historique pour la réponse
-    history_response = [ChatMessage(role=msg["role"], content=msg["content"]) 
-                       for msg in result["history"]]
-    
-    return ParsingChatResponse(
-        response=result["response"],
-        history=history_response,
-        enhanced_data=request.document_data
-    )
+    history: List[Dict[str, str]] = []
+    document_data: Dict[str, Any] = {}
+    doc_type: str = "cv"
 
 @router.post("/upload")
-async def upload_and_parse_for_chat(
+async def upload_file(
     file: UploadFile = File(...),
-    doc_type: Optional[str] = Form(None)
+    doc_type: str = Form("cv")
 ):
-    """
-    Télécharge et parse un document pour une utilisation dans le chat.
-    """
+    """Point d'entrée pour télécharger et analyser un CV"""
     try:
-        # Lire le contenu du fichier
-        file_content = await file.read()
-        file_name = file.filename
+        # Vérification du type de document (cv ou autre)
+        if doc_type not in ['cv', 'job_description']:
+            raise HTTPException(status_code=400, detail="Type de document non supporté")
         
-        # Créer un fichier temporaire pour le contenu
-        import io
-        file_io = io.BytesIO(file_content)
+        # Vérification de l'extension du fichier
+        file_extension = file.filename.split('.')[-1].lower()
+        allowed_extensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']
         
-        # Parser le document
-        parsing_result = parse_document(
-            file_content=file_io,
-            file_name=file_name,
-            doc_type=doc_type,
-            use_gpt=True  # Utiliser GPT pour une meilleure extraction
-        )
+        if file_extension not in allowed_extensions:
+            raise HTTPException(status_code=400, detail="Type de fichier non autorisé")
         
-        return {
-            "success": True,
-            "document_data": parsing_result.get("extracted_data", {}),
-            "confidence_scores": parsing_result.get("confidence_scores", {}),
-            "doc_type": parsing_result.get("doc_type", doc_type or "unknown")
-        }
+        # Création d'un fichier temporaire pour stocker le fichier téléchargé
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{file_extension}') as temp:
+            temp.write(await file.read())
+            temp_path = temp.name
+        
+        try:
+            # Extraction du texte du fichier
+            file_content = extract_text_from_file(temp_path, file_extension)
+            
+            # Analyse du contenu avec GPT selon le type de document
+            if doc_type == 'cv':
+                result = parse_cv_with_gpt(file_content, file_extension)
+            else:
+                # Pour d'autres types de documents, à implémenter selon les besoins
+                result = {"success": False, "error": "Type de document non implémenté"}
+            
+            return result
+        finally:
+            # Nettoyage - suppression du fichier temporaire
+            os.unlink(temp_path)
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors du parsing: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/chat")
+async def chat(chat_request: ChatMessage):
+    """Point d'entrée pour le chat avec l'IA sur le CV"""
+    try:
+        # Chat avec l'IA à propos du document
+        if chat_request.doc_type == 'cv':
+            response = chat_with_cv_data(
+                chat_request.message,
+                chat_request.history,
+                chat_request.document_data
+            )
+        else:
+            # Pour d'autres types de documents, à implémenter selon les besoins
+            raise HTTPException(status_code=400, detail="Type de document non supporté pour le chat")
+        
+        return response
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

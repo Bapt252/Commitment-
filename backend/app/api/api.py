@@ -1,32 +1,28 @@
 from fastapi import APIRouter
 
-from app.api.endpoints import matching, feedback, jobs, job_posts, questionnaires, companies, users, chat, parsing, parsing_chat, cv_parser, cv_matcher
-from app.feedback_system import collector, monitoring
+from app.api.endpoints import (
+    chat, 
+    companies, 
+    cv_matcher, 
+    feedback, 
+    job_posts, 
+    matching, 
+    parsing_chat,
+    questionnaires, 
+    users,
+    health
+)
 
 api_router = APIRouter()
 
-# Routes API existantes
-api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
-api_router.include_router(job_posts.router, prefix="/job-posts", tags=["job_posts"])
-api_router.include_router(questionnaires.router, prefix="/questionnaires", tags=["questionnaires"])
+# Ajout des routes par module
+api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
 api_router.include_router(companies.router, prefix="/companies", tags=["companies"])
-api_router.include_router(users.router, prefix="/users", tags=["users"])
-api_router.include_router(matching.router, prefix="/matching", tags=["matching"])
+api_router.include_router(cv_matcher.router, prefix="/cv-matcher", tags=["cv_matcher"])
 api_router.include_router(feedback.router, prefix="/feedback", tags=["feedback"])
-
-# Nouvelles routes pour le système d'amélioration continue
-api_router.include_router(collector.router, prefix="/feedback-system", tags=["feedback_system"])
-api_router.include_router(monitoring.router, prefix="/monitoring", tags=["monitoring"])
-
-# Nouvelle route pour l'API ChatGPT
-api_router.include_router(chat.router, prefix="/chat-gpt", tags=["chat_gpt"])
-
-# Nouvelle route pour le parsing de documents
-api_router.include_router(parsing.router, prefix="/parsing", tags=["parsing"])
-
-# Nouvelle route pour le chat de parsing
+api_router.include_router(job_posts.router, prefix="/job-posts", tags=["job_posts"])
+api_router.include_router(matching.router, prefix="/matching", tags=["matching"])
 api_router.include_router(parsing_chat.router, prefix="/parsing-chat", tags=["parsing_chat"])
-
-# Nouvelles routes pour le parsing et le matching de CV
-api_router.include_router(cv_parser.router, tags=["cv_parser"])
-api_router.include_router(cv_matcher.router, tags=["cv_matcher"])
+api_router.include_router(questionnaires.router, prefix="/questionnaires", tags=["questionnaires"])
+api_router.include_router(users.router, prefix="/users", tags=["users"])
+api_router.include_router(health.router, prefix="/health", tags=["health"])

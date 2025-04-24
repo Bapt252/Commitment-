@@ -2,28 +2,33 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Installation des dépendances système nécessaires
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Installer les dépendances de base
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+        libpq-dev \
+        poppler-utils \
+        tesseract-ocr \
+        tesseract-ocr-fra \
+        tesseract-ocr-eng \
+        antiword \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
 
-# Copie du fichier de requirements adapté pour Docker
-COPY requirements.docker.txt .
-
-# Installation des dépendances Python
+# Copier les fichiers de dépendances
+COPY requirements.txt requirements.docker.txt ./
 RUN pip install --no-cache-dir -r requirements.docker.txt
 
-# Copie du code source
-COPY . .
+# Créer les répertoires nécessaires
+RUN mkdir -p /app/data /app/logs /app/models
 
-# Création d'un fichier de healthcheck
-RUN echo 'from fastapi import FastAPI, Depends\nimport uvicorn\n\napp = FastAPI()\n\n@app.get("/health")\ndef health_check():\n    return {"status": "healthy"}\n\nif __name__ == "__main__":\n    uvicorn.run(app, host="0.0.0.0", port=5000)' > health_app.py
+# Copier le code de l'application
+COPY app/ ./app/
+COPY scripts/ ./scripts/
 
-# Exposition du port
+# Exposer le port
 EXPOSE 5000
 
-# Commande de démarrage du serveur
-CMD ["uvicorn", "health_app:app", "--host=0.0.0.0", "--port=5000"]
+# Commande par défaut
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000"]
