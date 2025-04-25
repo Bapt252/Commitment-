@@ -15,6 +15,9 @@ Thumbs.db
 .env.production.local
 .vscode/
 .idea/
+*.code-workspace
+.vscode-test
+.history/
 
 # Modules Node.js (pour le futur)
 node_modules/
@@ -32,6 +35,10 @@ build/
 # Fichiers de cache
 .cache/
 .parcel-cache/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
 # Fichiers temporaires
 *.tmp
@@ -39,6 +46,8 @@ build/
 *.swp
 *.swo
 *~
+.nfs*
+*.bak
 
 # Fichiers de credentials et configurations personnelles
 config.js
@@ -48,6 +57,10 @@ secrets.json
 *credentials*
 *.pem
 *.key
+*.crt
+*.cert
+auth.json
+.netrc
 
 # Environnement Python
 venv/
@@ -61,10 +74,36 @@ env/
 ENV/
 env.bak/
 venv.bak/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.pytest_cache/
+*.egg-info/
+*.egg
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 
-# Logs
+# Logs et données temporaires
 *.log
+logs/
 logs_cv_parser_worker.txt
+*.json
+*.pdf
+
+# Docker
+docker-compose.override.yml
+.docker/
+*.env.docker
 
 # Fichiers de test
 test_matching/
@@ -76,3 +115,11 @@ backend/requirements.local.txt
 
 # Fichiers de travail
 worker_for_claude.py
+
+# Fichiers temporaires FastAPI
+instance/
+.webassets-cache
+
+# Fichiers spécifiques OpenAI
+openai.key
+*openai*key*
