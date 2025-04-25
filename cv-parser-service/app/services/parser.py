@@ -7,9 +7,8 @@ from typing import Dict, Any, Optional, List, BinaryIO
 import tempfile
 import json
 
-# Import du client OpenAI et des erreurs associées
+# Import du client OpenAI - Version 0.28.1
 import openai
-from openai import OpenAI
 
 from app.core.config import settings
 from app.services.resilience import resilient_openai_call
@@ -17,8 +16,8 @@ from app.services.resilience import resilient_openai_call
 # Setup logging
 logger = logging.getLogger(__name__)
 
-# Initialiser le client OpenAI
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+# Configurer la clé API OpenAI
+openai.api_key = settings.OPENAI_API_KEY
 
 def parse_cv(file_path: str, file_format: Optional[str] = None) -> Dict[str, Any]:
     """Parse un CV pour en extraire les informations structurées
