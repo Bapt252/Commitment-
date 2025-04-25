@@ -2,6 +2,9 @@
 Point d'entrée principal du service de matching.
 Lance le serveur FastAPI avec uvicorn.
 """
+# Importer le patch de compatibilité OpenAI en premier
+import app.compat
+
 import uvicorn
 import logging
 from app.core.config import settings
