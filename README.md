@@ -1,99 +1,82 @@
-# NexTen - Application de Parsing CV et Matching Intelligent
+# Commitment - Parsing et Matching de CV
 
-NexTen est une application moderne pour l'analyse des CV et le matching intelligent avec des offres d'emploi, conçue avec une architecture microservices.
+Ce projet contient les microservices Docker pour le parsing et le matching de CV.
 
-## Architecture
+## Accès aux services
 
-L'application est conçue avec une architecture microservices légère, qui comprend :
+Après avoir lancé les conteneurs, les services sont accessibles aux URLs suivantes:
 
-- **Backend principal** (Flask) : API principale qui coordonne les microservices
-- **Service de parsing CV** : Service spécialisé dans l'extraction d'informations structurées depuis des CV au format PDF ou DOCX
-- **Service de matching** : Service d'intelligence artificielle qui effectue le matching entre les profils de candidats et les offres d'emploi
-- **Frontend** (Next.js) : Interface utilisateur moderne et réactive
+- **Frontend**: http://localhost:3000
+- **API principale**: http://localhost:5050
+- **Service de parsing CV**: http://localhost:5051 ou http://localhost:8000
+- **Service de matching**: http://localhost:5052
+- **MinIO (stockage)**: http://localhost:9000 (API) et http://localhost:9001 (Console)
+- **Redis Commander**: http://localhost:8081
+- **RQ Dashboard**: http://localhost:9181
 
-## Technologies utilisées
+## Scripts utilitaires
 
-- **Backend** : Flask (Python)
-- **Frontend** : Next.js (React)
-- **Base de données** : PostgreSQL
-- **Cache / File d'attente** : Redis
-- **Stockage d'objets** : MinIO (pour les CV)
-- **Conteneurisation** : Docker + docker-compose
+Le projet contient plusieurs scripts utilitaires pour faciliter le développement:
 
-## Structure du projet
+- `./build_all.sh`: Script pour reconstruire tous les services
+- `./restart-cv-parser.sh`: Script pour redémarrer uniquement le service cv-parser
+- `./curl-test-cv-parser.sh`: Script pour tester l'API de parsing de CV avec curl
 
-```
-nexten/
-├── backend/                   # API principale Flask
-│   ├── app.py                 # Point d'entrée principal
-│   ├── parsing_service.py     # Client pour le service de parsing
-│   └── app/                   # Modules de l'application
-│
-├── cv-parser-service/         # Service de parsing des CV
-│   ├── app/
-│   │   ├── services/
-│   │   │   ├── pdf_parser.py   # Parser pour les PDF
-│   │   │   └── docx_parser.py  # Parser pour les DOCX
-│   │   └── routes.py          # Endpoints API
-│
-├── matching-service/          # Service de matching intelligent
-│   └── app/
-│       ├── services/
-│       │   └── matcher.py     # Algorithme de matching
-│       └── routes.py          # Endpoints API
-│
-├── frontend/                  # Frontend Next.js
-│   ├── src/
-│   │   ├── pages/             # Pages Next.js
-│   │   │   ├── index.js       # Page d'accueil
-│   │   │   ├── cv-upload.js   # Page de téléchargement CV
-│   │   │   └── api/           # Endpoints API proxy
-│   │   └── components/        # Composants React
-│
-└── docker-compose.yml         # Configuration Docker
+## Tester le service de parsing CV
+
+Pour tester manuellement le service de parsing CV:
+
+```bash
+# Tester le endpoint health
+curl http://localhost:8000/health
+
+# Tester le parsing d'un CV
+curl -X POST \
+  http://localhost:8000/api/parse-cv/ \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/chemin/vers/votre/cv.pdf" \
+  -F "force_refresh=false"
 ```
 
-## Fonctionnalités principales
+Ou utilisez le script utilitaire:
 
-1. **Analyse de CV** : Extraction intelligente des informations depuis des CV PDF et DOCX
-2. **Matching intelligent** : Algorithme de correspondance entre profils et offres d'emploi
-3. **Stockage sécurisé** : Conservation des CV et données structurées
-4. **API REST** : API complète pour l'intégration avec d'autres systèmes
+```bash
+# Assurez-vous que le script est exécutable
+chmod +x curl-test-cv-parser.sh
 
-## Installation et démarrage
+# Exécutez le script (modifiez le chemin du CV dans le script si nécessaire)
+./curl-test-cv-parser.sh
+```
 
-### Prérequis
+## Résolution des problèmes courants
 
-- Docker et docker-compose
-- Git
+### Service cv-parser inaccessible sur le port 8000
 
-### Étapes d'installation
+Si le service cv-parser n'est pas accessible sur le port 8000, exécutez:
 
-1. Cloner le dépôt :
-   ```bash
-   git clone https://github.com/Bapt252/Commitment-.git
-   cd Commitment-
-   ```
+```bash
+# Redémarrer le service cv-parser
+./restart-cv-parser.sh
+```
 
-2. Créer un fichier `.env` à partir du modèle :
-   ```bash
-   cp .env.example .env
-   ```
+### Vérifier l'état des services
 
-3. Démarrer les services avec Docker Compose :
-   ```bash
-   docker-compose up -d
-   ```
+```bash
+# Vérifier l'état de tous les services
+docker-compose ps
 
-4. Accéder à l'application :
-   - Frontend : http://localhost:3000
-   - API : http://localhost:5050
-   - MinIO (stockage) : http://localhost:9001
+# Vérifier les logs d'un service spécifique
+docker-compose logs cv-parser
+```
 
-## Développement
+### Problèmes avec les volumes Docker
 
-Pour contribuer au développement, consultez le fichier [CONTRIBUTING.md](CONTRIBUTING.md).
+Si vous rencontrez des problèmes avec les volumes Docker:
 
-## Licence
+```bash
+# Nettoyer les volumes non utilisés (attention: cela supprime les données)
+docker volume prune
 
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+# Reconstruire les services en préservant les volumes
+./build_all.sh --preserve-volumes
+```
