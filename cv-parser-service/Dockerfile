@@ -39,9 +39,6 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*.whl \
     && rm -rf /wheels
 
-# Assurer que OpenAI est en version 0.28.1
-RUN pip uninstall -y openai && pip install openai==0.28.1
-
 # Créer l'utilisateur non-root
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
