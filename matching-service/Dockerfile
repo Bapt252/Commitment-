@@ -43,6 +43,9 @@ RUN pip install --no-cache-dir fastapi==0.104.1 uvicorn==0.24.0
 # Assurer que OpenAI est en version 0.28.1
 RUN pip uninstall -y openai && pip install openai==0.28.1
 
+# Assurer que huggingface_hub est en version 0.14.1
+RUN pip uninstall -y huggingface_hub && pip install huggingface_hub==0.14.1
+
 # Créer l'utilisateur non-root
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
