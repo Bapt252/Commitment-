@@ -1,5 +1,9 @@
 # Framework principal
-fastapi==0.104.1
+flask==3.0.0
+flask-cors==4.0.0
+flask-jwt-extended==4.5.3
+flask-limiter==3.5.0
+prometheus-flask-exporter==0.23.0
 uvicorn==0.24.0
 pydantic==2.5.2
 pydantic-settings==2.1.0
