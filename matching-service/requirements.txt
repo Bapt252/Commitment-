@@ -1,13 +1,15 @@
-# Framework principal
+# Framework principal - FastAPI en premier pour éviter les conflits
 fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.2
+pydantic-settings==2.1.0
+
+# Flask après (séparé pour éviter les conflits)
 flask==3.0.0
 flask-cors==4.0.0
 flask-jwt-extended==4.5.3
 flask-limiter==3.5.0
 prometheus-flask-exporter==0.23.0
-uvicorn==0.24.0
-pydantic==2.5.2
-pydantic-settings==2.1.0
 
 # Base de données
 sqlalchemy==2.0.23
@@ -23,7 +25,8 @@ scikit-learn==1.3.2
 numpy==1.26.2
 pandas==2.1.3
 
-# NLP pour le matching
+# NLP pour le matching - avec torch avant sentence-transformers
+torch==2.0.1
 nltk==3.8.1
 sentence-transformers==2.2.2
 
