@@ -2,6 +2,29 @@
 
 Ce projet contient les microservices Docker pour le parsing et le matching de CV.
 
+## Configuration requise
+
+1. **Clé API OpenAI** : Vous devez disposer d'une clé API OpenAI valide pour utiliser le service de parsing de CV.
+   - Créez un fichier `.env` à la racine du projet (en vous basant sur `.env.example`)
+   - Ajoutez votre clé API OpenAI : `OPENAI=votre_clé_api_openai`
+
+2. **Docker et Docker Compose** : Assurez-vous d'avoir Docker et Docker Compose installés sur votre système.
+
+## Installation rapide
+
+```bash
+# Cloner le projet
+git clone https://github.com/Bapt252/Commitment-.git
+cd Commitment-
+
+# Créer le fichier .env
+cp .env.example .env
+# Éditer .env et ajouter votre clé API OpenAI
+
+# Lancer tous les services
+docker-compose up -d
+```
+
 ## Accès aux services
 
 Après avoir lancé les conteneurs, les services sont accessibles aux URLs suivantes:
@@ -80,3 +103,21 @@ docker volume prune
 # Reconstruire les services en préservant les volumes
 ./build_all.sh --preserve-volumes
 ```
+
+### Problèmes avec l'API OpenAI
+
+Si vous rencontrez des erreurs liées à l'API OpenAI:
+
+1. Vérifiez que votre clé API est correctement configurée dans le fichier `.env`
+2. Assurez-vous que votre clé API est active et a des crédits disponibles
+3. Vérifiez les logs du service cv-parser pour plus de détails : `docker-compose logs cv-parser`
+
+## Architecture
+
+Le projet utilise une architecture microservices avec les composants suivants :
+
+1. **Service de parsing CV** : Extrait les informations des CV en utilisant GPT-4o-mini
+2. **Service de matching** : Match les CV avec les offres d'emploi
+3. **Redis** : File d'attente pour le traitement asynchrone et cache
+4. **MinIO** : Stockage des fichiers CV
+5. **PostgreSQL** : Base de données principale
