@@ -2,7 +2,8 @@ import os
 
 class Config:
     """Configuration de base"""
-    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    # Support des deux noms de variables d'environnement
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY') or os.environ.get('OPENAI')
     MONGODB_URI = os.environ.get('MONGODB_URI') or 'mongodb://localhost:27017/cv_data'
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER') or 'uploads'
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10MB
