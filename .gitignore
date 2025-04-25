@@ -48,3 +48,31 @@ secrets.json
 *credentials*
 *.pem
 *.key
+
+# Environnement Python
+venv/
+.python-version
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Logs
+*.log
+logs_cv_parser_worker.txt
+
+# Fichiers de test
+test_matching/
+cv.pdf
+
+# Fichiers de données locales
+backend/data/documents_a_analyser/
+backend/requirements.local.txt
+
+# Fichiers de travail
+worker_for_claude.py
