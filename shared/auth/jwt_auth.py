@@ -1,10 +1,28 @@
 import os
 import jwt
 import time
+import secrets
 from typing import Dict, Any, Optional, Tuple, List
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Clé secrète partagée pour les JWT inter-services
-SHARED_SECRET = os.environ.get("SERVICES_JWT_SECRET", "dev-shared-secret-key")
+# Utilisez une variable d'environnement ou générez une clé aléatoire unique à chaque démarrage
+# ATTENTION : En production, utilisez TOUJOURS des variables d'environnement 
+# pour les secrets et NE PAS utiliser de valeurs par défaut
+SHARED_SECRET = os.environ.get("SERVICES_JWT_SECRET")
+if not SHARED_SECRET:
+    # Pour le développement uniquement, générer une clé aléatoire
+    if os.environ.get("ENV", "development") == "production":
+        raise EnvironmentError("SERVICES_JWT_SECRET doit être définie en production")
+    else:
+        SHARED_SECRET = secrets.token_hex(32)
+        logger.warning(
+            "ATTENTION: Utilisation d'une clé JWT aléatoire pour l'authentification inter-services. "
+            "Cette clé changera à chaque redémarrage. "
+            "En production, définissez SERVICES_JWT_SECRET."
+        )
 
 def generate_service_token(service_name: str, exp_seconds: int = 3600) -> str:
     """Génère un token JWT pour l'authentification entre services.
@@ -60,8 +78,20 @@ def extract_user_permissions(user_token: str) -> Dict[str, Any]:
         Dictionnaire contenant les informations utilisateur et permissions
     """
     try:
-        # Note: La clé secrète devrait être la même que celle utilisée par le service d'identité
-        identity_secret = os.environ.get("JWT_SECRET_KEY", "dev-key-not-for-production")
+        # La clé secrète doit être fournie via une variable d'environnement
+        identity_secret = os.environ.get("JWT_SECRET_KEY")
+        if not identity_secret:
+            if os.environ.get("ENV", "development") == "production":
+                raise EnvironmentError("JWT_SECRET_KEY doit être définie en production")
+            else:
+                # Pour le développement uniquement, utiliser une clé temporaire
+                identity_secret = secrets.token_hex(32)
+                logger.warning(
+                    "ATTENTION: Utilisation d'une clé JWT aléatoire pour la validation des tokens utilisateur. "
+                    "Cette clé changera à chaque redémarrage. "
+                    "En production, définissez JWT_SECRET_KEY."
+                )
+                
         payload = jwt.decode(user_token, identity_secret, algorithms=["HS256"])
         
         # Extraire les informations utilisateur
