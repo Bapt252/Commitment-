@@ -37,27 +37,30 @@ def run_worker():
         host=settings.REDIS_HOST,
         port=settings.REDIS_PORT,
         db=settings.REDIS_DB,
-        decode_responses=True
+        decode_responses=False  # Important pour RQ
     )
     
-    # Configuration de la queue
-    queue_name = 'cv_parsing'
-    logger.info(f"Démarrage du worker pour la queue: {queue_name}")
+    # Configuration des queues avec priorités
+    queue_names = ['cv_parsing_premium', 'cv_parsing_standard', 'cv_parsing_batch']
+    logger.info(f"Démarrage du worker pour les queues: {', '.join(queue_names)}")
     
-    # Configuration des timeouts
-    queue_config = {
+    # Configuration des timeouts par défaut
+    default_config = {
         'default_timeout': 600,  # 10 minutes
         'result_ttl': 3600,      # 1 heure
         'failure_ttl': 86400     # 24 heures
     }
     
-    # Créer la queue avec la configuration
-    queue = Queue(
-        name=queue_name,
-        connection=redis_conn,
-        default_timeout=queue_config['default_timeout'],
-        failure_ttl=queue_config['failure_ttl']
-    )
+    # Créer les queues avec leur configuration
+    queues = []
+    for queue_name in queue_names:
+        queue = Queue(
+            name=queue_name,
+            connection=redis_conn,
+            default_timeout=default_config['default_timeout'],
+            failure_ttl=default_config['failure_ttl']
+        )
+        queues.append(queue)
     
     # Gestionnaire de signaux
     killer = GracefulKiller()
@@ -65,9 +68,9 @@ def run_worker():
     # Configuration du worker
     with Connection(redis_conn):
         worker = Worker(
-            queues=[queue],
+            queues=queues,  # Surveille les trois queues
             connection=redis_conn,
-            default_result_ttl=queue_config['result_ttl']
+            default_result_ttl=default_config['result_ttl']
         )
         
         # Démarrer le worker avec gestion des signaux
