@@ -37,9 +37,15 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*.whl \
     && rm -rf /wheels
 
+# Assurer que OpenAI est en version 0.28.1
+RUN pip uninstall -y openai && pip install openai==0.28.1
+
 # Installer les modèles spaCy
 COPY setup_spacy_models.py /tmp/
 RUN python /tmp/setup_spacy_models.py && rm /tmp/setup_spacy_models.py
+
+# Précharger les modèles sentence-transformers
+RUN python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
 
 # Créer l'utilisateur non-root
 RUN groupadd -r appuser && useradd -r -g appuser appuser
