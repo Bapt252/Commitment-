@@ -2,6 +2,9 @@
 Worker RQ pour le service de matching.
 Gère l'exécution asynchrone des tâches de matching avec gestion avancée des signaux.
 """
+# Importer le patch de compatibilité OpenAI en premier
+import app.compat
+
 import os
 import sys
 import signal
