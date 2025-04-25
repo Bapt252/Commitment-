@@ -158,6 +158,8 @@ services:
       LOG_LEVEL: INFO
       LOG_FORMAT: json
       MATCHING_API_URL: http://matching-api:5000
+    env_file:
+      - .env
     networks:
       - nexten-network
     restart: unless-stopped
@@ -198,6 +200,8 @@ services:
       LOG_LEVEL: INFO
       LOG_FORMAT: json
       MATCHING_API_URL: http://matching-api:5000
+    env_file:
+      - .env
     networks:
       - nexten-network
     restart: unless-stopped
