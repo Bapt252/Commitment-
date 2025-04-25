@@ -1,45 +1,65 @@
-FROM python:3.10-slim
+# Étape de build
+FROM python:3.11-slim as builder
+
+# Dépendances de build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    libmagic1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Créer le répertoire des wheels
+WORKDIR /wheels
+
+# Copier uniquement le fichier requirements pour le cache
+COPY requirements.txt .
+
+# Compiler les wheels
+RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
+
+# Image finale
+FROM python:3.11-slim
+
+# Dépendances runtime
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libmagic1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Variables d'environnement
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Copier les wheels depuis le builder
+COPY --from=builder /wheels /wheels
+
+# Installer les dépendances depuis les wheels
+RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/* \
+    && rm -rf /wheels
+
+# Créer l'utilisateur non-root
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Créer les répertoires nécessaires
+RUN mkdir -p /app/logs /app/temp && chown -R appuser:appuser /app
 
 # Définir le répertoire de travail
 WORKDIR /app
 
-# Définir les variables d'environnement
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
-
-# Installer les dépendances système
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libmagic1 \
-    libpq-dev \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copier les requirements d'abord pour optimiser le cache
-COPY requirements.txt .
-
-# Installer les dépendances Python
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Copier le code de l'application
-COPY . .
+COPY --chown=appuser:appuser . .
 
-# Créer les répertoires nécessaires
-RUN mkdir -p /app/logs /app/temp
-
-# Créer un utilisateur non-root pour la sécurité
-RUN adduser --disabled-password --gecos "" appuser
-RUN chown -R appuser:appuser /app /app/logs /app/temp
+# Passer à l'utilisateur non-root
 USER appuser
 
-# Exposer le port
-EXPOSE 5000
-
-# Vérification de santé
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
-# La commande sera spécifiée dans docker-compose pour les différents services (API ou worker)
+# Port exposé
+EXPOSE 5000
+
+# Commande par défaut
 CMD ["python", "main.py"]
