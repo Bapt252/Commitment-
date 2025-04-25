@@ -1,9 +1,5 @@
 version: '3.8'
-
 services:
   cv-parser:
     ports:
-      - "5051:5000"  # Port existant déjà configuré
-      - "8000:5000"  # Le port interne est 5000, pas 8000
-    environment:
-      DEBUG: "true"  # Activer le mode debug
+      - "8000:8000"
