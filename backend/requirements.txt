@@ -10,6 +10,8 @@ alembic==1.12.1
 
 # NLP et traitement de texte
 spacy==3.7.2
+# Ajout de torch explicitement avant sentence-transformers pour éviter les conflits
+torch==2.0.1
 sentence-transformers==2.2.2
 
 # Auth et sécurité
