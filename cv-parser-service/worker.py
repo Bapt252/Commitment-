@@ -8,7 +8,7 @@ import signal
 import logging
 from redis import Redis
 from rq import Worker, Queue, Connection
-from config import settings
+from app.core.config import settings
 from app.core.logging import setup_logging
 
 # Configuration du logging
