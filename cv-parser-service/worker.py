@@ -2,6 +2,9 @@
 Worker RQ pour le service de parsing CV.
 Gère l'exécution asynchrone des tâches de parsing avec gestion avancée des signaux.
 """
+# Import du module de compatibilité OpenAI
+import compat
+
 import os
 import sys
 import signal
