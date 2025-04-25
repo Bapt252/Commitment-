@@ -17,10 +17,10 @@ from app.models.cv_model import CVModel
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Configuration de l'API OpenAI
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Configuration de l'API OpenAI - Support pour les deux noms de variables
+openai.api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI")
 if not openai.api_key:
-    logger.warning("OPENAI_API_KEY environment variable not set. API calls will fail.")
+    logger.warning("OpenAI API key not found in environment variables. API calls will fail.")
 
 # Configuration Redis
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
