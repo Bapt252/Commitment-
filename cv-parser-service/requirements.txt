@@ -24,8 +24,8 @@ minio==7.1.17
 pyJWT==2.8.0
 cryptography==41.0.4
 
-# OpenAI API - version rétrocompatible
-openai==0.28.1
+# OpenAI API - version moderne
+openai>=1.0.0
 
 # ML et NLP - Versions mises à jour et compatibles
 torch==2.0.1
