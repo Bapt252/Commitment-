@@ -27,9 +27,11 @@ cryptography==41.0.4
 # OpenAI API - version rétrocompatible
 openai==0.28.1
 
-# ML et NLP
+# ML et NLP - Versions mises à jour et compatibles
 torch==2.0.1
-sentence-transformers==2.2.2
+sentence-transformers==2.3.1
+huggingface-hub==0.20.3
+transformers==4.36.2
 
 # Parsing de documents
 # Remplacé pypdf par pdfplumber qui est plus fiable
