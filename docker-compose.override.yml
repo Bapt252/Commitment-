@@ -3,7 +3,7 @@ version: '3.8'
 services:
   cv-parser:
     ports:
-      - "5051:5000"  # Port existant déjà configuré dans docker-compose.yml
-      - "8000:5000"  # Nouveau port exposé pour accès direct
+      - "5051:5000"  # Port existant déjà configuré
+      - "8000:5000"  # Le port interne est 5000, pas 8000
     environment:
-      DEBUG: "true"  # Activer le mode debug pour le développement local
+      DEBUG: "true"  # Activer le mode debug
