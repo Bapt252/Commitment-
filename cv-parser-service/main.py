@@ -1,5 +1,8 @@
 # CV Parser Service - Point d'entrée principal
 
+# Import du module de compatibilité OpenAI
+import compat
+
 import uvicorn
 import logging
 from app import app
