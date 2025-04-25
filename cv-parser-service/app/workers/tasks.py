@@ -112,7 +112,6 @@ def move_to_dead_letter_queue(job_id: str, error: str, file_path: Optional[str] 
         dlq = Queue("cv_parsing_failed", connection=redis_conn)
         dlq.enqueue(
             handle_failed_job,
-            job_id=job_id,
             error_message=error,
             file_path=file_path,
             original_queue=original_queue,
