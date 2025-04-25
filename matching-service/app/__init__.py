@@ -11,7 +11,6 @@ from app.utils.db import setup_db
 # Initialisation des extensions
 jwt = JWTManager()
 limiter = Limiter(key_func=get_remote_address)
-metrics = PrometheusMetrics()
 
 def create_app(config_name='default'):
     """Fonction de fabrique d'application Flask."""
@@ -22,7 +21,7 @@ def create_app(config_name='default'):
     CORS(app)
     jwt.init_app(app)
     limiter.init_app(app)
-    metrics.init_app(app)
+    metrics = PrometheusMetrics(app)
     
     # Configurer la base de données
     setup_db(app)
