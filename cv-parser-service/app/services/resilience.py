@@ -5,15 +5,15 @@ import random
 import logging
 from functools import wraps
 from typing import Dict, Any, Optional, Callable
-import openai
+from openai import OpenAI, OpenAIError, RateLimitError, APIConnectionError
 
 from app.core.config import settings
 
 # Setup logging
 logger = logging.getLogger(__name__)
 
-# Configurer la clé API OpenAI
-openai.api_key = settings.OPENAI_API_KEY
+# Initialiser le client OpenAI sans proxy
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 # État du circuit breaker
 class CircuitBreakerState:
@@ -108,7 +108,7 @@ def exponential_backoff(attempt: int, base: float = 1.0, max_backoff: float = 60
     return backoff
 
 def retry_with_backoff(max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0,
-                       retryable_errors = (openai.error.APIError, openai.error.APIConnectionError, openai.error.RateLimitError)):
+                       retryable_errors = (OpenAIError, RateLimitError, APIConnectionError)):
     """Décorateur de réessai avec backoff exponentiel"""
     def decorator(func):
         @wraps(func)
@@ -136,9 +136,9 @@ def retry_with_backoff(max_retries: int = 3, base_delay: float = 1.0, max_delay:
                     )
                     
                     # Déterminer le message selon le type d'erreur
-                    if isinstance(e, openai.error.RateLimitError):
+                    if isinstance(e, RateLimitError):
                         logger.warning(f"Rate limit atteint, attente de {delay:.2f}s avant réessai {attempt}/{max_retries}")
-                    elif isinstance(e, openai.error.APIConnectionError):
+                    elif isinstance(e, APIConnectionError):
                         logger.warning(f"Erreur de connexion, attente de {delay:.2f}s avant réessai {attempt}/{max_retries}")
                     else:
                         logger.warning(f"Erreur API, attente de {delay:.2f}s avant réessai {attempt}/{max_retries}: {str(e)}")
@@ -172,7 +172,7 @@ def resilient_openai_call(prompt: str, model: str = "gpt-4o-mini", temperature: 
         str: Réponse du modèle
     """
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=model,
             messages=[
                 {"role": "system", "content": "Tu es un assistant spécialisé dans l'extraction d'informations à partir de CV."},
@@ -182,13 +182,13 @@ def resilient_openai_call(prompt: str, model: str = "gpt-4o-mini", temperature: 
             max_tokens=max_tokens
         )
         return response.choices[0].message.content
-    except openai.error.RateLimitError as e:
+    except RateLimitError as e:
         logger.warning(f"Rate limit atteint: {str(e)}")
         raise
-    except openai.error.APIConnectionError as e:
+    except APIConnectionError as e:
         logger.error(f"Erreur de connexion OpenAI: {str(e)}")
         raise
-    except openai.error.APIError as e:
+    except OpenAIError as e:
         logger.error(f"Erreur API OpenAI: {str(e)}")
         raise
     except Exception as e:
