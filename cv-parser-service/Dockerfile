@@ -36,7 +36,7 @@ ENV PYTHONUNBUFFERED=1 \
 COPY --from=builder /wheels /wheels
 
 # Installer les dépendances depuis les wheels
-RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/* \
+RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*.whl \
     && rm -rf /wheels
 
 # Créer l'utilisateur non-root
