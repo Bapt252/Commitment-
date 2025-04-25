@@ -43,9 +43,6 @@ RUN pip install --no-cache-dir fastapi==0.104.1 uvicorn==0.24.0
 # Assurer que OpenAI est en version 0.28.1
 RUN pip uninstall -y openai && pip install openai==0.28.1
 
-# Assurer que huggingface_hub est en version 0.14.1
-RUN pip uninstall -y huggingface_hub && pip install huggingface_hub==0.14.1
-
 # Créer l'utilisateur non-root
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
@@ -58,8 +55,9 @@ WORKDIR /app
 # Copier le code de l'application
 COPY --chown=appuser:appuser . .
 
-# Précharger les modèles sentence-transformers avant de passer à l'utilisateur appuser
-RUN python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
+# Précharger les modèles sentence-transformers - avec installation forcée de huggingface_hub juste avant
+RUN pip install --force-reinstall huggingface_hub==0.14.1 && \
+    python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
 
 # Télécharger les données NLTK nécessaires
 RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); print('Données NLTK téléchargées')"
