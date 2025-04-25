@@ -1,17 +1,11 @@
 # Framework principal
-flask==3.0.0
-flask-restful==0.3.10
-flask-cors==4.0.0
-flask-socketio==5.3.6
-
-# Alternative FastAPI si nécessaire
 fastapi==0.104.1
-uvicorn==0.23.2
-pydantic==2.4.2
-pydantic-settings==2.0.3
+uvicorn==0.24.0
+pydantic==2.5.2
+pydantic-settings==2.1.0
 
 # Base de données
-sqlalchemy==2.0.22
+sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 
 # Redis et gestion de queue

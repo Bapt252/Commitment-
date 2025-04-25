@@ -1,10 +1,10 @@
 # Dépendances principales
-fastapi==0.103.1
-uvicorn==0.23.2
+fastapi==0.104.1
+uvicorn==0.24.0
 python-multipart==0.0.6
 aiofiles==23.2.1
-pydantic==2.3.0
-pydantic-settings==2.0.3
+pydantic==2.5.2
+pydantic-settings==2.1.0
 python-dotenv==1.0.0
 
 # Base de données
@@ -13,7 +13,7 @@ psycopg2-binary==2.9.9
 alembic==1.12.1
 
 # Gestion asynchrone et files
-redis==5.0.0
+redis==5.0.1
 rq==1.15.1
 tenacity==8.2.3
 requests==2.31.0
@@ -27,12 +27,11 @@ cryptography==41.0.4
 openai==1.3.0
 
 # Parsing de documents
-PyPDF2==3.0.1
-python-docx==1.0.1
+pypdf==3.17.1
+python-docx==1.1.0
 striprtf==0.0.24
 python-magic==0.4.27
 pdfplumber==0.10.3
-pypdf==3.17.1
 
 # Data processing
 pandas==2.1.3
