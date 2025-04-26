@@ -40,9 +40,9 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*.whl \
 # Assurer que OpenAI est en version 0.28.1
 RUN pip uninstall -y openai && pip install openai==0.28.1
 
-# Forcer la version compatible de huggingface_hub et transformers
-RUN pip uninstall -y huggingface_hub transformers && \
-    pip install huggingface_hub==0.16.4 transformers==4.31.0
+# Forcer la version compatible de huggingface_hub, transformers et sentence-transformers
+RUN pip uninstall -y huggingface_hub transformers sentence-transformers && \
+    pip install huggingface_hub==0.16.4 transformers==4.31.0 sentence-transformers==2.2.2
 
 # Installer les modèles spaCy
 COPY setup_spacy_models.py /tmp/
