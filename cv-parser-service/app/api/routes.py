@@ -133,7 +133,7 @@ async def queue_cv_parsing(
             file_path=file_path,
             file_name=file.filename,
             file_format=os.path.splitext(file.filename)[1].lower(),
-            timeout=queue_config["timeout"],
+            job_timeout=queue_config["timeout"],
             result_ttl=queue_config["ttl"],
             failure_ttl=queue_config["ttl"],
             ttl=queue_config["ttl"],
