@@ -16,6 +16,7 @@ torch==2.0.1
 sentence-transformers==2.2.2
 # Version compatible de huggingface_hub pour sentence-transformers 2.2.2
 huggingface_hub==0.16.4
+transformers==4.31.0
 
 # Auth et sécurité
 python-jose[cryptography]==3.3.0
