@@ -40,6 +40,9 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*.whl \
 # Assurer que OpenAI est en version 0.28.1
 RUN pip uninstall -y openai && pip install openai==0.28.1
 
+# Forcer la version compatible de huggingface_hub
+RUN pip uninstall -y huggingface_hub && pip install huggingface_hub==0.16.4
+
 # Installer les modèles spaCy
 COPY setup_spacy_models.py /tmp/
 RUN python /tmp/setup_spacy_models.py && rm /tmp/setup_spacy_models.py
