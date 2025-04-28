@@ -1,0 +1,67 @@
+JEAN DUPONT
+Développeur Full Stack
+jean.dupont@exemple.fr | +33 6 12 34 56 78 | Paris, France | LinkedIn: linkedin.com/in/jeandupont
+
+COMPÉTENCES TECHNIQUES
+- Langages: Python, JavaScript, TypeScript, Java, C++
+- Front-end: React, Vue.js, Angular, HTML5, CSS3, SASS
+- Back-end: Node.js, Express, Django, Spring Boot
+- DevOps: Docker, Kubernetes, AWS, GCP, CI/CD (Jenkins, GitHub Actions)
+- Bases de données: PostgreSQL, MongoDB, MySQL, Redis
+- Méthodologies: Agile, Scrum, Kanban, TDD
+- Outils: Git, JIRA, Confluence, Bitbucket
+
+EXPÉRIENCE PROFESSIONNELLE
+
+Lead Développeur Full Stack | TechInnovate SAS | Juin 2020 - Présent
+- Direction d'une équipe de 5 développeurs pour la refonte complète d'une plateforme SaaS
+- Conception et implémentation d'une architecture microservices avec Docker et Kubernetes
+- Mise en place d'un pipeline CI/CD avec GitHub Actions, réduisant le temps de déploiement de 80%
+- Optimisation des performances frontend, réduction de 40% du temps de chargement
+- Technologies: React, Node.js, PostgreSQL, Docker, Kubernetes, AWS
+
+Développeur Senior | DigitalSoft | Mars 2017 - Mai 2020
+- Développement du backend d'une application de gestion financière utilisée par +50 000 utilisateurs
+- Implémentation d'une API RESTful avec Node.js et Express
+- Développement d'un système d'authentification sécurisé avec JWT et OAuth2
+- Mise en place d'une base de données MongoDB avec sharding pour gérer la haute disponibilité
+- Technologies: Node.js, Express, MongoDB, Redis, Docker, AWS
+
+Développeur Full Stack | WebTech Solutions | Janvier 2015 - Février 2017
+- Développement d'applications web responsive pour clients du secteur retail
+- Création d'interfaces utilisateur avec React et intégration d'APIs tierces
+- Implémentation de fonctionnalités de paiement en ligne avec Stripe
+- Technologies: React, PHP, MySQL, AWS
+
+FORMATION
+
+Master en Informatique, spécialité Intelligence Artificielle | Université de Paris | 2013-2015
+- Mention Très Bien
+- Mémoire: "Algorithmes d'apprentissage automatique appliqués à la détection de fraudes"
+
+Licence en Informatique | Université de Lyon | 2010-2013
+- Mention Bien
+- Spécialisation en développement logiciel
+
+CERTIFICATIONS
+- AWS Certified Solutions Architect (2022)
+- Professional Scrum Master I (PSM I) (2021)
+- MongoDB Certified Developer (2019)
+- Oracle Certified Professional Java SE 8 (2018)
+
+LANGUES
+- Français: Natif
+- Anglais: Courant (TOEIC 950/990)
+- Espagnol: Intermédiaire (B1)
+- Allemand: Notions (A2)
+
+PROJETS PERSONNELS
+- Développement d'une application open-source de gestion de budget (React Native, Firebase)
+- Contribution à plusieurs projets open-source (Django, React)
+- Blog technique sur le développement web et DevOps
+
+CENTRES D'INTÉRÊT
+- Veille technologique et innovation
+- Course à pied (semi-marathon)
+- Photographie
+- Voyages culturels
