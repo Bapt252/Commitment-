@@ -13,10 +13,10 @@ alembic==1.12.1
 spacy==3.7.2
 # Dépendance nécessaire pour sentence-transformers
 torch==2.0.1
+# Versions compatibles de transformers et huggingface_hub
 sentence-transformers==2.2.2
-# Version compatible de huggingface_hub pour sentence-transformers 2.2.2
-huggingface_hub==0.12.0
-transformers==4.31.0
+transformers==4.25.1
+huggingface_hub==0.14.1
 
 # Auth et sécurité
 python-jose[cryptography]==3.3.0
