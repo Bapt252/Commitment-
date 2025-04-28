@@ -56,7 +56,8 @@ WORKDIR /app
 COPY --chown=appuser:appuser . .
 
 # Précharger les modèles sentence-transformers - avec installation forcée de huggingface_hub juste avant
-RUN pip install --force-reinstall huggingface_hub==0.14.1 && \
+RUN pip uninstall -y huggingface_hub sentence-transformers && \
+    pip install huggingface_hub==0.12.0 sentence-transformers==2.2.2 && \
     python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
 
 # Télécharger les données NLTK nécessaires
