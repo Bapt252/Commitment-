@@ -32,9 +32,11 @@ app.add_middleware(
 
 # Import des routes (doit être après la création de l'app)
 from app.api.routes import router as api_router
+from app.api.direct_routes import direct_router
 
 # Inclusion des routes
 app.include_router(api_router, prefix="/api")
+app.include_router(direct_router, prefix="/api")
 
 # Route de santé
 @app.get("/health")
