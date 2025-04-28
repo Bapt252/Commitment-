@@ -163,13 +163,14 @@ def store_result_multi_tier_sync(job_id: str, result: Dict[str, Any], status: st
         logger.error(f"Erreur lors du stockage des résultats: {str(e)}")
         return False
 
-def parse_cv_task(job_id: str, file_path: str, file_name: str, file_format: str,
-                max_retries: int = 3, webhook_url: Optional[str] = None,
+# Modifié pour accepter job_id comme paramètre nommé obligatoire
+def parse_cv_task(*, job_id: str = None, file_path: str = None, file_name: str = None, 
+                file_format: str = None, max_retries: int = 3, webhook_url: Optional[str] = None,
                 webhook_secret: Optional[str] = None) -> Dict[str, Any]:
     """Tâche RQ de parsing d'un CV
     
     Args:
-        job_id: Identifiant unique du job
+        job_id: Identifiant unique du job (obligatoire, nommé)
         file_path: Chemin vers le fichier stocké
         file_name: Nom original du fichier
         file_format: Format du fichier (.pdf, .docx, etc.)
@@ -180,6 +181,16 @@ def parse_cv_task(job_id: str, file_path: str, file_name: str, file_format: str,
     Returns:
         Dict[str, Any]: Résultat du parsing
     """
+    # Vérifier que les paramètres obligatoires sont fournis
+    if not job_id:
+        raise ValueError("job_id est obligatoire")
+    if not file_path:
+        raise ValueError("file_path est obligatoire")
+    if not file_name:
+        raise ValueError("file_name est obligatoire") 
+    if not file_format:
+        raise ValueError("file_format est obligatoire")
+        
     logger.info(f"Démarrage du parsing CV pour job: {job_id}, fichier: {file_name}")
     
     # Fichier temporaire si nécessaire
