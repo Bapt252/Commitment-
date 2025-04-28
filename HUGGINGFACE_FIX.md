@@ -8,66 +8,83 @@ Une erreur se produisait lors du build Docker avec le message suivant:
 ImportError: cannot import name 'cached_download' from 'huggingface_hub' (/usr/local/lib/python3.11/site-packages/huggingface_hub/__init__.py)
 ```
 
-Cette erreur est survenue car la fonction `cached_download` a été supprimée ou renommée dans les versions récentes de `huggingface_hub`, mais la version de `sentence-transformers` utilisée (2.2.2) essayait toujours de l'utiliser.
+Nous avons également identifié un conflit de dépendances:
+
+```
+ERROR: Cannot install -r requirements.txt (line 16), -r requirements.txt (line 19) and huggingface_hub==0.12.0 because these package versions have conflicting dependencies.
+
+The conflict is caused by:
+    The user requested huggingface_hub==0.12.0
+    sentence-transformers 2.2.2 depends on huggingface-hub>=0.4.0
+    transformers 4.31.0 depends on huggingface-hub<1.0 and >=0.14.1
+```
 
 ## Solution appliquée
 
-1. La version de `huggingface_hub` a été fixée à 0.12.0 dans tous les services:
-   - Dans le service backend (API)
-   - Dans le service matching-service
+1. Nous avons mis à jour les versions des packages pour assurer la compatibilité:
+   - `huggingface_hub==0.14.1` (au lieu de 0.12.0)
+   - `transformers==4.25.1` (au lieu de 4.31.0)
+   - `sentence-transformers==2.2.2` (inchangé)
 
-2. Les modifications suivantes ont été effectuées:
-   - Mise à jour des Dockerfiles pour forcer l'installation de huggingface_hub==0.12.0
-   - Séparation des installations en étapes distinctes pour éviter les problèmes de dépendances
+2. Cette combinaison résout le problème car:
+   - `huggingface_hub==0.14.1` contient encore la fonction `cached_download`
+   - `transformers==4.25.1` est compatible avec `huggingface_hub==0.14.1`
+   - `sentence-transformers==2.2.2` est compatible avec les deux
+
+3. Les modifications suivantes ont été effectuées:
+   - Mise à jour des fichiers requirements.txt du backend et du matching-service
+   - Simplification des Dockerfiles pour mieux gérer les dépendances
    - Ajout de commandes pour vérifier les versions installées
 
-## Pourquoi cette version?
+## Comment vérifier que cela fonctionne
 
-La version 0.12.0 de huggingface_hub est compatible avec sentence-transformers 2.2.2 car elle contient encore la fonction `cached_download` qui a été supprimée dans les versions ultérieures.
+Pour reconstruire proprement l'environnement:
 
-## Comment résoudre le problème
-
-Pour s'assurer que le problème est complètement résolu, nous avons créé un script `rebuild-all.sh` qui effectue un nettoyage complet et une reconstruction des containers Docker sans utiliser le cache.
-
-Suivez ces étapes pour résoudre le problème:
-
-1. Rendez le script exécutable:
+1. Rendez le script `rebuild-all.sh` exécutable:
    ```bash
    chmod +x rebuild-all.sh
    ```
 
-2. Exécutez le script:
+2. Exécutez le script pour nettoyer les images Docker et reconstruire:
    ```bash
    ./rebuild-all.sh
    ```
 
-Ce script va:
-- Arrêter tous les containers Docker
-- Supprimer les images Docker liées au projet
-- Nettoyer le cache Docker
-- Reconstruire tous les services sans utiliser le cache
-- Démarrer tous les containers
-
-## Vérification des versions installées
-
-Si vous souhaitez vérifier manuellement les versions de packages installées dans un container, vous pouvez exécuter:
-
-```bash
-docker exec nexten-api pip freeze | grep huggingface
-docker exec nexten-api pip freeze | grep sentence
-```
+3. Vérifiez les versions installées dans les containers:
+   ```bash
+   docker exec nexten-api pip freeze | grep huggingface
+   docker exec nexten-api pip freeze | grep sentence
+   docker exec nexten-api pip freeze | grep transformers
+   ```
 
 Vous devriez voir:
-- huggingface_hub==0.12.0
+- huggingface_hub==0.14.1
 - sentence-transformers==2.2.2
+- transformers==4.25.1
+
+## Si le problème persiste
+
+Si vous rencontrez toujours des problèmes après un rebuild complet, essayez ces étapes supplémentaires:
+
+1. Supprimer entièrement le cache Docker:
+   ```bash
+   docker builder prune -a -f
+   ```
+
+2. Supprimer tous les volumes associés aux conteneurs:
+   ```bash
+   docker-compose down -v
+   ```
+
+3. Vérifiez s'il n'y a pas d'autres services qui tentent d'installer leurs propres versions:
+   ```bash
+   grep -r "huggingface\|transformers\|sentence" --include="*.py" --include="*.txt" --include="Dockerfile" .
+   ```
 
 ## Note de compatibilité
 
-Si vous souhaitez mettre à jour `sentence-transformers` vers une version plus récente à l'avenir, assurez-vous de vérifier la compatibilité avec `huggingface_hub` et d'ajuster les versions en conséquence.
+Si vous souhaitez mettre à jour ces bibliothèques à l'avenir, assurez-vous de vérifier la compatibilité. Les versions connues pour être compatibles sont:
 
-Les versions compatibles sont:
-- sentence-transformers 2.2.2 avec huggingface_hub 0.12.0 (solution actuelle)
-- sentence-transformers 2.2.2 avec huggingface_hub <= 0.14.1
-- sentence-transformers >= 2.3.0 avec huggingface_hub >= 0.16.0
-
-Si vous rencontrez toujours des problèmes après un rebuild complet, vérifiez que les volumes Docker ne contiennent pas d'anciens fichiers qui pourraient interférer avec l'installation.
+- Combinaison actuelle: huggingface_hub==0.14.1, transformers==4.25.1, sentence-transformers==2.2.2
+- Alternative 1: huggingface_hub>=0.14.1, transformers==4.31.0, sentence-transformers>=2.2.2
+- Alternative 2: huggingface_hub==0.12.0, transformers==4.20.0, sentence-transformers==2.2.2
