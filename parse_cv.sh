@@ -7,8 +7,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-API_URL="http://localhost:8000/api"  # Remplacez par l'URL de votre API
-PDF_PATH="/Users/baptistecomas/Desktop/MonSuperCV.pdf"  # Chemin vers le fichier PDF
+API_URL="http://localhost:5051/api"  # URL du service cv-parser selon docker-compose
+PDF_PATH="$HOME/Desktop/MonSuperCV.pdf"  # Chemin vers le fichier PDF sur le bureau
 
 # Fonction pour afficher les messages
 print_message() {
