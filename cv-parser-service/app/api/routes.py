@@ -126,18 +126,20 @@ async def queue_cv_parsing(
             )
             redis_conn.expire(f"cv:webhook:{job_id}", queue_config["ttl"])
         
-        # 8. Enqueue le job
+        # 8. Enqueue le job - CORRECTION: utilisation des arguments positionnels
         job = queue.enqueue(
             parse_cv_task,
-            job_id=job_id,
-            file_path=file_path,
-            file_name=file.filename,
-            file_format=os.path.splitext(file.filename)[1].lower(),
-            job_timeout=queue_config["timeout"],
+            job_id,  # Argument positionnel 1
+            file_path,  # Argument positionnel 2
+            file.filename,  # Argument positionnel 3
+            os.path.splitext(file.filename)[1].lower(),  # Argument positionnel 4
+            queue_config["max_retries"],  # Argument positionnel 5 (max_retries)
+            webhook_url,  # Argument positionnel 6 (webhook_url)
+            webhook_secret,  # Argument positionnel 7 (webhook_secret)
+            job_timeout=queue_config["timeout"],  # Options de RQ (nommés)
             result_ttl=queue_config["ttl"],
             failure_ttl=queue_config["ttl"],
-            ttl=queue_config["ttl"],
-            max_retries=queue_config["max_retries"]
+            ttl=queue_config["ttl"]
         )
         
         # 9. Enregistrer les métadonnées du job
