@@ -8,7 +8,37 @@ Ce guide explique comment tester le système de parsing CV "Commitment-" dans se
 - Le système "Commitment-" correctement configuré
 - Une clé API OpenAI valide (pour le mode réel)
 
-## Configuration de la clé API OpenAI
+## Configuration pour macOS
+
+Si vous utilisez macOS, des scripts spéciaux ont été créés pour contourner les différences de syntaxe entre macOS et Linux.
+
+### Configuration de la clé API OpenAI sur macOS
+
+Utilisez le script dédié pour configurer facilement votre clé API :
+
+```bash
+# Rendre le script exécutable
+chmod +x setup-openai-key.sh
+
+# Exécuter le script de configuration
+./setup-openai-key.sh
+```
+
+Le script vous demandera votre clé API OpenAI et configurera tout automatiquement.
+
+### Test avec votre CV sur macOS
+
+```bash
+# Rendre le script exécutable
+chmod +x mac-test-cv.sh
+
+# Tester avec votre CV
+./mac-test-cv.sh MonSuperCV.pdf
+```
+
+Ce script est optimisé pour macOS et détectera automatiquement les problèmes potentiels avec l'API.
+
+## Configuration standard
 
 Pour utiliser le parser CV en mode réel, vous devez configurer la clé API OpenAI. Deux options s'offrent à vous :
 
@@ -129,6 +159,24 @@ OPENAI_MODEL=gpt-4
 1. Vérifiez que `USE_MOCK_PARSER=false` dans le fichier `cv-parser-service/.env`
 2. Vérifiez que `OPENAI_API_KEY` est correctement défini
 3. Redémarrez le service avec `docker-compose restart nexten-cv-parser`
+
+### Erreurs sur macOS
+
+Si vous rencontrez des erreurs avec la commande `sed` sur macOS :
+
+```
+sed: 1: "cv-parser-service/.env": command c expects \ followed by text
+```
+
+Utilisez les scripts spécifiques macOS fournis (`mac-test-cv.sh` et `setup-openai-key.sh`).
+
+### Problèmes avec Docker
+
+Si le service Docker n'est pas trouvé (erreur `no such service: nexten-cv-parser`) :
+
+1. Vérifiez que Docker est bien en cours d'exécution
+2. Vérifiez le nom exact du conteneur avec `docker ps -a`
+3. Utilisez le script `mac-test-cv.sh` qui est plus tolérant aux différentes configurations
 
 ### Erreurs d'API OpenAI
 
