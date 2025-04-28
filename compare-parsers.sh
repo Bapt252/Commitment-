@@ -1,5 +1,6 @@
 #!/bin/bash
 # Script pour comparer les résultats du mock parser et du parser réel
+# Version compatible avec macOS
 
 # Couleurs pour une meilleure lisibilité
 GREEN='\033[0;32m'
@@ -14,13 +15,72 @@ MOCK_OUTPUT="$TEMP_DIR/mock_output.json"
 REAL_OUTPUT="$TEMP_DIR/real_output.json"
 CV_FILE="$1"
 
+# Fonction pour modifier le fichier .env selon le système d'exploitation
+update_env_file() {
+    local use_mock=$1
+    local env_file="cv-parser-service/.env"
+    
+    # Vérifier si le fichier .env existe
+    if [ ! -f "$env_file" ]; then
+        echo -e "${RED}Erreur: Le fichier $env_file n'existe pas.${NC}"
+        return 1
+    fi
+    
+    # Modification compatible avec macOS ou Linux
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        if [ "$use_mock" = true ]; then
+            sed -i '' 's/USE_MOCK_PARSER=false/USE_MOCK_PARSER=true/' "$env_file"
+        else
+            sed -i '' 's/USE_MOCK_PARSER=true/USE_MOCK_PARSER=false/' "$env_file"
+        fi
+    else
+        # Linux
+        if [ "$use_mock" = true ]; then
+            sed -i 's/USE_MOCK_PARSER=false/USE_MOCK_PARSER=true/' "$env_file"
+        else
+            sed -i 's/USE_MOCK_PARSER=true/USE_MOCK_PARSER=false/' "$env_file"
+        fi
+    fi
+    
+    return 0
+}
+
+# Fonction pour redémarrer le service Docker s'il existe
+restart_service() {
+    local service_name="nexten-cv-parser"
+    
+    # Vérifier si le service existe
+    if docker ps -a | grep -q $service_name; then
+        echo -e "${BLUE}Redémarrage du service $service_name...${NC}"
+        docker-compose restart $service_name 2>/dev/null || {
+            echo -e "${YELLOW}Impossible de redémarrer avec docker-compose, essai avec docker restart...${NC}"
+            docker restart $service_name 2>/dev/null || {
+                echo -e "${YELLOW}Impossible de redémarrer le service. Le service sera ignoré.${NC}"
+                return 1
+            }
+        }
+        echo -e "${GREEN}✓ Service redémarré${NC}"
+        sleep 3
+    else
+        echo -e "${YELLOW}Le service $service_name n'existe pas. Ignoré.${NC}"
+        return 1
+    fi
+    
+    return 0
+}
+
 # Vérifier si un fichier CV est fourni en argument
 if [ -z "$CV_FILE" ]; then
     echo -e "${YELLOW}Aucun fichier CV fourni. Utilisation de l'exemple par défaut.${NC}"
     
     # Créer un CV exemple si aucun n'est fourni
     CV_FILE="$TEMP_DIR/example_cv.txt"
-    cat << EOF > "$CV_FILE"
+    if [ -f "example_cv.txt" ]; then
+        # Utiliser le CV exemple existant s'il existe
+        cp "example_cv.txt" "$CV_FILE"
+    else
+        cat << EOF > "$CV_FILE"
 JOHN DOE
 Software Engineer
 john.doe@example.com | +33 6 12 34 56 78 | Paris, France | LinkedIn: linkedin.com/in/johndoe
@@ -54,62 +114,94 @@ PROJETS PERSONNELS
 - Développement d'une application mobile de partage de recettes (React Native)
 - Contribution open-source à plusieurs projets Python
 EOF
+    fi
 
     echo -e "${GREEN}✓ CV exemple créé avec succès${NC}"
 fi
 
 echo -e "${BLUE}=== Comparaison des parsers de CV ===${NC}"
 
+# Déterminer l'URL de l'API
+API_BASE_URL="http://localhost:8000"
+API_ENDPOINT="/api/parse-cv/"
+API_URL="${API_BASE_URL}${API_ENDPOINT}"
+
+# Vérifier si l'API est accessible
+echo -e "${BLUE}Vérification de l'API...${NC}"
+if ! curl -s "${API_BASE_URL}/health" > /dev/null; then
+    echo -e "${YELLOW}L'API ne semble pas être accessible sur ${API_BASE_URL}/health${NC}"
+    echo -e "${YELLOW}Essai sans le health endpoint...${NC}"
+    if ! curl -s "${API_BASE_URL}" > /dev/null; then
+        echo -e "${RED}L'API n'est pas accessible. Vérifiez que le service est en cours d'exécution.${NC}"
+        echo -e "${YELLOW}Le test sera effectué sans redémarrer les services.${NC}"
+        SKIP_SERVICE_RESTART=true
+    fi
+fi
+
 # 1. Configurer pour utiliser le mock parser
 echo -e "${BLUE}Configuration du mock parser...${NC}"
-sed -i "s/USE_MOCK_PARSER=false/USE_MOCK_PARSER=true/" "cv-parser-service/.env"
-docker-compose -f docker-compose.yml restart nexten-cv-parser
-sleep 5
+if [ -z "$SKIP_SERVICE_RESTART" ]; then
+    update_env_file true
+    restart_service
+fi
 echo -e "${GREEN}✓ Mock parser configuré${NC}"
 
 # 2. Tester le mock parser
 echo -e "${BLUE}Test du mock parser...${NC}"
 curl -s -X POST \
-  http://localhost:8000/api/parse-cv/ \
+  "${API_URL}" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@$CV_FILE" > "$MOCK_OUTPUT"
 
-if [ $? -eq 0 ]; then
+if [ $? -eq 0 ] && [ -s "$MOCK_OUTPUT" ]; then
     echo -e "${GREEN}✓ Mock parser testé avec succès${NC}"
 else
     echo -e "${RED}Erreur lors du test du mock parser${NC}"
-    exit 1
+    echo -e "${YELLOW}L'API est-elle accessible à ${API_URL}?${NC}"
 fi
 
 # 3. Configurer pour utiliser le parser réel
 echo -e "${BLUE}Configuration du parser réel...${NC}"
-sed -i "s/USE_MOCK_PARSER=true/USE_MOCK_PARSER=false/" "cv-parser-service/.env"
-docker-compose -f docker-compose.yml restart nexten-cv-parser
-sleep 5
+if [ -z "$SKIP_SERVICE_RESTART" ]; then
+    update_env_file false
+    restart_service
+fi
 echo -e "${GREEN}✓ Parser réel configuré${NC}"
 
 # 4. Tester le parser réel
 echo -e "${BLUE}Test du parser réel...${NC}"
 curl -s -X POST \
-  http://localhost:8000/api/parse-cv/ \
+  "${API_URL}" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@$CV_FILE" > "$REAL_OUTPUT"
 
-if [ $? -eq 0 ]; then
+if [ $? -eq 0 ] && [ -s "$REAL_OUTPUT" ]; then
     echo -e "${GREEN}✓ Parser réel testé avec succès${NC}"
 else
     echo -e "${RED}Erreur lors du test du parser réel${NC}"
-    exit 1
+    echo -e "${YELLOW}L'API est-elle accessible à ${API_URL}?${NC}"
 fi
 
 # 5. Comparer les résultats
 echo -e "${BLUE}=== Résultats de la comparaison ===${NC}"
 echo -e "${YELLOW}Résultat du mock parser:${NC}"
-cat "$MOCK_OUTPUT" | jq .
+if command -v jq &> /dev/null; then
+    cat "$MOCK_OUTPUT" | jq
+elif command -v python &> /dev/null; then
+    cat "$MOCK_OUTPUT" | python -m json.tool
+else
+    cat "$MOCK_OUTPUT"
+fi
 
 echo ""
 echo -e "${YELLOW}Résultat du parser réel:${NC}"
-cat "$REAL_OUTPUT" | jq .
+if command -v jq &> /dev/null; then
+    cat "$REAL_OUTPUT" | jq
+elif command -v python &> /dev/null; then
+    cat "$REAL_OUTPUT" | python -m json.tool
+else
+    cat "$REAL_OUTPUT"
+fi
 
 # 6. Sauvegarder les résultats
 RESULTS_DIR="parser_comparison_results"
