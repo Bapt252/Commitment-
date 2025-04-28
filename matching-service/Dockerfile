@@ -37,11 +37,15 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*.whl \
     && rm -rf /wheels
 
-# Assurer que FastAPI est correctement installé
-RUN pip install --no-cache-dir fastapi==0.104.1 uvicorn==0.24.0
+# Installer spécifiquement les versions compatibles (en ignorant les dépendances wheels)
+RUN pip uninstall -y openai huggingface_hub transformers sentence-transformers
+RUN pip install openai==0.28.1
+RUN pip install huggingface_hub==0.12.0
+RUN pip install sentence-transformers==2.2.2
 
-# Assurer que OpenAI est en version 0.28.1
-RUN pip uninstall -y openai && pip install openai==0.28.1
+# Vérifier les versions installées
+RUN pip freeze | grep huggingface
+RUN pip freeze | grep sentence
 
 # Créer l'utilisateur non-root
 RUN groupadd -r appuser && useradd -r -g appuser appuser
@@ -55,10 +59,8 @@ WORKDIR /app
 # Copier le code de l'application
 COPY --chown=appuser:appuser . .
 
-# Précharger les modèles sentence-transformers - avec installation forcée de huggingface_hub juste avant
-RUN pip uninstall -y huggingface_hub sentence-transformers && \
-    pip install huggingface_hub==0.12.0 sentence-transformers==2.2.2 && \
-    python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
+# Précharger les modèles sentence-transformers
+RUN python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
 
 # Télécharger les données NLTK nécessaires
 RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); print('Données NLTK téléchargées')"
