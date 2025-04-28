@@ -163,24 +163,51 @@ def store_result_multi_tier_sync(job_id: str, result: Dict[str, Any], status: st
         logger.error(f"Erreur lors du stockage des résultats: {str(e)}")
         return False
 
-# Modifié pour accepter job_id comme paramètre nommé obligatoire
-def parse_cv_task(*, job_id: str = None, file_path: str = None, file_name: str = None, 
-                file_format: str = None, max_retries: int = 3, webhook_url: Optional[str] = None,
-                webhook_secret: Optional[str] = None) -> Dict[str, Any]:
-    """Tâche RQ de parsing d'un CV
+# Version compatible qui accepte n'importe quelle façon d'appeler la fonction
+def parse_cv_task(*args, **kwargs):
+    """Version compatible de parse_cv_task qui accepte n'importe quelle forme d'appel"""
+    # Récupérer les arguments positionnels
+    job_id = None
+    file_path = None
+    file_name = None
+    file_format = None
+    max_retries = 3
+    webhook_url = None
+    webhook_secret = None
     
-    Args:
-        job_id: Identifiant unique du job (obligatoire, nommé)
-        file_path: Chemin vers le fichier stocké
-        file_name: Nom original du fichier
-        file_format: Format du fichier (.pdf, .docx, etc.)
-        max_retries: Nombre maximum de tentatives
-        webhook_url: URL de callback (optionnel)
-        webhook_secret: Secret pour la signature (optionnel)
-        
-    Returns:
-        Dict[str, Any]: Résultat du parsing
-    """
+    # Traiter les arguments positionnels
+    if args:
+        if len(args) >= 1:
+            job_id = args[0]
+        if len(args) >= 2:
+            file_path = args[1]
+        if len(args) >= 3:
+            file_name = args[2]
+        if len(args) >= 4:
+            file_format = args[3]
+        if len(args) >= 5:
+            max_retries = args[4]
+        if len(args) >= 6:
+            webhook_url = args[5]
+        if len(args) >= 7:
+            webhook_secret = args[6]
+    
+    # Traiter les arguments nommés qui ont la priorité
+    if 'job_id' in kwargs:
+        job_id = kwargs['job_id']
+    if 'file_path' in kwargs:
+        file_path = kwargs['file_path']
+    if 'file_name' in kwargs:
+        file_name = kwargs['file_name']
+    if 'file_format' in kwargs:
+        file_format = kwargs['file_format']
+    if 'max_retries' in kwargs:
+        max_retries = kwargs['max_retries']
+    if 'webhook_url' in kwargs:
+        webhook_url = kwargs['webhook_url']
+    if 'webhook_secret' in kwargs:
+        webhook_secret = kwargs['webhook_secret']
+    
     # Vérifier que les paramètres obligatoires sont fournis
     if not job_id:
         raise ValueError("job_id est obligatoire")
@@ -190,7 +217,7 @@ def parse_cv_task(*, job_id: str = None, file_path: str = None, file_name: str =
         raise ValueError("file_name est obligatoire") 
     if not file_format:
         raise ValueError("file_format est obligatoire")
-        
+    
     logger.info(f"Démarrage du parsing CV pour job: {job_id}, fichier: {file_name}")
     
     # Fichier temporaire si nécessaire
