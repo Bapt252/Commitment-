@@ -9,6 +9,7 @@ import json
 
 from app.core.config import settings
 from app.services.resilience import resilient_openai_call
+from app.services.mock_parser import get_mock_cv_data
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -33,7 +34,18 @@ def parse_cv(file_path: str, file_format: Optional[str] = None) -> Dict[str, Any
     # 3. Utiliser OpenAI pour analyser le CV
     start_time = time.time()
     
-    parsed_data = analyze_cv_with_gpt(cv_text)
+    try:
+        # Si USE_MOCK_PARSER est activé, utiliser le mock au lieu de l'API
+        if settings.USE_MOCK_PARSER:
+            logger.info(f"Utilisation du mock parser (mode de simulation) pour {file_path}")
+            parsed_data = get_mock_cv_data(cv_text, os.path.basename(file_path))
+        else:
+            # Sinon, utiliser l'API OpenAI
+            parsed_data = analyze_cv_with_gpt(cv_text)
+    except Exception as e:
+        logger.error(f"Erreur lors de l'analyse du CV: {str(e)}. Fallback sur le mock parser.")
+        # En cas d'erreur, utiliser le mock parser comme fallback
+        parsed_data = get_mock_cv_data(cv_text, os.path.basename(file_path))
     
     processing_time = time.time() - start_time
     logger.info(f"CV parsé en {processing_time:.2f} secondes")
@@ -43,7 +55,7 @@ def parse_cv(file_path: str, file_format: Optional[str] = None) -> Dict[str, Any
         "processing_time": processing_time,
         "parsed_at": time.time(),
         "file_format": file_format,
-        "model": settings.OPENAI_MODEL,
+        "model": "mock" if settings.USE_MOCK_PARSER else settings.OPENAI_MODEL,
         "data": parsed_data
     }
     
@@ -228,6 +240,4 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     
     except Exception as e:
         logger.error(f"Erreur lors de l'analyse du CV avec GPT: {str(e)}")
-        return {
-            "error": f"Erreur lors de l'analyse: {str(e)}"
-        }
+        raise  # Remonter l'exception pour le fallback
