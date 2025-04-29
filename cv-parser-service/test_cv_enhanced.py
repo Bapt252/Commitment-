@@ -119,32 +119,17 @@ def analyze_cv_with_gpt(cv_text):
         return None
 
     try:
-        # Détection de la version d'OpenAI et appel adapté
-        if hasattr(openai, 'ChatCompletion'):
-            # Version plus ancienne (<=3.x)
-            response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": cv_text}
-                ],
-                temperature=0.1
-            )
-            if hasattr(response.choices[0], 'message'):
-                content = response.choices[0].message.content
-            else:
-                content = response.choices[0].message['content']
-        else:
-            # Version plus récente (>=4.x)
-            response = openai.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": cv_text}
-                ],
-                temperature=0.1
-            )
-            content = response.choices[0].message.content
+        # Utilisation de la nouvelle API OpenAI (>=1.0.0)
+        client = openai.OpenAI(api_key=openai.api_key)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": cv_text}
+            ],
+            temperature=0.1
+        )
+        content = response.choices[0].message.content
         
         # Nettoyer le contenu
         content = content.strip()
