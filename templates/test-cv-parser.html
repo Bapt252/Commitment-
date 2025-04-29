@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Parser CV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #7c4dff;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #7c4dff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #6a3de8;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .result {
+            margin-top: 20px;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test du Parser CV</h1>
+    
+    <div class="test-section">
+        <h2>Test d'extraction de nom à partir d'un nom de fichier</h2>
+        <p>Cette section permet de tester l'algorithme d'extraction des noms à partir de différents formats de noms de fichiers.</p>
+        
+        <input type="text" id="filenameInput" placeholder="Entrez un nom de fichier (ex: CV_Martin_Thomas.pdf)" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+        <button id="testFilenameBtn">Tester l'extraction</button>
+        
+        <div class="result" id="filenameResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test du cas spécial "OMAR_Amal_CV.pdf"</h2>
+        <p>Ce test vérifie spécifiquement le format "OMAR_Amal_CV.pdf" qui posait problème.</p>
+        
+        <button id="testSpecialCaseBtn">Tester le cas OMAR_Amal_CV.pdf</button>
+        
+        <div class="result" id="specialCaseResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Simulation d'un parsing complet</h2>
+        <p>Cela simule un parsing complet avec un fichier fictif.</p>
+        
+        <select id="fileTypeSelect" style="padding: 8px; margin-bottom: 10px;">
+            <option value="OMAR_Amal_CV.pdf">OMAR_Amal_CV.pdf</option>
+            <option value="CV_Martin_Thomas.pdf">CV_Martin_Thomas.pdf</option>
+            <option value="CV Developpeur Julie Dupont.pdf">CV Developpeur Julie Dupont.pdf</option>
+            <option value="DataScientist_Pierre_Lenoir.pdf">DataScientist_Pierre_Lenoir.pdf</option>
+        </select>
+        
+        <button id="simulateParsingBtn">Simuler le parsing</button>
+        
+        <div class="result" id="parsingResult"></div>
+    </div>
+
+    <script src="cv-parser-integration.js"></script>
+    <script>
+        // Initialiser le parser CV une fois que le script est chargé
+        let cvParser;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser le parser CV
+            cvParser = new CVParserIntegration({
+                forceMock: true // Toujours utiliser le mode mock pour les tests
+            });
+            
+            // Test d'extraction de nom à partir d'un nom de fichier
+            document.getElementById('testFilenameBtn').addEventListener('click', function() {
+                const filename = document.getElementById('filenameInput').value;
+                if (!filename) {
+                    alert('Veuillez entrer un nom de fichier');
+                    return;
+                }
+                
+                const result = cvParser.extractNameParts(filename);
+                
+                const resultDiv = document.getElementById('filenameResult');
+                if (result) {
+                    resultDiv.innerHTML = `
+                        <strong>Résultat de l'extraction :</strong><br>
+                        Prénom : ${result.firstName}<br>
+                        Nom : ${result.lastName}<br>
+                        Nom complet : ${result.fullName}<br>
+                        Email : ${result.email}
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<strong>Aucun format de nom reconnu dans ce nom de fichier.</strong>';
+                }
+            });
+            
+            // Test spécifique pour le cas "OMAR_Amal_CV.pdf"
+            document.getElementById('testSpecialCaseBtn').addEventListener('click', function() {
+                const filename = "OMAR_Amal_CV.pdf";
+                const result = cvParser.extractNameParts(filename);
+                
+                const resultDiv = document.getElementById('specialCaseResult');
+                if (result) {
+                    resultDiv.innerHTML = `
+                        <strong>Résultat de l'extraction pour "${filename}" :</strong><br>
+                        Prénom : ${result.firstName}<br>
+                        Nom : ${result.lastName}<br>
+                        Nom complet : ${result.fullName}<br>
+                        Email : ${result.email}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<strong>Échec : Le format "${filename}" n'a pas été reconnu.</strong>`;
+                }
+            });
+            
+            // Simulation d'un parsing complet
+            document.getElementById('simulateParsingBtn').addEventListener('click', async function() {
+                const filename = document.getElementById('fileTypeSelect').value;
+                
+                // Créer un fichier factice
+                const mockFile = new File(["test content"], filename, { type: "application/pdf" });
+                
+                // Créer un élément de résultat pour afficher la progression
+                const resultDiv = document.getElementById('parsingResult');
+                resultDiv.innerHTML = '<strong>Traitement en cours...</strong>';
+                
+                try {
+                    // Simuler le parsing
+                    const mockResponse = cvParser.generateMockResponse(mockFile);
+                    
+                    // Afficher les résultats
+                    resultDiv.innerHTML = `
+                        <strong>Résultat du parsing :</strong><br>
+                        <pre>${JSON.stringify(mockResponse, null, 2)}</pre>
+                    `;
+                } catch (error) {
+                    resultDiv.innerHTML = `<strong>Erreur lors du parsing : ${error.message}</strong>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
