@@ -1,3 +1,4 @@
+
 # CV Parser Service - Service de parsing CV
 
 import os
@@ -184,26 +185,57 @@ def analyze_cv_with_gpt(cv_text: str) -> Dict[str, Any]:
     """
     logger.info(f"Analyse du CV avec {settings.OPENAI_MODEL} (longueur: {len(cv_text)} caractères)")
     
-    # Définir le prompt pour l'extraction d'information structurée
+    # Définir le prompt pour l'extraction d'information structurée avec instructions améliorées
     prompt = f"""
 Tu es un assistant spécialisé dans l'extraction d'informations à partir de CV.
-Extrait les informations suivantes du CV ci-dessous et retourne-les dans un format JSON structuré.
+Analyse ce CV avec précision et extrait UNIQUEMENT les informations qui sont RÉELLEMENT présentes.
 
-N'invente AUCUNE information. S'il manque une info, laisse le champ vide.
-Inclus les catégories suivantes:
+IMPORTANT:
+- N'INVENTE JAMAIS d'informations comme "John Doe" ou "johndoe@example.com"
+- Si une information n'est pas présente, laisse le champ vide (null ou chaîne vide "")
+- Ne génère pas de valeurs par défaut ou fictives
+- Sois très précis dans tes extractions
 
-1. Informations personnelles (nom, email, téléphone, adresse, nationalité, date de naissance si présente, LinkedIn/site web/profils)
-2. Compétences techniques et linguistiques
-3. Expériences professionnelles (entreprise, poste, date début, date fin, description)
-4. Formation (établissement, diplôme, date début, date fin)
-5. Certifications et formations complémentaires
-6. Langues et niveau (débutant, intermédiaire, avancé, bilingue, natif)
-7. Intérêts et activités extra-professionnelles
+Retourne un objet JSON avec la structure suivante:
 
-CV:
+{
+  "personal_info": {
+    "name": "", // Nom complet de la personne (laisse vide si non précisé)
+    "email": "", // Email (laisse vide si non présent)
+    "phone": "", // Téléphone (laisse vide si non présent)
+    "address": "" // Adresse (laisse vide si non présente)
+  },
+  "position": "", // Poste actuel ou recherché (laisse vide si non précisé)
+  "skills": [], // Liste des compétences techniques
+  "languages": [
+    {
+      "language": "", // Langue (ex: Français)
+      "level": "" // Niveau (ex: natif, courant, etc.)
+    }
+  ],
+  "experience": [
+    {
+      "title": "", // Titre du poste
+      "company": "", // Nom de l'entreprise
+      "start_date": "", // Date de début
+      "end_date": "", // Date de fin (ou "Présent")
+      "description": "" // Description du poste
+    }
+  ],
+  "education": [
+    {
+      "degree": "", // Intitulé du diplôme
+      "institution": "", // Nom de l'établissement
+      "start_date": "", // Date de début
+      "end_date": "" // Date de fin
+    }
+  ]
+}
+
+CV à analyser:
 {cv_text}
 
-Retourne uniquement un objet JSON sans introduction ni commentaire.
+Retourne uniquement un objet JSON valide sans introduction ni commentaire.
 """
     
     try:
@@ -215,28 +247,56 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
             max_tokens=4000
         )
         
+        logger.debug(f"Réponse brute d'OpenAI: {response_text}")
+        
         # Parser la réponse JSON
         try:
-            parsed_result = json.loads(response_text)
-            return parsed_result
-        except json.JSONDecodeError:
-            logger.error("Erreur de parsing JSON dans la réponse d'OpenAI")
-            # Tenter d'extraire le JSON si la réponse contient du texte additionnel
+            # Nettoyage du texte pour s'assurer qu'il ne contient que du JSON
             import re
-            json_pattern = r'\{[\s\S]*\}'
+            json_pattern = r'(\{[\s\S]*\})' 
             match = re.search(json_pattern, response_text)
             if match:
-                json_str = match.group(0)
+                json_str = match.group(1)
                 try:
-                    return json.loads(json_str)
-                except json.JSONDecodeError:
-                    pass
+                    parsed_result = json.loads(json_str)
+                    logger.info("Parsing JSON réussi")
+                    return parsed_result
+                except json.JSONDecodeError as json_err:
+                    logger.error(f"Erreur de décodage JSON après extraction: {str(json_err)}")
             
-            # Si l'extraction a échoué, retourner un résultat partiel
-            return {
-                "error": "Format JSON invalide dans la réponse",
-                "raw_response": response_text[:1000]  # Tronquer pour éviter les réponses trop longues
-            }
+            # Essayer de parser directement si l'extraction a échoué
+            parsed_result = json.loads(response_text)
+            return parsed_result
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Erreur de parsing JSON dans la réponse d'OpenAI: {str(e)}")
+            
+            # Tentative de nettoyage et d'extraction plus agressive
+            clean_text = response_text.strip()
+            if clean_text.startswith("```json"):
+                clean_text = clean_text[7:]
+            if clean_text.endswith("```"):
+                clean_text = clean_text[:-3]
+            clean_text = clean_text.strip()
+            
+            try:
+                return json.loads(clean_text)
+            except json.JSONDecodeError:
+                logger.error("Échec de la tentative de nettoyage JSON")
+                
+                # En dernier recours, renvoyer un dictionnaire avec la réponse brute
+                return {
+                    "error": "Format JSON invalide dans la réponse",
+                    "raw_response": response_text[:1000],  # Tronquer pour éviter les réponses trop longues
+                    "personal_info": {
+                        "name": "",
+                        "email": "",
+                        "phone": ""
+                    },
+                    "position": "",
+                    "skills": [],
+                    "experience": []
+                }
     
     except Exception as e:
         logger.error(f"Erreur lors de l'analyse du CV avec GPT: {str(e)}")
