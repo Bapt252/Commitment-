@@ -1,6 +1,6 @@
 /**
  * Module d'intégration du système de parsing de CV basé sur GPT
- * Version améliorée avec support GitHub Pages et intégration directe de l'API OpenAI
+ * Version améliorée avec support GitHub Pages, intégration directe de l'API OpenAI et PDF.js
  */
 
 // Configuration par défaut de l'URL de l'API de parsing
@@ -31,6 +31,10 @@ class CVParserIntegration {
     } else if (this.options.forceMock) {
       console.log('Mode mock activé (GitHub Pages ou configuration forcée)');
     }
+    
+    // Précharger PDF.js si nécessaire
+    this.pdfjs = null;
+    this.loadPdfJs();
   }
   
   /**
@@ -39,6 +43,39 @@ class CVParserIntegration {
    */
   isGitHubPages() {
     return window.location.hostname.includes('github.io');
+  }
+  
+  /**
+   * Précharge PDF.js pour l'extraction de texte des PDF
+   */
+  async loadPdfJs() {
+    try {
+      // Vérifier si PDF.js est déjà disponible globalement
+      if (window.pdfjsLib) {
+        this.pdfjs = window.pdfjsLib;
+        console.log('PDF.js déjà chargé globalement');
+        return;
+      }
+      
+      // Charger PDF.js depuis CDN
+      const pdfJsScript = document.createElement('script');
+      pdfJsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.5.141/pdf.min.js';
+      pdfJsScript.async = true;
+      
+      const loadPromise = new Promise((resolve, reject) => {
+        pdfJsScript.onload = resolve;
+        pdfJsScript.onerror = reject;
+      });
+      
+      document.head.appendChild(pdfJsScript);
+      await loadPromise;
+      
+      // Assigner la référence globale
+      this.pdfjs = window.pdfjsLib;
+      console.log('PDF.js chargé avec succès');
+    } catch (error) {
+      console.error('Erreur lors du chargement de PDF.js:', error);
+    }
   }
   
   /**
@@ -272,6 +309,12 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
    * @returns {Promise<string>} - Contenu du fichier
    */
   async readFileAsText(file) {
+    // Pour les PDF, utiliser PDF.js pour extraire le texte
+    if (file.type === 'application/pdf') {
+      return await this.extractTextFromPdf(file);
+    }
+    
+    // Pour les autres types, lire le contenu directement
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
@@ -283,16 +326,52 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
         reject(error);
       };
       
-      // Si c'est un fichier PDF, on ne peut pas le lire directement
-      if (file.type === 'application/pdf') {
-        // Pour un PDF, on renvoie un message d'erreur expliquant qu'on ne peut pas le lire directement
-        resolve(`[Ce fichier est un PDF et ne peut pas être lu directement dans le navigateur. 
-        Le parsing continuera en utilisant le nom du fichier et des données fictives.]`);
-      } else {
-        // Pour les autres types, on essaie de les lire comme du texte
-        reader.readAsText(file);
-      }
+      reader.readAsText(file);
     });
+  }
+  
+  /**
+   * Extrait le texte d'un fichier PDF en utilisant PDF.js
+   * @param {File} file - Fichier PDF
+   * @returns {Promise<string>} - Texte extrait du PDF
+   */
+  async extractTextFromPdf(file) {
+    try {
+      // Vérifier que PDF.js est chargé
+      if (!this.pdfjs) {
+        await this.loadPdfJs();
+        if (!this.pdfjs) {
+          throw new Error("PDF.js n'a pas pu être chargé");
+        }
+      }
+      
+      // Lire le fichier au format ArrayBuffer
+      const arrayBuffer = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
+      
+      // Charger le document PDF
+      const pdf = await this.pdfjs.getDocument({ data: arrayBuffer }).promise;
+      
+      // Extraire le texte de toutes les pages
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const textItems = textContent.items.map(item => item.str).join(' ');
+        fullText += textItems + '\n\n';
+      }
+      
+      return fullText;
+    } catch (error) {
+      console.error('Erreur lors de l\'extraction du texte du PDF:', error);
+      
+      // Fallback message si l'extraction échoue
+      return `[Extraction du texte du PDF échouée. Analyse basée sur le nom de fichier: ${file.name}]`;
+    }
   }
   
   /**
@@ -343,7 +422,7 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     console.log('Nom de base extrait:', baseName);
     
     // Améliorer la génération d'informations à partir du nom de fichier
-    let candidateInfo = this.extractCandidateInfo(baseName);
+    let candidateInfo = this.extractCandidateInfo(file.name);
     console.log('Informations extraites:', candidateInfo);
     
     // Générer la réponse complète
@@ -424,6 +503,13 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     
     // Analyse avancée du nom de fichier
     const lowerFilename = filename.toLowerCase();
+    
+    // Recherche format Prénom_Nom.pdf ou Nom_Prénom.pdf
+    const nameParts = this.extractNameParts(filename);
+    if (nameParts) {
+      result.name = nameParts.fullName;
+      result.email = nameParts.email;
+    }
     
     // Détection du métier/domaine
     if (lowerFilename.includes('dev') || lowerFilename.includes('développeur') || lowerFilename.includes('developpeur')) {
@@ -520,45 +606,6 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
       result.jobDescription = 'Pilotage de projets et coordination des équipes techniques.';
     }
     
-    // Extraction du nom si possible
-    // Format supposé: "CV [Nom] [Prénom]" ou "[Nom] [Prénom] CV"
-    const namePatterns = [
-      /CV\s+([A-Za-zÀ-ÿ\s]+)/i,  // Format: CV Nom Prénom
-      /([A-Za-zÀ-ÿ\s]+)CV/i,     // Format: Nom Prénom CV
-      /CV[_-]([A-Za-zÀ-ÿ\s]+)/i, // Format: CV_Nom_Prénom
-      /([A-Za-zÀ-ÿ\s]+)[_-]CV/i  // Format: Nom_Prénom_CV
-    ];
-    
-    for (const pattern of namePatterns) {
-      const match = filename.match(pattern);
-      if (match && match[1] && match[1].trim().length > 3) {
-        // On a trouvé un nom potentiel
-        result.name = match[1].trim();
-        // Génération d'un email basé sur le nom
-        const nameParts = result.name.toLowerCase().split(' ');
-        if (nameParts.length >= 2) {
-          result.email = `${nameParts[0]}.${nameParts[1]}@exemple.com`;
-        } else {
-          result.email = `${nameParts[0]}@exemple.com`;
-        }
-        break;
-      }
-    }
-    
-    // Si le nom du fichier est "MonSuperCV" ou similaire, on génère un nom un peu plus personnalisé
-    if (lowerFilename.includes('super') || lowerFilename.includes('mon')) {
-      const randomNames = [
-        "Jean Dupont", "Marie Martin", "Sophie Dubois", "Alexandre Bernard", 
-        "Camille Petit", "Thomas Leroy", "Julie Moreau", "Nicolas Lefebvre"
-      ];
-      const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
-      result.name = randomName;
-      
-      // Génération d'un email basé sur le nom aléatoire
-      const nameParts = randomName.toLowerCase().split(' ');
-      result.email = `${nameParts[0]}.${nameParts[1]}@exemple.com`;
-    }
-    
     // Adaptation des compétences linguistiques selon le domaine
     if (lowerFilename.includes('international') || lowerFilename.includes('anglais')) {
       result.languages = [
@@ -591,6 +638,75 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     }
     
     return result;
+  }
+  
+  /**
+   * Extrait le nom et prénom à partir d'un nom de fichier avec différents formats
+   * @param {string} filename - Nom du fichier
+   * @returns {Object|null} - Prénom, nom et email extraits, ou null si pas de correspondance
+   */
+  extractNameParts(filename) {
+    // Supprimer l'extension
+    const filenameWithoutExt = filename.split('.')[0];
+    
+    // Liste de motifs possibles avec expressions régulières
+    const patterns = [
+      // Format "CV_Nom_Prénom" ou "CV-Nom-Prénom"
+      { regex: /CV[_-]([A-Za-zÀ-ÿ]+)[_-]([A-Za-zÀ-ÿ]+)/i, nameOrder: 'lastFirst' },
+      
+      // Format "Nom_Prénom_CV" ou "Nom-Prénom-CV"
+      { regex: /([A-Za-zÀ-ÿ]+)[_-]([A-Za-zÀ-ÿ]+)[_-]CV/i, nameOrder: 'firstLast' },
+      
+      // Format "CV Nom Prénom"
+      { regex: /CV\s+([A-Za-zÀ-ÿ]+)\s+([A-Za-zÀ-ÿ]+)/i, nameOrder: 'lastFirst' },
+      
+      // Format "Nom Prénom CV"
+      { regex: /([A-Za-zÀ-ÿ]+)\s+([A-Za-zÀ-ÿ]+)\s+CV/i, nameOrder: 'firstLast' },
+      
+      // Format spécial "OMAR_Amal_CV.pdf" (Nom_Prénom_CV)
+      { regex: /([A-Z]+)[_-]([A-Za-zÀ-ÿ]+)[_-]CV/i, nameOrder: 'lastFirst' },
+      
+      // Format spécial "OMAR_Amal.pdf" (Nom_Prénom)
+      { regex: /([A-Z]+)[_-]([A-Za-zÀ-ÿ]+)/i, nameOrder: 'lastFirst' }
+    ];
+    
+    // Tester chaque motif
+    for (const pattern of patterns) {
+      const match = filenameWithoutExt.match(pattern.regex);
+      if (match && match.length >= 3) {
+        // Extraire prénom et nom selon l'ordre détecté
+        let firstName, lastName;
+        
+        if (pattern.nameOrder === 'lastFirst') {
+          lastName = match[1];
+          firstName = match[2];
+        } else {
+          firstName = match[1];
+          lastName = match[2];
+        }
+        
+        // Mise en forme correcte des noms (première lettre en majuscule, reste en minuscule)
+        firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+        
+        // Si le nom est entièrement en majuscules, on le met en forme correcte
+        if (lastName === lastName.toUpperCase()) {
+          lastName = lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase();
+        }
+        
+        // Générer un email à partir du nom et prénom
+        const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@exemple.com`;
+        
+        return {
+          firstName: firstName,
+          lastName: lastName,
+          fullName: `${firstName} ${lastName}`,
+          email: email
+        };
+      }
+    }
+    
+    // Si aucun motif ne correspond, on retourne null
+    return null;
   }
 }
 
