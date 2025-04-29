@@ -26,7 +26,8 @@ from typing import Dict, Any, Optional
 # Ajouter le répertoire parent au chemin Python pour importer les modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from cv_parser_service.services.cv_parser import extract_text, parse_cv_with_openai, normalize_date, refine_experiences
+# Import corrigé pour les fonctions du service cv_parser
+from services.cv_parser import extract_text, parse_cv_with_openai, normalize_date, refine_experiences
 
 # Configuration du logging
 logging.basicConfig(
