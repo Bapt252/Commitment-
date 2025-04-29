@@ -8,6 +8,7 @@ from typing import Dict, Any, Optional, List, BinaryIO
 import tempfile
 import json
 import traceback
+import re
 
 from app.core.config import settings
 from app.services.resilience import resilient_openai_call
@@ -43,6 +44,9 @@ def parse_cv(file_path: str, file_format: Optional[str] = None) -> Dict[str, Any
             logger.warning(f"Texte extrait très court ({len(cv_text)} caractères), possible problème d'extraction")
             logger.debug(f"Contenu extrait: {cv_text}")
         
+        # Pré-traitement du texte pour améliorer la détection
+        cv_text = preprocess_cv_text(cv_text)
+        
         # 3. Utiliser OpenAI pour analyser le CV
         start_time = time.time()
         
@@ -54,6 +58,9 @@ def parse_cv(file_path: str, file_format: Optional[str] = None) -> Dict[str, Any
             else:
                 # Sinon, utiliser l'API OpenAI
                 parsed_data = analyze_cv_with_gpt(cv_text)
+                
+                # Post-traitement pour corriger et enrichir les données
+                parsed_data = postprocess_cv_data(parsed_data, cv_text)
         except Exception as e:
             logger.error(f"Erreur lors de l'analyse du CV: {str(e)}. Fallback sur le mock parser.")
             logger.error(f"Stacktrace: {traceback.format_exc()}")
@@ -90,9 +97,231 @@ def parse_cv(file_path: str, file_format: Optional[str] = None) -> Dict[str, Any
                 "skills": [],
                 "experience": [],
                 "education": [],
-                "languages": []
+                "languages": [],
+                "softwares": []
             }
         }
+
+def preprocess_cv_text(text: str) -> str:
+    """Prétraite le texte du CV pour améliorer la qualité de l'analyse"""
+    if not text:
+        return ""
+        
+    # Remplacer les séquences de plusieurs espaces par un seul
+    text = re.sub(r' +', ' ', text)
+    
+    # Remplacer les séquences de plusieurs lignes vides par une seule
+    text = re.sub(r'\n+', '\n', text)
+    
+    # Essayer de détecter et de reconstruire les numéros de téléphone fragmentés
+    # Exemple: +33 6 12 34 56 78 --> +33612345678
+    phone_patterns = [
+        r'(\+\d{2})\s*(\d)\s*(\d{2})\s*(\d{2})\s*(\d{2})\s*(\d{2})',  # +33 6 12 34 56 78
+        r'0\s*(\d)\s*(\d{2})\s*(\d{2})\s*(\d{2})\s*(\d{2})',          # 06 12 34 56 78
+    ]
+    
+    for pattern in phone_patterns:
+        text = re.sub(pattern, lambda m: ''.join(m.groups()) if len(m.groups()) > 1 else m.group(0), text)
+    
+    return text
+
+def postprocess_cv_data(data: Dict[str, Any], original_text: str) -> Dict[str, Any]:
+    """Post-traitement des données extraites pour corriger et enrichir les informations"""
+    if not data:
+        return {}
+    
+    # Correction du champ name pour enlever "undefined" si présent
+    if "personal_info" in data and "name" in data["personal_info"]:
+        # Enlève le préfixe "undefined" des noms
+        if data["personal_info"]["name"] and data["personal_info"]["name"].startswith("undefined "):
+            data["personal_info"]["name"] = data["personal_info"]["name"].replace("undefined ", "")
+    
+    # Si le téléphone n'est pas détecté, essayer de le trouver dans le texte
+    if ("personal_info" not in data or 
+        "phone" not in data["personal_info"] or 
+        not data["personal_info"]["phone"]):
+        phone = extract_phone_from_text(original_text)
+        if phone:
+            if "personal_info" not in data:
+                data["personal_info"] = {}
+            data["personal_info"]["phone"] = phone
+    
+    # Extraire le titre de poste s'il n'est pas détecté
+    if not data.get("position"):
+        position = extract_position_from_text(original_text)
+        if position:
+            data["position"] = position
+    
+    # Assurez-vous que les listes clés existent
+    for key in ["skills", "languages", "softwares", "experience", "education"]:
+        if key not in data:
+            data[key] = []
+    
+    # Traiter les compétences et logiciels si peu ont été détectés
+    if len(data.get("skills", [])) < 3 or len(data.get("softwares", [])) < 1:
+        skills, softwares = extract_skills_and_software(original_text)
+        # Fusionner avec les compétences existantes
+        if skills:
+            existing_skills = set(s.get("name", s) if isinstance(s, dict) else s for s in data.get("skills", []))
+            for skill in skills:
+                if skill not in existing_skills:
+                    data["skills"].append({"name": skill})
+        
+        # Fusionner avec les logiciels existants
+        if softwares:
+            existing_softwares = set(data.get("softwares", []))
+            for software in softwares:
+                if software not in existing_softwares:
+                    data["softwares"].append(software)
+    
+    # Extraire les langues si aucune n'a été détectée
+    if not data.get("languages"):
+        languages = extract_languages(original_text)
+        if languages:
+            data["languages"] = languages
+    
+    return data
+
+def extract_phone_from_text(text: str) -> str:
+    """Extrait un numéro de téléphone du texte avec divers formats"""
+    phone_patterns = [
+        r'\+[\d\s]{10,15}',                            # +33 6 12 34 56 78
+        r'0\d[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}',  # 06 12 34 56 78
+        r'\d{3}[\s.-]?\d{3}[\s.-]?\d{4}',              # 123-456-7890
+        r'\(\d{3}\)[\s.-]?\d{3}[\s.-]?\d{4}',          # (123) 456-7890
+        r'\d{2}[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}'  # 01 23 45 67 89
+    ]
+    
+    for pattern in phone_patterns:
+        matches = re.findall(pattern, text)
+        if matches:
+            # Nettoyer le numéro trouvé (enlever espaces, tirets, etc)
+            phone = re.sub(r'[\s.-]', '', matches[0])
+            # Formater joliment si c'est un numéro français
+            if phone.startswith('0') and len(phone) == 10:
+                return f"{phone[0:2]} {phone[2:4]} {phone[4:6]} {phone[6:8]} {phone[8:10]}"
+            return phone
+    
+    return ""
+
+def extract_position_from_text(text: str) -> str:
+    """Extrait le titre de poste du texte"""
+    # Recherche de motifs courants pour les titres de postes
+    position_patterns = [
+        r'(?i)poste actuel\s*:?\s*([^\n]+)',
+        r'(?i)poste recherché\s*:?\s*([^\n]+)',
+        r'(?i)intitulé du poste\s*:?\s*([^\n]+)',
+        r'(?i)titre\s*:?\s*([^\n]+)',
+        r'(?i)(comptable|auditeur|contrôleur|gestionnaire|analyste|manager|directeur)[^\n]{0,50}',
+        r'(?i)(consultant|expert|responsable|chargé)[^\n]{0,50}',
+    ]
+    
+    for pattern in position_patterns:
+        matches = re.findall(pattern, text)
+        if matches:
+            # Limiter la longueur du titre
+            position = matches[0].strip()
+            if len(position) > 5 and len(position) < 100:  # Filtre les résultats trop courts ou trop longs
+                return position
+    
+    # Recherche basée sur les premières lignes du CV (souvent titre)
+    first_lines = text.split('\n')[:10]
+    for line in first_lines:
+        line = line.strip()
+        if len(line) > 5 and len(line) < 50:
+            if any(keyword in line.lower() for keyword in [
+                'comptable', 'auditeur', 'contrôleur', 'gestionnaire', 
+                'analyste', 'manager', 'directeur', 'consultant', 
+                'expert', 'responsable', 'chargé'
+            ]):
+                return line
+    
+    return ""
+
+def extract_skills_and_software(text: str) -> tuple:
+    """Extrait des compétences et logiciels du texte du CV"""
+    skills = []
+    softwares = []
+    
+    # Liste de compétences courantes en finance/comptabilité
+    accounting_skills = [
+        'Comptabilité générale', 'Comptabilité analytique', 'Comptabilité clients', 
+        'Comptabilité fournisseurs', 'Fiscalité', 'Audit', 'Contrôle de gestion',
+        'Gestion de trésorerie', 'Finance d\'entreprise', 'Normes IFRS', 'Normes US GAAP',
+        'Consolidation', 'Reporting', 'Budget', 'Prévisions', 'Analyse financière',
+        'Clôture comptable', 'Rapprochement bancaire', 'Liasse fiscale', 'Bilan'
+    ]
+    
+    # Liste de logiciels courants
+    common_software = [
+        'SAP', 'Oracle', 'Sage', 'Cegid', 'Microsoft Office', 'Excel', 'Word', 'PowerPoint',
+        'Access', 'Dynamics', 'ADP', 'QuickBooks', 'Microsoft Dynamics', 'EBP', 'Coala',
+        'Talentia', 'AX', 'Navision', 'JD Edwards', 'PeopleSoft', 'Workday', 'Xero',
+        'MYOB', 'Freshbooks', 'NetSuite', 'Odoo', 'Wave', 'Zoho Books', 'SQL', 'Power BI',
+        'Tableau', 'Quadra', 'Ciel', 'FEC-Expert', 'Exact', 'SalesForce', 'AX 365'
+    ]
+    
+    # Vérifier les compétences comptables
+    for skill in accounting_skills:
+        if re.search(r'\b' + re.escape(skill) + r'\b', text, re.IGNORECASE):
+            skills.append(skill)
+    
+    # Vérifier les logiciels
+    for software in common_software:
+        if re.search(r'\b' + re.escape(software) + r'\b', text, re.IGNORECASE):
+            softwares.append(software)
+    
+    return skills, softwares
+
+def extract_languages(text: str) -> List[Dict[str, str]]:
+    """Extrait les langues et niveaux du texte du CV"""
+    languages = []
+    
+    # Liste des langues courantes
+    common_languages = [
+        'Français', 'Anglais', 'Espagnol', 'Allemand', 'Italien', 'Portugais',
+        'Russe', 'Chinois', 'Arabe', 'Japonais', 'Néerlandais', 'Suédois'
+    ]
+    
+    # Niveaux courants
+    levels = [
+        'natif', 'native', 'maternelle', 'courant', 'professionnel', 'bilingue',
+        'intermédiaire', 'scolaire', 'notions', 'débutant', 'avancé', 'B1', 'B2', 'C1', 'C2', 'A1', 'A2'
+    ]
+    
+    # Recherche de motifs comme "Anglais: courant"
+    for language in common_languages:
+        pattern = rf'(?i){re.escape(language)}[\s:,]+([^\n,.;]+)'
+        matches = re.findall(pattern, text)
+        
+        if matches:
+            level_found = False
+            for level_text in matches:
+                for level in levels:
+                    if re.search(rf'\b{re.escape(level)}\b', level_text, re.IGNORECASE):
+                        languages.append({
+                            "language": language,
+                            "level": level
+                        })
+                        level_found = True
+                        break
+                if level_found:
+                    break
+            
+            # Si aucun niveau n'est trouvé mais la langue est mentionnée
+            if not level_found:
+                languages.append({
+                    "language": language,
+                    "level": "mentionné"
+                })
+        # Recherche simple de la présence de la langue
+        elif re.search(rf'\b{re.escape(language)}\b', text, re.IGNORECASE):
+            languages.append({
+                "language": language,
+                "level": "mentionné"
+            })
+    
+    return languages
 
 def extract_text_from_file(file_path: str, file_format: Optional[str] = None) -> str:
     """Extrait le texte d'un fichier CV
@@ -390,7 +619,8 @@ def analyze_cv_with_gpt(cv_text: str) -> Dict[str, Any]:
             "skills": [],
             "experience": [],
             "education": [],
-            "languages": []
+            "languages": [],
+            "softwares": []
         }
     
     # Si le texte est trop long, le tronquer pour éviter des problèmes avec l'API
@@ -401,55 +631,72 @@ def analyze_cv_with_gpt(cv_text: str) -> Dict[str, Any]:
     
     # Définir le prompt pour l'extraction d'information structurée avec instructions améliorées
     prompt = f"""
-Tu es un assistant spécialisé dans l'extraction d'informations à partir de CV.
-Analyse ce CV avec précision et extrait UNIQUEMENT les informations qui sont RÉELLEMENT présentes.
+Tu es un expert en analyse de CV et extraction de données pour l'industrie du recrutement.
+Tu dois extraire avec précision toutes les informations importantes d'un CV, en particulier pour les domaines de la finance, comptabilité et audit.
 
-IMPORTANT:
-- N'INVENTE JAMAIS d'informations comme "John Doe" ou "johndoe@example.com"
-- Si une information n'est pas présente, laisse le champ vide (null ou chaîne vide "")
-- Ne génère pas de valeurs par défaut ou fictives
-- Sois très précis dans tes extractions
+INSTRUCTIONS IMPÉRATIVES:
+1. Extrait UNIQUEMENT les informations réellement présentes dans le CV.
+2. Ne génère JAMAIS d'informations fictives comme "John Doe" ou "example@email.com".
+3. Pour tout champ non présent dans le CV, renvoie une valeur vide (chaîne vide ou tableau vide).
+4. Sois particulièrement attentif aux numéros de téléphone, titres de poste, langues et logiciels.
+5. Pour les compétences, différencie bien les compétences techniques et les logiciels maîtrisés.
 
-Retourne un objet JSON avec la structure suivante:
+EXTRACTION DEMANDÉE:
+Retourne un JSON avec cette structure précise et TOUS ces champs, même vides:
 
 {{
   "personal_info": {{
-    "name": "", // Nom complet de la personne (laisse vide si non précisé)
-    "email": "", // Email (laisse vide si non présent)
-    "phone": "", // Téléphone (laisse vide si non présent)
-    "address": "" // Adresse (laisse vide si non présente)
+    "name": "",     // Nom complet sans préfixe comme "undefined"
+    "email": "",    // Email exact
+    "phone": "",    // Numéro de téléphone dans son format original
+    "address": ""   // Adresse si présente, sinon vide
   }},
-  "position": "", // Poste actuel ou recherché (laisse vide si non précisé)
-  "skills": [], // Liste des compétences techniques
-  "languages": [
+  "position": "",   // Poste actuel ou recherché (titre professionnel)
+  "skills": [       // Liste des compétences (hors langues et logiciels)
     {{
-      "language": "", // Langue (ex: Français)
-      "level": "" // Niveau (ex: natif, courant, etc.)
+      "name": "Compétence 1"
+    }},
+    {{
+      "name": "Compétence 2"
     }}
   ],
-  "experience": [
+  "softwares": [    // Logiciels maîtrisés (SAP, Excel, Sage, etc.)
+    "Logiciel 1",
+    "Logiciel 2"
+  ],
+  "languages": [    // Langues
     {{
-      "title": "", // Titre du poste
-      "company": "", // Nom de l'entreprise
-      "start_date": "", // Date de début
-      "end_date": "", // Date de fin (ou "Présent")
-      "description": "" // Description du poste
+      "language": "Français",
+      "level": "Natif"
+    }},
+    {{
+      "language": "Anglais",
+      "level": "Courant"
     }}
   ],
-  "education": [
+  "experience": [   // Expériences professionnelles
     {{
-      "degree": "", // Intitulé du diplôme
-      "institution": "", // Nom de l'établissement
-      "start_date": "", // Date de début
-      "end_date": "" // Date de fin
+      "title": "Titre du poste",
+      "company": "Nom de l'entreprise",
+      "start_date": "Date de début",
+      "end_date": "Date de fin ou Présent",
+      "description": "Description des responsabilités"
+    }}
+  ],
+  "education": [    // Formation
+    {{
+      "degree": "Nom du diplôme",
+      "institution": "Établissement",
+      "start_date": "Date de début",
+      "end_date": "Date de fin"
     }}
   ]
 }}
 
-CV à analyser:
+CV À ANALYSER:
 {cv_text}
 
-Retourne uniquement un objet JSON valide sans introduction ni commentaire.
+IMPORTANT: Tu dois retourner UNIQUEMENT le JSON avec toutes les informations récupérées du CV, sans aucun texte d'introduction ou commentaire.
 """
     
     try:
@@ -511,7 +758,8 @@ Retourne uniquement un objet JSON valide sans introduction ni commentaire.
                     "skills": [],
                     "experience": [],
                     "education": [],
-                    "languages": []
+                    "languages": [],
+                    "softwares": []
                 }
         except Exception as parse_err:
             logger.error(f"Erreur lors du parsing de la réponse: {str(parse_err)}")
@@ -523,7 +771,8 @@ Retourne uniquement un objet JSON valide sans introduction ni commentaire.
                 "skills": [],
                 "experience": [],
                 "education": [],
-                "languages": []
+                "languages": [],
+                "softwares": []
             }
     
     except Exception as e:
@@ -536,5 +785,6 @@ Retourne uniquement un objet JSON valide sans introduction ni commentaire.
             "skills": [],
             "experience": [],
             "education": [],
-            "languages": []
+            "languages": [],
+            "softwares": []
         }
