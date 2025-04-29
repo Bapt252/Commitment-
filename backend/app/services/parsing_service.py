@@ -4,10 +4,21 @@ import json
 import tempfile
 import PyPDF2
 import docx2txt
-from openai import OpenAI
 
-# Configuration de l'API OpenAI
-client = OpenAI(api_key=os.environ.get("OPENAI"))
+# Gestion de la compatibilité avec différentes versions d'OpenAI
+import openai
+try:
+    # Pour les nouvelles versions d'OpenAI (1.x.x)
+    from openai import OpenAI
+    OPENAI_NEW_VERSION = True
+    # Configuration de l'API OpenAI avec la nouvelle syntaxe
+    client = OpenAI(api_key=os.environ.get("OPENAI"))
+except ImportError:
+    # Pour les anciennes versions d'OpenAI (0.x.x)
+    OPENAI_NEW_VERSION = False
+    # Configuration de l'API OpenAI avec l'ancienne syntaxe
+    openai.api_key = os.environ.get("OPENAI")
+    client = openai
 
 def extract_text_from_pdf(file_path):
     """Extraire le texte d'un fichier PDF"""
@@ -86,18 +97,29 @@ def parse_cv_with_gpt(file_content, file_type):
         }
         """
 
-        # Appel à l'API OpenAI
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Utilisation de gpt-4o-mini comme demandé
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Voici le contenu du CV à analyser :\n\n{cv_text}"}
-            ]
-        )
-
-        # Extraction de la réponse JSON
-        parsed_data = json.loads(response.choices[0].message.content)
+        # Appel à l'API OpenAI selon la version
+        if OPENAI_NEW_VERSION:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",  # Utilisation de gpt-4o-mini comme demandé
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Voici le contenu du CV à analyser :\n\n{cv_text}"}
+                ]
+            )
+            # Extraction de la réponse JSON pour la nouvelle version
+            parsed_data = json.loads(response.choices[0].message.content)
+        else:
+            # Pour les anciennes versions d'OpenAI
+            response = client.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Voici le contenu du CV à analyser :\n\n{cv_text}"}
+                ]
+            )
+            # Extraction de la réponse JSON pour l'ancienne version
+            parsed_data = json.loads(response.choices[0].message['content'])
         
         # Préparation de la réponse
         result = {
@@ -152,14 +174,22 @@ def chat_with_cv_data(message, history, document_data):
         # Ajout du message de l'utilisateur
         messages.append({"role": "user", "content": message})
         
-        # Appel à l'API OpenAI
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=messages
-        )
-        
-        # Extraction de la réponse
-        ai_response = response.choices[0].message.content
+        # Appel à l'API OpenAI selon la version
+        if OPENAI_NEW_VERSION:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages
+            )
+            # Extraction de la réponse pour la nouvelle version
+            ai_response = response.choices[0].message.content
+        else:
+            # Pour les anciennes versions d'OpenAI
+            response = client.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=messages
+            )
+            # Extraction de la réponse pour l'ancienne version
+            ai_response = response.choices[0].message['content']
         
         # Mise à jour de l'historique
         updated_history = history.copy() if history else []
