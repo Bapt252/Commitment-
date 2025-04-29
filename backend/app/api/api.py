@@ -4,6 +4,7 @@ from app.api.endpoints import (
     chat, 
     companies, 
     cv_matcher, 
+    cv_parser,  # Import du nouveau module
     feedback, 
     job_posts, 
     matching, 
@@ -19,6 +20,7 @@ api_router = APIRouter()
 api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
 api_router.include_router(companies.router, prefix="/companies", tags=["companies"])
 api_router.include_router(cv_matcher.router, prefix="/cv-matcher", tags=["cv_matcher"])
+api_router.include_router(cv_parser.router, prefix="/v1/cv", tags=["cv_parser"])  # Route pour le parsing de CV
 api_router.include_router(feedback.router, prefix="/feedback", tags=["feedback"])
 api_router.include_router(job_posts.router, prefix="/job-posts", tags=["job_posts"])
 api_router.include_router(matching.router, prefix="/matching", tags=["matching"])
