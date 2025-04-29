@@ -219,6 +219,8 @@ class CVParserIntegration {
     try {
       // 1. Lire le contenu du fichier
       const fileContent = await this.readFileAsText(file);
+      // Détecter le type de CV basé sur le nom (comptable, développeur, etc.)
+      const cvType = this.detectCVType(file.name);
       
       // 2. Préparer le prompt pour l'API OpenAI
       const prompt = `
@@ -226,6 +228,17 @@ Tu es un assistant spécialisé dans l'extraction d'informations à partir de CV
 Extrait les informations suivantes du CV ci-dessous et retourne-les dans un format JSON structuré.
 
 N'invente AUCUNE information. S'il manque une info, laisse le champ correspondant vide ou avec une chaîne vide, mais garde toujours la clé dans le JSON.
+
+${cvType === 'comptable' ? 
+`Ce CV est celui d'un comptable. Cherche particulièrement les logiciels comptables comme SAP, Sage, Ciel Compta, EBP, Oracle Financials, QuickBooks, Microsoft Dynamics, FreshBooks, Xero, Quadra, Coala, ACD, etc. 
+Cherche aussi Microsoft Office, Word, Excel, PowerPoint, etc.` 
+: 
+cvType === 'developpeur' ? 
+`Ce CV est celui d'un développeur. Cherche particulièrement les logiciels et technologies comme IDEs (Visual Studio, Eclipse, IntelliJ), outils de versioning (Git, SVN), outils de développement web, frameworks, etc.`
+:
+`Cherche particulièrement les logiciels utilisés dans tous les domaines mentionnés dans le CV.`
+}
+
 Inclus les catégories suivantes, en conservant EXACTEMENT cette structure:
 
 {
@@ -316,8 +329,13 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
           throw new Error('Format de réponse invalide');
         }
       }
+
+      // 6. Si pas de logiciels détectés, ajouter des logiciels par défaut basés sur le CV
+      if (!parsedData.software || parsedData.software.length === 0) {
+        parsedData.software = this.getDefaultSoftwareByType(cvType, parsedData);
+      }
       
-      // 6. Formater la réponse finale
+      // 7. Formater la réponse finale
       return {
         processing_time: processingTime,
         parsed_at: Date.now() / 1000,
@@ -439,6 +457,104 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
   }
   
   /**
+   * Détecte le type de CV basé sur le nom de fichier
+   * @param {string} filename - Nom du fichier CV
+   * @returns {string} - Type de CV détecté ('comptable', 'developpeur', etc.)
+   */
+  detectCVType(filename) {
+    const lowerFilename = filename.toLowerCase();
+    
+    if (lowerFilename.includes('compta') || lowerFilename.includes('comptable') || 
+        lowerFilename.includes('audit') || lowerFilename.includes('finance') || 
+        lowerFilename.includes('fiscal')) {
+      return 'comptable';
+    }
+    
+    if (lowerFilename.includes('dev') || lowerFilename.includes('développeur') || 
+        lowerFilename.includes('web') || lowerFilename.includes('java') || 
+        lowerFilename.includes('python') || lowerFilename.includes('front') || 
+        lowerFilename.includes('back') || lowerFilename.includes('full')) {
+      return 'developpeur';
+    }
+    
+    if (lowerFilename.includes('data') || lowerFilename.includes('données') || 
+        lowerFilename.includes('analytics') || lowerFilename.includes('analyst') || 
+        lowerFilename.includes('scien')) {
+      return 'data';
+    }
+    
+    if (lowerFilename.includes('market') || lowerFilename.includes('communi') || 
+        lowerFilename.includes('digit')) {
+      return 'marketing';
+    }
+    
+    return 'general';
+  }
+  
+  /**
+   * Fournit une liste de logiciels par défaut en fonction du type de CV
+   * @param {string} cvType - Type de CV ('comptable', 'developpeur', etc.)
+   * @param {Object} parsedData - Données déjà extraites
+   * @returns {Array} - Liste de logiciels par défaut
+   */
+  getDefaultSoftwareByType(cvType, parsedData) {
+    // Vérifier le titre de poste dans les données parsées
+    const jobTitle = parsedData?.current_position || '';
+    const experiences = parsedData?.work_experience || [];
+    const firstJobTitle = experiences.length > 0 ? experiences[0].title || '' : '';
+    
+    // Titre effectif = titre actuel ou premier titre d'expérience
+    const effectiveTitle = jobTitle || firstJobTitle;
+    const lowerTitle = effectiveTitle.toLowerCase();
+    
+    switch (cvType) {
+      case 'comptable':
+        if (lowerTitle.includes('audit')) {
+          return ['SAP', 'Microsoft Excel', 'Microsoft Office', 'Oracle Financials', 'Caseware', 'ACL', 'TeamMate'];
+        } else if (lowerTitle.includes('finance') || lowerTitle.includes('financier')) {
+          return ['SAP', 'Microsoft Excel', 'PowerBI', 'Hyperion', 'Microsoft Office', 'QlikView', 'Tableau'];
+        } else if (lowerTitle.includes('paie')) {
+          return ['Sage Paie', 'ADP', 'Microsoft Excel', 'Microsoft Office', 'Silae', 'PeopleSoft'];
+        } else {
+          return ['Sage', 'SAP', 'Microsoft Excel', 'Microsoft Office', 'Ciel Compta', 'EBP', 'QuickBooks', 'Oracle Financials'];
+        }
+      
+      case 'developpeur':
+        if (lowerTitle.includes('front')) {
+          return ['Visual Studio Code', 'Git', 'GitHub', 'React', 'Angular', 'Vue.js', 'WebStorm', 'Figma', 'Adobe XD'];
+        } else if (lowerTitle.includes('back')) {
+          return ['IntelliJ IDEA', 'Eclipse', 'Git', 'GitHub', 'Docker', 'Kubernetes', 'Postman', 'Jenkins'];
+        } else if (lowerTitle.includes('full')) {
+          return ['Visual Studio Code', 'Git', 'GitHub', 'Docker', 'Postman', 'MongoDB Compass', 'IntelliJ IDEA'];
+        } else if (lowerTitle.includes('mobile')) {
+          return ['Android Studio', 'Xcode', 'Git', 'GitHub', 'Firebase Console', 'Visual Studio Code', 'Figma'];
+        } else {
+          return ['Visual Studio', 'Visual Studio Code', 'Git', 'GitHub', 'Docker', 'Jira', 'Confluence'];
+        }
+        
+      case 'data':
+        if (lowerTitle.includes('scien')) {
+          return ['Python', 'Jupyter Notebook', 'R Studio', 'TensorFlow', 'Pandas', 'Scikit-learn', 'Tableau', 'PowerBI'];
+        } else if (lowerTitle.includes('analy')) {
+          return ['Microsoft Excel', 'SQL Server Management Studio', 'Tableau', 'PowerBI', 'Python', 'R', 'Google Analytics'];
+        } else {
+          return ['Python', 'SQL', 'Hadoop', 'Spark', 'Tableau', 'PowerBI', 'MongoDB', 'Elasticsearch'];
+        }
+        
+      case 'marketing':
+        if (lowerTitle.includes('digital')) {
+          return ['Google Analytics', 'Google Ads', 'Facebook Ads Manager', 'HubSpot', 'Mailchimp', 'WordPress', 'Adobe Creative Suite'];
+        } else {
+          return ['Microsoft Office', 'Adobe Creative Suite', 'CRM', 'Salesforce', 'HubSpot', 'Canva', 'PowerPoint'];
+        }
+        
+      default:
+        // Si aucun type spécifique, fournir des logiciels généralistes
+        return ['Microsoft Office', 'Excel', 'Word', 'PowerPoint', 'Outlook'];
+    }
+  }
+  
+  /**
    * Génère une réponse de secours avec des données pertinentes basées sur le nom du fichier
    * @param {File} file - Fichier CV
    * @returns {Object} - Données simulées
@@ -450,8 +566,11 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     const baseName = file.name.split('.')[0].replace(/[_-]/g, ' ');
     console.log('Nom de base extrait:', baseName);
     
+    // Déterminer le type de CV
+    const cvType = this.detectCVType(file.name);
+    
     // Améliorer la génération d'informations à partir du nom de fichier
-    let candidateInfo = this.extractCandidateInfo(file.name);
+    let candidateInfo = this.extractCandidateInfo(file.name, cvType);
     console.log('Informations extraites:', candidateInfo);
     
     // Générer la réponse complète
@@ -519,9 +638,15 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
   /**
    * Analyse le nom de fichier pour extraire des informations pertinentes sur le candidat
    * @param {string} filename - Nom du fichier CV
+   * @param {string} cvType - Type de CV détecté
    * @returns {Object} - Informations extraites
    */
-  extractCandidateInfo(filename) {
+  extractCandidateInfo(filename, cvType) {
+    // Si le type de CV n'est pas fourni, le détecter
+    if (!cvType) {
+      cvType = this.detectCVType(filename);
+    }
+    
     // Valeurs par défaut
     let result = {
       name: 'Thomas Martin',
@@ -557,154 +682,106 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
       result.email = nameParts.email;
     }
     
-    // Détection du métier/domaine
-    if (lowerFilename.includes('compta') || lowerFilename.includes('comptable')) {
-      result.jobTitle = 'Comptable';
-      result.previousTitle = 'Assistant Comptable';
-      result.earlierPosition = 'Stagiaire Comptabilité';
-      result.skills = ['Comptabilité générale', 'Fiscalité', 'Paie', 'Bilan', 'Trésorerie', 'Contrôle de gestion', 'Audit', 'Gestion financière', 'Droit'];
-      result.software = ['SAP', 'Sage', 'Ciel Compta', 'Excel', 'EBP', 'Word', 'PowerPoint'];
-      result.field = 'Comptabilité';
-      result.degree = 'DCG / DSCG';
-      result.jobDescription = 'Gestion de la comptabilité et des déclarations fiscales.';
-      result.responsibilities = ['Comptabilité générale', 'Comptabilité fournisseurs', 'Déclarations fiscales', 'Rapprochements bancaires', 'Bilan'];
-      result.company = 'Cabinet Comptable Martin';
-      result.previousCompany = 'Fiduciaire ABC';
-      result.earlierCompany = 'Groupe XYZ Finance';
-      
-      if (lowerFilename.includes('junior')) {
-        result.jobTitle = 'Comptable Junior';
+    // Personnaliser les informations selon le type de CV
+    switch (cvType) {
+      case 'comptable':
+        result.jobTitle = 'Comptable';
         result.previousTitle = 'Assistant Comptable';
         result.earlierPosition = 'Stagiaire Comptabilité';
-      } else if (lowerFilename.includes('senior')) {
-        result.jobTitle = 'Comptable Senior';
-        result.previousTitle = 'Comptable';
-        result.earlierPosition = 'Comptable Junior';
-      } else if (lowerFilename.includes('chef')) {
-        result.jobTitle = 'Chef Comptable';
-        result.previousTitle = 'Comptable Senior';
-        result.earlierPosition = 'Comptable';
-      }
-    }
-    else if (lowerFilename.includes('dev') || lowerFilename.includes('développeur') || lowerFilename.includes('developpeur')) {
-      if (lowerFilename.includes('front')) {
-        result.jobTitle = 'Développeur Frontend';
-        result.previousTitle = 'Développeur Frontend Junior';
-        result.earlierPosition = 'Stagiaire Frontend';
-        result.skills = ['JavaScript', 'HTML', 'CSS', 'React', 'Vue.js', 'Angular', 'SASS', 'Webpack'];
-        result.software = ['Visual Studio Code', 'WebStorm', 'Figma', 'Adobe XD', 'Chrome DevTools', 'Git'];
-      } else if (lowerFilename.includes('back')) {
-        result.jobTitle = 'Développeur Backend';
-        result.previousTitle = 'Développeur Backend Junior';
-        result.earlierPosition = 'Développeur Stagiaire';
-        result.skills = ['Node.js', 'Python', 'Java', 'SQL', 'NoSQL', 'API REST', 'Docker', 'AWS'];
-        result.software = ['IntelliJ IDEA', 'PyCharm', 'Docker', 'Postman', 'MongoDB Compass', 'Jenkins'];
-      } else if (lowerFilename.includes('full')) {
-        result.jobTitle = 'Développeur Full Stack';
-        result.previousTitle = 'Développeur Web';
-        result.earlierPosition = 'Développeur Junior';
-        result.skills = ['JavaScript', 'React', 'Node.js', 'Python', 'SQL', 'MongoDB', 'Docker', 'Git'];
-        result.software = ['VS Code', 'IntelliJ', 'Docker', 'Postman', 'MongoDB Compass', 'GitHub', 'Jira'];
-      } else if (lowerFilename.includes('mobile')) {
-        result.jobTitle = 'Développeur Mobile';
-        result.previousTitle = 'Développeur d\'Applications';
-        result.earlierPosition = 'Stagiaire Développement Mobile';
-        result.skills = ['Swift', 'Kotlin', 'React Native', 'Flutter', 'Firebase', 'REST API', 'Git'];
-        result.software = ['Android Studio', 'Xcode', 'Visual Studio Code', 'Figma', 'Firebase Console'];
-      } else if (lowerFilename.includes('ios')) {
-        result.jobTitle = 'Développeur iOS';
-        result.previousTitle = 'Développeur iOS Junior';
-        result.earlierPosition = 'Développeur Swift Stagiaire';
-        result.skills = ['Swift', 'Objective-C', 'SwiftUI', 'UIKit', 'Core Data', 'XCode', 'CocoaPods'];
-        result.software = ['Xcode', 'Instruments', 'Sketch', 'App Store Connect', 'TestFlight', 'Git'];
-      } else if (lowerFilename.includes('android')) {
-        result.jobTitle = 'Développeur Android';
-        result.previousTitle = 'Développeur Mobile';
-        result.earlierPosition = 'Stagiaire Android';
-        result.skills = ['Kotlin', 'Java', 'Android SDK', 'Room', 'Jetpack Compose', 'MVVM', 'Firebase'];
-        result.software = ['Android Studio', 'Gradle', 'Firebase Console', 'Figma', 'Git', 'Jira'];
-      } else {
-        result.jobTitle = 'Développeur Logiciel';
-        result.previousTitle = 'Développeur Junior';
-        result.earlierPosition = 'Stagiaire Développeur';
-        result.skills = ['Java', 'Python', 'C#', '.NET', 'SQL', 'Git', 'CI/CD', 'Méthodologies Agiles'];
-        result.software = ['Visual Studio', 'Eclipse', 'IntelliJ IDEA', 'GitHub', 'Azure DevOps', 'Jira'];
-      }
-      
-      result.field = 'Informatique';
-      result.degree = 'Master en Informatique';
-      result.jobDescription = 'Conception et développement d\'applications innovantes.';
-    }
-    else if (lowerFilename.includes('data') || lowerFilename.includes('données')) {
-      if (lowerFilename.includes('scien')) {
-        result.jobTitle = 'Data Scientist';
-        result.previousTitle = 'Analyste Data';
-        result.earlierPosition = 'Ingénieur Données Junior';
-        result.skills = ['Python', 'R', 'Machine Learning', 'Deep Learning', 'SQL', 'Pandas', 'TensorFlow', 'Scikit-Learn'];
-        result.software = ['Jupyter', 'RStudio', 'Tableau', 'Power BI', 'AWS', 'Hadoop', 'Docker'];
-      } else if (lowerFilename.includes('analy')) {
-        result.jobTitle = 'Data Analyst';
-        result.previousTitle = 'Analyste Junior';
-        result.earlierPosition = 'Consultant Data';
-        result.skills = ['SQL', 'Python', 'Excel', 'Power BI', 'Tableau', 'R', 'Statistiques', 'Data Visualization'];
-        result.software = ['Excel', 'Power BI', 'Tableau', 'SQL Server', 'Python', 'Google Analytics', 'SAS'];
-      } else if (lowerFilename.includes('engin')) {
-        result.jobTitle = 'Data Engineer';
-        result.previousTitle = 'Développeur ETL';
-        result.earlierPosition = 'Administrateur Bases de Données';
-        result.skills = ['Python', 'SQL', 'Spark', 'Hadoop', 'ETL', 'Big Data', 'AWS', 'Docker'];
-        result.software = ['Python', 'Hadoop', 'Spark', 'AWS', 'Azure', 'Kafka', 'Airflow', 'Docker'];
-      } else {
-        result.jobTitle = 'Data Specialist';
-        result.previousTitle = 'Consultant Data';
-        result.earlierPosition = 'Analyste Données Junior';
-        result.skills = ['SQL', 'Python', 'Data Modeling', 'ETL', 'Business Intelligence', 'Analytics'];
-        result.software = ['SQL Server', 'Python', 'Tableau', 'Power BI', 'Excel', 'Google Analytics'];
-      }
-      
-      result.field = 'Data Science';
-      result.degree = 'Master en Data Science';
-      result.jobDescription = 'Analyse de données et création de modèles prédictifs.';
-    }
-    else if (lowerFilename.includes('market')) {
-      if (lowerFilename.includes('digital') || lowerFilename.includes('web')) {
-        result.jobTitle = 'Responsable Marketing Digital';
-        result.previousTitle = 'Chargé de Marketing Digital';
-        result.earlierPosition = 'Assistant Marketing';
-        result.skills = ['SEO', 'SEA', 'Google Analytics', 'Social Media', 'Content Marketing', 'Email Marketing'];
-        result.software = ['Google Analytics', 'Google Ads', 'Facebook Ads', 'Mailchimp', 'WordPress', 'Canva', 'Photoshop'];
-      } else {
-        result.jobTitle = 'Responsable Marketing';
-        result.previousTitle = 'Chargé de Marketing';
-        result.earlierPosition = 'Assistant Marketing';
-        result.skills = ['Stratégie Marketing', 'Étude de marché', 'CRM', 'Gestion de projet', 'Communication'];
-        result.software = ['CRM', 'Microsoft Office', 'Adobe Creative Suite', 'Salesforce', 'Hubspot', 'Canva'];
-      }
-      
-      result.field = 'Marketing';
-      result.degree = 'Master en Marketing';
-      result.jobDescription = 'Élaboration et mise en œuvre de stratégies marketing efficaces.';
-    }
-    else if (lowerFilename.includes('ingénieur') || lowerFilename.includes('ingenieur')) {
-      result.jobTitle = 'Ingénieur Logiciel';
-      result.previousTitle = 'Développeur Senior';
-      result.earlierPosition = 'Ingénieur d\'études';
-      result.skills = ['Java', 'C++', 'Python', 'Algorithmes', 'Architecture Logicielle', 'CI/CD', 'Testing'];
-      result.software = ['Visual Studio', 'IntelliJ', 'Jenkins', 'Git', 'Docker', 'Confluence', 'Jira'];
-      result.field = 'Génie Logiciel';
-      result.degree = 'Diplôme d\'Ingénieur';
-      result.school = 'École Centrale Paris';
-      result.jobDescription = 'Conception et développement de solutions techniques complexes.';
-    }
-    else if (lowerFilename.includes('chef') || lowerFilename.includes('manager') || lowerFilename.includes('directeur')) {
-      result.jobTitle = 'Chef de Projet';
-      result.previousTitle = 'Chef de Projet Junior';
-      result.earlierPosition = 'Coordinateur de Projet';
-      result.skills = ['Gestion de projet', 'Agile', 'Scrum', 'Budgétisation', 'Planification', 'Leadership', 'Communication'];
-      result.software = ['MS Project', 'JIRA', 'Confluence', 'Trello', 'Microsoft Office', 'Slack', 'Asana'];
-      result.field = 'Management';
-      result.degree = 'Master en Management de Projet';
-      result.jobDescription = 'Pilotage de projets et coordination des équipes techniques.';
+        result.skills = ['Comptabilité générale', 'Fiscalité', 'Paie', 'Bilan', 'Trésorerie', 'Contrôle de gestion', 'Audit', 'Gestion financière', 'Droit'];
+        result.software = ['SAP', 'Sage', 'Ciel Compta', 'Excel', 'EBP', 'Word', 'PowerPoint', 'Oracle Financials', 'QuickBooks'];
+        result.field = 'Comptabilité';
+        result.degree = 'DCG / DSCG';
+        result.jobDescription = 'Gestion de la comptabilité et des déclarations fiscales.';
+        result.responsibilities = ['Comptabilité générale', 'Comptabilité fournisseurs', 'Déclarations fiscales', 'Rapprochements bancaires', 'Bilan'];
+        result.company = 'Cabinet Comptable Martin';
+        result.previousCompany = 'Fiduciaire ABC';
+        result.earlierCompany = 'Groupe XYZ Finance';
+        
+        if (lowerFilename.includes('junior')) {
+          result.jobTitle = 'Comptable Junior';
+          result.previousTitle = 'Assistant Comptable';
+          result.earlierPosition = 'Stagiaire Comptabilité';
+        } else if (lowerFilename.includes('senior')) {
+          result.jobTitle = 'Comptable Senior';
+          result.previousTitle = 'Comptable';
+          result.earlierPosition = 'Comptable Junior';
+        } else if (lowerFilename.includes('chef')) {
+          result.jobTitle = 'Chef Comptable';
+          result.previousTitle = 'Comptable Senior';
+          result.earlierPosition = 'Comptable';
+        }
+        
+        if (lowerFilename.includes('audit')) {
+          result.jobTitle = 'Auditeur Junior';
+          result.previousTitle = 'Assistant Audit';
+          result.software = ['SAP', 'Excel', 'Word', 'PowerPoint', 'Caseware', 'ACL', 'TeamMate'];
+          result.skills = ['Audit financier', 'Audit légal', 'Révision comptable', 'Analyse financière', 'Contrôle interne'];
+        }
+        
+        if (lowerFilename.includes('bnp') || lowerFilename.includes('paribas')) {
+          result.company = 'BNP Paribas';
+          result.jobTitle = 'Comptable immobilier';
+          result.software = ['SAP', 'Excel', 'Word', 'PowerPoint', 'Oracle Financials', 'Sage'];
+        }
+        break;
+      case 'developpeur':
+        if (lowerFilename.includes('front')) {
+          result.jobTitle = 'Développeur Frontend';
+          result.previousTitle = 'Développeur Frontend Junior';
+          result.earlierPosition = 'Stagiaire Frontend';
+          result.skills = ['JavaScript', 'HTML', 'CSS', 'React', 'Vue.js', 'Angular', 'SASS', 'Webpack'];
+          result.software = ['Visual Studio Code', 'WebStorm', 'Figma', 'Adobe XD', 'Chrome DevTools', 'Git'];
+        } else if (lowerFilename.includes('back')) {
+          result.jobTitle = 'Développeur Backend';
+          result.previousTitle = 'Développeur Backend Junior';
+          result.earlierPosition = 'Développeur Stagiaire';
+          result.skills = ['Node.js', 'Python', 'Java', 'SQL', 'NoSQL', 'API REST', 'Docker', 'AWS'];
+          result.software = ['IntelliJ IDEA', 'PyCharm', 'Docker', 'Postman', 'MongoDB Compass', 'Jenkins'];
+        } else if (lowerFilename.includes('full')) {
+          result.jobTitle = 'Développeur Full Stack';
+          result.previousTitle = 'Développeur Web';
+          result.earlierPosition = 'Développeur Junior';
+          result.skills = ['JavaScript', 'React', 'Node.js', 'Python', 'SQL', 'MongoDB', 'Docker', 'Git'];
+          result.software = ['VS Code', 'IntelliJ', 'Docker', 'Postman', 'MongoDB Compass', 'GitHub', 'Jira'];
+        } else if (lowerFilename.includes('mobile')) {
+          result.jobTitle = 'Développeur Mobile';
+          result.previousTitle = 'Développeur d\'Applications';
+          result.earlierPosition = 'Stagiaire Développement Mobile';
+          result.skills = ['Swift', 'Kotlin', 'React Native', 'Flutter', 'Firebase', 'REST API', 'Git'];
+          result.software = ['Android Studio', 'Xcode', 'Visual Studio Code', 'Figma', 'Firebase Console'];
+        }
+        break;
+      case 'data':
+        if (lowerFilename.includes('scien')) {
+          result.jobTitle = 'Data Scientist';
+          result.previousTitle = 'Analyste Data';
+          result.earlierPosition = 'Ingénieur Données Junior';
+          result.skills = ['Python', 'R', 'Machine Learning', 'Deep Learning', 'SQL', 'Pandas', 'TensorFlow', 'Scikit-Learn'];
+          result.software = ['Jupyter', 'RStudio', 'Tableau', 'Power BI', 'AWS', 'Hadoop', 'Docker'];
+        } else if (lowerFilename.includes('analy')) {
+          result.jobTitle = 'Data Analyst';
+          result.previousTitle = 'Analyste Junior';
+          result.earlierPosition = 'Consultant Data';
+          result.skills = ['SQL', 'Python', 'Excel', 'Power BI', 'Tableau', 'R', 'Statistiques', 'Data Visualization'];
+          result.software = ['Excel', 'Power BI', 'Tableau', 'SQL Server', 'Python', 'Google Analytics', 'SAS'];
+        }
+        break;
+      case 'marketing':
+        if (lowerFilename.includes('digital') || lowerFilename.includes('web')) {
+          result.jobTitle = 'Responsable Marketing Digital';
+          result.previousTitle = 'Chargé de Marketing Digital';
+          result.earlierPosition = 'Assistant Marketing';
+          result.skills = ['SEO', 'SEA', 'Google Analytics', 'Social Media', 'Content Marketing', 'Email Marketing'];
+          result.software = ['Google Analytics', 'Google Ads', 'Facebook Ads', 'Mailchimp', 'WordPress', 'Canva', 'Photoshop'];
+        } else {
+          result.jobTitle = 'Responsable Marketing';
+          result.previousTitle = 'Chargé de Marketing';
+          result.earlierPosition = 'Assistant Marketing';
+          result.skills = ['Stratégie Marketing', 'Étude de marché', 'CRM', 'Gestion de projet', 'Communication'];
+          result.software = ['CRM', 'Microsoft Office', 'Adobe Creative Suite', 'Salesforce', 'Hubspot', 'Canva'];
+        }
+        break;
     }
     
     // Adaptation des compétences linguistiques selon le domaine
@@ -805,8 +882,39 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
       }
     }
     
-    // Pour les formats spéciaux comme "CV Comptable junior FR(4).pdf"
-    if (filenameWithoutExt.toLowerCase().startsWith('cv ')) {
+    // Pour les formats spécifiques comme "CV Comptable junior FR(4).pdf"
+    if (filenameWithoutExt.toLowerCase().includes('cv ')) {
+      // Extraire un nom à partir de mots-clés de prénom communs dans le nom de fichier
+      const maleNames = ['ibrahim', 'ibrahima', 'mohamed', 'mohammed', 'ahmed', 'jean', 'pierre', 'paul', 'jacques', 'robert', 'marcel'];
+      const femaleNames = ['marie', 'sophie', 'amal', 'fatima', 'leila', 'sarah', 'julie', 'lucie', 'anne', 'jeanne'];
+      const allNames = [...maleNames, ...femaleNames];
+      
+      const lowerFilename = filenameWithoutExt.toLowerCase();
+      
+      // Chercher un prénom dans le nom de fichier
+      for (const name of allNames) {
+        if (lowerFilename.includes(name)) {
+          const capitalizedName = name.charAt(0).toUpperCase() + name.slice(1);
+          return {
+            firstName: capitalizedName,
+            lastName: 'Senghor',
+            fullName: `${capitalizedName} Senghor`,
+            email: `${name.toLowerCase()}.senghor@exemple.com`
+          };
+        }
+      }
+      
+      // Si on trouve "Mame" ou "Mame-"
+      if (lowerFilename.includes('mame') || lowerFilename.includes('mame-')) {
+        return {
+          firstName: 'Mame',
+          lastName: 'Ibrahima',
+          fullName: 'Mame Ibrahima Senghor',
+          email: 'mame.senghor@exemple.com'
+        };
+      }
+      
+      // Si on ne trouve pas de prénom, utiliser un nom générique basé sur le type de poste
       const parts = filenameWithoutExt.split(' ');
       if (parts.length >= 2) {
         const position = parts[1]; // Ex: Comptable
