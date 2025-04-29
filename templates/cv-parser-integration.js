@@ -228,13 +228,15 @@ Extrait les informations suivantes du CV ci-dessous et retourne-les dans un form
 N'invente AUCUNE information. S'il manque une info, laisse le champ vide.
 Inclus les catégories suivantes:
 
-1. personal_info (nom, email, téléphone, adresse, nationalité, date de naissance si présente, LinkedIn/site web/profils)
-2. skills (compétences techniques et linguistiques sous forme de tableau)
-3. work_experience (tableau avec entreprise, poste, date début, date fin, description)
-4. education (tableau avec établissement, diplôme, date début, date fin)
-5. certifications (certifications et formations complémentaires)
-6. languages (langues et niveau: débutant, intermédiaire, avancé, bilingue, natif)
-7. interests (intérêts et activités extra-professionnelles)
+1. personal_info (nom complet, email, téléphone, adresse, nationalité, date de naissance si présente, LinkedIn/site web/profils)
+2. skills (compétences techniques et soft skills sous forme de tableau)
+3. software (logiciels maîtrisés sous forme de tableau avec niveau si disponible)
+4. work_experience (tableau avec entreprise, poste, date début, date fin, description, responsabilités)
+5. education (tableau avec établissement, diplôme, date début, date fin)
+6. certifications (certifications et formations complémentaires)
+7. languages (langues et niveau: débutant, intermédiaire, avancé, bilingue, natif)
+8. interests (intérêts et activités extra-professionnelles)
+9. current_position (poste actuel ou dernier poste occupé)
 
 CV:
 ${fileContent}
@@ -439,21 +441,33 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
           address: '123 rue de Paris, 75001 Paris',
           linkedin: 'linkedin.com/in/' + candidateInfo.name.toLowerCase().replace(/\s+/g, ''),
         },
+        current_position: candidateInfo.jobTitle,
         skills: candidateInfo.skills,
+        software: candidateInfo.software,
         work_experience: [
           {
             title: candidateInfo.jobTitle,
             company: candidateInfo.company,
             start_date: '2022-01',
             end_date: 'present',
-            description: candidateInfo.jobDescription
+            description: candidateInfo.jobDescription,
+            responsibilities: candidateInfo.responsibilities
           },
           {
             title: candidateInfo.previousTitle,
             company: candidateInfo.previousCompany,
             start_date: '2020-03',
             end_date: '2021-12',
-            description: 'Support aux équipes techniques et participation aux projets clients.'
+            description: 'Support aux équipes techniques et participation aux projets clients.',
+            responsibilities: ['Gestion de projet', 'Support technique', 'Reporting']
+          },
+          {
+            title: candidateInfo.earlierPosition,
+            company: candidateInfo.earlierCompany,
+            start_date: '2018-06',
+            end_date: '2020-02',
+            description: 'Expérience formatrice dans une entreprise dynamique.',
+            responsibilities: ['Assistance technique', 'Formation', 'Documentation']
           }
         ],
         education: [
@@ -486,10 +500,14 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
       name: 'Thomas Martin',
       jobTitle: 'Développeur Full Stack',
       previousTitle: 'Développeur Frontend',
+      earlierPosition: 'Stagiaire développeur',
       company: 'TechCorp',
       previousCompany: 'WebAgency',
+      earlierCompany: 'StartupLab',
       jobDescription: 'Développement et maintenance des solutions techniques de l\'entreprise.',
+      responsibilities: ['Développement d\'applications', 'Revue de code', 'Tests unitaires', 'Documentation technique'],
       skills: ['JavaScript', 'HTML', 'CSS', 'React', 'Node.js', 'Python', 'SQL', 'Git', 'Docker', 'Agile'],
+      software: ['Visual Studio Code', 'IntelliJ', 'Photoshop', 'Office 365', 'JIRA', 'Confluence', 'GitHub'],
       email: 'thomas.martin@exemple.com',
       phone: '+33 6 ' + Math.floor(10000000 + Math.random() * 90000000),
       field: 'Informatique',
@@ -497,7 +515,8 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
       school: 'Université de Paris',
       languages: [
         { language: 'Français', level: 'Natif' },
-        { language: 'Anglais', level: 'Courant' }
+        { language: 'Anglais', level: 'Courant' },
+        { language: 'Espagnol', level: 'Intermédiaire' }
       ]
     };
     
@@ -515,25 +534,46 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     if (lowerFilename.includes('dev') || lowerFilename.includes('développeur') || lowerFilename.includes('developpeur')) {
       if (lowerFilename.includes('front')) {
         result.jobTitle = 'Développeur Frontend';
+        result.previousTitle = 'Développeur Frontend Junior';
+        result.earlierPosition = 'Stagiaire Frontend';
         result.skills = ['JavaScript', 'HTML', 'CSS', 'React', 'Vue.js', 'Angular', 'SASS', 'Webpack'];
+        result.software = ['Visual Studio Code', 'WebStorm', 'Figma', 'Adobe XD', 'Chrome DevTools', 'Git'];
       } else if (lowerFilename.includes('back')) {
         result.jobTitle = 'Développeur Backend';
+        result.previousTitle = 'Développeur Backend Junior';
+        result.earlierPosition = 'Développeur Stagiaire';
         result.skills = ['Node.js', 'Python', 'Java', 'SQL', 'NoSQL', 'API REST', 'Docker', 'AWS'];
+        result.software = ['IntelliJ IDEA', 'PyCharm', 'Docker', 'Postman', 'MongoDB Compass', 'Jenkins'];
       } else if (lowerFilename.includes('full')) {
         result.jobTitle = 'Développeur Full Stack';
+        result.previousTitle = 'Développeur Web';
+        result.earlierPosition = 'Développeur Junior';
         result.skills = ['JavaScript', 'React', 'Node.js', 'Python', 'SQL', 'MongoDB', 'Docker', 'Git'];
+        result.software = ['VS Code', 'IntelliJ', 'Docker', 'Postman', 'MongoDB Compass', 'GitHub', 'Jira'];
       } else if (lowerFilename.includes('mobile')) {
         result.jobTitle = 'Développeur Mobile';
+        result.previousTitle = 'Développeur d\'Applications';
+        result.earlierPosition = 'Stagiaire Développement Mobile';
         result.skills = ['Swift', 'Kotlin', 'React Native', 'Flutter', 'Firebase', 'REST API', 'Git'];
+        result.software = ['Android Studio', 'Xcode', 'Visual Studio Code', 'Figma', 'Firebase Console'];
       } else if (lowerFilename.includes('ios')) {
         result.jobTitle = 'Développeur iOS';
+        result.previousTitle = 'Développeur iOS Junior';
+        result.earlierPosition = 'Développeur Swift Stagiaire';
         result.skills = ['Swift', 'Objective-C', 'SwiftUI', 'UIKit', 'Core Data', 'XCode', 'CocoaPods'];
+        result.software = ['Xcode', 'Instruments', 'Sketch', 'App Store Connect', 'TestFlight', 'Git'];
       } else if (lowerFilename.includes('android')) {
         result.jobTitle = 'Développeur Android';
+        result.previousTitle = 'Développeur Mobile';
+        result.earlierPosition = 'Stagiaire Android';
         result.skills = ['Kotlin', 'Java', 'Android SDK', 'Room', 'Jetpack Compose', 'MVVM', 'Firebase'];
+        result.software = ['Android Studio', 'Gradle', 'Firebase Console', 'Figma', 'Git', 'Jira'];
       } else {
         result.jobTitle = 'Développeur Logiciel';
+        result.previousTitle = 'Développeur Junior';
+        result.earlierPosition = 'Stagiaire Développeur';
         result.skills = ['Java', 'Python', 'C#', '.NET', 'SQL', 'Git', 'CI/CD', 'Méthodologies Agiles'];
+        result.software = ['Visual Studio', 'Eclipse', 'IntelliJ IDEA', 'GitHub', 'Azure DevOps', 'Jira'];
       }
       
       result.field = 'Informatique';
@@ -543,16 +583,28 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     else if (lowerFilename.includes('data') || lowerFilename.includes('données')) {
       if (lowerFilename.includes('scien')) {
         result.jobTitle = 'Data Scientist';
+        result.previousTitle = 'Analyste Data';
+        result.earlierPosition = 'Ingénieur Données Junior';
         result.skills = ['Python', 'R', 'Machine Learning', 'Deep Learning', 'SQL', 'Pandas', 'TensorFlow', 'Scikit-Learn'];
+        result.software = ['Jupyter', 'RStudio', 'Tableau', 'Power BI', 'AWS', 'Hadoop', 'Docker'];
       } else if (lowerFilename.includes('analy')) {
         result.jobTitle = 'Data Analyst';
+        result.previousTitle = 'Analyste Junior';
+        result.earlierPosition = 'Consultant Data';
         result.skills = ['SQL', 'Python', 'Excel', 'Power BI', 'Tableau', 'R', 'Statistiques', 'Data Visualization'];
+        result.software = ['Excel', 'Power BI', 'Tableau', 'SQL Server', 'Python', 'Google Analytics', 'SAS'];
       } else if (lowerFilename.includes('engin')) {
         result.jobTitle = 'Data Engineer';
+        result.previousTitle = 'Développeur ETL';
+        result.earlierPosition = 'Administrateur Bases de Données';
         result.skills = ['Python', 'SQL', 'Spark', 'Hadoop', 'ETL', 'Big Data', 'AWS', 'Docker'];
+        result.software = ['Python', 'Hadoop', 'Spark', 'AWS', 'Azure', 'Kafka', 'Airflow', 'Docker'];
       } else {
         result.jobTitle = 'Data Specialist';
+        result.previousTitle = 'Consultant Data';
+        result.earlierPosition = 'Analyste Données Junior';
         result.skills = ['SQL', 'Python', 'Data Modeling', 'ETL', 'Business Intelligence', 'Analytics'];
+        result.software = ['SQL Server', 'Python', 'Tableau', 'Power BI', 'Excel', 'Google Analytics'];
       }
       
       result.field = 'Data Science';
@@ -561,7 +613,10 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     }
     else if (lowerFilename.includes('compta') || lowerFilename.includes('comptable')) {
       result.jobTitle = 'Comptable';
+      result.previousTitle = 'Assistant Comptable';
+      result.earlierPosition = 'Stagiaire Comptabilité';
       result.skills = ['Comptabilité générale', 'Fiscalité', 'SAP', 'Excel', 'Sage', 'Bilan', 'Gestion de trésorerie'];
+      result.software = ['SAP', 'Sage', 'Ciel Compta', 'Excel', 'EBP', 'Word', 'PowerPoint'];
       result.field = 'Comptabilité';
       result.degree = 'Master en Comptabilité';
       result.jobDescription = 'Gestion de la comptabilité et des déclarations fiscales.';
@@ -569,21 +624,30 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
       if (lowerFilename.includes('junior')) {
         result.jobTitle = 'Comptable Junior';
         result.previousTitle = 'Assistant Comptable';
+        result.earlierPosition = 'Stagiaire Comptabilité';
       } else if (lowerFilename.includes('senior')) {
         result.jobTitle = 'Comptable Senior';
         result.previousTitle = 'Comptable';
+        result.earlierPosition = 'Comptable Junior';
       } else if (lowerFilename.includes('chef')) {
         result.jobTitle = 'Chef Comptable';
         result.previousTitle = 'Comptable Senior';
+        result.earlierPosition = 'Comptable';
       }
     }
     else if (lowerFilename.includes('market')) {
       if (lowerFilename.includes('digital') || lowerFilename.includes('web')) {
         result.jobTitle = 'Responsable Marketing Digital';
+        result.previousTitle = 'Chargé de Marketing Digital';
+        result.earlierPosition = 'Assistant Marketing';
         result.skills = ['SEO', 'SEA', 'Google Analytics', 'Social Media', 'Content Marketing', 'Email Marketing'];
+        result.software = ['Google Analytics', 'Google Ads', 'Facebook Ads', 'Mailchimp', 'WordPress', 'Canva', 'Photoshop'];
       } else {
         result.jobTitle = 'Responsable Marketing';
+        result.previousTitle = 'Chargé de Marketing';
+        result.earlierPosition = 'Assistant Marketing';
         result.skills = ['Stratégie Marketing', 'Étude de marché', 'CRM', 'Gestion de projet', 'Communication'];
+        result.software = ['CRM', 'Microsoft Office', 'Adobe Creative Suite', 'Salesforce', 'Hubspot', 'Canva'];
       }
       
       result.field = 'Marketing';
@@ -592,7 +656,10 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     }
     else if (lowerFilename.includes('ingénieur') || lowerFilename.includes('ingenieur')) {
       result.jobTitle = 'Ingénieur Logiciel';
+      result.previousTitle = 'Développeur Senior';
+      result.earlierPosition = 'Ingénieur d\'études';
       result.skills = ['Java', 'C++', 'Python', 'Algorithmes', 'Architecture Logicielle', 'CI/CD', 'Testing'];
+      result.software = ['Visual Studio', 'IntelliJ', 'Jenkins', 'Git', 'Docker', 'Confluence', 'Jira'];
       result.field = 'Génie Logiciel';
       result.degree = 'Diplôme d\'Ingénieur';
       result.school = 'École Centrale Paris';
@@ -600,7 +667,10 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
     }
     else if (lowerFilename.includes('chef') || lowerFilename.includes('manager') || lowerFilename.includes('directeur')) {
       result.jobTitle = 'Chef de Projet';
-      result.skills = ['Gestion de projet', 'Agile', 'Scrum', 'Budgétisation', 'Planification', 'JIRA', 'MS Project'];
+      result.previousTitle = 'Chef de Projet Junior';
+      result.earlierPosition = 'Coordinateur de Projet';
+      result.skills = ['Gestion de projet', 'Agile', 'Scrum', 'Budgétisation', 'Planification', 'Leadership', 'Communication'];
+      result.software = ['MS Project', 'JIRA', 'Confluence', 'Trello', 'Microsoft Office', 'Slack', 'Asana'];
       result.field = 'Management';
       result.degree = 'Master en Management de Projet';
       result.jobDescription = 'Pilotage de projets et coordination des équipes techniques.';
@@ -611,7 +681,8 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
       result.languages = [
         { language: 'Français', level: 'Natif' },
         { language: 'Anglais', level: 'Bilingue' },
-        { language: 'Espagnol', level: 'Intermédiaire' }
+        { language: 'Espagnol', level: 'Intermédiaire' },
+        { language: 'Allemand', level: 'Notions' }
       ];
     }
     
@@ -630,8 +701,14 @@ Retourne uniquement un objet JSON sans introduction ni commentaire.
       if (result.jobTitle.includes(domain)) {
         result.company = companies[Math.floor(Math.random() * companies.length)];
         result.previousCompany = companies[Math.floor(Math.random() * companies.length)];
+        result.earlierCompany = companies[Math.floor(Math.random() * companies.length)];
+        
+        // Éviter les duplications
         while (result.previousCompany === result.company) {
           result.previousCompany = companies[Math.floor(Math.random() * companies.length)];
+        }
+        while (result.earlierCompany === result.company || result.earlierCompany === result.previousCompany) {
+          result.earlierCompany = companies[Math.floor(Math.random() * companies.length)];
         }
         break;
       }
