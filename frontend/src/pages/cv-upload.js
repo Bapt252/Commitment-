@@ -1,3 +1,4 @@
+
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -70,7 +71,12 @@ export default function CVUploadPage() {
           'Content-Type': 'multipart/form-data'
         }
       });
-      setResult(response.data);
+      
+      console.log("Résultat brut du parsing:", response.data);
+      
+      // S'assurer que le résultat a la structure attendue
+      const processedData = normalizeParserResult(response.data);
+      setResult(processedData);
       setError(null);
     } catch (err) {
       console.error('Error parsing CV:', err);
@@ -80,6 +86,42 @@ export default function CVUploadPage() {
       setLoading(false);
       setProgress(100);
     }
+  };
+  
+  // Fonction pour normaliser le résultat du parsing et garantir une structure cohérente
+  const normalizeParserResult = (data) => {
+    // Si les données sont imbriquées dans un sous-objet 'data'
+    const parsedData = data.data || data;
+    
+    // S'assurer que toutes les propriétés principales existent
+    const normalized = {
+      personal_info: parsedData.personal_info || {},
+      position: parsedData.position || "",
+      skills: Array.isArray(parsedData.skills) ? parsedData.skills : [],
+      experience: Array.isArray(parsedData.experience) ? parsedData.experience : [],
+      education: Array.isArray(parsedData.education) ? parsedData.education : [],
+      languages: Array.isArray(parsedData.languages) ? parsedData.languages : []
+    };
+    
+    // S'assurer que personal_info a tous les champs
+    normalized.personal_info = {
+      name: normalized.personal_info.name || "",
+      email: normalized.personal_info.email || "",
+      phone: normalized.personal_info.phone || "",
+      address: normalized.personal_info.address || ""
+    };
+    
+    // Normaliser les compétences avec une structure cohérente
+    normalized.skills = normalized.skills.map(skill => {
+      // Si skill est déjà un objet avec propriété 'name'
+      if (typeof skill === 'object' && skill !== null) {
+        return skill;
+      }
+      // Si skill est une chaîne
+      return { name: String(skill) };
+    });
+    
+    return normalized;
   };
 
   // Fonction pour rendre les champs du CV de manière structurée
@@ -97,68 +139,81 @@ export default function CVUploadPage() {
     // Vue structurée
     return (
       <div className="space-y-4">
-        {result.personal_info && (
-          <div className="border-b pb-4">
-            <h4 className="font-semibold text-lg mb-2">Informations personnelles</h4>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(result.personal_info).map(([key, value]) => (
-                <div key={key}>
-                  <span className="font-medium">{key}: </span>
-                  <span>{value}</span>
-                </div>
-              ))}
+        <div className="border-b pb-4">
+          <h4 className="font-semibold text-lg mb-2">Informations personnelles</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="font-medium">Nom: </span>
+              <span>{result.personal_info?.name || "Non détecté"}</span>
+            </div>
+            <div>
+              <span className="font-medium">Email: </span>
+              <span>{result.personal_info?.email || "Non détecté"}</span>
+            </div>
+            <div>
+              <span className="font-medium">Téléphone: </span>
+              <span>{result.personal_info?.phone || "Non détecté"}</span>
+            </div>
+            <div>
+              <span className="font-medium">Poste actuel: </span>
+              <span>{result.position || "Non détecté"}</span>
             </div>
           </div>
-        )}
+        </div>
 
-        {result.skills && (
+        {result.skills && result.skills.length > 0 && (
           <div className="border-b pb-4">
             <h4 className="font-semibold text-lg mb-2">Compétences</h4>
             <div className="flex flex-wrap gap-2">
               {result.skills.map((skill, index) => (
                 <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  {skill}
+                  {typeof skill === 'object' ? skill.name : skill}
                 </span>
               ))}
             </div>
           </div>
         )}
 
-        {result.experience && (
+        {result.experience && result.experience.length > 0 && (
           <div className="border-b pb-4">
             <h4 className="font-semibold text-lg mb-2">Expérience professionnelle</h4>
             <div className="space-y-3">
               {result.experience.map((exp, index) => (
                 <div key={index} className="bg-gray-50 p-3 rounded">
-                  <p className="font-medium">{exp.title || exp.position} - {exp.company}</p>
-                  <p className="text-sm text-gray-600">
-                    {exp.start_date} - {exp.end_date || 'Présent'}
+                  <p className="font-medium">
+                    {exp.title || "Poste non précisé"} 
+                    {exp.company ? ` - ${exp.company}` : ""}
                   </p>
-                  <p className="text-sm mt-1">{exp.description}</p>
+                  <p className="text-sm text-gray-600">
+                    {exp.start_date || "Date non précisée"} - {exp.end_date || "Présent"}
+                  </p>
+                  <p className="text-sm mt-1">{exp.description || "Pas de description disponible"}</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {result.education && (
+        {result.education && result.education.length > 0 && (
           <div className="border-b pb-4">
             <h4 className="font-semibold text-lg mb-2">Formation</h4>
             <div className="space-y-3">
               {result.education.map((edu, index) => (
                 <div key={index} className="bg-gray-50 p-3 rounded">
-                  <p className="font-medium">{edu.degree} - {edu.institution}</p>
-                  <p className="text-sm text-gray-600">
-                    {edu.start_date} - {edu.end_date || 'Présent'}
+                  <p className="font-medium">
+                    {edu.degree || "Diplôme non précisé"} 
+                    {edu.institution ? ` - ${edu.institution}` : ""}
                   </p>
-                  <p className="text-sm mt-1">{edu.description}</p>
+                  <p className="text-sm text-gray-600">
+                    {edu.start_date || "Date non précisée"} - {edu.end_date || "Présent"}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {result.languages && (
+        {result.languages && result.languages.length > 0 && (
           <div className="pb-4">
             <h4 className="font-semibold text-lg mb-2">Langues</h4>
             <div className="space-y-1">
