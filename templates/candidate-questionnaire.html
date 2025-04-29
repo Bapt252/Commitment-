@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Ajout du script de pré-remplissage automatique du formulaire -->
+    <script src="../static/scripts/form-prefiller.js"></script>
+    
     <style>
         /* Styles spécifiques au questionnaire candidat */
         .form-container {
@@ -1225,6 +1228,10 @@
     <!-- Scripts JavaScript -->
     <script src="../static/scripts/candidate-analyzer.js"></script>
     <script src="../static/scripts/candidate-questionnaire-analyzer.js"></script>
+    
+    <!-- Script pour les données de test (à décommenter en développement) -->
+    <script src="../static/scripts/parsed-data-example.js"></script>
+    
     <script>
         // Fonction pour rediriger directement vers les matchings en cas d'échec du système d'analyse
         function redirectToMatchingPage() {
@@ -1613,6 +1620,9 @@
                 nav.classList.toggle('active');
                 menuToggle.classList.toggle('active');
             });
+            
+            // Pour tester en développement, décommentez la ligne suivante
+            // storeParseDataForTesting();
         });
     </script>
 </body>
