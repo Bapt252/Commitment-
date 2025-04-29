@@ -1,3 +1,4 @@
+
 # Étape de build
 FROM python:3.11-slim as builder
 
@@ -6,6 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
     libmagic1 \
+    poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-fra \
     && rm -rf /var/lib/apt/lists/*
 
 # Créer le répertoire des wheels
@@ -20,10 +24,16 @@ RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
 # Image finale
 FROM python:3.11-slim
 
-# Dépendances runtime
+# Dépendances runtime pour traitement de documents
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libmagic1 \
     curl \
+    poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-fra \
+    antiword \
+    unrtf \
+    libgl1-mesa-glx \
     && rm -rf /var/lib/apt/lists/*
 
 # Variables d'environnement
@@ -51,8 +61,9 @@ WORKDIR /app
 # Copier le code de l'application
 COPY --chown=appuser:appuser . .
 
-# Précharger les modèles sentence-transformers
-RUN python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
+# Précharger les modèles si nécessaire
+# Le préchargement de sentence-transformers est commenté car il semble inutilisé
+# RUN python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
 
 # Passer à l'utilisateur non-root
 USER appuser
