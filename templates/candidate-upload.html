@@ -6,6 +6,7 @@
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Styles CSS existants (inchangés) */
         :root {
             --primary-color: #7c4dff;
             --primary-light: #e8e3ff;
@@ -666,6 +667,64 @@
             color: var(--primary-color);
         }
 
+        /* Style du conteneur API Key */
+        .api-key-container {
+            margin-bottom: 1.5rem;
+            display: none;
+            width: 100%;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            border: 1px dashed #ddd;
+        }
+        
+        .api-key-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .api-key-description {
+            font-size: 0.875rem;
+            color: var(--gray-dark);
+            margin-bottom: 1rem;
+        }
+        
+        .api-key-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+        }
+        
+        .api-key-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        
+        .api-key-save {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        
+        .api-key-cancel {
+            background-color: white;
+            color: var(--gray-dark);
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 1rem;
@@ -749,6 +808,20 @@
             <h2 class="form-section-title">Analyse automatique de votre CV</h2>
             
             <p>Uploadez votre CV pour que nous puissions extraire automatiquement vos informations et compétences. Cela permettra d'optimiser vos chances de matching avec les offres qui vous correspondent.</p>
+            
+            <!-- Conteneur pour la clé API (initialement caché) -->
+            <div class="api-key-container" id="apiKeyContainer">
+                <div class="api-key-title">Clé API OpenAI (facultatif)</div>
+                <div class="api-key-description">
+                    Pour utiliser le parsing avancé sur GitHub Pages, vous pouvez fournir votre propre clé API OpenAI.
+                    Votre clé ne sera jamais stockée sur nos serveurs et restera uniquement dans votre navigateur.
+                </div>
+                <input type="text" class="api-key-input" id="apiKeyInput" placeholder="sk-...">
+                <div class="api-key-actions">
+                    <button class="api-key-cancel" id="apiKeyCancelBtn">Annuler</button>
+                    <button class="api-key-save" id="apiKeySaveBtn">Enregistrer</button>
+                </div>
+            </div>
             
             <div class="upload-container" id="uploadContainer">
                 <i class="fas fa-file-upload upload-icon"></i>
@@ -903,6 +976,12 @@
             const stepperProgress = document.querySelector('.stepper-progress');
             const openChatBtn = document.getElementById('openChatBtn');
             
+            // Éléments DOM pour la clé API
+            const apiKeyContainer = document.getElementById('apiKeyContainer');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const apiKeySaveBtn = document.getElementById('apiKeySaveBtn');
+            const apiKeyCancelBtn = document.getElementById('apiKeyCancelBtn');
+            
             // Éléments DOM pour le chat
             const chatModalOverlay = document.getElementById('chatModalOverlay');
             const closeChatBtn = document.getElementById('closeChatBtn');
@@ -919,51 +998,95 @@
             
             // URL de base pour les API - Détection automatique de l'environnement
             const isGitHubPages = window.location.hostname.includes('github.io');
-            // Si sur GitHub Pages, utiliser un mode mock complet
-            const API_BASE_URL = isGitHubPages ? null : 'http://localhost:5051/api';
             
-            console.log('Environnement détecté:', isGitHubPages ? 'GitHub Pages' : 'Local/Dev');
+            // Si sur GitHub Pages, afficher le conteneur de clé API
+            if (isGitHubPages) {
+                apiKeyContainer.style.display = 'block';
+                
+                // Vérifier si une clé API est déjà stockée
+                const storedApiKey = localStorage.getItem('openai_api_key');
+                if (storedApiKey) {
+                    apiKeyInput.value = storedApiKey;
+                }
+            }
             
-            // Initialiser l'intégration du service de parsing avec auto-détection
-            const cvParser = new CVParserIntegration({
-                apiUrl: API_BASE_URL,
-                useAsync: false,
-                forceMock: isGitHubPages, // Forcer le mode mock sur GitHub Pages
-                onParsingStart: () => {
-                    loadingIndicator.style.display = 'flex';
-                    errorMessage.style.display = 'none';
-                    parsedData.style.display = 'none';
-                    stepperProgress.style.width = '33.33%';
-                },
-                onParsingComplete: (data) => {
-                    loadingIndicator.style.display = 'none';
+            // Événements pour la gestion de la clé API
+            apiKeySaveBtn.addEventListener('click', function() {
+                const apiKey = apiKeyInput.value.trim();
+                if (apiKey && apiKey.startsWith('sk-')) {
+                    localStorage.setItem('openai_api_key', apiKey);
+                    apiKeyContainer.style.display = 'none';
                     
-                    if (data && data.data) {
-                        const extractedData = data.data;
-                        
-                        // Mettre à jour l'interface avec les données
-                        populateDataTable(extractedData);
-                        
-                        // Afficher les résultats
-                        parsedData.style.display = 'block';
-                        successMessage.style.display = 'block';
-                        
-                        // Masquer le message de succès après 3 secondes
-                        setTimeout(() => {
-                            successMessage.style.display = 'none';
-                        }, 3000);
-                    } else {
-                        // Gérer l'erreur
-                        errorText.textContent = 'Échec de l\'analyse du CV.';
-                        errorMessage.style.display = 'block';
-                    }
-                },
-                onParsingError: (error) => {
-                    loadingIndicator.style.display = 'none';
-                    errorText.textContent = 'Erreur lors de l\'analyse: ' + error.message;
-                    errorMessage.style.display = 'block';
+                    // Réinitialiser l'intégration avec la nouvelle clé API
+                    initCVParser();
+                    
+                    // Afficher un message de succès
+                    alert('Clé API enregistrée avec succès!');
+                } else {
+                    alert('Veuillez entrer une clé API OpenAI valide commençant par "sk-"');
                 }
             });
+            
+            apiKeyCancelBtn.addEventListener('click', function() {
+                apiKeyContainer.style.display = 'none';
+            });
+            
+            // Fonction pour initialiser le parser CV avec les options appropriées
+            function initCVParser() {
+                const apiKey = localStorage.getItem('openai_api_key');
+                const useDirectOpenAI = isGitHubPages && apiKey;
+                
+                // URL de l'API ou null pour GitHub Pages
+                const API_BASE_URL = isGitHubPages ? null : 'http://localhost:5051/api';
+                
+                console.log('Environnement détecté:', isGitHubPages ? 'GitHub Pages' : 'Local/Dev');
+                
+                // Initialiser l'intégration du service de parsing avec auto-détection
+                window.cvParser = new CVParserIntegration({
+                    apiUrl: API_BASE_URL,
+                    useAsync: false,
+                    forceMock: isGitHubPages && !apiKey, // Forcer le mode mock sur GitHub Pages sans clé API
+                    useDirectOpenAI: useDirectOpenAI,    // Utiliser l'API OpenAI directement si clé disponible
+                    openAIKey: apiKey,                   // Clé API OpenAI (si disponible)
+                    onParsingStart: () => {
+                        loadingIndicator.style.display = 'flex';
+                        errorMessage.style.display = 'none';
+                        parsedData.style.display = 'none';
+                        stepperProgress.style.width = '33.33%';
+                    },
+                    onParsingComplete: (data) => {
+                        loadingIndicator.style.display = 'none';
+                        
+                        if (data && data.data) {
+                            const extractedData = data.data;
+                            
+                            // Mettre à jour l'interface avec les données
+                            populateDataTable(extractedData);
+                            
+                            // Afficher les résultats
+                            parsedData.style.display = 'block';
+                            successMessage.style.display = 'block';
+                            
+                            // Masquer le message de succès après 3 secondes
+                            setTimeout(() => {
+                                successMessage.style.display = 'none';
+                            }, 3000);
+                        } else {
+                            // Gérer l'erreur
+                            errorText.textContent = 'Échec de l\'analyse du CV.';
+                            errorMessage.style.display = 'block';
+                        }
+                    },
+                    onParsingError: (error) => {
+                        loadingIndicator.style.display = 'none';
+                        errorText.textContent = 'Erreur lors de l\'analyse: ' + error.message;
+                        errorMessage.style.display = 'block';
+                    }
+                });
+            }
+            
+            // Initialiser le CVParser
+            initCVParser();
             
             // Par défaut, le bouton Continuer est activé
             nextBtn.disabled = false;
@@ -1121,58 +1244,80 @@
                 await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
                 
                 try {
-                    // Si on est sur GitHub Pages, utiliser une réponse simulée
-                    if (isGitHubPages) {
+                    // Vérifier si une clé API OpenAI est disponible
+                    const apiKey = localStorage.getItem('openai_api_key');
+                    const useDirectOpenAI = isGitHubPages && apiKey;
+                    
+                    if (useDirectOpenAI) {
+                        // Appeler directement l'API OpenAI pour le chat
+                        try {
+                            const prompt = `
+                            Tu es un assistant spécialisé dans l'analyse de CV et les conseils en recherche d'emploi.
+                            Les données du CV du candidat sont les suivantes:
+                            ${JSON.stringify(documentData, null, 2)}
+
+                            Historique de conversation:
+                            ${chatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+
+                            Question du candidat: ${message}
+
+                            Réponds de manière claire, concise et professionnelle. Donne des conseils personnalisés en fonction des informations du CV.
+                            `;
+
+                            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${apiKey}`
+                                },
+                                body: JSON.stringify({
+                                    model: 'gpt-3.5-turbo',
+                                    messages: [
+                                        {
+                                            role: 'user',
+                                            content: prompt
+                                        }
+                                    ],
+                                    temperature: 0.7,
+                                    max_tokens: 800
+                                })
+                            });
+                            
+                            if (!response.ok) {
+                                throw new Error(`Erreur API: ${response.status}`);
+                            }
+                            
+                            const data = await response.json();
+                            const aiResponse = data.choices[0].message.content;
+                            
+                            // Masquer l'indicateur de frappe
+                            chatTypingIndicator.style.display = 'none';
+                            
+                            // Ajouter les messages à l'historique
+                            chatHistory.push({ role: 'user', content: message });
+                            chatHistory.push({ role: 'assistant', content: aiResponse });
+                            
+                            // Ajouter la réponse à l'interface
+                            addChatMessage(aiResponse, 'assistant');
+                            
+                        } catch (apiError) {
+                            console.error('Erreur lors de l\'appel à l\'API OpenAI:', apiError);
+                            
+                            // Masquer l'indicateur de frappe
+                            chatTypingIndicator.style.display = 'none';
+                            
+                            // Utiliser une réponse de secours
+                            const backupResponse = generateChatResponse(message, documentData);
+                            addChatMessage(backupResponse, 'assistant');
+                        }
+                    } else {
+                        // Sur GitHub Pages sans clé API ou en local sans backend, utiliser une réponse simulée
                         // Masquer l'indicateur de frappe
                         chatTypingIndicator.style.display = 'none';
                         
                         // Générer une réponse simulée
                         const simulatedResponse = generateChatResponse(message, documentData);
                         addChatMessage(simulatedResponse, 'assistant');
-                        return;
-                    }
-                    
-                    // Sinon, essayer d'appeler l'API de chat
-                    try {
-                        const response = await fetch(`${API_BASE_URL}/chat`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Access-Control-Allow-Origin': '*'
-                            },
-                            body: JSON.stringify({
-                                message: message,
-                                history: chatHistory,
-                                document_data: documentData,
-                                doc_type: 'cv'
-                            })
-                        });
-                        
-                        // Vérifier si la réponse est OK
-                        if (!response.ok) {
-                            throw new Error(`Erreur serveur: ${response.status}`);
-                        }
-                        
-                        // Traiter la réponse
-                        const data = await response.json();
-                        
-                        // Masquer l'indicateur de frappe
-                        chatTypingIndicator.style.display = 'none';
-                        
-                        // Mettre à jour l'historique du chat
-                        chatHistory = data.history || chatHistory;
-                        
-                        // Ajouter la réponse à l'interface
-                        addChatMessage(data.response, 'assistant');
-                    } catch (apiError) {
-                        console.error('Erreur lors de l\'appel à l\'API de chat:', apiError);
-                        
-                        // Masquer l'indicateur de frappe
-                        chatTypingIndicator.style.display = 'none';
-                        
-                        // Utiliser une réponse de secours
-                        const backupResponse = generateChatResponse(message, documentData);
-                        addChatMessage(backupResponse, 'assistant');
                     }
                 } catch (error) {
                     console.error('Erreur générale du chat:', error);
@@ -1198,10 +1343,12 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 
                 // Ajouter le message à l'historique
-                chatHistory.push({
-                    role: role,
-                    content: content
-                });
+                if (!chatHistory.some(msg => msg.role === role && msg.content === content)) {
+                    chatHistory.push({
+                        role: role,
+                        content: content
+                    });
+                }
             }
             
             // Fonction pour générer une réponse de chat basée sur les données du CV
@@ -1269,7 +1416,7 @@
                 
                 try {
                     // Utiliser le service de parsing CV via l'intégration
-                    await cvParser.parseCV(file);
+                    await window.cvParser.parseCV(file);
                 } catch (error) {
                     console.error('Erreur lors du parsing:', error);
                     errorText.textContent = 'Erreur lors de l\'analyse: ' + error.message;
@@ -1285,11 +1432,11 @@
                 let experience = data.work_experience || [];
                 
                 // Traiter le nom
-                document.getElementById('parsedName').textContent = personalInfo.name || 'Non détecté';
+                document.getElementById('parsedName').textContent = personalInfo.name || personalInfo.prenom + ' ' + personalInfo.nom || 'Non détecté';
                 
                 // Traiter le titre de poste
                 let jobTitle = '';
-                if (experience.length > 0 && experience[0].title) {
+                if (experience && experience.length > 0 && experience[0].title) {
                     jobTitle = experience[0].title;
                 }
                 document.getElementById('parsedJobTitle').textContent = jobTitle || 'Non détecté';
@@ -1298,15 +1445,23 @@
                 document.getElementById('parsedEmail').textContent = personalInfo.email || 'Non détecté';
                 
                 // Traiter le téléphone
-                document.getElementById('parsedPhone').textContent = personalInfo.phone || 'Non détecté';
+                document.getElementById('parsedPhone').textContent = personalInfo.phone || personalInfo.telephone || 'Non détecté';
                 
                 // Traiter les compétences
-                let skillsText = Array.isArray(skills) ? skills.join(', ') : skills;
+                let skillsText = ''; 
+                if (Array.isArray(skills)) {
+                    skillsText = skills.join(', ');
+                } else if (typeof skills === 'string') {
+                    skillsText = skills;
+                } else if (skills && typeof skills === 'object') {
+                    // Cas où skills pourrait être un objet avec des propriétés
+                    skillsText = Object.values(skills).flat().join(', ');
+                }
                 document.getElementById('parsedSkills').textContent = skillsText || 'Non détecté';
                 
                 // Traiter l'expérience
                 let experienceText = '';
-                if (experience.length > 0) {
+                if (experience && experience.length > 0) {
                     // Calculer le nombre total d'années d'expérience
                     experienceText = experience.length + ' expérience(s) professionnelle(s)';
                 }
@@ -1314,12 +1469,12 @@
                 
                 // Stocker les données pour le chat
                 documentData = {
-                    name: personalInfo.name || 'Non détecté',
-                    jobTitle: jobTitle || 'Non détecté',
-                    email: personalInfo.email || 'Non détecté',
-                    phone: personalInfo.phone || 'Non détecté',
-                    skills: skillsText || 'Non détecté',
-                    experience: experienceText || 'Non détecté'
+                    name: document.getElementById('parsedName').textContent,
+                    jobTitle: document.getElementById('parsedJobTitle').textContent,
+                    email: document.getElementById('parsedEmail').textContent,
+                    phone: document.getElementById('parsedPhone').textContent,
+                    skills: document.getElementById('parsedSkills').textContent,
+                    experience: document.getElementById('parsedExperience').textContent
                 };
             }
             
