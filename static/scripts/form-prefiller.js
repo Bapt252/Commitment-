@@ -1,5 +1,5 @@
 /**
- * FormPrefiller - Script pour pré-remplir automatiquement le formulaire candidat
+ * Form-prefiller.js - Script pour pré-remplir automatiquement le formulaire candidat
  * avec les données parsées depuis le backend.
  */
 
@@ -21,12 +21,194 @@ window.FormPrefiller = (function() {
     parsedData = data;
     console.log("Données de pré-remplissage chargées:", parsedData);
 
+    // Convertir les données du format backend au format du formulaire
+    transformCvDataToFormData();
+
     // Attend que le DOM soit chargé avant de pré-remplir le formulaire
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', fillForm);
     } else {
       fillForm();
     }
+  }
+
+  /**
+   * Transforme les données du format backend (parsing CV) au format du formulaire
+   */
+  function transformCvDataToFormData() {
+    if (!parsedData || !parsedData.data) {
+      console.warn("Données invalides pour la transformation");
+      return;
+    }
+
+    const cvData = parsedData.data;
+
+    // Créer une structure de données compatible avec le formulaire
+    const formData = {
+      personalInfo: {
+        fullName: "",
+        jobTitle: ""
+      },
+      mobility: {
+        transportMethods: [],
+        commuteTimes: {},
+        address: "",
+        officePreference: ""
+      },
+      motivations: {
+        order: ["remuneration", "evolution", "flexibility", "location", "other"],
+        otherMotivation: "",
+        structureTypes: [],
+        hasSectorPreference: false,
+        preferredSectors: [],
+        hasProhibitedSectors: false,
+        prohibitedSectors: [],
+        salaryRange: ""
+      },
+      availability: {
+        timeframe: "1month",
+        currentlyEmployed: false,
+        listeningReason: "",
+        contractEndReason: "",
+        noticePeriod: "",
+        noticeNegotiable: null,
+        recruitmentStatus: "no-leads"
+      }
+    };
+
+    // Remplir les informations personnelles
+    if (cvData.personal_info) {
+      formData.personalInfo.fullName = cvData.personal_info.name || "";
+      // Ajouter l'adresse si disponible
+      if (cvData.personal_info.address) {
+        formData.mobility.address = cvData.personal_info.address;
+      }
+    }
+
+    // Remplir le poste souhaité
+    if (cvData.position) {
+      formData.personalInfo.jobTitle = cvData.position;
+    }
+
+    // Estimer des valeurs par défaut pour les moyens de transport
+    // Par défaut, on suppose que la personne utilise les transports en commun et peut-être un véhicule
+    formData.mobility.transportMethods = ["public-transport"];
+    formData.mobility.commuteTimes = {
+      "public-transport": "30"
+    };
+
+    // Estimer une fourchette de salaire basée sur le poste (valeurs fictives à ajuster)
+    const positionToSalaryMap = {
+      "comptable": "32K€ - 45K€ brut annuel",
+      "auditeur": "40K€ - 55K€ brut annuel",
+      "contrôleur": "35K€ - 50K€ brut annuel",
+      "directeur": "70K€ - 90K€ brut annuel",
+      "analyste": "35K€ - 50K€ brut annuel",
+      "responsable": "45K€ - 60K€ brut annuel",
+      "développeur": "40K€ - 60K€ brut annuel"
+    };
+
+    // Essayer de déterminer une fourchette de salaire basée sur le poste
+    if (cvData.position) {
+      const position = cvData.position.toLowerCase();
+      for (const [key, value] of Object.entries(positionToSalaryMap)) {
+        if (position.includes(key)) {
+          formData.motivations.salaryRange = value;
+          break;
+        }
+      }
+      // Si aucune correspondance n'est trouvée, utiliser une fourchette par défaut
+      if (!formData.motivations.salaryRange) {
+        formData.motivations.salaryRange = "35K€ - 50K€ brut annuel";
+      }
+    }
+
+    // Déterminer le statut d'emploi actuel basé sur les expériences professionnelles
+    if (cvData.experience && cvData.experience.length > 0) {
+      const latestExperience = cvData.experience[0]; // Supposé être la plus récente
+      if (latestExperience.end_date && 
+          (latestExperience.end_date.toLowerCase().includes("présent") || 
+           latestExperience.end_date.toLowerCase().includes("present") ||
+           latestExperience.end_date === "")) {
+        formData.availability.currentlyEmployed = true;
+        formData.availability.listeningReason = "no-evolution"; // Valeur par défaut
+      } else {
+        formData.availability.currentlyEmployed = false;
+        formData.availability.contractEndReason = "no-evolution"; // Valeur par défaut
+      }
+    }
+
+    // Détection automatique des types de structures basée sur l'expérience
+    const structureDetection = {
+      startup: ["startup", "jeune pousse", "incubateur", "innovation"],
+      pme: ["pme", "sme", "petite entreprise", "moyenne entreprise"],
+      group: ["groupe", "grande entreprise", "multinationale", "corporation"]
+    };
+
+    if (cvData.experience) {
+      const allExperienceText = cvData.experience.map(exp => 
+        `${exp.company || ""} ${exp.description || ""}`).join(" ").toLowerCase();
+      
+      for (const [type, keywords] of Object.entries(structureDetection)) {
+        if (keywords.some(keyword => allExperienceText.includes(keyword))) {
+          formData.motivations.structureTypes.push(type);
+        }
+      }
+    }
+
+    // Si aucun type de structure n'a été détecté, ajouter une valeur par défaut
+    if (formData.motivations.structureTypes.length === 0) {
+      formData.motivations.structureTypes.push("no-preference");
+    }
+
+    // Détection des langues pour déterminer si la personne a des préférences de secteur
+    // Ex: Si la personne parle plusieurs langues, elle pourrait être intéressée par l'international
+    if (cvData.languages && cvData.languages.length > 1) {
+      const hasAdvancedEnglish = cvData.languages.some(lang => 
+        lang.language.toLowerCase().includes("anglais") && 
+        ["courant", "bilingue", "c1", "c2"].some(level => 
+          lang.level.toLowerCase().includes(level))
+      );
+
+      if (hasAdvancedEnglish) {
+        formData.motivations.hasSectorPreference = true;
+        formData.motivations.preferredSectors = ["tech", "finance"];
+      }
+    }
+
+    // Détection des logiciels pour déterminer les secteurs d'activité potentiels
+    const softwareToSectorMap = {
+      "sap": "tech",
+      "sage": "finance",
+      "cegid": "finance",
+      "dynamics": "finance",
+      "oracle": "tech",
+      "salesforce": "tech",
+      "adobe": "media",
+      "autocad": "construction",
+      "revit": "construction"
+    };
+
+    if (cvData.softwares && cvData.softwares.length > 0) {
+      const detectedSectors = new Set();
+      
+      for (const software of cvData.softwares) {
+        const softwareLower = software.toLowerCase();
+        for (const [key, sector] of Object.entries(softwareToSectorMap)) {
+          if (softwareLower.includes(key)) {
+            detectedSectors.add(sector);
+          }
+        }
+      }
+      
+      if (detectedSectors.size > 0) {
+        formData.motivations.hasSectorPreference = true;
+        formData.motivations.preferredSectors = Array.from(detectedSectors);
+      }
+    }
+
+    // Mise à jour des données parsées avec les données transformées
+    parsedData = formData;
   }
 
   /**
