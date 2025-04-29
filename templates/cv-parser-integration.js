@@ -1,7 +1,7 @@
 /**
  * Module d'intégration du système de parsing de CV basé sur GPT
  * Ce script fait l'interface entre l'UI existante et le service de parsing CV
- * Version améliorée
+ * Version améliorée avec support GitHub Pages
  */
 
 // Configuration par défaut de l'URL de l'API de parsing
@@ -17,10 +17,22 @@ class CVParserIntegration {
       onParsingStart: null,
       onParsingComplete: null,
       onParsingError: null,
+      forceMock: this.isGitHubPages(), // Forcer le mode mock sur GitHub Pages
       ...options
     };
     
     console.log('CVParserIntegration initialisé avec API URL:', this.options.apiUrl);
+    if (this.options.forceMock) {
+      console.log('Mode mock activé (GitHub Pages ou configuration forcée)');
+    }
+  }
+  
+  /**
+   * Vérifie si l'application s'exécute sur GitHub Pages
+   * @returns {boolean} - true si l'app est sur GitHub Pages
+   */
+  isGitHubPages() {
+    return window.location.hostname.includes('github.io');
   }
   
   /**
@@ -44,6 +56,21 @@ class CVParserIntegration {
     
     if (this.options.onParsingStart) {
       this.options.onParsingStart(file);
+    }
+    
+    // Si on est en mode mock forcé (GitHub Pages), on renvoie directement une réponse simulée
+    if (this.options.forceMock) {
+      console.log('Utilisation du mode mock (GitHub Pages)');
+      const mockResponse = this.generateMockResponse(file);
+      
+      // Ajouter un délai simulé pour une meilleure expérience utilisateur
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      if (this.options.onParsingComplete) {
+        this.options.onParsingComplete(mockResponse);
+      }
+      
+      return mockResponse;
     }
     
     try {
@@ -108,8 +135,18 @@ class CVParserIntegration {
         this.options.onParsingError(error);
       }
       
-      // Utiliser la réponse de secours
-      return this.generateMockResponse(file);
+      // Utiliser la réponse de secours après une erreur
+      console.log('Utilisation du mode mock suite à une erreur');
+      const mockResponse = this.generateMockResponse(file);
+      
+      // Ajouter un petit délai pour une meilleure expérience utilisateur
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (this.options.onParsingComplete) {
+        this.options.onParsingComplete(mockResponse);
+      }
+      
+      return mockResponse;
     }
   }
   
@@ -149,29 +186,42 @@ class CVParserIntegration {
   }
   
   /**
-   * Génère une réponse de secours en cas d'échec de l'API
+   * Génère une réponse de secours avec des données pertinentes basées sur le nom du fichier
    * @param {File} file - Fichier CV
    * @returns {Object} - Données simulées
    */
   generateMockResponse(file) {
-    console.log('Génération d\'une réponse de secours pour:', file.name);
+    console.log('Génération d\'une réponse mock pour:', file.name);
     
     // Extraire le nom de base du fichier (sans extension)
     const baseName = file.name.split('.')[0].replace(/[_-]/g, ' ');
     
-    // Générer un nom à partir du nom du fichier si possible
-    let name;
-    if (baseName.includes('CV') || baseName.includes('cv')) {
-      name = baseName.replace(/CV|cv|Cv/g, '').trim();
-      // Si le nom est vide après avoir retiré CV, utiliser un nom générique
-      if (!name) {
-        name = 'Thomas Martin';
-      }
-    } else {
-      name = baseName;
+    // Extraire le nom et des informations de carrière possibles du nom de fichier
+    let name = 'Thomas Martin';
+    let jobTitle = 'Développeur Full Stack';
+    let skills = ['JavaScript', 'HTML', 'CSS', 'React', 'Node.js', 'Python', 'SQL', 'Git', 'Docker', 'Agile'];
+    
+    // Essayer d'extraire des informations du nom de fichier
+    if (baseName.includes('Comptable') || baseName.includes('comptable')) {
+      jobTitle = 'Comptable';
+      skills = ['Comptabilité générale', 'Fiscalité', 'SAP', 'Excel', 'Sage', 'Bilan', 'Gestion de trésorerie'];
+    } else if (baseName.includes('Ingénieur') || baseName.includes('ingénieur')) {
+      jobTitle = 'Ingénieur Logiciel';
+    } else if (baseName.includes('Chef') || baseName.includes('manager')) {
+      jobTitle = 'Chef de Projet';
+      skills = ['Gestion de projet', 'Agile', 'Scrum', 'Budgétisation', 'Planification', 'JIRA', 'MS Project'];
     }
     
-    // Données simulées plus complètes
+    // Essayer d'extraire un nom du fichier
+    const nameMatch = baseName.match(/CV\s+([A-Za-z\s]+)/i);
+    if (nameMatch && nameMatch[1]) {
+      name = nameMatch[1].trim();
+    }
+    
+    // Générer un email basé sur le nom
+    const email = name.toLowerCase().replace(/\s+/g, '.') + '@exemple.com';
+    
+    // Données simulées plus complètes et adaptées
     return {
       processing_time: 1.25,
       parsed_at: Date.now() / 1000,
@@ -179,41 +229,38 @@ class CVParserIntegration {
       model: "mock",
       data: {
         personal_info: {
-          name: name || 'Thomas Martin',
-          email: name.toLowerCase().replace(/\s+/g, '.') + '@exemple.com',
-          phone: '+33 6 47 98 58 19',
+          name: name,
+          email: email,
+          phone: '+33 6 ' + Math.floor(10000000 + Math.random() * 90000000),
           address: '123 rue de Paris, 75001 Paris',
           linkedin: 'linkedin.com/in/' + name.toLowerCase().replace(/\s+/g, ''),
         },
-        skills: [
-          'JavaScript', 'HTML', 'CSS', 'React', 'Node.js', 
-          'Python', 'SQL', 'Git', 'Docker', 'Agile'
-        ],
+        skills: skills,
         work_experience: [
           {
-            title: 'Développeur Full Stack',
+            title: jobTitle,
             company: 'TechCorp',
             start_date: '2022-01',
             end_date: 'present',
-            description: 'Développement d\'applications web avec React et Node.js'
+            description: 'Développement et maintenance des solutions techniques de l\'entreprise.'
           },
           {
-            title: 'Développeur Frontend',
+            title: 'Assistant ' + jobTitle,
             company: 'WebAgency',
             start_date: '2020-03',
             end_date: '2021-12',
-            description: 'Création d\'interfaces utilisateur modernes et responsives'
+            description: 'Support aux équipes techniques et participation aux projets clients.'
           }
         ],
         education: [
           {
-            degree: 'Master en Informatique',
+            degree: 'Master en ' + (jobTitle.includes('Comptable') ? 'Comptabilité' : 'Informatique'),
             institution: 'Université de Paris',
             start_date: '2018',
             end_date: '2020'
           },
           {
-            degree: 'Licence en Informatique',
+            degree: 'Licence en ' + (jobTitle.includes('Comptable') ? 'Économie' : 'Informatique'),
             institution: 'Université de Lyon',
             start_date: '2015',
             end_date: '2018'
