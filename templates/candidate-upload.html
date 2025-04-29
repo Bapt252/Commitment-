@@ -883,6 +883,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="cv-parser-integration.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Éléments DOM pour l'upload de CV
@@ -917,8 +918,48 @@
             let documentData = null;
             
             // URL de base pour les API
-            // Pour la démo en développement, nous utilisons l'URL du backend Flask
-            const API_BASE_URL = 'http://localhost:5000';
+            // URL correcte pour le service de parsing
+            const API_BASE_URL = 'http://localhost:5051';
+            
+            // Initialiser l'intégration du service de parsing
+            const cvParser = new CVParserIntegration({
+                apiUrl: API_BASE_URL,
+                useAsync: false, // Utiliser le parsing synchrone
+                onParsingStart: () => {
+                    loadingIndicator.style.display = 'flex';
+                    errorMessage.style.display = 'none';
+                    parsedData.style.display = 'none';
+                    stepperProgress.style.width = '33.33%';
+                },
+                onParsingComplete: (data) => {
+                    loadingIndicator.style.display = 'none';
+                    
+                    if (data && data.data) {
+                        const extractedData = data.data;
+                        
+                        // Mettre à jour l'interface avec les données
+                        populateDataTable(extractedData);
+                        
+                        // Afficher les résultats
+                        parsedData.style.display = 'block';
+                        successMessage.style.display = 'block';
+                        
+                        // Masquer le message de succès après 3 secondes
+                        setTimeout(() => {
+                            successMessage.style.display = 'none';
+                        }, 3000);
+                    } else {
+                        // Gérer l'erreur
+                        errorText.textContent = 'Échec de l\'analyse du CV.';
+                        errorMessage.style.display = 'block';
+                    }
+                },
+                onParsingError: (error) => {
+                    loadingIndicator.style.display = 'none';
+                    errorText.textContent = 'Erreur lors de l\'analyse: ' + error.message;
+                    errorMessage.style.display = 'block';
+                }
+            });
             
             // Par défaut, le bouton Continuer est activé
             nextBtn.disabled = false;
@@ -1074,7 +1115,7 @@
                 
                 try {
                     // Appel à l'API de chat
-                    const response = await fetch(`${API_BASE_URL}/api/parsing-chat/chat`, {
+                    const response = await fetch(`${API_BASE_URL}/api/chat`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1191,140 +1232,64 @@
                     return;
                 }
                 
-                // Masquer message d'erreur s'il était affiché
-                errorMessage.style.display = 'none';
-                
                 // Affichage des informations sur le fichier
                 fileName.textContent = file.name;
                 fileSize.textContent = formatFileSize(file.size);
                 fileInfo.style.display = 'flex';
                 
-                // Montrer l'indicateur de chargement
-                loadingIndicator.style.display = 'flex';
-                
-                // Mise à jour de la barre de progression
-                stepperProgress.style.width = '33.33%';
-                
                 try {
-                    // Créer un FormData pour envoyer le fichier
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('doc_type', 'cv');
-                    
-                    // Appel à l'API de parsing
-                    let responseData;
-                    
-                    try {
-                        // Appel à l'API réelle
-                        const response = await fetch(`${API_BASE_URL}/api/parsing-chat/upload`, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'Access-Control-Allow-Origin': '*'
-                            }
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`Erreur serveur: ${response.status}`);
-                        }
-                        
-                        responseData = await response.json();
-                    } catch (apiError) {
-                        console.error('Erreur lors de l\'appel à l\'API de parsing:', apiError);
-                        // En cas d'erreur API, utiliser des données simulées (solution de secours)
-                        responseData = simulateParsingResponse(file.name);
-                    }
-                    
-                    // Cacher l'indicateur de chargement
-                    loadingIndicator.style.display = 'none';
-                    
-                    if (responseData.success || responseData.document_data) {
-                        // Récupérer les données extraites
-                        const extractedData = responseData.document_data || {};
-                        
-                        // Mettre à jour l'interface avec les données
-                        document.getElementById('parsedName').textContent = extractedData.name || 'Non détecté';
-                        document.getElementById('parsedJobTitle').textContent = extractedData.job_title || 'Non détecté';
-                        document.getElementById('parsedEmail').textContent = extractedData.email || 'Non détecté';
-                        document.getElementById('parsedPhone').textContent = extractedData.phone || 'Non détecté';
-                        
-                        // Traiter les compétences qui peuvent être un tableau ou une chaîne
-                        let skillsText;
-                        if (Array.isArray(extractedData.skills)) {
-                            skillsText = extractedData.skills.join(', ');
-                        } else if (typeof extractedData.skills === 'string') {
-                            skillsText = extractedData.skills;
-                        } else {
-                            skillsText = 'Non détecté';
-                        }
-                        document.getElementById('parsedSkills').textContent = skillsText;
-                        
-                        // Expérience
-                        document.getElementById('parsedExperience').textContent = extractedData.experience || 'Non détecté';
-                        
-                        // Stocker les données pour le chat
-                        documentData = extractedData;
-                        
-                        // Afficher les résultats
-                        parsedData.style.display = 'block';
-                        successMessage.style.display = 'block';
-                        
-                        // Masquer le message de succès après 3 secondes
-                        setTimeout(() => {
-                            successMessage.style.display = 'none';
-                        }, 3000);
-                    } else {
-                        // Gérer l'erreur
-                        errorText.textContent = 'Échec de l\'analyse du CV.';
-                        errorMessage.style.display = 'block';
-                    }
+                    // Utiliser le service de parsing CV via l'intégration
+                    await cvParser.parseCV(file);
                 } catch (error) {
-                    // Cacher l'indicateur de chargement
-                    loadingIndicator.style.display = 'none';
-                    
-                    // Afficher l'erreur
+                    console.error('Erreur lors du parsing:', error);
                     errorText.textContent = 'Erreur lors de l\'analyse: ' + error.message;
                     errorMessage.style.display = 'block';
                 }
             }
             
-            // Fonction qui simule une réponse de parsing en cas d'échec de l'API
-            function simulateParsingResponse(fileName) {
-                // Extraire le nom de base du fichier (sans extension)
-                const baseName = fileName.split('.')[0].replace(/[_-]/g, ' ');
+            // Fonction pour remplir le tableau de données
+            function populateDataTable(data) {
+                // Extraire les données pertinentes
+                let personalInfo = data.personal_info || {};
+                let skills = data.skills || [];
+                let experience = data.work_experience || [];
                 
-                // Générer un nom à partir du nom du fichier si possible
-                let name;
-                if (baseName.includes('CV') || baseName.includes('cv')) {
-                    name = baseName.replace(/CV|cv|Cv/g, '').trim();
-                    // Si le nom est vide après avoir retiré CV, utiliser un nom générique
-                    if (!name) {
-                        name = 'Thomas Martin';
-                    }
-                } else {
-                    name = baseName;
+                // Traiter le nom
+                document.getElementById('parsedName').textContent = personalInfo.name || 'Non détecté';
+                
+                // Traiter le titre de poste
+                let jobTitle = '';
+                if (experience.length > 0 && experience[0].title) {
+                    jobTitle = experience[0].title;
                 }
+                document.getElementById('parsedJobTitle').textContent = jobTitle || 'Non détecté';
                 
-                // Données simulées mais plus intelligentes
-                return {
-                    success: true,
-                    document_data: {
-                        name: name || 'Thomas Martin',
-                        job_title: 'Ingénieur Logiciel',
-                        email: name.toLowerCase().replace(' ', '.') + '@exemple.com',
-                        phone: '+33 6 47 98 58 19',
-                        skills: 'Java, Spring, Hibernate, Docker',
-                        experience: '5 ans',
-                    },
-                    confidence_scores: {
-                        name: 0.92,
-                        job_title: 0.85,
-                        email: 0.95,
-                        phone: 0.90,
-                        skills: 0.88,
-                        experience: 0.80
-                    },
-                    doc_type: 'cv'
+                // Traiter l'email
+                document.getElementById('parsedEmail').textContent = personalInfo.email || 'Non détecté';
+                
+                // Traiter le téléphone
+                document.getElementById('parsedPhone').textContent = personalInfo.phone || 'Non détecté';
+                
+                // Traiter les compétences
+                let skillsText = Array.isArray(skills) ? skills.join(', ') : skills;
+                document.getElementById('parsedSkills').textContent = skillsText || 'Non détecté';
+                
+                // Traiter l'expérience
+                let experienceText = '';
+                if (experience.length > 0) {
+                    // Calculer le nombre total d'années d'expérience
+                    experienceText = experience.length + ' expérience(s) professionnelle(s)';
+                }
+                document.getElementById('parsedExperience').textContent = experienceText || 'Non détecté';
+                
+                // Stocker les données pour le chat
+                documentData = {
+                    name: personalInfo.name || 'Non détecté',
+                    jobTitle: jobTitle || 'Non détecté',
+                    email: personalInfo.email || 'Non détecté',
+                    phone: personalInfo.phone || 'Non détecté',
+                    skills: skillsText || 'Non détecté',
+                    experience: experienceText || 'Non détecté'
                 };
             }
             
