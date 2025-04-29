@@ -291,24 +291,40 @@ def parse_cv_with_openai(cv_text: str) -> Dict[str, Any]:
     # Appeler l'API OpenAI
     try:
         start_time = time.time()
-        response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": cv_text}
-            ],
-            temperature=0.1,  # Température basse pour plus de cohérence
-            max_tokens=3000,  # Augmenté pour traiter plus de détails
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0
-        )
+        # Détection de la version d'OpenAI et appel adapté
+        if hasattr(openai, 'ChatCompletion'):
+            # Version plus ancienne (<=3.x)
+            response = openai.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": cv_text}
+                ],
+                temperature=0.1,  # Température basse pour plus de cohérence
+                max_tokens=3000,  # Augmenté pour traiter plus de détails
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0
+            )
+            content = response.choices[0].message.content
+        else:
+            # Version plus récente (>=4.x)
+            response = openai.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": cv_text}
+                ],
+                temperature=0.1,
+                max_tokens=3000,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0
+            )
+            content = response.choices[0].message.content
         
         execution_time = time.time() - start_time
         logger.info(f"OpenAI API request completed in {execution_time:.2f} seconds")
-        
-        # Extraire le contenu de la réponse
-        content = response.choices[0].message.content
         
         # Nettoyer le contenu au cas où GPT aurait ajouté des backticks ou commentaires
         content = content.strip()
@@ -353,12 +369,9 @@ def parse_cv_with_openai(cv_text: str) -> Dict[str, Any]:
             logger.error(f"Failed to parse JSON from OpenAI response: {content}")
             raise JSONParsingError(f"Invalid JSON format: {str(e)}")
             
-    except openai.error.OpenAIError as e:
+    except Exception as e:
         logger.error(f"OpenAI API error: {str(e)}")
         raise OpenAIError(f"OpenAI API error: {str(e)}")
-    except Exception as e:
-        logger.error(f"Unexpected error in OpenAI call: {str(e)}")
-        raise OpenAIError(f"Unexpected error: {str(e)}")
 
 @retry(
     stop=stop_after_attempt(2),
@@ -376,21 +389,37 @@ def refine_experiences(cv_text: str, initial_experiences: List[Dict[str, Any]]) 
         cv_excerpt = cv_text[:8000] if len(cv_text) > 8000 else cv_text
         
         start_time = time.time()
-        response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": EXPERIENCE_REFINEMENT_PROMPT},
-                {"role": "user", "content": f"CV EXCERPT:\n{cv_excerpt}\n\nINITIAL EXPERIENCES:\n{json.dumps(initial_experiences, ensure_ascii=False, indent=2)}"}
-            ],
-            temperature=0.1,
-            max_tokens=2000
-        )
+        # Détection de la version d'OpenAI et appel adapté
+        if hasattr(openai, 'ChatCompletion'):
+            # Version plus ancienne (<=3.x)
+            response = openai.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": EXPERIENCE_REFINEMENT_PROMPT},
+                    {"role": "user", "content": f"CV EXCERPT:\n{cv_excerpt}\n\nINITIAL EXPERIENCES:\n{json.dumps(initial_experiences, ensure_ascii=False, indent=2)}"}
+                ],
+                temperature=0.1,
+                max_tokens=2000
+            )
+            content = response.choices[0].message.content
+        else:
+            # Version plus récente (>=4.x)
+            response = openai.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": EXPERIENCE_REFINEMENT_PROMPT},
+                    {"role": "user", "content": f"CV EXCERPT:\n{cv_excerpt}\n\nINITIAL EXPERIENCES:\n{json.dumps(initial_experiences, ensure_ascii=False, indent=2)}"}
+                ],
+                temperature=0.1,
+                max_tokens=2000
+            )
+            content = response.choices[0].message.content
         
         execution_time = time.time() - start_time
         logger.info(f"Experience refinement completed in {execution_time:.2f} seconds")
         
         # Extraire et nettoyer la réponse
-        content = response.choices[0].message.content.strip()
+        content = content.strip()
         
         # Nettoyer le contenu
         if content.startswith("```json"):
@@ -436,11 +465,8 @@ def refine_experiences(cv_text: str, initial_experiences: List[Dict[str, Any]]) 
             logger.error(f"Failed to parse JSON from refinement response: {content}")
             return initial_experiences
             
-    except openai.error.OpenAIError as e:
-        logger.error(f"OpenAI API error during experience refinement: {str(e)}")
-        return initial_experiences
     except Exception as e:
-        logger.error(f"Unexpected error in experience refinement: {str(e)}")
+        logger.error(f"Error in experience refinement: {str(e)}")
         return initial_experiences
 
 def normalize_date(date_str: str) -> str:
