@@ -1,3 +1,4 @@
+
 # CV Parser Service - Configuration
 
 import os
@@ -34,8 +35,8 @@ class Settings(BaseSettings):
     
     # OpenAI API Settings
     OPENAI_API_KEY: str = Field(default="", env=["OPENAI", "OPENAI_API_KEY"])  # Accepte OPENAI ou OPENAI_API_KEY
-    OPENAI_MODEL: str = Field(default="gpt-3.5-turbo", env="OPENAI_MODEL")  # Modèle plus largement disponible
-    USE_MOCK_PARSER: bool = Field(default=False, env="USE_MOCK_PARSER")  # Utiliser le mock parser si vrai
+    OPENAI_MODEL: str = Field(default="gpt-4o-mini", env="OPENAI_MODEL")  # Modèle par défaut mis à jour
+    USE_MOCK_PARSER: bool = Field(default=False, env="USE_MOCK_PARSER")  # Désactivé par défaut
     
     # RQ Settings
     DEFAULT_TIMEOUT: int = Field(default=300, env="DEFAULT_TIMEOUT")  # 5 minutes
