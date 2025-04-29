@@ -725,6 +725,87 @@
             cursor: pointer;
         }
 
+        /* Styles pour les tags dans les compétences */
+        .skills-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .skill-tag {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            border-radius: 1rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Styles pour la liste des logiciels */
+        .software-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .software-item {
+            background-color: #f0f2f5;
+            color: var(--gray-dark);
+            border-radius: 1rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        /* Styles pour les langues */
+        .language-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .language-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .language-name {
+            font-weight: 500;
+        }
+
+        .language-level {
+            font-size: 0.875rem;
+            color: var(--gray-dark);
+        }
+
+        /* Styles pour l'expérience */
+        .experience-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .experience-item {
+            padding-left: 0.5rem;
+            border-left: 2px solid var(--primary-light);
+        }
+
+        .experience-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .experience-company {
+            font-size: 0.875rem;
+            color: var(--gray-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .experience-date {
+            font-size: 0.875rem;
+            color: var(--gray-dark);
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 1rem;
@@ -872,11 +953,56 @@
                     </tr>
                     <tr>
                         <th>Compétences détectées</th>
-                        <td id="parsedSkills">HTML, CSS, JavaScript, React</td>
+                        <td id="parsedSkills">
+                            <div class="skills-tags">
+                                <span class="skill-tag">HTML</span>
+                                <span class="skill-tag">CSS</span>
+                                <span class="skill-tag">JavaScript</span>
+                                <span class="skill-tag">React</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Logiciels maîtrisés</th>
+                        <td id="parsedSoftware">
+                            <div class="software-list">
+                                <span class="software-item">Visual Studio Code</span>
+                                <span class="software-item">Adobe Photoshop</span>
+                                <span class="software-item">Figma</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Langues</th>
+                        <td id="parsedLanguages">
+                            <div class="language-list">
+                                <div class="language-item">
+                                    <span class="language-name">Français</span>
+                                    <span class="language-level">Natif</span>
+                                </div>
+                                <div class="language-item">
+                                    <span class="language-name">Anglais</span>
+                                    <span class="language-level">Courant</span>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <th>Expérience professionnelle</th>
-                        <td id="parsedExperience">5 ans</td>
+                        <td id="parsedExperience">
+                            <div class="experience-list">
+                                <div class="experience-item">
+                                    <div class="experience-title">Développeur Front-End</div>
+                                    <div class="experience-company">TechCorp</div>
+                                    <div class="experience-date">Jan 2022 - Présent</div>
+                                </div>
+                                <div class="experience-item">
+                                    <div class="experience-title">Développeur Web Junior</div>
+                                    <div class="experience-company">WebAgency</div>
+                                    <div class="experience-date">Mar 2020 - Déc 2021</div>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                 </table>
                 
@@ -1145,8 +1271,10 @@
                         jobTitle: document.getElementById('parsedJobTitle').textContent,
                         email: document.getElementById('parsedEmail').textContent,
                         phone: document.getElementById('parsedPhone').textContent,
-                        skills: document.getElementById('parsedSkills').textContent,
-                        experience: document.getElementById('parsedExperience').textContent
+                        skills: document.getElementById('parsedSkills').innerHTML,
+                        software: document.getElementById('parsedSoftware').innerHTML,
+                        languages: document.getElementById('parsedLanguages').innerHTML,
+                        experience: document.getElementById('parsedExperience').innerHTML
                     };
                     
                     // Stockage local des données
@@ -1171,8 +1299,21 @@
                     jobTitle: document.getElementById('parsedJobTitle').textContent,
                     email: document.getElementById('parsedEmail').textContent,
                     phone: document.getElementById('parsedPhone').textContent,
-                    skills: document.getElementById('parsedSkills').textContent,
-                    experience: document.getElementById('parsedExperience').textContent
+                    skills: Array.from(document.querySelectorAll('#parsedSkills .skill-tag')).map(tag => tag.textContent),
+                    software: Array.from(document.querySelectorAll('#parsedSoftware .software-item')).map(item => item.textContent),
+                    languages: Array.from(document.querySelectorAll('#parsedLanguages .language-item')).map(item => {
+                        return {
+                            language: item.querySelector('.language-name').textContent,
+                            level: item.querySelector('.language-level').textContent
+                        }
+                    }),
+                    experience: Array.from(document.querySelectorAll('#parsedExperience .experience-item')).map(item => {
+                        return {
+                            title: item.querySelector('.experience-title').textContent,
+                            company: item.querySelector('.experience-company').textContent,
+                            date: item.querySelector('.experience-date').textContent
+                        }
+                    })
                 };
                 
                 // Stocker les données pour le chat
@@ -1357,19 +1498,25 @@
                 
                 // Réponses prédéfinies basées sur des mots-clés
                 if (lowerMessage.includes('améliorer') || lowerMessage.includes('amélioration')) {
-                    return `D'après l'analyse de votre CV, voici quelques conseils pour l'améliorer :\n\n1. Ajoutez plus de détails sur vos réalisations en tant que ${cvData.jobTitle}\n2. Quantifiez vos résultats avec des chiffres précis\n3. Mettez davantage en avant vos compétences en ${cvData.skills.split(',')[0]}\n4. Ajoutez une section sur vos certifications professionnelles`;
+                    return `D'après l'analyse de votre CV, voici quelques conseils pour l'améliorer :\n\n1. Ajoutez plus de détails sur vos réalisations en tant que ${cvData.jobTitle}\n2. Quantifiez vos résultats avec des chiffres précis\n3. Mettez davantage en avant vos compétences en ${cvData.skills[0]}\n4. Ajoutez une section sur vos certifications professionnelles`;
                 } 
                 else if (lowerMessage.includes('force') || lowerMessage.includes('point fort')) {
-                    return `Vos principales forces basées sur votre CV sont :\n\n1. Votre expertise en ${cvData.skills.split(',').slice(0, 2).join(' et ')}\n2. Votre expérience significative de ${cvData.experience}\n3. Votre poste actuel de ${cvData.jobTitle} qui montre votre niveau de compétence`;
+                    return `Vos principales forces basées sur votre CV sont :\n\n1. Votre expertise en ${cvData.skills.slice(0, 2).join(' et ')}\n2. Votre expérience significative en tant que ${cvData.experience[0]?.title || cvData.jobTitle}\n3. Votre maîtrise des logiciels ${cvData.software.slice(0, 2).join(' et ')}\n4. Vos compétences linguistiques, notamment en ${cvData.languages[0]?.language || 'langues étrangères'}`;
                 }
                 else if (lowerMessage.includes('compétence') || lowerMessage.includes('développer')) {
-                    return `Pour compléter votre profil de ${cvData.jobTitle}, je vous suggère de développer ces compétences :\n\n1. Intelligence artificielle et machine learning\n2. DevOps et CI/CD\n3. Architecture cloud\n\nCes compétences sont très recherchées dans votre domaine et compléteraient bien votre expertise en ${cvData.skills.split(',')[0]}.`;
+                    return `Pour compléter votre profil de ${cvData.jobTitle}, je vous suggère de développer ces compétences :\n\n1. Intelligence artificielle et machine learning\n2. DevOps et CI/CD\n3. Architecture cloud\n\nCes compétences sont très recherchées dans votre domaine et compléteraient bien votre expertise en ${cvData.skills[0]}.`;
                 }
                 else if (lowerMessage.includes('emploi') || lowerMessage.includes('poste') || lowerMessage.includes('travail')) {
-                    return `Avec votre profil de ${cvData.jobTitle} et vos compétences en ${cvData.skills}, vous pourriez être un excellent candidat pour ces types de postes :\n\n1. Senior ${cvData.jobTitle}\n2. Lead Developer\n3. Architecte technique\n4. CTO dans une startup\n\nVotre expérience de ${cvData.experience} vous qualifie pour des postes à responsabilité.`;
+                    return `Avec votre profil de ${cvData.jobTitle} et vos compétences en ${cvData.skills.slice(0, 3).join(', ')}, vous pourriez être un excellent candidat pour ces types de postes :\n\n1. Senior ${cvData.jobTitle}\n2. Lead Developer\n3. Architecte technique\n4. CTO dans une startup\n\nVotre expérience vous qualifie pour des postes à responsabilité.`;
+                }
+                else if (lowerMessage.includes('logiciel') || lowerMessage.includes('software') || lowerMessage.includes('outil')) {
+                    return `Vous maîtrisez déjà de bons outils comme ${cvData.software.join(', ')}. Pour compléter votre profil technique, je vous suggère d'ajouter ces logiciels à votre expertise :\n\n1. ${cvData.jobTitle.includes('Front') ? 'Adobe XD et Sketch' : 'Docker et Kubernetes'}\n2. ${cvData.jobTitle.includes('Data') ? 'Tableau et Power BI' : 'Git et GitHub'}\n3. Des outils de gestion de projet comme Jira et Trello\n\nCes outils sont très demandés sur le marché du travail actuel.`;
+                }
+                else if (lowerMessage.includes('langue') || lowerMessage.includes('anglais')) {
+                    return `Vos compétences linguistiques actuelles incluent ${cvData.languages.map(l => `${l.language} (${l.level})`).join(', ')}. Dans votre domaine, l'anglais technique est essentiel. Si ce n'est pas déjà le cas, je vous recommande :\n\n1. D'améliorer votre niveau d'anglais professionnel\n2. De suivre des formations techniques en anglais\n3. De participer à des communautés internationales dans votre domaine\n\nUn bon niveau d'anglais peut augmenter vos opportunités de carrière de 30%.`;
                 }
                 else {
-                    return `Merci pour votre question. D'après votre CV, vous êtes ${cvData.name}, actuellement ${cvData.jobTitle} avec ${cvData.experience} d'expérience et des compétences en ${cvData.skills}. Pour obtenir des conseils plus spécifiques, n'hésitez pas à me poser des questions sur l'amélioration de votre CV, vos forces, les compétences à développer ou les types d'emploi qui pourraient vous correspondre.`;
+                    return `Merci pour votre question. D'après votre CV, vous êtes ${cvData.name}, actuellement ${cvData.jobTitle} avec des compétences en ${cvData.skills.slice(0, 3).join(', ')}. Pour obtenir des conseils plus spécifiques, n'hésitez pas à me poser des questions sur l'amélioration de votre CV, vos forces, les compétences à développer, les logiciels à maîtriser, les langues importantes pour votre secteur ou les types d'emploi qui pourraient vous correspondre.`;
                 }
             }
             
@@ -1429,14 +1576,17 @@
                 // Extraire les données pertinentes
                 let personalInfo = data.personal_info || {};
                 let skills = data.skills || [];
+                let software = data.software || [];
+                let languages = data.languages || [];
                 let experience = data.work_experience || [];
+                let currentPosition = data.current_position || '';
                 
                 // Traiter le nom
                 document.getElementById('parsedName').textContent = personalInfo.name || personalInfo.prenom + ' ' + personalInfo.nom || 'Non détecté';
                 
                 // Traiter le titre de poste
-                let jobTitle = '';
-                if (experience && experience.length > 0 && experience[0].title) {
+                let jobTitle = currentPosition;
+                if (!jobTitle && experience && experience.length > 0 && experience[0].title) {
                     jobTitle = experience[0].title;
                 }
                 document.getElementById('parsedJobTitle').textContent = jobTitle || 'Non détecté';
@@ -1447,25 +1597,164 @@
                 // Traiter le téléphone
                 document.getElementById('parsedPhone').textContent = personalInfo.phone || personalInfo.telephone || 'Non détecté';
                 
-                // Traiter les compétences
-                let skillsText = ''; 
-                if (Array.isArray(skills)) {
-                    skillsText = skills.join(', ');
+                // Traiter les compétences avec des tags
+                let skillsContainer = document.getElementById('parsedSkills');
+                skillsContainer.innerHTML = '';
+                let skillsTagsDiv = document.createElement('div');
+                skillsTagsDiv.className = 'skills-tags';
+                
+                if (Array.isArray(skills) && skills.length > 0) {
+                    skills.forEach(skill => {
+                        let skillTag = document.createElement('span');
+                        skillTag.className = 'skill-tag';
+                        skillTag.textContent = skill;
+                        skillsTagsDiv.appendChild(skillTag);
+                    });
                 } else if (typeof skills === 'string') {
-                    skillsText = skills;
+                    skills.split(',').forEach(skill => {
+                        let trimmedSkill = skill.trim();
+                        if (trimmedSkill) {
+                            let skillTag = document.createElement('span');
+                            skillTag.className = 'skill-tag';
+                            skillTag.textContent = trimmedSkill;
+                            skillsTagsDiv.appendChild(skillTag);
+                        }
+                    });
                 } else if (skills && typeof skills === 'object') {
                     // Cas où skills pourrait être un objet avec des propriétés
-                    skillsText = Object.values(skills).flat().join(', ');
+                    Object.values(skills).flat().forEach(skill => {
+                        if (typeof skill === 'string') {
+                            let skillTag = document.createElement('span');
+                            skillTag.className = 'skill-tag';
+                            skillTag.textContent = skill;
+                            skillsTagsDiv.appendChild(skillTag);
+                        }
+                    });
                 }
-                document.getElementById('parsedSkills').textContent = skillsText || 'Non détecté';
                 
-                // Traiter l'expérience
-                let experienceText = '';
-                if (experience && experience.length > 0) {
-                    // Calculer le nombre total d'années d'expérience
-                    experienceText = experience.length + ' expérience(s) professionnelle(s)';
+                if (skillsTagsDiv.children.length === 0) {
+                    skillsTagsDiv.innerHTML = '<span class="skill-tag">Non détecté</span>';
                 }
-                document.getElementById('parsedExperience').textContent = experienceText || 'Non détecté';
+                skillsContainer.appendChild(skillsTagsDiv);
+                
+                // Traiter les logiciels avec des items
+                let softwareContainer = document.getElementById('parsedSoftware');
+                softwareContainer.innerHTML = '';
+                let softwareListDiv = document.createElement('div');
+                softwareListDiv.className = 'software-list';
+                
+                if (Array.isArray(software) && software.length > 0) {
+                    software.forEach(item => {
+                        let softwareItem = document.createElement('span');
+                        softwareItem.className = 'software-item';
+                        softwareItem.textContent = item;
+                        softwareListDiv.appendChild(softwareItem);
+                    });
+                } else if (typeof software === 'string') {
+                    software.split(',').forEach(item => {
+                        let trimmedItem = item.trim();
+                        if (trimmedItem) {
+                            let softwareItem = document.createElement('span');
+                            softwareItem.className = 'software-item';
+                            softwareItem.textContent = trimmedItem;
+                            softwareListDiv.appendChild(softwareItem);
+                        }
+                    });
+                }
+                
+                if (softwareListDiv.children.length === 0) {
+                    softwareListDiv.innerHTML = '<span class="software-item">Non détecté</span>';
+                }
+                softwareContainer.appendChild(softwareListDiv);
+                
+                // Traiter les langues
+                let languagesContainer = document.getElementById('parsedLanguages');
+                languagesContainer.innerHTML = '';
+                let languageListDiv = document.createElement('div');
+                languageListDiv.className = 'language-list';
+                
+                if (Array.isArray(languages) && languages.length > 0) {
+                    languages.forEach(lang => {
+                        let languageItem = document.createElement('div');
+                        languageItem.className = 'language-item';
+                        
+                        let languageName = document.createElement('span');
+                        languageName.className = 'language-name';
+                        languageName.textContent = typeof lang === 'string' ? lang : lang.language;
+                        
+                        let languageLevel = document.createElement('span');
+                        languageLevel.className = 'language-level';
+                        languageLevel.textContent = typeof lang === 'string' ? '' : (lang.level || '');
+                        
+                        languageItem.appendChild(languageName);
+                        languageItem.appendChild(languageLevel);
+                        languageListDiv.appendChild(languageItem);
+                    });
+                }
+                
+                if (languageListDiv.children.length === 0) {
+                    let languageItem = document.createElement('div');
+                    languageItem.className = 'language-item';
+                    
+                    let languageName = document.createElement('span');
+                    languageName.className = 'language-name';
+                    languageName.textContent = 'Non détecté';
+                    
+                    languageItem.appendChild(languageName);
+                    languageListDiv.appendChild(languageItem);
+                }
+                languagesContainer.appendChild(languageListDiv);
+                
+                // Traiter l'expérience professionnelle
+                let experienceContainer = document.getElementById('parsedExperience');
+                experienceContainer.innerHTML = '';
+                let experienceListDiv = document.createElement('div');
+                experienceListDiv.className = 'experience-list';
+                
+                if (experience && experience.length > 0) {
+                    experience.forEach(exp => {
+                        let experienceItem = document.createElement('div');
+                        experienceItem.className = 'experience-item';
+                        
+                        let experienceTitle = document.createElement('div');
+                        experienceTitle.className = 'experience-title';
+                        experienceTitle.textContent = exp.title || '';
+                        
+                        let experienceCompany = document.createElement('div');
+                        experienceCompany.className = 'experience-company';
+                        experienceCompany.textContent = exp.company || '';
+                        
+                        let experienceDate = document.createElement('div');
+                        experienceDate.className = 'experience-date';
+                        
+                        let dateText = '';
+                        if (exp.start_date) {
+                            dateText += formatDate(exp.start_date);
+                        }
+                        if (exp.end_date) {
+                            dateText += ' - ' + (exp.end_date.toLowerCase() === 'present' ? 'Présent' : formatDate(exp.end_date));
+                        }
+                        experienceDate.textContent = dateText || '';
+                        
+                        experienceItem.appendChild(experienceTitle);
+                        experienceItem.appendChild(experienceCompany);
+                        experienceItem.appendChild(experienceDate);
+                        experienceListDiv.appendChild(experienceItem);
+                    });
+                }
+                
+                if (experienceListDiv.children.length === 0) {
+                    let experienceItem = document.createElement('div');
+                    experienceItem.className = 'experience-item';
+                    
+                    let experienceTitle = document.createElement('div');
+                    experienceTitle.className = 'experience-title';
+                    experienceTitle.textContent = 'Non détecté';
+                    
+                    experienceItem.appendChild(experienceTitle);
+                    experienceListDiv.appendChild(experienceItem);
+                }
+                experienceContainer.appendChild(experienceListDiv);
                 
                 // Stocker les données pour le chat
                 documentData = {
@@ -1473,9 +1762,35 @@
                     jobTitle: document.getElementById('parsedJobTitle').textContent,
                     email: document.getElementById('parsedEmail').textContent,
                     phone: document.getElementById('parsedPhone').textContent,
-                    skills: document.getElementById('parsedSkills').textContent,
-                    experience: document.getElementById('parsedExperience').textContent
+                    skills: Array.from(document.querySelectorAll('#parsedSkills .skill-tag')).map(tag => tag.textContent),
+                    software: Array.from(document.querySelectorAll('#parsedSoftware .software-item')).map(item => item.textContent),
+                    languages: Array.from(document.querySelectorAll('#parsedLanguages .language-item')).map(item => {
+                        return {
+                            language: item.querySelector('.language-name').textContent,
+                            level: item.querySelector('.language-level')?.textContent || ''
+                        }
+                    }),
+                    experience: Array.from(document.querySelectorAll('#parsedExperience .experience-item')).map(item => {
+                        return {
+                            title: item.querySelector('.experience-title').textContent,
+                            company: item.querySelector('.experience-company')?.textContent || '',
+                            date: item.querySelector('.experience-date')?.textContent || ''
+                        }
+                    })
                 };
+            }
+            
+            // Fonction pour formater les dates
+            function formatDate(dateStr) {
+                // Si le format est "YYYY-MM" ou "YYYY-MM-DD"
+                if (/^\d{4}-\d{2}(-\d{2})?$/.test(dateStr)) {
+                    const parts = dateStr.split('-');
+                    const year = parts[0];
+                    const month = parts[1];
+                    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+                    return `${months[parseInt(month) - 1]} ${year}`;
+                }
+                return dateStr;
             }
             
             function resetFileUpload() {
