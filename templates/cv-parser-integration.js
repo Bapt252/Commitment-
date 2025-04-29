@@ -1,7 +1,6 @@
 /**
  * Module d'intégration du système de parsing de CV basé sur GPT
- * Ce script fait l'interface entre l'UI existante et le service de parsing CV
- * Version améliorée avec support GitHub Pages et extraction intelligente du nom de fichier
+ * Version améliorée avec support GitHub Pages et intégration directe de l'API OpenAI
  */
 
 // Configuration par défaut de l'URL de l'API de parsing
@@ -18,11 +17,18 @@ class CVParserIntegration {
       onParsingComplete: null,
       onParsingError: null,
       forceMock: this.isGitHubPages(), // Forcer le mode mock sur GitHub Pages
+      useDirectOpenAI: false, // Utiliser l'API OpenAI directement (pour GitHub Pages)
+      openAIKey: '', // Clé API OpenAI (si useDirectOpenAI est true)
       ...options
     };
     
     console.log('CVParserIntegration initialisé avec API URL:', this.options.apiUrl);
-    if (this.options.forceMock) {
+    
+    // Détecter si on doit utiliser le parsing avec OpenAI directement
+    if (this.options.forceMock && this.options.useDirectOpenAI && this.options.openAIKey) {
+      console.log('Mode parsing direct avec OpenAI activé');
+      this.options.forceMock = false;
+    } else if (this.options.forceMock) {
       console.log('Mode mock activé (GitHub Pages ou configuration forcée)');
     }
   }
@@ -58,22 +64,35 @@ class CVParserIntegration {
       this.options.onParsingStart(file);
     }
     
-    // Si on est en mode mock forcé (GitHub Pages), on renvoie directement une réponse simulée
-    if (this.options.forceMock) {
-      console.log('Utilisation du mode mock (GitHub Pages)');
-      const mockResponse = this.generateMockResponse(file);
-      
-      // Ajouter un délai simulé pour une meilleure expérience utilisateur
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      if (this.options.onParsingComplete) {
-        this.options.onParsingComplete(mockResponse);
+    try {
+      // Si on est en mode mock forcé (GitHub Pages sans clé API OpenAI), on renvoie directement une réponse simulée
+      if (this.options.forceMock) {
+        console.log('Utilisation du mode mock (GitHub Pages)');
+        const mockResponse = this.generateMockResponse(file);
+        
+        // Ajouter un délai simulé pour une meilleure expérience utilisateur
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        if (this.options.onParsingComplete) {
+          this.options.onParsingComplete(mockResponse);
+        }
+        
+        return mockResponse;
       }
       
-      return mockResponse;
-    }
-    
-    try {
+      // Si on est en mode parsing direct avec OpenAI (GitHub Pages avec clé API)
+      if (this.options.useDirectOpenAI && this.options.openAIKey) {
+        console.log('Utilisation du parsing direct avec OpenAI');
+        const parsedData = await this.parseWithOpenAI(file);
+        
+        if (this.options.onParsingComplete) {
+          this.options.onParsingComplete(parsedData);
+        }
+        
+        return parsedData;
+      }
+      
+      // Sinon, on utilise l'API backend normale
       const formData = new FormData();
       formData.append('file', file);
       formData.append('doc_type', 'cv');
@@ -148,6 +167,132 @@ class CVParserIntegration {
       
       return mockResponse;
     }
+  }
+  
+  /**
+   * Parse un CV directement avec l'API OpenAI (pour GitHub Pages)
+   * @param {File} file - Fichier CV à analyser
+   * @returns {Promise<Object>} - Données extraites du CV
+   */
+  async parseWithOpenAI(file) {
+    if (!this.options.openAIKey) {
+      throw new Error('Clé API OpenAI non fournie pour le parsing direct');
+    }
+    
+    try {
+      // 1. Lire le contenu du fichier
+      const fileContent = await this.readFileAsText(file);
+      
+      // 2. Préparer le prompt pour l'API OpenAI
+      const prompt = `
+Tu es un assistant spécialisé dans l'extraction d'informations à partir de CV.
+Extrait les informations suivantes du CV ci-dessous et retourne-les dans un format JSON structuré.
+
+N'invente AUCUNE information. S'il manque une info, laisse le champ vide.
+Inclus les catégories suivantes:
+
+1. personal_info (nom, email, téléphone, adresse, nationalité, date de naissance si présente, LinkedIn/site web/profils)
+2. skills (compétences techniques et linguistiques sous forme de tableau)
+3. work_experience (tableau avec entreprise, poste, date début, date fin, description)
+4. education (tableau avec établissement, diplôme, date début, date fin)
+5. certifications (certifications et formations complémentaires)
+6. languages (langues et niveau: débutant, intermédiaire, avancé, bilingue, natif)
+7. interests (intérêts et activités extra-professionnelles)
+
+CV:
+${fileContent}
+
+Retourne uniquement un objet JSON sans introduction ni commentaire.
+`;
+
+      // 3. Appeler l'API OpenAI
+      const startTime = Date.now();
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.options.openAIKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.1,
+          max_tokens: 2000
+        })
+      });
+      
+      // 4. Traiter la réponse
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Erreur API OpenAI: ${errorData.error?.message || response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const processingTime = (Date.now() - startTime) / 1000;
+      
+      // 5. Extraire et parser la réponse JSON
+      let parsedData;
+      try {
+        const contentText = data.choices[0].message.content;
+        parsedData = JSON.parse(contentText);
+      } catch (parseError) {
+        console.error('Erreur lors du parsing de la réponse JSON:', parseError);
+        // Essayer d'extraire le JSON avec une regex
+        const jsonMatch = data.choices[0].message.content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsedData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('Format de réponse invalide');
+        }
+      }
+      
+      // 6. Formater la réponse finale
+      return {
+        processing_time: processingTime,
+        parsed_at: Date.now() / 1000,
+        file_format: file.name.split('.').pop().toLowerCase(),
+        model: 'gpt-3.5-turbo',
+        data: parsedData
+      };
+      
+    } catch (error) {
+      console.error('Erreur lors du parsing avec OpenAI:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Lit un fichier et le convertit en texte
+   * @param {File} file - Fichier à lire
+   * @returns {Promise<string>} - Contenu du fichier
+   */
+  async readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        resolve(event.target.result);
+      };
+      
+      reader.onerror = (error) => {
+        reject(error);
+      };
+      
+      // Si c'est un fichier PDF, on ne peut pas le lire directement
+      if (file.type === 'application/pdf') {
+        // Pour un PDF, on renvoie un message d'erreur expliquant qu'on ne peut pas le lire directement
+        resolve(`[Ce fichier est un PDF et ne peut pas être lu directement dans le navigateur. 
+        Le parsing continuera en utilisant le nom du fichier et des données fictives.]`);
+      } else {
+        // Pour les autres types, on essaie de les lire comme du texte
+        reader.readAsText(file);
+      }
+    });
   }
   
   /**
