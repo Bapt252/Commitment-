@@ -1,40 +1,37 @@
+
 #!/bin/bash
 
-# Couleurs pour l'affichage
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+# Script pour reconstruire et redémarrer le service cv-parser avec logs de debug
 
-echo -e "${BLUE}🔄 Reconstruction complète du service CV Parser...${NC}"
+echo "🛑 Arrêt des services cv-parser et cv-parser-worker..."
+docker-compose stop cv-parser cv-parser-worker
 
-# 1. Arrêter le service existant
-echo -e "${YELLOW}🛑 Arrêt du service existant...${NC}"
-docker-compose stop cv-parser
-docker-compose rm -f cv-parser
+echo "🔄 Suppression des conteneurs existants..."
+docker-compose rm -f cv-parser cv-parser-worker
 
-# 2. Reconstruire l'image
-echo -e "${YELLOW}🏗️ Reconstruction de l'image Docker...${NC}"
-docker-compose build --no-cache cv-parser
+echo "🛠️ Reconstruction des images avec cache invalidé..."
+docker-compose build --no-cache cv-parser cv-parser-worker
 
-# 3. Démarrer le nouveau service
-echo -e "${YELLOW}🚀 Démarrage du nouveau service...${NC}"
-docker-compose up -d cv-parser
+echo "🔧 Configuration du mode debug et logging..."
+export LOG_LEVEL=DEBUG
 
-# 4. Vérifier l'état du service
-echo -e "${YELLOW}🔍 Vérification de l'état du service...${NC}"
-docker-compose ps cv-parser
+echo "🚀 Démarrage des services en mode debug..."
+docker-compose up -d cv-parser cv-parser-worker
 
-# 5. Afficher les ports
-echo -e "${YELLOW}📋 Ports utilisés par le service cv-parser:${NC}"
-docker-compose port cv-parser 5000
+echo "📊 Vérification du statut des services..."
+docker-compose ps cv-parser cv-parser-worker
 
-echo -e "${GREEN}✅ Reconstruction terminée!${NC}"
-echo -e "${BLUE}🔧 Pour tester le service, utilisez:${NC}"
-echo "curl http://localhost:8000/health  # Pour vérifier que le service répond"
-echo "curl -X POST \\
-  http://localhost:8000/api/parse-cv \\
-  -H \"Content-Type: multipart/form-data\" \\
-  -F \"file=@/Users/baptistecomas/Desktop/MonSuperCV.pdf\" \\
-  -F \"force_refresh=true\"  # Pour tester le parsing de CV"
+echo "📋 Affichage des logs pour vérifier le démarrage..."
+docker-compose logs --tail=50 cv-parser
+
+echo "✅ Service redémarré avec succès!"
+echo ""
+echo "✨ Instructions de test ✨"
+echo "1. Accédez à l'interface de parsing: http://localhost:3000/cv-upload"
+echo "2. Téléchargez votre CV et activez l'option 'Force refresh'"
+echo "3. Pour suivre les logs en temps réel: docker-compose logs -f cv-parser"
+echo ""
+echo "Si le parsing échoue, vérifiez que:"
+echo "- Votre clé API OpenAI est correctement configurée dans .env"
+echo "- Le format de votre CV est supporté (PDF, DOCX, etc.)"
+echo "- Le CV n'est pas trop volumineux ou complexe"
