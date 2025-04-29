@@ -1,5 +1,5 @@
 import axios from 'axios';
-import formidable from 'formidable';
+import { formidable } from 'formidable';
 import fs from 'fs';
 
 export const config = {
@@ -13,22 +13,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const form = new formidable.IncomingForm();
+  const form = formidable();
   
   try {
-    const [fields, files] = await new Promise((resolve, reject) => {
-      form.parse(req, (err, fields, files) => {
-        if (err) reject(err);
-        resolve([fields, files]);
-      });
-    });
+    const [fields, files] = await form.parse(req);
 
-    const file = files.file;
-    
-    if (!file) {
+    // Dans la v3, files est maintenant un objet avec des arrays
+    const fileArray = files.file;
+    if (!fileArray || fileArray.length === 0) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-
+    
+    const file = fileArray[0];
+    
     // Create form data for the API request
     const formData = new FormData();
     formData.append('file', new Blob([fs.readFileSync(file.filepath)]), file.originalFilename);
