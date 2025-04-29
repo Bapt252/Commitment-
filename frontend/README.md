@@ -2,74 +2,110 @@
 
 Ce dossier contient l'interface utilisateur pour le parsing et l'analyse de CV du projet Commitment-.
 
-## Fonctionnalités améliorées
+## Nouvelles fonctionnalités
 
-### Interface de téléchargement de CV (`/cv-upload`)
+### Page d'analyse de CV (`/cv-parser`)
 
-L'interface de téléchargement de CV a été améliorée avec les fonctionnalités suivantes :
+Une nouvelle page d'analyse de CV a été créée avec les fonctionnalités suivantes :
 
-#### Options avancées
+- Upload de fichiers CV (PDF, DOC, DOCX, TXT)
+- Support du drag & drop pour faciliter l'upload
+- Choix entre parsing synchrone et asynchrone
+- Visualisation des résultats d'analyse structurée
+- Téléchargement des données au format JSON
+- Interface responsive et agréable à utiliser
 
-- **Force refresh** : Permet de forcer une nouvelle analyse du CV en ignorant le cache
-- **Mode détaillé** : Active un parsing plus approfondi pour extraire davantage d'informations du CV
+### Intégration directe avec le service de parsing GPT
 
-#### Affichage des résultats
+Le frontend communique maintenant directement avec le service de parsing CV basé sur GPT :
 
-- **Vue JSON** : Affiche les données brutes au format JSON
-- **Vue structurée** : Présente les informations du CV de manière organisée et facile à lire
-  - Informations personnelles
-  - Compétences
-  - Expérience professionnelle
-  - Formation
-  - Langues
+- Appels API directs vers le service de parsing CV
+- Support du parsing synchrone (attente directe du résultat)
+- Support du parsing asynchrone via file d'attente (recommandé pour les gros fichiers)
+- Gestion des états de chargement et des erreurs
+- Affichage de la progression dans la file d'attente pour le mode asynchrone
 
-#### Améliorations UI/UX
+## Comment démarrer
 
-- Barre de progression pendant l'analyse
-- Meilleure gestion des erreurs avec messages détaillés
-- Affichage des informations sur le fichier (taille, nom, etc.)
-
-## Intégration avec le service de parsing
-
-L'interface communique avec le service de parsing CV via l'API proxy `/api/parse-cv`. Cette API a été améliorée pour :
-
-- Transmettre les options supplémentaires au service backend
-- Fournir des logs détaillés pour faciliter le débogage
-- Gérer les erreurs de manière plus robuste
-
-## Comment tester
-
-1. Démarrez le projet avec Docker Compose :
+1. Assurez-vous que le service de parsing CV est en cours d'exécution :
    ```bash
-   docker-compose up -d
+   docker-compose up -d cv-parser
    ```
 
-2. Accédez à l'interface de téléchargement de CV :
+2. Créez un fichier `.env` dans le dossier frontend (vous pouvez copier `.env.example`) :
+   ```bash
+   cp .env.example .env
    ```
-   http://localhost:3000/cv-upload
+
+3. Configurez les variables d'environnement dans le fichier `.env` :
+   ```
+   NEXT_PUBLIC_CV_PARSER_URL=http://localhost:5051/api/v1
    ```
 
-3. Téléchargez un CV au format PDF ou DOCX
+4. Installez les dépendances et démarrez le frontend :
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-4. Sélectionnez les options souhaitées (force refresh, mode détaillé)
+5. Accédez à l'interface d'analyse de CV :
+   ```
+   http://localhost:3000/cv-parser
+   ```
 
-5. Cliquez sur "Analyser le CV" et attendez le résultat
+## Intégration avec le service de parsing GPT
 
-6. Explorez les résultats dans les différentes vues (JSON ou structurée)
+L'intégration avec le service de parsing CV basé sur GPT est gérée par le service `cvParserService.ts`. Ce service offre les fonctionnalités suivantes :
+
+- `parseCV(file)` : Analyse un CV de manière synchrone et renvoie immédiatement les résultats
+- `queueCVParsing(file)` : Place un CV dans la file d'attente pour une analyse asynchrone et renvoie un ID de job
+- `checkJobStatus(jobId)` : Vérifie l'état d'un job de parsing asynchrone
+- `getJobResult(jobId)` : Récupère le résultat d'un job de parsing une fois celui-ci terminé
+
+## Structure des données
+
+Les données extraites des CV sont typées avec TypeScript pour une meilleure expérience de développement :
+
+- `CVData` : Structure complète des données extraites d'un CV
+- `PersonalInfo` : Informations personnelles (nom, email, téléphone, etc.)
+- `WorkExperience` : Expériences professionnelles
+- `Education` : Formations
+- `Language` : Langues maîtrisées
+
+## Composants clés
+
+- `CVUploader` : Composant pour l'upload et le parsing de CV
+- `CVViewer` : Composant pour l'affichage structuré des données extraites du CV
+
+## Configuration
+
+Assurez-vous que les variables d'environnement suivantes sont correctement configurées dans votre fichier `.env` :
+
+```
+NEXT_PUBLIC_CV_PARSER_URL=http://localhost:5051/api/v1
+```
+
+Pour un déploiement en production, remplacez l'URL par celle de votre service de parsing CV en production.
 
 ## Troubleshooting
 
 Si vous rencontrez des problèmes :
 
-1. Vérifiez que tous les services sont en cours d'exécution :
+1. Vérifiez que le service de parsing CV est en cours d'exécution :
    ```bash
-   docker-compose ps
+   docker-compose ps cv-parser
    ```
 
-2. Vérifiez les logs du frontend et du service de parsing :
+2. Vérifiez les logs du service de parsing CV :
    ```bash
-   docker-compose logs frontend
    docker-compose logs cv-parser
    ```
 
-3. Assurez-vous que votre fichier `.env` contient une clé API OpenAI valide
+3. Assurez-vous que les ports sont correctement configurés et accessibles
+
+4. Si vous utilisez le mode asynchrone, vérifiez que le service worker est en cours d'exécution :
+   ```bash
+   docker-compose logs cv-parser-worker
+   ```
+
+5. Vérifiez votre fichier `.env` pour vous assurer que l'URL du service de parsing est correcte
