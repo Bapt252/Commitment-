@@ -1,7 +1,7 @@
 /**
  * Module d'intégration du système de parsing de CV basé sur GPT
  * Ce script fait l'interface entre l'UI existante et le service de parsing CV
- * Version améliorée avec support GitHub Pages
+ * Version améliorée avec support GitHub Pages et extraction intelligente du nom de fichier
  */
 
 // Configuration par défaut de l'URL de l'API de parsing
@@ -195,33 +195,13 @@ class CVParserIntegration {
     
     // Extraire le nom de base du fichier (sans extension)
     const baseName = file.name.split('.')[0].replace(/[_-]/g, ' ');
+    console.log('Nom de base extrait:', baseName);
     
-    // Extraire le nom et des informations de carrière possibles du nom de fichier
-    let name = 'Thomas Martin';
-    let jobTitle = 'Développeur Full Stack';
-    let skills = ['JavaScript', 'HTML', 'CSS', 'React', 'Node.js', 'Python', 'SQL', 'Git', 'Docker', 'Agile'];
+    // Améliorer la génération d'informations à partir du nom de fichier
+    let candidateInfo = this.extractCandidateInfo(baseName);
+    console.log('Informations extraites:', candidateInfo);
     
-    // Essayer d'extraire des informations du nom de fichier
-    if (baseName.includes('Comptable') || baseName.includes('comptable')) {
-      jobTitle = 'Comptable';
-      skills = ['Comptabilité générale', 'Fiscalité', 'SAP', 'Excel', 'Sage', 'Bilan', 'Gestion de trésorerie'];
-    } else if (baseName.includes('Ingénieur') || baseName.includes('ingénieur')) {
-      jobTitle = 'Ingénieur Logiciel';
-    } else if (baseName.includes('Chef') || baseName.includes('manager')) {
-      jobTitle = 'Chef de Projet';
-      skills = ['Gestion de projet', 'Agile', 'Scrum', 'Budgétisation', 'Planification', 'JIRA', 'MS Project'];
-    }
-    
-    // Essayer d'extraire un nom du fichier
-    const nameMatch = baseName.match(/CV\s+([A-Za-z\s]+)/i);
-    if (nameMatch && nameMatch[1]) {
-      name = nameMatch[1].trim();
-    }
-    
-    // Générer un email basé sur le nom
-    const email = name.toLowerCase().replace(/\s+/g, '.') + '@exemple.com';
-    
-    // Données simulées plus complètes et adaptées
+    // Générer la réponse complète
     return {
       processing_time: 1.25,
       parsed_at: Date.now() / 1000,
@@ -229,24 +209,24 @@ class CVParserIntegration {
       model: "mock",
       data: {
         personal_info: {
-          name: name,
-          email: email,
-          phone: '+33 6 ' + Math.floor(10000000 + Math.random() * 90000000),
+          name: candidateInfo.name,
+          email: candidateInfo.email,
+          phone: candidateInfo.phone,
           address: '123 rue de Paris, 75001 Paris',
-          linkedin: 'linkedin.com/in/' + name.toLowerCase().replace(/\s+/g, ''),
+          linkedin: 'linkedin.com/in/' + candidateInfo.name.toLowerCase().replace(/\s+/g, ''),
         },
-        skills: skills,
+        skills: candidateInfo.skills,
         work_experience: [
           {
-            title: jobTitle,
-            company: 'TechCorp',
+            title: candidateInfo.jobTitle,
+            company: candidateInfo.company,
             start_date: '2022-01',
             end_date: 'present',
-            description: 'Développement et maintenance des solutions techniques de l\'entreprise.'
+            description: candidateInfo.jobDescription
           },
           {
-            title: 'Assistant ' + jobTitle,
-            company: 'WebAgency',
+            title: candidateInfo.previousTitle,
+            company: candidateInfo.previousCompany,
             start_date: '2020-03',
             end_date: '2021-12',
             description: 'Support aux équipes techniques et participation aux projets clients.'
@@ -254,30 +234,218 @@ class CVParserIntegration {
         ],
         education: [
           {
-            degree: 'Master en ' + (jobTitle.includes('Comptable') ? 'Comptabilité' : 'Informatique'),
-            institution: 'Université de Paris',
+            degree: candidateInfo.degree,
+            institution: candidateInfo.school,
             start_date: '2018',
             end_date: '2020'
           },
           {
-            degree: 'Licence en ' + (jobTitle.includes('Comptable') ? 'Économie' : 'Informatique'),
+            degree: 'Licence en ' + candidateInfo.field,
             institution: 'Université de Lyon',
             start_date: '2015',
             end_date: '2018'
           }
         ],
-        languages: [
-          {
-            language: 'Français',
-            level: 'Natif'
-          },
-          {
-            language: 'Anglais',
-            level: 'Courant'
-          }
-        ]
+        languages: candidateInfo.languages
       }
     };
+  }
+  
+  /**
+   * Analyse le nom de fichier pour extraire des informations pertinentes sur le candidat
+   * @param {string} filename - Nom du fichier CV
+   * @returns {Object} - Informations extraites
+   */
+  extractCandidateInfo(filename) {
+    // Valeurs par défaut
+    let result = {
+      name: 'Thomas Martin',
+      jobTitle: 'Développeur Full Stack',
+      previousTitle: 'Développeur Frontend',
+      company: 'TechCorp',
+      previousCompany: 'WebAgency',
+      jobDescription: 'Développement et maintenance des solutions techniques de l\'entreprise.',
+      skills: ['JavaScript', 'HTML', 'CSS', 'React', 'Node.js', 'Python', 'SQL', 'Git', 'Docker', 'Agile'],
+      email: 'thomas.martin@exemple.com',
+      phone: '+33 6 ' + Math.floor(10000000 + Math.random() * 90000000),
+      field: 'Informatique',
+      degree: 'Master en Informatique',
+      school: 'Université de Paris',
+      languages: [
+        { language: 'Français', level: 'Natif' },
+        { language: 'Anglais', level: 'Courant' }
+      ]
+    };
+    
+    // Analyse avancée du nom de fichier
+    const lowerFilename = filename.toLowerCase();
+    
+    // Détection du métier/domaine
+    if (lowerFilename.includes('dev') || lowerFilename.includes('développeur') || lowerFilename.includes('developpeur')) {
+      if (lowerFilename.includes('front')) {
+        result.jobTitle = 'Développeur Frontend';
+        result.skills = ['JavaScript', 'HTML', 'CSS', 'React', 'Vue.js', 'Angular', 'SASS', 'Webpack'];
+      } else if (lowerFilename.includes('back')) {
+        result.jobTitle = 'Développeur Backend';
+        result.skills = ['Node.js', 'Python', 'Java', 'SQL', 'NoSQL', 'API REST', 'Docker', 'AWS'];
+      } else if (lowerFilename.includes('full')) {
+        result.jobTitle = 'Développeur Full Stack';
+        result.skills = ['JavaScript', 'React', 'Node.js', 'Python', 'SQL', 'MongoDB', 'Docker', 'Git'];
+      } else if (lowerFilename.includes('mobile')) {
+        result.jobTitle = 'Développeur Mobile';
+        result.skills = ['Swift', 'Kotlin', 'React Native', 'Flutter', 'Firebase', 'REST API', 'Git'];
+      } else if (lowerFilename.includes('ios')) {
+        result.jobTitle = 'Développeur iOS';
+        result.skills = ['Swift', 'Objective-C', 'SwiftUI', 'UIKit', 'Core Data', 'XCode', 'CocoaPods'];
+      } else if (lowerFilename.includes('android')) {
+        result.jobTitle = 'Développeur Android';
+        result.skills = ['Kotlin', 'Java', 'Android SDK', 'Room', 'Jetpack Compose', 'MVVM', 'Firebase'];
+      } else {
+        result.jobTitle = 'Développeur Logiciel';
+        result.skills = ['Java', 'Python', 'C#', '.NET', 'SQL', 'Git', 'CI/CD', 'Méthodologies Agiles'];
+      }
+      
+      result.field = 'Informatique';
+      result.degree = 'Master en Informatique';
+      result.jobDescription = 'Conception et développement d\'applications innovantes.';
+    } 
+    else if (lowerFilename.includes('data') || lowerFilename.includes('données')) {
+      if (lowerFilename.includes('scien')) {
+        result.jobTitle = 'Data Scientist';
+        result.skills = ['Python', 'R', 'Machine Learning', 'Deep Learning', 'SQL', 'Pandas', 'TensorFlow', 'Scikit-Learn'];
+      } else if (lowerFilename.includes('analy')) {
+        result.jobTitle = 'Data Analyst';
+        result.skills = ['SQL', 'Python', 'Excel', 'Power BI', 'Tableau', 'R', 'Statistiques', 'Data Visualization'];
+      } else if (lowerFilename.includes('engin')) {
+        result.jobTitle = 'Data Engineer';
+        result.skills = ['Python', 'SQL', 'Spark', 'Hadoop', 'ETL', 'Big Data', 'AWS', 'Docker'];
+      } else {
+        result.jobTitle = 'Data Specialist';
+        result.skills = ['SQL', 'Python', 'Data Modeling', 'ETL', 'Business Intelligence', 'Analytics'];
+      }
+      
+      result.field = 'Data Science';
+      result.degree = 'Master en Data Science';
+      result.jobDescription = 'Analyse de données et création de modèles prédictifs.';
+    }
+    else if (lowerFilename.includes('compta') || lowerFilename.includes('comptable')) {
+      result.jobTitle = 'Comptable';
+      result.skills = ['Comptabilité générale', 'Fiscalité', 'SAP', 'Excel', 'Sage', 'Bilan', 'Gestion de trésorerie'];
+      result.field = 'Comptabilité';
+      result.degree = 'Master en Comptabilité';
+      result.jobDescription = 'Gestion de la comptabilité et des déclarations fiscales.';
+      
+      if (lowerFilename.includes('junior')) {
+        result.jobTitle = 'Comptable Junior';
+        result.previousTitle = 'Assistant Comptable';
+      } else if (lowerFilename.includes('senior')) {
+        result.jobTitle = 'Comptable Senior';
+        result.previousTitle = 'Comptable';
+      } else if (lowerFilename.includes('chef')) {
+        result.jobTitle = 'Chef Comptable';
+        result.previousTitle = 'Comptable Senior';
+      }
+    }
+    else if (lowerFilename.includes('market')) {
+      if (lowerFilename.includes('digital') || lowerFilename.includes('web')) {
+        result.jobTitle = 'Responsable Marketing Digital';
+        result.skills = ['SEO', 'SEA', 'Google Analytics', 'Social Media', 'Content Marketing', 'Email Marketing'];
+      } else {
+        result.jobTitle = 'Responsable Marketing';
+        result.skills = ['Stratégie Marketing', 'Étude de marché', 'CRM', 'Gestion de projet', 'Communication'];
+      }
+      
+      result.field = 'Marketing';
+      result.degree = 'Master en Marketing';
+      result.jobDescription = 'Élaboration et mise en œuvre de stratégies marketing efficaces.';
+    }
+    else if (lowerFilename.includes('ingénieur') || lowerFilename.includes('ingenieur')) {
+      result.jobTitle = 'Ingénieur Logiciel';
+      result.skills = ['Java', 'C++', 'Python', 'Algorithmes', 'Architecture Logicielle', 'CI/CD', 'Testing'];
+      result.field = 'Génie Logiciel';
+      result.degree = 'Diplôme d\'Ingénieur';
+      result.school = 'École Centrale Paris';
+      result.jobDescription = 'Conception et développement de solutions techniques complexes.';
+    }
+    else if (lowerFilename.includes('chef') || lowerFilename.includes('manager') || lowerFilename.includes('directeur')) {
+      result.jobTitle = 'Chef de Projet';
+      result.skills = ['Gestion de projet', 'Agile', 'Scrum', 'Budgétisation', 'Planification', 'JIRA', 'MS Project'];
+      result.field = 'Management';
+      result.degree = 'Master en Management de Projet';
+      result.jobDescription = 'Pilotage de projets et coordination des équipes techniques.';
+    }
+    
+    // Extraction du nom si possible
+    // Format supposé: "CV [Nom] [Prénom]" ou "[Nom] [Prénom] CV"
+    const namePatterns = [
+      /CV\s+([A-Za-zÀ-ÿ\s]+)/i,  // Format: CV Nom Prénom
+      /([A-Za-zÀ-ÿ\s]+)CV/i,     // Format: Nom Prénom CV
+      /CV[_-]([A-Za-zÀ-ÿ\s]+)/i, // Format: CV_Nom_Prénom
+      /([A-Za-zÀ-ÿ\s]+)[_-]CV/i  // Format: Nom_Prénom_CV
+    ];
+    
+    for (const pattern of namePatterns) {
+      const match = filename.match(pattern);
+      if (match && match[1] && match[1].trim().length > 3) {
+        // On a trouvé un nom potentiel
+        result.name = match[1].trim();
+        // Génération d'un email basé sur le nom
+        const nameParts = result.name.toLowerCase().split(' ');
+        if (nameParts.length >= 2) {
+          result.email = `${nameParts[0]}.${nameParts[1]}@exemple.com`;
+        } else {
+          result.email = `${nameParts[0]}@exemple.com`;
+        }
+        break;
+      }
+    }
+    
+    // Si le nom du fichier est "MonSuperCV" ou similaire, on génère un nom un peu plus personnalisé
+    if (lowerFilename.includes('super') || lowerFilename.includes('mon')) {
+      const randomNames = [
+        "Jean Dupont", "Marie Martin", "Sophie Dubois", "Alexandre Bernard", 
+        "Camille Petit", "Thomas Leroy", "Julie Moreau", "Nicolas Lefebvre"
+      ];
+      const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
+      result.name = randomName;
+      
+      // Génération d'un email basé sur le nom aléatoire
+      const nameParts = randomName.toLowerCase().split(' ');
+      result.email = `${nameParts[0]}.${nameParts[1]}@exemple.com`;
+    }
+    
+    // Adaptation des compétences linguistiques selon le domaine
+    if (lowerFilename.includes('international') || lowerFilename.includes('anglais')) {
+      result.languages = [
+        { language: 'Français', level: 'Natif' },
+        { language: 'Anglais', level: 'Bilingue' },
+        { language: 'Espagnol', level: 'Intermédiaire' }
+      ];
+    }
+    
+    // Génération de l'entreprise selon le domaine
+    const companyByDomain = {
+      'Développeur': ['TechSolutions', 'CodeInnovate', 'DigitalWave', 'NextGen Technologies', 'ByteCraft'],
+      'Data': ['DataInsight', 'AnalyticsPro', 'BigDataLab', 'DataSphere', 'SmartMetrics'],
+      'Comptable': ['FiscalExpert', 'ComptaPlus', 'FinanceConseil', 'AuditPro', 'GestionFinance'],
+      'Marketing': ['MarketBoost', 'BrandImpact', 'MediaStrategy', 'DigitalGrowth', 'MarketSphere'],
+      'Ingénieur': ['IngeniumTech', 'SoluTech', 'InnovEngineering', 'TechnoSphere', 'R&D Solutions'],
+      'Chef': ['ProjectLeaders', 'ManagementPro', 'LeadConsulting', 'StrategyFirst', 'TeamSuccess']
+    };
+    
+    // Sélection d'une entreprise adaptée au domaine
+    for (const [domain, companies] of Object.entries(companyByDomain)) {
+      if (result.jobTitle.includes(domain)) {
+        result.company = companies[Math.floor(Math.random() * companies.length)];
+        result.previousCompany = companies[Math.floor(Math.random() * companies.length)];
+        while (result.previousCompany === result.company) {
+          result.previousCompany = companies[Math.floor(Math.random() * companies.length)];
+        }
+        break;
+      }
+    }
+    
+    return result;
   }
 }
 
