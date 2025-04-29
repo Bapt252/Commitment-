@@ -1,3 +1,4 @@
+
 # CV Parser Service - Service de mock parsing pour les tests sans API OpenAI
 
 import json
@@ -16,6 +17,16 @@ def extract_name_from_filename(filename: str) -> tuple:
     basename = os.path.basename(filename)
     name_part = os.path.splitext(basename)[0]
     
+    # Chercher des motifs courants dans les noms de fichiers CV
+    # Exemple: "CV Comptable junior FR(4)"
+    if "CV" in name_part:
+        # Ignorer la partie "CV" et se concentrer sur le reste
+        parts = name_part.replace("CV", "").strip().split(" ")
+        if parts:
+            # Utiliser les premières parties comme informations de poste, pas comme nom
+            job_title = " ".join(parts).strip()
+            return "", job_title  # Pas de nom détecté, mais titre de poste possible
+    
     # Essayer de diviser en nom/prénom
     parts = name_part.replace('_', ' ').replace('-', ' ').split(' ')
     
@@ -23,8 +34,9 @@ def extract_name_from_filename(filename: str) -> tuple:
         prenom = parts[0].capitalize()
         nom = ' '.join(parts[1:]).capitalize()
     else:
-        prenom = name_part.capitalize()
-        nom = "Exemple"
+        # Ne pas générer de noms par défaut si aucun n'est trouvé
+        prenom = ""
+        nom = ""
         
     return prenom, nom
 
@@ -39,103 +51,89 @@ def get_mock_cv_data(cv_text: str = None, filename: str = "CV.pdf") -> Dict[str,
         Dict[str, Any]: Données structurées simulées d'un CV
     """
     # Extraire un nom potentiel du nom de fichier
-    prenom, nom = extract_name_from_filename(filename)
+    prenom, job_title = extract_name_from_filename(filename)
     
-    # Liste de compétences techniques génériques
-    tech_skills = [
-        "Python", "JavaScript", "HTML/CSS", "Git", "Docker", 
-        "SQL", "React", "Node.js", "AWS", "Linux"
-    ]
+    # Extraction basique de mots-clés du texte du CV si fourni
+    skills = []
+    if cv_text:
+        # Compétences techniques courantes à chercher
+        tech_keywords = [
+            "Python", "Java", "JavaScript", "HTML", "CSS", "PHP", "C++", "C#",
+            "SQL", "MySQL", "PostgreSQL", "MongoDB", "Docker", "Kubernetes",
+            "AWS", "Azure", "Git", "Linux", "React", "Angular", "Vue.js", "Node.js"
+        ]
+        
+        # Langues courantes à chercher
+        language_keywords = [
+            "Français", "French", "Anglais", "English", "Espagnol", "Spanish",
+            "Allemand", "German", "Italien", "Italian", "Chinois", "Chinese",
+            "Japonais", "Japanese", "Arabe", "Arabic", "Russe", "Russian"
+        ]
+        
+        # Chercher les compétences dans le texte
+        for keyword in tech_keywords:
+            if keyword.lower() in cv_text.lower():
+                skills.append(keyword)
+        
+        # Limiter à maximum 8 compétences
+        skills = skills[:8]
     
-    # Liste de logiciels génériques
-    software_skills = [
-        "Microsoft Office", "Adobe Photoshop", "JIRA", "Trello",
-        "Slack", "GitHub", "VS Code", "Figma", "Notion"
-    ]
+    # Si aucune compétence n'est trouvée, utiliser quelques exemples pour démo
+    if not skills:
+        skills = ["Java", "Python", "SQL", "Anglais (avancé)", "Français (intermédiaire)"]
     
-    # Liste de soft skills génériques
-    soft_skills = [
-        "Communication", "Travail d'équipe", "Résolution de problèmes",
-        "Gestion du temps", "Adaptabilité", "Leadership", "Créativité"
-    ]
+    # Expériences professionnelles (simplifiées sans données fictives)
+    experiences = []
+    if cv_text:
+        # Détection basique d'expériences basée sur des mots-clés
+        exp_count = max(1, min(cv_text.lower().count("expérience"), 
+                               cv_text.lower().count("stage") + 
+                               cv_text.lower().count("emploi")))
+        
+        # Créer des structures vides pour que le frontend puisse les afficher
+        for i in range(exp_count):
+            experiences.append({
+                "title": "",
+                "company": "",
+                "start_date": "",
+                "end_date": "",
+                "description": ""
+            })
+    else:
+        # Deux expériences vides par défaut
+        experiences = [
+            {"title": "", "company": "", "start_date": "", "end_date": "", "description": ""},
+            {"title": "", "company": "", "start_date": "", "end_date": "", "description": ""}
+        ]
     
-    # Sélectionner aléatoirement des compétences
-    selected_tech = random.sample(tech_skills, min(5, len(tech_skills)))
-    selected_software = random.sample(software_skills, min(3, len(software_skills)))
-    selected_soft = random.sample(soft_skills, min(4, len(soft_skills)))
-    
-    # Générer des expériences professionnelles fictives
-    experiences = [
-        {
-            "entreprise": "TechCorp Solutions",
-            "poste": "Développeur Full-Stack",
-            "date_debut": "2020-01",
-            "date_fin": "2023-06",
-            "description": "Développement d'applications web, collaboration avec les équipes produit, maintenance de services existants."
-        },
-        {
-            "entreprise": "InnoSoft",
-            "poste": "Développeur Front-End",
-            "date_debut": "2018-03",
-            "date_fin": "2019-12",
-            "description": "Conception et implémentation d'interfaces utilisateur, optimisation des performances."
-        }
-    ]
-    
-    # Générer des formations fictives
-    formations = [
-        {
-            "etablissement": "Université de Tech",
-            "diplome": "Master en Informatique",
-            "date_debut": "2016",
-            "date_fin": "2018"
-        },
-        {
-            "etablissement": "École d'Ingénieurs TechSup",
-            "diplome": "Licence en Développement Logiciel",
-            "date_debut": "2013",
-            "date_fin": "2016"
-        }
-    ]
-    
-    # Générer des langues fictives
-    langues = [
-        {"langue": "Français", "niveau": "Natif"},
-        {"langue": "Anglais", "niveau": "Courant"},
-        {"langue": "Espagnol", "niveau": "Intermédiaire"}
-    ]
-    
-    # Données structurées du mock CV
+    # Structure compatible avec le format attendu par le frontend
     mock_data = {
-        "informations_personnelles": {
-            "nom": nom,
-            "prenom": prenom,
-            "email": f"{prenom.lower()}.{nom.lower()}@example.com",
-            "telephone": "+33 6 12 34 56 78",
-            "adresse": "123 Avenue des Développeurs, 75000 Paris",
-            "linkedin": f"linkedin.com/in/{prenom.lower()}-{nom.lower()}"
+        "personal_info": {
+            "name": prenom,  # Pas de nom fictif
+            "email": "",  # Pas d'email fictif
+            "phone": "",  # Pas de téléphone fictif
+            "address": ""
         },
-        "competences_techniques": selected_tech,
-        "logiciels": selected_software,
-        "soft_skills": selected_soft,
-        "experiences_professionnelles": experiences,
-        "formation": formations,
-        "langues": langues,
-        "certifications": [
-            "AWS Certified Developer",
-            "Scrum Master Certified"
+        "position": job_title,
+        "skills": [{"name": skill} for skill in skills],
+        "languages": [
+            {"language": "Français", "level": "natif"},
+            {"language": "Anglais", "level": "avancé"}
         ],
-        "interets": [
-            "Nouvelles technologies",
-            "Développement durable",
-            "Musique",
-            "Voyages"
+        "experience": experiences,
+        "education": [
+            {
+                "degree": "",
+                "institution": "",
+                "start_date": "",
+                "end_date": ""
+            }
         ]
     }
     
     # Simuler un délai pour imiter l'API
-    time.sleep(1.5)
+    time.sleep(0.5)
     
-    logger.info(f"Données CV simulées générées pour: {prenom} {nom}")
+    logger.info(f"Données CV simulées générées pour le fichier: {filename}")
     
     return mock_data
