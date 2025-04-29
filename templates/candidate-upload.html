@@ -14,6 +14,12 @@
             --gray-dark: #666;
             --text-color: #333;
             --border-radius: 8px;
+            --success-color: #4CAF50;
+            --success-light: #E8F5E9;
+            --warning-color: #FF9800;
+            --warning-light: #FFF3E0;
+            --error-color: #F44336;
+            --error-light: #FFEBEE;
         }
 
         * {
@@ -392,28 +398,48 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 1.5rem;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .data-table th, .data-table td {
-            padding: 0.75rem;
+            padding: 1rem;
             border-bottom: 1px solid #eee;
             text-align: left;
+            line-height: 1.4;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
         }
 
         .data-table th {
-            font-weight: 500;
-            color: var(--gray-dark);
-            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--primary-color);
+            background-color: var(--primary-light);
+            width: 30%;
+        }
+
+        .detected {
+            color: var(--text-color);
+        }
+
+        .not-detected {
+            color: #999;
+            font-style: italic;
         }
 
         .success-message {
             display: none;
-            background-color: #d4edda;
-            color: #155724;
+            background-color: var(--success-light);
+            color: var(--success-color);
             padding: 1rem;
             border-radius: var(--border-radius);
+            border-left: 4px solid var(--success-color);
             margin-top: 1.5rem;
             text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
         }
 
         .or-divider {
@@ -437,12 +463,19 @@
 
         .error-message {
             display: none;
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: var(--error-light);
+            color: var(--error-color);
             padding: 1rem;
             border-radius: var(--border-radius);
+            border-left: 4px solid var(--error-color);
             margin-top: 1.5rem;
             text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         /* Styles pour le chat AI */
@@ -736,9 +769,16 @@
             background-color: var(--primary-light);
             color: var(--primary-color);
             border-radius: 1rem;
-            padding: 0.25rem 0.75rem;
+            padding: 0.35rem 0.75rem;
             font-size: 0.875rem;
             font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .skill-tag i {
+            margin-right: 0.3rem;
+            font-size: 0.75rem;
         }
 
         /* Styles pour la liste des logiciels */
@@ -752,8 +792,15 @@
             background-color: #f0f2f5;
             color: var(--gray-dark);
             border-radius: 1rem;
-            padding: 0.25rem 0.75rem;
+            padding: 0.35rem 0.75rem;
             font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .software-item i {
+            margin-right: 0.3rem;
+            font-size: 0.75rem;
         }
 
         /* Styles pour les langues */
@@ -767,15 +814,27 @@
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
+            background-color: #f8f9fa;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--border-radius);
+            min-width: 120px;
         }
 
         .language-name {
             font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .language-name i {
+            margin-right: 0.3rem;
+            color: var(--primary-color);
         }
 
         .language-level {
             font-size: 0.875rem;
             color: var(--gray-dark);
+            padding-left: 1.2rem;
         }
 
         /* Styles pour l'expérience */
@@ -786,24 +845,69 @@
         }
 
         .experience-item {
-            padding-left: 0.5rem;
-            border-left: 2px solid var(--primary-light);
+            padding: 0.75rem;
+            border-left: 3px solid var(--primary-light);
+            background-color: #f8f9fa;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            transition: all 0.2s ease;
+        }
+
+        .experience-item:hover {
+            border-left-color: var(--primary-color);
+            background-color: var(--primary-light);
+            transform: translateX(3px);
         }
 
         .experience-title {
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 0.25rem;
+            color: var(--primary-color);
         }
 
         .experience-company {
-            font-size: 0.875rem;
-            color: var(--gray-dark);
+            font-size: 0.95rem;
             margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .experience-company i {
+            margin-right: 0.3rem;
+            font-size: 0.8rem;
+            color: var(--gray-dark);
         }
 
         .experience-date {
             font-size: 0.875rem;
             color: var(--gray-dark);
+            display: flex;
+            align-items: center;
+        }
+
+        .experience-date i {
+            margin-right: 0.3rem;
+            font-size: 0.8rem;
+        }
+
+        /* Styles pour la notification d'information */
+        .info-box {
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--gray-dark);
+            line-height: 1.4;
+        }
+
+        .info-box i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin-top: 0.1rem;
         }
 
         @media (max-width: 768px) {
@@ -837,6 +941,19 @@
                 max-height: 200px;
                 border-right: none;
                 border-bottom: 1px solid #eee;
+            }
+
+            .data-table th {
+                width: 40%;
+            }
+
+            .language-list {
+                gap: 0.5rem;
+            }
+
+            .language-item {
+                min-width: auto;
+                width: calc(50% - 0.25rem);
             }
         }
     </style>
@@ -933,32 +1050,37 @@
                     <i class="fas fa-check-circle"></i>
                     Informations extraites de votre CV
                 </div>
+
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Ces informations ont été extraites automatiquement. Vous pourrez les modifier et les compléter lors de l'étape suivante.</p>
+                </div>
                 
                 <table class="data-table">
                     <tr>
                         <th>Nom complet</th>
-                        <td id="parsedName">John Doe</td>
+                        <td id="parsedName" class="detected">John Doe</td>
                     </tr>
                     <tr>
                         <th>Titre de poste actuel</th>
-                        <td id="parsedJobTitle">Développeur Front-End</td>
+                        <td id="parsedJobTitle" class="detected">Développeur Front-End</td>
                     </tr>
                     <tr>
                         <th>Email</th>
-                        <td id="parsedEmail">john.doe@exemple.com</td>
+                        <td id="parsedEmail" class="detected">john.doe@exemple.com</td>
                     </tr>
                     <tr>
                         <th>Téléphone</th>
-                        <td id="parsedPhone">+33 6 12 34 56 78</td>
+                        <td id="parsedPhone" class="detected">+33 6 12 34 56 78</td>
                     </tr>
                     <tr>
                         <th>Compétences détectées</th>
                         <td id="parsedSkills">
                             <div class="skills-tags">
-                                <span class="skill-tag">HTML</span>
-                                <span class="skill-tag">CSS</span>
-                                <span class="skill-tag">JavaScript</span>
-                                <span class="skill-tag">React</span>
+                                <span class="skill-tag"><i class="fas fa-check-circle"></i>HTML</span>
+                                <span class="skill-tag"><i class="fas fa-check-circle"></i>CSS</span>
+                                <span class="skill-tag"><i class="fas fa-check-circle"></i>JavaScript</span>
+                                <span class="skill-tag"><i class="fas fa-check-circle"></i>React</span>
                             </div>
                         </td>
                     </tr>
@@ -966,9 +1088,9 @@
                         <th>Logiciels maîtrisés</th>
                         <td id="parsedSoftware">
                             <div class="software-list">
-                                <span class="software-item">Visual Studio Code</span>
-                                <span class="software-item">Adobe Photoshop</span>
-                                <span class="software-item">Figma</span>
+                                <span class="software-item"><i class="fas fa-laptop-code"></i>Visual Studio Code</span>
+                                <span class="software-item"><i class="fas fa-pencil-ruler"></i>Adobe Photoshop</span>
+                                <span class="software-item"><i class="fas fa-paint-brush"></i>Figma</span>
                             </div>
                         </td>
                     </tr>
@@ -977,11 +1099,11 @@
                         <td id="parsedLanguages">
                             <div class="language-list">
                                 <div class="language-item">
-                                    <span class="language-name">Français</span>
+                                    <span class="language-name"><i class="fas fa-language"></i>Français</span>
                                     <span class="language-level">Natif</span>
                                 </div>
                                 <div class="language-item">
-                                    <span class="language-name">Anglais</span>
+                                    <span class="language-name"><i class="fas fa-language"></i>Anglais</span>
                                     <span class="language-level">Courant</span>
                                 </div>
                             </div>
@@ -993,20 +1115,18 @@
                             <div class="experience-list">
                                 <div class="experience-item">
                                     <div class="experience-title">Développeur Front-End</div>
-                                    <div class="experience-company">TechCorp</div>
-                                    <div class="experience-date">Jan 2022 - Présent</div>
+                                    <div class="experience-company"><i class="fas fa-building"></i>TechCorp</div>
+                                    <div class="experience-date"><i class="fas fa-calendar-alt"></i>Jan 2022 - Présent</div>
                                 </div>
                                 <div class="experience-item">
                                     <div class="experience-title">Développeur Web Junior</div>
-                                    <div class="experience-company">WebAgency</div>
-                                    <div class="experience-date">Mar 2020 - Déc 2021</div>
+                                    <div class="experience-company"><i class="fas fa-building"></i>WebAgency</div>
+                                    <div class="experience-date"><i class="fas fa-calendar-alt"></i>Mar 2020 - Déc 2021</div>
                                 </div>
                             </div>
                         </td>
                     </tr>
                 </table>
-                
-                <p>Ces informations seront utilisées pour pré-remplir votre profil. Vous pourrez les modifier lors de l'étape suivante.</p>
                 
                 <!-- Bouton pour ouvrir le chat avec l'IA -->
                 <button class="chat-button" id="openChatBtn">
@@ -1147,9 +1267,9 @@
                     initCVParser();
                     
                     // Afficher un message de succès
-                    alert('Clé API enregistrée avec succès!');
+                    showSuccessMessage('Clé API enregistrée avec succès!');
                 } else {
-                    alert('Veuillez entrer une clé API OpenAI valide commençant par "sk-"');
+                    showErrorMessage('Veuillez entrer une clé API OpenAI valide commençant par "sk-"');
                 }
             });
             
@@ -1191,22 +1311,15 @@
                             
                             // Afficher les résultats
                             parsedData.style.display = 'block';
-                            successMessage.style.display = 'block';
-                            
-                            // Masquer le message de succès après 3 secondes
-                            setTimeout(() => {
-                                successMessage.style.display = 'none';
-                            }, 3000);
+                            showSuccessMessage('Analyse terminée avec succès!');
                         } else {
                             // Gérer l'erreur
-                            errorText.textContent = 'Échec de l\'analyse du CV.';
-                            errorMessage.style.display = 'block';
+                            showErrorMessage('Échec de l\'analyse du CV.');
                         }
                     },
                     onParsingError: (error) => {
                         loadingIndicator.style.display = 'none';
-                        errorText.textContent = 'Erreur lors de l\'analyse: ' + error.message;
-                        errorMessage.style.display = 'block';
+                        showErrorMessage('Erreur lors de l\'analyse: ' + error.message);
                     }
                 });
             }
@@ -1299,19 +1412,19 @@
                     jobTitle: document.getElementById('parsedJobTitle').textContent,
                     email: document.getElementById('parsedEmail').textContent,
                     phone: document.getElementById('parsedPhone').textContent,
-                    skills: Array.from(document.querySelectorAll('#parsedSkills .skill-tag')).map(tag => tag.textContent),
-                    software: Array.from(document.querySelectorAll('#parsedSoftware .software-item')).map(item => item.textContent),
+                    skills: Array.from(document.querySelectorAll('#parsedSkills .skill-tag')).map(tag => tag.textContent.replace(/^./, '')), // Enlever l'icône
+                    software: Array.from(document.querySelectorAll('#parsedSoftware .software-item')).map(item => item.textContent.replace(/^./, '')),
                     languages: Array.from(document.querySelectorAll('#parsedLanguages .language-item')).map(item => {
                         return {
-                            language: item.querySelector('.language-name').textContent,
+                            language: item.querySelector('.language-name').textContent.replace(/^./, ''),
                             level: item.querySelector('.language-level').textContent
                         }
                     }),
                     experience: Array.from(document.querySelectorAll('#parsedExperience .experience-item')).map(item => {
                         return {
                             title: item.querySelector('.experience-title').textContent,
-                            company: item.querySelector('.experience-company').textContent,
-                            date: item.querySelector('.experience-date').textContent
+                            company: item.querySelector('.experience-company').textContent.replace(/^./, ''),
+                            date: item.querySelector('.experience-date').textContent.replace(/^./, '')
                         }
                     })
                 };
@@ -1492,6 +1605,28 @@
                 }
             }
             
+            // Fonction pour afficher un message de succès
+            function showSuccessMessage(message) {
+                successMessage.textContent = message;
+                successMessage.style.display = 'block';
+                
+                // Masquer le message après 4 secondes
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 4000);
+            }
+            
+            // Fonction pour afficher un message d'erreur
+            function showErrorMessage(message) {
+                errorText.textContent = message;
+                errorMessage.style.display = 'block';
+                
+                // Masquer le message après 5 secondes
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 5000);
+            }
+            
             // Fonction pour générer une réponse de chat basée sur les données du CV
             function generateChatResponse(message, cvData) {
                 const lowerMessage = message.toLowerCase();
@@ -1538,21 +1673,13 @@
                 let isAllowedType = allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension);
                 
                 if (!isAllowedType) {
-                    errorText.textContent = 'Type de fichier non pris en charge. Veuillez charger un fichier PDF, DOC, DOCX, JPG ou PNG.';
-                    errorMessage.style.display = 'block';
-                    setTimeout(() => {
-                        errorMessage.style.display = 'none';
-                    }, 5000);
+                    showErrorMessage('Type de fichier non pris en charge. Veuillez charger un fichier PDF, DOC, DOCX, JPG ou PNG.');
                     return;
                 }
                 
                 // Vérification de la taille du fichier (max 10MB)
                 if (file.size > 10 * 1024 * 1024) {
-                    errorText.textContent = 'La taille du fichier dépasse la limite de 10MB.';
-                    errorMessage.style.display = 'block';
-                    setTimeout(() => {
-                        errorMessage.style.display = 'none';
-                    }, 5000);
+                    showErrorMessage('La taille du fichier dépasse la limite de 10MB.');
                     return;
                 }
                 
@@ -1566,13 +1693,14 @@
                     await window.cvParser.parseCV(file);
                 } catch (error) {
                     console.error('Erreur lors du parsing:', error);
-                    errorText.textContent = 'Erreur lors de l\'analyse: ' + error.message;
-                    errorMessage.style.display = 'block';
+                    showErrorMessage('Erreur lors de l\'analyse: ' + error.message);
                 }
             }
             
             // Fonction pour remplir le tableau de données
             function populateDataTable(data) {
+                console.log("Données extraites:", data);
+                
                 // Extraire les données pertinentes
                 let personalInfo = data.personal_info || {};
                 let skills = data.skills || [];
@@ -1582,20 +1710,49 @@
                 let currentPosition = data.current_position || '';
                 
                 // Traiter le nom
-                document.getElementById('parsedName').textContent = personalInfo.name || personalInfo.prenom + ' ' + personalInfo.nom || 'Non détecté';
+                const nameElement = document.getElementById('parsedName');
+                if (personalInfo.name) {
+                    nameElement.textContent = personalInfo.name;
+                    nameElement.className = 'detected';
+                } else {
+                    nameElement.textContent = 'Non détecté';
+                    nameElement.className = 'not-detected';
+                }
                 
                 // Traiter le titre de poste
+                const jobTitleElement = document.getElementById('parsedJobTitle');
                 let jobTitle = currentPosition;
                 if (!jobTitle && experience && experience.length > 0 && experience[0].title) {
                     jobTitle = experience[0].title;
                 }
-                document.getElementById('parsedJobTitle').textContent = jobTitle || 'Non détecté';
+                
+                if (jobTitle) {
+                    jobTitleElement.textContent = jobTitle;
+                    jobTitleElement.className = 'detected';
+                } else {
+                    jobTitleElement.textContent = 'Non détecté';
+                    jobTitleElement.className = 'not-detected';
+                }
                 
                 // Traiter l'email
-                document.getElementById('parsedEmail').textContent = personalInfo.email || 'Non détecté';
+                const emailElement = document.getElementById('parsedEmail');
+                if (personalInfo.email) {
+                    emailElement.textContent = personalInfo.email;
+                    emailElement.className = 'detected';
+                } else {
+                    emailElement.textContent = 'Non détecté';
+                    emailElement.className = 'not-detected';
+                }
                 
                 // Traiter le téléphone
-                document.getElementById('parsedPhone').textContent = personalInfo.phone || personalInfo.telephone || 'Non détecté';
+                const phoneElement = document.getElementById('parsedPhone');
+                if (personalInfo.phone) {
+                    phoneElement.textContent = personalInfo.phone;
+                    phoneElement.className = 'detected';
+                } else {
+                    phoneElement.textContent = 'Non détecté';
+                    phoneElement.className = 'not-detected';
+                }
                 
                 // Traiter les compétences avec des tags
                 let skillsContainer = document.getElementById('parsedSkills');
@@ -1605,10 +1762,17 @@
                 
                 if (Array.isArray(skills) && skills.length > 0) {
                     skills.forEach(skill => {
-                        let skillTag = document.createElement('span');
-                        skillTag.className = 'skill-tag';
-                        skillTag.textContent = skill;
-                        skillsTagsDiv.appendChild(skillTag);
+                        if (skill && typeof skill === 'string') {
+                            let skillTag = document.createElement('span');
+                            skillTag.className = 'skill-tag';
+                            
+                            let icon = document.createElement('i');
+                            icon.className = 'fas fa-check-circle';
+                            skillTag.appendChild(icon);
+                            
+                            skillTag.appendChild(document.createTextNode(skill));
+                            skillsTagsDiv.appendChild(skillTag);
+                        }
                     });
                 } else if (typeof skills === 'string') {
                     skills.split(',').forEach(skill => {
@@ -1616,7 +1780,12 @@
                         if (trimmedSkill) {
                             let skillTag = document.createElement('span');
                             skillTag.className = 'skill-tag';
-                            skillTag.textContent = trimmedSkill;
+                            
+                            let icon = document.createElement('i');
+                            icon.className = 'fas fa-check-circle';
+                            skillTag.appendChild(icon);
+                            
+                            skillTag.appendChild(document.createTextNode(trimmedSkill));
                             skillsTagsDiv.appendChild(skillTag);
                         }
                     });
@@ -1626,14 +1795,22 @@
                         if (typeof skill === 'string') {
                             let skillTag = document.createElement('span');
                             skillTag.className = 'skill-tag';
-                            skillTag.textContent = skill;
+                            
+                            let icon = document.createElement('i');
+                            icon.className = 'fas fa-check-circle';
+                            skillTag.appendChild(icon);
+                            
+                            skillTag.appendChild(document.createTextNode(skill));
                             skillsTagsDiv.appendChild(skillTag);
                         }
                     });
                 }
                 
                 if (skillsTagsDiv.children.length === 0) {
-                    skillsTagsDiv.innerHTML = '<span class="skill-tag">Non détecté</span>';
+                    let skillTag = document.createElement('span');
+                    skillTag.className = 'skill-tag not-detected';
+                    skillTag.textContent = 'Non détecté';
+                    skillsTagsDiv.appendChild(skillTag);
                 }
                 skillsContainer.appendChild(skillsTagsDiv);
                 
@@ -1645,10 +1822,17 @@
                 
                 if (Array.isArray(software) && software.length > 0) {
                     software.forEach(item => {
-                        let softwareItem = document.createElement('span');
-                        softwareItem.className = 'software-item';
-                        softwareItem.textContent = item;
-                        softwareListDiv.appendChild(softwareItem);
+                        if (item && typeof item === 'string') {
+                            let softwareItem = document.createElement('span');
+                            softwareItem.className = 'software-item';
+                            
+                            let icon = document.createElement('i');
+                            icon.className = 'fas fa-laptop-code';
+                            softwareItem.appendChild(icon);
+                            
+                            softwareItem.appendChild(document.createTextNode(item));
+                            softwareListDiv.appendChild(softwareItem);
+                        }
                     });
                 } else if (typeof software === 'string') {
                     software.split(',').forEach(item => {
@@ -1656,14 +1840,22 @@
                         if (trimmedItem) {
                             let softwareItem = document.createElement('span');
                             softwareItem.className = 'software-item';
-                            softwareItem.textContent = trimmedItem;
+                            
+                            let icon = document.createElement('i');
+                            icon.className = 'fas fa-laptop-code';
+                            softwareItem.appendChild(icon);
+                            
+                            softwareItem.appendChild(document.createTextNode(trimmedItem));
                             softwareListDiv.appendChild(softwareItem);
                         }
                     });
                 }
                 
                 if (softwareListDiv.children.length === 0) {
-                    softwareListDiv.innerHTML = '<span class="software-item">Non détecté</span>';
+                    let softwareItem = document.createElement('span');
+                    softwareItem.className = 'software-item not-detected';
+                    softwareItem.textContent = 'Non détecté';
+                    softwareListDiv.appendChild(softwareItem);
                 }
                 softwareContainer.appendChild(softwareListDiv);
                 
@@ -1680,14 +1872,25 @@
                         
                         let languageName = document.createElement('span');
                         languageName.className = 'language-name';
-                        languageName.textContent = typeof lang === 'string' ? lang : lang.language;
                         
-                        let languageLevel = document.createElement('span');
-                        languageLevel.className = 'language-level';
-                        languageLevel.textContent = typeof lang === 'string' ? '' : (lang.level || '');
+                        let icon = document.createElement('i');
+                        icon.className = 'fas fa-language';
+                        languageName.appendChild(icon);
+                        
+                        if (typeof lang === 'string') {
+                            languageName.appendChild(document.createTextNode(lang));
+                        } else if (lang.language) {
+                            languageName.appendChild(document.createTextNode(lang.language));
+                            
+                            if (lang.level) {
+                                let languageLevel = document.createElement('span');
+                                languageLevel.className = 'language-level';
+                                languageLevel.textContent = lang.level;
+                                languageItem.appendChild(languageLevel);
+                            }
+                        }
                         
                         languageItem.appendChild(languageName);
-                        languageItem.appendChild(languageLevel);
                         languageListDiv.appendChild(languageItem);
                     });
                 }
@@ -1697,7 +1900,7 @@
                     languageItem.className = 'language-item';
                     
                     let languageName = document.createElement('span');
-                    languageName.className = 'language-name';
+                    languageName.className = 'language-name not-detected';
                     languageName.textContent = 'Non détecté';
                     
                     languageItem.appendChild(languageName);
@@ -1711,35 +1914,53 @@
                 let experienceListDiv = document.createElement('div');
                 experienceListDiv.className = 'experience-list';
                 
-                if (experience && experience.length > 0) {
+                if (experience && Array.isArray(experience) && experience.length > 0) {
                     experience.forEach(exp => {
-                        let experienceItem = document.createElement('div');
-                        experienceItem.className = 'experience-item';
-                        
-                        let experienceTitle = document.createElement('div');
-                        experienceTitle.className = 'experience-title';
-                        experienceTitle.textContent = exp.title || '';
-                        
-                        let experienceCompany = document.createElement('div');
-                        experienceCompany.className = 'experience-company';
-                        experienceCompany.textContent = exp.company || '';
-                        
-                        let experienceDate = document.createElement('div');
-                        experienceDate.className = 'experience-date';
-                        
-                        let dateText = '';
-                        if (exp.start_date) {
-                            dateText += formatDate(exp.start_date);
+                        if (exp.title || exp.company) {
+                            let experienceItem = document.createElement('div');
+                            experienceItem.className = 'experience-item';
+                            
+                            if (exp.title) {
+                                let experienceTitle = document.createElement('div');
+                                experienceTitle.className = 'experience-title';
+                                experienceTitle.textContent = exp.title;
+                                experienceItem.appendChild(experienceTitle);
+                            }
+                            
+                            if (exp.company) {
+                                let experienceCompany = document.createElement('div');
+                                experienceCompany.className = 'experience-company';
+                                
+                                let icon = document.createElement('i');
+                                icon.className = 'fas fa-building';
+                                experienceCompany.appendChild(icon);
+                                
+                                experienceCompany.appendChild(document.createTextNode(exp.company));
+                                experienceItem.appendChild(experienceCompany);
+                            }
+                            
+                            let dateText = '';
+                            if (exp.start_date) {
+                                dateText += formatDate(exp.start_date);
+                            }
+                            if (exp.end_date) {
+                                dateText += ' - ' + (exp.end_date.toLowerCase() === 'present' ? 'Présent' : formatDate(exp.end_date));
+                            }
+                            
+                            if (dateText) {
+                                let experienceDate = document.createElement('div');
+                                experienceDate.className = 'experience-date';
+                                
+                                let icon = document.createElement('i');
+                                icon.className = 'fas fa-calendar-alt';
+                                experienceDate.appendChild(icon);
+                                
+                                experienceDate.appendChild(document.createTextNode(dateText));
+                                experienceItem.appendChild(experienceDate);
+                            }
+                            
+                            experienceListDiv.appendChild(experienceItem);
                         }
-                        if (exp.end_date) {
-                            dateText += ' - ' + (exp.end_date.toLowerCase() === 'present' ? 'Présent' : formatDate(exp.end_date));
-                        }
-                        experienceDate.textContent = dateText || '';
-                        
-                        experienceItem.appendChild(experienceTitle);
-                        experienceItem.appendChild(experienceCompany);
-                        experienceItem.appendChild(experienceDate);
-                        experienceListDiv.appendChild(experienceItem);
                     });
                 }
                 
@@ -1748,7 +1969,7 @@
                     experienceItem.className = 'experience-item';
                     
                     let experienceTitle = document.createElement('div');
-                    experienceTitle.className = 'experience-title';
+                    experienceTitle.className = 'experience-title not-detected';
                     experienceTitle.textContent = 'Non détecté';
                     
                     experienceItem.appendChild(experienceTitle);
@@ -1762,19 +1983,19 @@
                     jobTitle: document.getElementById('parsedJobTitle').textContent,
                     email: document.getElementById('parsedEmail').textContent,
                     phone: document.getElementById('parsedPhone').textContent,
-                    skills: Array.from(document.querySelectorAll('#parsedSkills .skill-tag')).map(tag => tag.textContent),
-                    software: Array.from(document.querySelectorAll('#parsedSoftware .software-item')).map(item => item.textContent),
+                    skills: Array.from(document.querySelectorAll('#parsedSkills .skill-tag')).map(tag => tag.textContent.replace(/^./, '')), // Enlever l'icône
+                    software: Array.from(document.querySelectorAll('#parsedSoftware .software-item')).map(item => item.textContent.replace(/^./, '')),
                     languages: Array.from(document.querySelectorAll('#parsedLanguages .language-item')).map(item => {
                         return {
-                            language: item.querySelector('.language-name').textContent,
+                            language: item.querySelector('.language-name')?.textContent.replace(/^./, '') || '',
                             level: item.querySelector('.language-level')?.textContent || ''
                         }
                     }),
                     experience: Array.from(document.querySelectorAll('#parsedExperience .experience-item')).map(item => {
                         return {
-                            title: item.querySelector('.experience-title').textContent,
-                            company: item.querySelector('.experience-company')?.textContent || '',
-                            date: item.querySelector('.experience-date')?.textContent || ''
+                            title: item.querySelector('.experience-title')?.textContent || '',
+                            company: item.querySelector('.experience-company')?.textContent.replace(/^./, '') || '',
+                            date: item.querySelector('.experience-date')?.textContent.replace(/^./, '') || ''
                         }
                     })
                 };
@@ -1782,6 +2003,8 @@
             
             // Fonction pour formater les dates
             function formatDate(dateStr) {
+                if (!dateStr) return '';
+                
                 // Si le format est "YYYY-MM" ou "YYYY-MM-DD"
                 if (/^\d{4}-\d{2}(-\d{2})?$/.test(dateStr)) {
                     const parts = dateStr.split('-');
