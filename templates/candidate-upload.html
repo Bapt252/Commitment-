@@ -917,14 +917,18 @@
             let chatHistory = [];
             let documentData = null;
             
-            // URL de base pour les API
-            // URL correcte pour le service de parsing
-            const API_BASE_URL = 'http://localhost:5051';
+            // URL de base pour les API - Détection automatique de l'environnement
+            const isGitHubPages = window.location.hostname.includes('github.io');
+            // Si sur GitHub Pages, utiliser un mode mock complet
+            const API_BASE_URL = isGitHubPages ? null : 'http://localhost:5051/api';
             
-            // Initialiser l'intégration du service de parsing
+            console.log('Environnement détecté:', isGitHubPages ? 'GitHub Pages' : 'Local/Dev');
+            
+            // Initialiser l'intégration du service de parsing avec auto-détection
             const cvParser = new CVParserIntegration({
                 apiUrl: API_BASE_URL,
-                useAsync: false, // Utiliser le parsing synchrone
+                useAsync: false,
+                forceMock: isGitHubPages, // Forcer le mode mock sur GitHub Pages
                 onParsingStart: () => {
                     loadingIndicator.style.display = 'flex';
                     errorMessage.style.display = 'none';
@@ -1113,45 +1117,71 @@
                 // Afficher l'indicateur de frappe
                 chatTypingIndicator.style.display = 'block';
                 
+                // Délai simulé pour une expérience utilisateur plus naturelle
+                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+                
                 try {
-                    // Appel à l'API de chat
-                    const response = await fetch(`${API_BASE_URL}/api/chat`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'
-                        },
-                        body: JSON.stringify({
-                            message: message,
-                            history: chatHistory,
-                            document_data: documentData,
-                            doc_type: 'cv'
-                        })
-                    });
-                    
-                    // Vérifier si la réponse est OK
-                    if (!response.ok) {
-                        throw new Error(`Erreur serveur: ${response.status}`);
+                    // Si on est sur GitHub Pages, utiliser une réponse simulée
+                    if (isGitHubPages) {
+                        // Masquer l'indicateur de frappe
+                        chatTypingIndicator.style.display = 'none';
+                        
+                        // Générer une réponse simulée
+                        const simulatedResponse = generateChatResponse(message, documentData);
+                        addChatMessage(simulatedResponse, 'assistant');
+                        return;
                     }
                     
-                    // Traiter la réponse
-                    const data = await response.json();
+                    // Sinon, essayer d'appeler l'API de chat
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/chat`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Access-Control-Allow-Origin': '*'
+                            },
+                            body: JSON.stringify({
+                                message: message,
+                                history: chatHistory,
+                                document_data: documentData,
+                                doc_type: 'cv'
+                            })
+                        });
+                        
+                        // Vérifier si la réponse est OK
+                        if (!response.ok) {
+                            throw new Error(`Erreur serveur: ${response.status}`);
+                        }
+                        
+                        // Traiter la réponse
+                        const data = await response.json();
+                        
+                        // Masquer l'indicateur de frappe
+                        chatTypingIndicator.style.display = 'none';
+                        
+                        // Mettre à jour l'historique du chat
+                        chatHistory = data.history || chatHistory;
+                        
+                        // Ajouter la réponse à l'interface
+                        addChatMessage(data.response, 'assistant');
+                    } catch (apiError) {
+                        console.error('Erreur lors de l\'appel à l\'API de chat:', apiError);
+                        
+                        // Masquer l'indicateur de frappe
+                        chatTypingIndicator.style.display = 'none';
+                        
+                        // Utiliser une réponse de secours
+                        const backupResponse = generateChatResponse(message, documentData);
+                        addChatMessage(backupResponse, 'assistant');
+                    }
+                } catch (error) {
+                    console.error('Erreur générale du chat:', error);
                     
                     // Masquer l'indicateur de frappe
                     chatTypingIndicator.style.display = 'none';
                     
-                    // Mettre à jour l'historique du chat
-                    chatHistory = data.history || chatHistory;
-                    
-                    // Ajouter la réponse à l'interface
-                    addChatMessage(data.response, 'assistant');
-                } catch (error) {
-                    console.error('Erreur lors de l\'appel à l\'API de chat:', error);
-                    chatTypingIndicator.style.display = 'none';
-                    
-                    // En cas d'erreur API, utiliser une réponse de secours
-                    const backupResponse = generateBackupResponse(message, documentData);
-                    addChatMessage(backupResponse, 'assistant');
+                    // Message d'erreur générique
+                    addChatMessage("Désolé, je rencontre des difficultés techniques. Comment puis-je vous aider autrement ?", 'assistant');
                 }
             }
             
@@ -1174,8 +1204,8 @@
                 });
             }
             
-            // Fonction de secours qui génère une réponse basée sur les données du CV
-            function generateBackupResponse(message, cvData) {
+            // Fonction pour générer une réponse de chat basée sur les données du CV
+            function generateChatResponse(message, cvData) {
                 const lowerMessage = message.toLowerCase();
                 
                 // Réponses prédéfinies basées sur des mots-clés
