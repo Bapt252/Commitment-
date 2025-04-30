@@ -39,6 +39,37 @@ function forcePreFill(data) {
     console.log('Tentative de pré-remplissage forcé avec les données:', data);
     
     if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+        // S'assurer que les fonctions toggleSectorPreference et toggleProhibitedSector sont définies
+        if (typeof window.toggleSectorPreference !== 'function') {
+            window.toggleSectorPreference = function(radio) {
+                const container = document.getElementById('sector-preference-container');
+                if (container) {
+                    container.style.display = radio.value === 'yes' ? 'block' : 'none';
+                }
+            };
+        }
+        
+        if (typeof window.toggleProhibitedSector !== 'function') {
+            window.toggleProhibitedSector = function(radio) {
+                const container = document.getElementById('prohibited-sector-selection');
+                if (container) {
+                    container.style.display = radio.value === 'yes' ? 'block' : 'none';
+                }
+            };
+        }
+        
+        if (typeof window.toggleEmploymentStatus !== 'function') {
+            window.toggleEmploymentStatus = function(radio) {
+                const employedSection = document.getElementById('employed-section');
+                const unemployedSection = document.getElementById('unemployed-section');
+                
+                if (employedSection && unemployedSection) {
+                    employedSection.style.display = radio.value === 'yes' ? 'block' : 'none';
+                    unemployedSection.style.display = radio.value === 'yes' ? 'none' : 'block';
+                }
+            };
+        }
+        
         window.FormPrefiller.initialize(data);
         console.log('FormPrefiller.initialize appelé avec succès');
     } else {
@@ -48,20 +79,46 @@ function forcePreFill(data) {
         if (data.data) {
             // Format provenant directement du parsing
             if (data.data.personal_info && data.data.personal_info.name) {
-                document.getElementById('full-name').value = data.data.personal_info.name;
+                const fullNameField = document.getElementById('full-name');
+                if (fullNameField) {
+                    fullNameField.value = data.data.personal_info.name;
+                    // Déclencher un événement input pour activer les validations
+                    fullNameField.dispatchEvent(new Event('input', { bubbles: true }));
+                }
             }
             
             if (data.data.position) {
-                document.getElementById('job-title').value = data.data.position;
+                const jobTitleField = document.getElementById('job-title');
+                if (jobTitleField) {
+                    jobTitleField.value = data.data.position;
+                    // Déclencher un événement input
+                    jobTitleField.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+            
+            if (data.data.personal_info && data.data.personal_info.address) {
+                const addressField = document.getElementById('address');
+                if (addressField) {
+                    addressField.value = data.data.personal_info.address;
+                    addressField.dispatchEvent(new Event('input', { bubbles: true }));
+                }
             }
         } else if (data.personalInfo) {
             // Format déjà transformé
             if (data.personalInfo.fullName) {
-                document.getElementById('full-name').value = data.personalInfo.fullName;
+                const fullNameField = document.getElementById('full-name');
+                if (fullNameField) {
+                    fullNameField.value = data.personalInfo.fullName;
+                    fullNameField.dispatchEvent(new Event('input', { bubbles: true }));
+                }
             }
             
             if (data.personalInfo.jobTitle) {
-                document.getElementById('job-title').value = data.personalInfo.jobTitle;
+                const jobTitleField = document.getElementById('job-title');
+                if (jobTitleField) {
+                    jobTitleField.value = data.personalInfo.jobTitle;
+                    jobTitleField.dispatchEvent(new Event('input', { bubbles: true }));
+                }
             }
         }
         
