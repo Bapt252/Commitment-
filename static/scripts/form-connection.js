@@ -20,12 +20,10 @@
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('parsed_data_id');
         
-        // Vérifier si nous sommes sur GitHub Pages (ou en développement local)
-        if (IS_DEMO_ENV) {
-            // En mode démo, stocker un identifiant factice si présent
-            if (id) {
-                sessionStorage.setItem('last_parsed_data_id', id);
-            }
+        if (id) {
+            console.log(`Form-connection: ID de données trouvé dans l'URL: ${id}`);
+            // Stocker l'ID pour référence ultérieure
+            sessionStorage.setItem('last_parsed_data_id', id);
         }
         
         return id;
@@ -36,17 +34,51 @@
         try {
             console.log(`Form-connection: Tentative de récupération des données avec l'ID ${id}`);
             
-            // Utiliser l'adaptateur API si disponible
-            if (window.ApiAdapter) {
-                console.log(`Form-connection: Utilisation de l'adaptateur API`);
-                return await window.ApiAdapter.get(`/parsed_data/${id}`);
+            // Code pour l'environnement de production (prioritaire même en démo)
+            try {
+                console.log(`Form-connection: Tentative de récupération depuis l'API réelle`);
+                
+                // Utiliser l'adaptateur API si disponible
+                if (window.ApiAdapter && !IS_DEMO_ENV) {
+                    console.log(`Form-connection: Utilisation de l'adaptateur API réel`);
+                    const realData = await window.ApiAdapter.get(`/parsed_data/${id}`);
+                    if (realData && !realData.isSimulated) {
+                        console.log(`Form-connection: Données réelles récupérées avec succès`);
+                        return realData;
+                    }
+                }
+                
+                // Si ce n'est pas API Adapter ou si en démo, essayer l'API directe
+                const apiUrl = `../api/parsed_data/${id}`;
+                const response = await fetch(apiUrl);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Form-connection: Données réelles reçues du backend:", data);
+                    return data;
+                }
+            } catch (apiError) {
+                console.warn("Form-connection: Erreur lors de l'appel API réel, continuons avec les fallbacks", apiError);
             }
             
-            // Vérifier si nous sommes sur GitHub Pages ou en dev local
+            // Si nous sommes sur GitHub Pages ou en dev local ou si l'API réelle a échoué
             if (IS_DEMO_ENV) {
-                console.warn("Form-connection: Environnement de démonstration détecté");
+                console.warn("Form-connection: Mode démo, tentative avec les données locales d'abord");
                 
-                // Simuler un appel API avec réponse simulée
+                // 1. D'abord, vérifier si nous avons des données réelles stockées localement
+                try {
+                    const realDataKey = `real_parsed_data_${id}`;
+                    const storedRealData = localStorage.getItem(realDataKey) || sessionStorage.getItem(realDataKey);
+                    
+                    if (storedRealData) {
+                        console.log("Form-connection: Données réelles trouvées dans le stockage local");
+                        return JSON.parse(storedRealData);
+                    }
+                } catch (e) {
+                    console.warn("Form-connection: Erreur lors de la récupération des données réelles stockées", e);
+                }
+                
+                // 2. Ensuite, simuler un appel API avec réponse simulée
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         // Charger les données mockées depuis sessionStorage
@@ -86,41 +118,9 @@
                 });
             }
             
-            // Code pour l'environnement de production
-            const apiUrl = `../api/parsed_data/${id}`;
-            
-            // Appel à l'API
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
-            }
-            
-            // Récupération des données
-            const data = await response.json();
-            console.log("Form-connection: Données reçues du backend:", data);
-            
-            return data;
+            return null;
         } catch (error) {
             console.error("Form-connection: Erreur lors de la récupération des données:", error);
-            
-            // En mode développement, on essaie de récupérer des données depuis sessionStorage
-            if (IS_DEMO_ENV) {
-                console.warn("Form-connection: Environnement de développement détecté, tentative de récupération depuis sessionStorage");
-                try {
-                    const storedData = sessionStorage.getItem('parsedCandidateData');
-                    if (storedData) {
-                        const data = JSON.parse(storedData);
-                        // Ajouter un marqueur de données simulées
-                        if (data && !data.isSimulated) {
-                            data.isSimulated = true;
-                        }
-                        return data;
-                    }
-                } catch (storageError) {
-                    console.error("Form-connection: Erreur lors de la récupération depuis sessionStorage:", storageError);
-                }
-            }
-            
             return null;
         }
     }
@@ -221,6 +221,29 @@
         }
     }
     
+    // Fonction pour sauvegarder les données parsées dans le stockage local
+    function saveRealParsedData(id, data) {
+        if (!id || !data) return;
+        
+        try {
+            const storageKey = `real_parsed_data_${id}`;
+            
+            // Stocker dans sessionStorage (prioritaire)
+            sessionStorage.setItem(storageKey, JSON.stringify(data));
+            
+            // Également dans localStorage pour persistance
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(data));
+            } catch (e) {
+                console.warn("Impossible de stocker dans localStorage, continuons avec sessionStorage uniquement");
+            }
+            
+            console.log(`Données réelles sauvegardées avec la clé ${storageKey}`);
+        } catch (e) {
+            console.error("Erreur lors de la sauvegarde des données:", e);
+        }
+    }
+    
     // Fonction principale d'initialisation
     async function initialize() {
         // Extraire l'ID des données parsées depuis l'URL
@@ -234,6 +257,11 @@
             
             // Appliquer les données au formulaire si disponibles
             if (data) {
+                // Sauvegarder les données réelles parsées pour utilisation future
+                if (!data.isSimulated) {
+                    saveRealParsedData(parsedDataId, data);
+                }
+                
                 if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
                     try {
                         console.log("Form-connection: Utilisation du FormPrefiller");
@@ -248,32 +276,46 @@
                 }
             } else {
                 console.warn("Form-connection: Aucune donnée disponible pour cet ID");
-                
-                // En mode démo, charger les données d'exemple
-                if (IS_DEMO_ENV) {
-                    console.log("Form-connection: Mode démo, chargement des données d'exemple");
-                    
-                    // Attente pour s'assurer que le DOM est prêt
-                    setTimeout(function() {
-                        const script = document.createElement('script');
-                        script.src = "../static/scripts/parsed-data-example.js";
-                        document.head.appendChild(script);
-                    }, 500);
-                }
+                // Ne pas charger les données d'exemple ici, car nous voulons privilégier les données réelles
             }
         } else {
             console.log("Form-connection: Aucun ID de données parsées dans l'URL, vérification des données locales");
             
-            // Vérifier si des données sont disponibles dans le sessionStorage
+            // Essayons de trouver le dernier ID de données parsées utilisé
+            const lastParsedId = sessionStorage.getItem('last_parsed_data_id');
+            if (lastParsedId) {
+                console.log(`Form-connection: Dernier ID de données trouvé: ${lastParsedId}, tentative de récupération`);
+                
+                // Chercher des données réelles avec cet ID
+                try {
+                    const realDataKey = `real_parsed_data_${lastParsedId}`;
+                    const storedRealData = localStorage.getItem(realDataKey) || sessionStorage.getItem(realDataKey);
+                    
+                    if (storedRealData) {
+                        console.log("Form-connection: Données réelles précédentes trouvées, application au formulaire");
+                        const realData = JSON.parse(storedRealData);
+                        
+                        if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+                            window.FormPrefiller.initialize(realData);
+                        } else {
+                            applyDirectFormFilling(realData);
+                        }
+                        
+                        return; // Sortir de la fonction car nous avons appliqué les données
+                    }
+                } catch (e) {
+                    console.warn("Erreur lors de la récupération des données réelles précédentes:", e);
+                }
+            }
+            
+            // Si aucune donnée réelle trouvée, vérifier le sessionStorage pour des données génériques
             try {
                 const storedData = sessionStorage.getItem('parsedCandidateData');
                 if (storedData) {
-                    console.log("Form-connection: Données trouvées dans sessionStorage");
+                    console.log("Form-connection: Données génériques trouvées dans sessionStorage");
                     const data = JSON.parse(storedData);
-                    // Marquer comme données simulées si en mode démo
-                    if (IS_DEMO_ENV && !data.isSimulated) {
-                        data.isSimulated = true;
-                    }
+                    // Marquer comme données simulées
+                    data.isSimulated = true;
                     
                     if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
                         try {
