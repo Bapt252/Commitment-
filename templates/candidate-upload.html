@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Script de transfert de données -->
+    <script src="../static/scripts/data-transfer-service.js"></script>
     <style>
         /* Styles CSS existants (inchangés) */
         :root {
@@ -1383,8 +1385,13 @@
             nextBtn.addEventListener('click', function() {
                 if (fileInfo.style.display === 'flex' && parsedData.style.display === 'block') {
                     if (completeParserData) {
-                        // Stocker les données brutes complètes du parser CV
-                        localStorage.setItem('parsedCvData', JSON.stringify(completeParserData));
+                        // Utiliser le service de transfert de données si disponible
+                        if (window.DataTransferService) {
+                            window.DataTransferService.storeData(completeParserData);
+                        } else {
+                            // Fallback - Ancien comportement
+                            localStorage.setItem('parsedCvData', JSON.stringify(completeParserData));
+                        }
                         console.log("Données CV complètes stockées pour pré-remplissage:", completeParserData);
                     } else {
                         // Créer un objet de données à partir des informations affichées
@@ -1417,8 +1424,16 @@
                             }
                         };
                         
-                        // Stocker les données dans localStorage
-                        localStorage.setItem('parsedCvData', JSON.stringify(displayedData));
+                        // S'assurer que le titre du poste est également accessible au niveau racine
+                        displayedData.current_position = displayedData.data.current_position;
+                        
+                        // Utiliser le service de transfert de données si disponible
+                        if (window.DataTransferService) {
+                            window.DataTransferService.storeData(displayedData);
+                        } else {
+                            // Fallback - Ancien comportement
+                            localStorage.setItem('parsedCvData', JSON.stringify(displayedData));
+                        }
                         console.log("Données CV générées et stockées pour pré-remplissage:", displayedData);
                     }
                 } else {
