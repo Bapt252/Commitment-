@@ -11,14 +11,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Chargement du script de pré-remplissage forcé en premier et indépendant -->
-    <script src="../static/scripts/force-prefill.js"></script>
+    <!-- IMPORTANT: Chargement des scripts dans le bon ordre -->
+    <!-- 1. Script de connexion avec le backend pour le parsing de CV réel -->
+    <script src="../static/scripts/form-connection.js"></script>
     
-    <!-- Autres scripts dans le bon ordre -->
+    <!-- 2. Scripts principaux du formulaire -->
     <script src="../static/scripts/form-prefiller.js"></script>
     <script src="../static/scripts/candidate-questionnaire-analyzer.js"></script>
+    
+    <!-- Note: Les scripts suivants ne sont utilisés que pour le débogage/développement -->
+    <!-- Ils ne sont pas nécessaires en production et n'interfèrent pas avec le fonctionnement normal -->
+    <!-- Ils n'exécutent le pré-remplissage fictif que si aucun CV réel n'a été parsé -->
+    <!--
     <script src="../static/scripts/debug-prefill.js"></script>
+    <script src="../static/scripts/force-prefill.js"></script>
     <script src="../static/scripts/parsed-data-example.js"></script>
+    -->
     
     <style>
         /* Styles spécifiques au questionnaire candidat */
