@@ -22,6 +22,9 @@
     <script src="../static/scripts/candidate-questionnaire-analyzer.js"></script>
     <script src="../static/scripts/direct-prefiller.js"></script>
     
+    <!-- Outil de test pour l'intégration CV (mode développement) -->
+    <script src="../static/scripts/cv-api-tester.js"></script>
+    
     <!-- Styles pour Google Maps Autocomplete -->
     <style id="google-maps-autocomplete-styles">
       .address-validated {
@@ -535,6 +538,10 @@
             border-left: 4px solid #EF4444;
         }
         
+        .notification.info {
+            border-left: 4px solid #3B82F6;
+        }
+        
         .notification.show {
             transform: translateY(0);
             opacity: 1;
@@ -550,6 +557,10 @@
         
         .notification.error i {
             color: #EF4444;
+        }
+        
+        .notification.info i {
+            color: #3B82F6;
         }
         
         .notification-message {
@@ -1466,7 +1477,13 @@
                 notificationMessage.innerText = message;
                 
                 const icon = notification.querySelector('i:first-child');
-                icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+                if (type === 'success') {
+                    icon.className = 'fas fa-check-circle';
+                } else if (type === 'error') {
+                    icon.className = 'fas fa-exclamation-circle';
+                } else if (type === 'info') {
+                    icon.className = 'fas fa-info-circle';
+                }
                 
                 notification.classList.add('show');
                 
@@ -1659,6 +1676,21 @@
             document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 // La soumission est gérée par le bouton submit-btn
+            });
+            
+            // Bouton de soumission
+            document.getElementById('submit-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (validateStep(4)) {
+                    // Afficher l'écran de chargement
+                    document.getElementById('loading-overlay').classList.add('active');
+                    
+                    // Simulation d'envoi des données
+                    setTimeout(function() {
+                        // Redirection vers la page de matching
+                        window.location.href = 'candidate-matching-improved.html';
+                    }, 2000);
+                }
             });
             
             // Bouton de retour en haut
