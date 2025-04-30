@@ -21,6 +21,9 @@ window.FormPrefiller = (function() {
     parsedData = data;
     console.log("Données de pré-remplissage chargées:", parsedData);
 
+    // S'assurer que les fonctions de toggle du formulaire sont définies
+    ensureGlobalToggleFunctionsExist();
+
     // Convertir les données du format backend au format du formulaire
     transformCvDataToFormData();
 
@@ -29,6 +32,68 @@ window.FormPrefiller = (function() {
       document.addEventListener('DOMContentLoaded', fillForm);
     } else {
       fillForm();
+    }
+  }
+  
+  /**
+   * S'assure que les fonctions de toggle nécessaires pour le formulaire sont définies
+   */
+  function ensureGlobalToggleFunctionsExist() {
+    if (typeof window.toggleSectorPreference !== 'function') {
+        window.toggleSectorPreference = function(radio) {
+            const container = document.getElementById('sector-preference-container');
+            if (container) {
+                container.style.display = radio.value === 'yes' ? 'block' : 'none';
+            }
+        };
+    }
+    
+    if (typeof window.toggleProhibitedSector !== 'function') {
+        window.toggleProhibitedSector = function(radio) {
+            const container = document.getElementById('prohibited-sector-selection');
+            if (container) {
+                container.style.display = radio.value === 'yes' ? 'block' : 'none';
+            }
+        };
+    }
+    
+    if (typeof window.toggleEmploymentStatus !== 'function') {
+        window.toggleEmploymentStatus = function(radio) {
+            const employedSection = document.getElementById('employed-section');
+            const unemployedSection = document.getElementById('unemployed-section');
+            
+            if (employedSection && unemployedSection) {
+                employedSection.style.display = radio.value === 'yes' ? 'block' : 'none';
+                unemployedSection.style.display = radio.value === 'yes' ? 'none' : 'block';
+                
+                // Gérer les attributs required
+                if (radio.value === 'yes') {
+                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
+                        input.setAttribute('required', '');
+                    });
+                    document.getElementById('notice-period')?.setAttribute('required', '');
+                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
+                        input.setAttribute('required', '');
+                    });
+                    
+                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
+                        input.removeAttribute('required');
+                    });
+                } else {
+                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
+                        input.setAttribute('required', '');
+                    });
+                    
+                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
+                        input.removeAttribute('required');
+                    });
+                    document.getElementById('notice-period')?.removeAttribute('required');
+                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
+                        input.removeAttribute('required');
+                    });
+                }
+            }
+        };
     }
   }
 
@@ -166,8 +231,8 @@ window.FormPrefiller = (function() {
     if (cvData.languages && cvData.languages.length > 1) {
       const hasAdvancedEnglish = cvData.languages.some(lang => 
         lang.language.toLowerCase().includes("anglais") && 
-        ["courant", "bilingue", "c1", "c2"].some(level => 
-          lang.level.toLowerCase().includes(level))
+        [["courant", "bilingue", "c1", "c2"].some(level => 
+          lang.level.toLowerCase().includes(level))]
       );
 
       if (hasAdvancedEnglish) {
@@ -215,150 +280,195 @@ window.FormPrefiller = (function() {
    * Remplit tous les champs du formulaire avec les données disponibles
    */
   function fillForm() {
-    if (!parsedData || !document.getElementById('questionnaire-form')) {
+    if (!parsedData) {
+      console.warn("Aucune donnée disponible pour le pré-remplissage");
+      return;
+    }
+    
+    const formElement = document.getElementById('questionnaire-form');
+    if (!formElement) {
+      console.warn("Formulaire non trouvé dans le DOM");
       return;
     }
 
-    console.log("Début du pré-remplissage du formulaire...");
+    console.log("Début du pré-remplissage du formulaire avec les données:", parsedData);
 
-    // Remplir les informations personnelles (étape 1)
-    if (parsedData.personalInfo) {
-      // Remplir le nom et prénom
-      if (parsedData.personalInfo.fullName) {
-        setInputValue('full-name', parsedData.personalInfo.fullName);
+    try {
+      // Remplir les informations personnelles (étape 1)
+      if (parsedData.personalInfo) {
+        // Remplir le nom et prénom
+        if (parsedData.personalInfo.fullName) {
+          setInputValue('full-name', parsedData.personalInfo.fullName);
+        }
+
+        // Remplir l'intitulé de poste
+        if (parsedData.personalInfo.jobTitle) {
+          setInputValue('job-title', parsedData.personalInfo.jobTitle);
+        }
       }
 
-      // Remplir l'intitulé de poste
-      if (parsedData.personalInfo.jobTitle) {
-        setInputValue('job-title', parsedData.personalInfo.jobTitle);
-      }
-    }
+      // Remplir les informations de mobilité et préférences (étape 2)
+      if (parsedData.mobility) {
+        // Cocher les moyens de transport
+        if (parsedData.mobility.transportMethods && Array.isArray(parsedData.mobility.transportMethods)) {
+          parsedData.mobility.transportMethods.forEach(method => {
+            setCheckboxValue('transport-method', method, true);
+          });
+          
+          // Déclencher l'événement pour afficher les questions de temps de trajet
+          triggerTransportMethodsChange();
+          
+          // Remplir les temps de trajet pour chaque moyen de transport
+          setTimeout(() => {
+            if (parsedData.mobility.commuteTimes) {
+              Object.keys(parsedData.mobility.commuteTimes).forEach(transportType => {
+                const commuteTime = parsedData.mobility.commuteTimes[transportType];
+                setSelectValue(`commute-time-${transportType}`, commuteTime);
+              });
+            }
+          }, 100); // Petit délai pour s'assurer que les éléments sont créés
+        }
 
-    // Remplir les informations de mobilité et préférences (étape 2)
-    if (parsedData.mobility) {
-      // Cocher les moyens de transport
-      if (parsedData.mobility.transportMethods && Array.isArray(parsedData.mobility.transportMethods)) {
-        parsedData.mobility.transportMethods.forEach(method => {
-          setCheckboxValue('transport-method', method, true);
-        });
-        
-        // Déclencher l'événement pour afficher les questions de temps de trajet
-        triggerTransportMethodsChange();
-        
-        // Remplir les temps de trajet pour chaque moyen de transport
-        if (parsedData.mobility.commuteTimes) {
-          Object.keys(parsedData.mobility.commuteTimes).forEach(transportType => {
-            const commuteTime = parsedData.mobility.commuteTimes[transportType];
-            setSelectValue(`commute-time-${transportType}`, commuteTime);
+        // Remplir l'adresse
+        if (parsedData.mobility.address) {
+          setInputValue('address', parsedData.mobility.address);
+        }
+
+        // Définir la préférence de bureau
+        if (parsedData.mobility.officePreference) {
+          setRadioValue('office-preference', parsedData.mobility.officePreference);
+        }
+      }
+
+      // Remplir les motivations et secteurs (étape 3)
+      if (parsedData.motivations) {
+        // Réorganiser les priorités de motivation
+        if (parsedData.motivations.order && Array.isArray(parsedData.motivations.order)) {
+          reorderMotivations(parsedData.motivations.order);
+        }
+
+        // Remplir "autre" motivation si disponible
+        if (parsedData.motivations.otherMotivation) {
+          setInputValue('other-motivation', parsedData.motivations.otherMotivation);
+          const container = document.getElementById('other-motivation-container');
+          if (container) {
+            container.style.display = 'block';
+          }
+        }
+
+        // Cocher les types de structure
+        if (parsedData.motivations.structureTypes && Array.isArray(parsedData.motivations.structureTypes)) {
+          parsedData.motivations.structureTypes.forEach(type => {
+            setCheckboxValue('structure-type', type, true);
           });
         }
-      }
 
-      // Remplir l'adresse
-      if (parsedData.mobility.address) {
-        setInputValue('address', parsedData.mobility.address);
-      }
+        // Définir la préférence de secteur
+        if (typeof parsedData.motivations.hasSectorPreference !== 'undefined') {
+          setRadioValue('has-sector-preference', parsedData.motivations.hasSectorPreference ? 'yes' : 'no');
+          
+          // Appel de la fonction de toggle avec un objet simulant le radio
+          if (typeof window.toggleSectorPreference === 'function') {
+            window.toggleSectorPreference({ value: parsedData.motivations.hasSectorPreference ? 'yes' : 'no' });
+          }
 
-      // Définir la préférence de bureau
-      if (parsedData.mobility.officePreference) {
-        setRadioValue('office-preference', parsedData.mobility.officePreference);
-      }
-    }
+          // Sélectionner les secteurs préférés si la préférence est oui
+          if (parsedData.motivations.hasSectorPreference && 
+              parsedData.motivations.preferredSectors && 
+              Array.isArray(parsedData.motivations.preferredSectors)) {
+            setTimeout(() => {
+              setMultiSelectValues('sector-preference', parsedData.motivations.preferredSectors);
+            }, 100);
+          }
 
-    // Remplir les motivations et secteurs (étape 3)
-    if (parsedData.motivations) {
-      // Réorganiser les priorités de motivation
-      if (parsedData.motivations.order && Array.isArray(parsedData.motivations.order)) {
-        reorderMotivations(parsedData.motivations.order);
-      }
+          // Définir les secteurs prohibés
+          if (typeof parsedData.motivations.hasProhibitedSectors !== 'undefined') {
+            setRadioValue('has-prohibited-sector', parsedData.motivations.hasProhibitedSectors ? 'yes' : 'no');
+            
+            if (typeof window.toggleProhibitedSector === 'function') {
+              window.toggleProhibitedSector({ value: parsedData.motivations.hasProhibitedSectors ? 'yes' : 'no' });
+            }
 
-      // Remplir "autre" motivation si disponible
-      if (parsedData.motivations.otherMotivation) {
-        setInputValue('other-motivation', parsedData.motivations.otherMotivation);
-        document.getElementById('other-motivation-container').style.display = 'block';
-      }
-
-      // Cocher les types de structure
-      if (parsedData.motivations.structureTypes && Array.isArray(parsedData.motivations.structureTypes)) {
-        parsedData.motivations.structureTypes.forEach(type => {
-          setCheckboxValue('structure-type', type, true);
-        });
-      }
-
-      // Définir la préférence de secteur
-      if (parsedData.motivations.hasSectorPreference !== undefined) {
-        setRadioValue('has-sector-preference', parsedData.motivations.hasSectorPreference ? 'yes' : 'no');
-        toggleSectorPreference({ value: parsedData.motivations.hasSectorPreference ? 'yes' : 'no' });
-
-        // Sélectionner les secteurs préférés
-        if (parsedData.motivations.preferredSectors && Array.isArray(parsedData.motivations.preferredSectors)) {
-          setMultiSelectValues('sector-preference', parsedData.motivations.preferredSectors);
+            // Sélectionner les secteurs prohibés
+            if (parsedData.motivations.hasProhibitedSectors && 
+                parsedData.motivations.prohibitedSectors && 
+                Array.isArray(parsedData.motivations.prohibitedSectors)) {
+              setTimeout(() => {
+                setMultiSelectValues('prohibited-sector', parsedData.motivations.prohibitedSectors);
+              }, 100);
+            }
+          }
         }
 
-        // Définir les secteurs prohibés
-        if (parsedData.motivations.hasProhibitedSectors !== undefined) {
-          setRadioValue('has-prohibited-sector', parsedData.motivations.hasProhibitedSectors ? 'yes' : 'no');
-          toggleProhibitedSector({ value: parsedData.motivations.hasProhibitedSectors ? 'yes' : 'no' });
-
-          // Sélectionner les secteurs prohibés
-          if (parsedData.motivations.prohibitedSectors && Array.isArray(parsedData.motivations.prohibitedSectors)) {
-            setMultiSelectValues('prohibited-sector', parsedData.motivations.prohibitedSectors);
-          }
+        // Remplir la fourchette de salaire
+        if (parsedData.motivations.salaryRange) {
+          setInputValue('salary-range', parsedData.motivations.salaryRange);
         }
       }
 
-      // Remplir la fourchette de salaire
-      if (parsedData.motivations.salaryRange) {
-        setInputValue('salary-range', parsedData.motivations.salaryRange);
-      }
-    }
+      // Remplir la disponibilité et situation actuelle (étape 4)
+      if (parsedData.availability) {
+        // Définir la disponibilité
+        if (parsedData.availability.timeframe) {
+          setRadioValue('availability', parsedData.availability.timeframe);
+        }
 
-    // Remplir la disponibilité et situation actuelle (étape 4)
-    if (parsedData.availability) {
-      // Définir la disponibilité
-      if (parsedData.availability.timeframe) {
-        setRadioValue('availability', parsedData.availability.timeframe);
-      }
-
-      // Définir si actuellement en poste
-      if (parsedData.availability.currentlyEmployed !== undefined) {
-        setRadioValue('currently-employed', parsedData.availability.currentlyEmployed ? 'yes' : 'no');
-        toggleEmploymentStatus({ value: parsedData.availability.currentlyEmployed ? 'yes' : 'no' });
-
-        if (parsedData.availability.currentlyEmployed) {
-          // Remplir les informations pour les candidats en poste
-          if (parsedData.availability.listeningReason) {
-            setRadioValue('listening-reason', parsedData.availability.listeningReason);
+        // Définir si actuellement en poste
+        if (typeof parsedData.availability.currentlyEmployed !== 'undefined') {
+          setRadioValue('currently-employed', parsedData.availability.currentlyEmployed ? 'yes' : 'no');
+          
+          if (typeof window.toggleEmploymentStatus === 'function') {
+            window.toggleEmploymentStatus({ value: parsedData.availability.currentlyEmployed ? 'yes' : 'no' });
           }
 
-          if (parsedData.availability.noticePeriod) {
-            setSelectValue('notice-period', parsedData.availability.noticePeriod);
-          }
+          if (parsedData.availability.currentlyEmployed) {
+            // Remplir les informations pour les candidats en poste
+            if (parsedData.availability.listeningReason) {
+              setTimeout(() => {
+                setRadioValue('listening-reason', parsedData.availability.listeningReason);
+              }, 100);
+            }
 
-          if (parsedData.availability.noticeNegotiable !== undefined) {
-            const noticeValue = parsedData.availability.noticeNegotiable === null ? 'unknown' : 
-                               (parsedData.availability.noticeNegotiable ? 'yes' : 'no');
-            setRadioValue('notice-negotiable', noticeValue);
+            if (parsedData.availability.noticePeriod) {
+              setTimeout(() => {
+                setSelectValue('notice-period', parsedData.availability.noticePeriod);
+              }, 100);
+            }
+
+            if (parsedData.availability.noticeNegotiable !== null) {
+              setTimeout(() => {
+                const noticeValue = parsedData.availability.noticeNegotiable === null ? 'unknown' : 
+                                  (parsedData.availability.noticeNegotiable ? 'yes' : 'no');
+                setRadioValue('notice-negotiable', noticeValue);
+              }, 100);
+            }
+          } else {
+            // Remplir les informations pour les candidats non en poste
+            if (parsedData.availability.contractEndReason) {
+              setTimeout(() => {
+                setRadioValue('contract-end-reason', parsedData.availability.contractEndReason);
+              }, 100);
+            }
           }
-        } else {
-          // Remplir les informations pour les candidats non en poste
-          if (parsedData.availability.contractEndReason) {
-            setRadioValue('contract-end-reason', parsedData.availability.contractEndReason);
-          }
+        }
+
+        // Définir l'état du processus de recrutement
+        if (parsedData.availability.recruitmentStatus) {
+          setRadioValue('recruitment-status', parsedData.availability.recruitmentStatus);
         }
       }
 
-      // Définir l'état du processus de recrutement
-      if (parsedData.availability.recruitmentStatus) {
-        setRadioValue('recruitment-status', parsedData.availability.recruitmentStatus);
+      console.log("Pré-remplissage du formulaire terminé avec succès");
+      
+      // Afficher une notification pour informer l'utilisateur
+      if (window.showNotification) {
+        window.showNotification("Formulaire pré-rempli avec vos informations", "success");
       }
-    }
-
-    console.log("Pré-remplissage du formulaire terminé");
-    
-    // Afficher une notification pour informer l'utilisateur
-    if (window.showNotification) {
-      window.showNotification("Formulaire pré-rempli avec vos informations", "success");
+    } catch (error) {
+      console.error("Erreur lors du pré-remplissage du formulaire:", error);
+      if (window.showNotification) {
+        window.showNotification("Une erreur est survenue lors du pré-remplissage", "error");
+      }
     }
   }
 
@@ -374,6 +484,9 @@ window.FormPrefiller = (function() {
       // Simuler un événement de changement pour déclencher les validations
       const event = new Event('input', { bubbles: true });
       input.dispatchEvent(event);
+      console.log(`Champ '${id}' rempli avec: ${value}`);
+    } else {
+      console.warn(`Élément '${id}' non trouvé dans le DOM`);
     }
   }
 
@@ -387,6 +500,9 @@ window.FormPrefiller = (function() {
       // Simuler un événement de changement
       const event = new Event('change', { bubbles: true });
       radio.dispatchEvent(event);
+      console.log(`Radio '${name}' défini sur: ${value}`);
+    } else {
+      console.warn(`Radio '${name}' avec valeur '${value}' non trouvé dans le DOM`);
     }
   }
 
@@ -400,6 +516,9 @@ window.FormPrefiller = (function() {
       // Simuler un événement de changement
       const event = new Event('change', { bubbles: true });
       checkbox.dispatchEvent(event);
+      console.log(`Checkbox '${name}[${value}]' défini sur: ${checked}`);
+    } else {
+      console.warn(`Checkbox '${name}' avec valeur '${value}' non trouvé dans le DOM`);
     }
   }
 
@@ -413,6 +532,9 @@ window.FormPrefiller = (function() {
       // Simuler un événement de changement
       const event = new Event('change', { bubbles: true });
       select.dispatchEvent(event);
+      console.log(`Select '${id}' défini sur: ${value}`);
+    } else {
+      console.warn(`Select '${id}' non trouvé dans le DOM`);
     }
   }
 
@@ -432,12 +554,17 @@ window.FormPrefiller = (function() {
         const option = select.querySelector(`option[value="${value}"]`);
         if (option) {
           option.selected = true;
+        } else {
+          console.warn(`Option '${value}' non trouvée dans le select '${id}'`);
         }
       });
       
       // Simuler un événement de changement
       const event = new Event('change', { bubbles: true });
       select.dispatchEvent(event);
+      console.log(`MultiSelect '${id}' défini avec les valeurs:`, values);
+    } else {
+      console.warn(`MultiSelect '${id}' non trouvé dans le DOM ou valeurs invalides`);
     }
   }
 
@@ -446,7 +573,10 @@ window.FormPrefiller = (function() {
    */
   function reorderMotivations(order) {
     const motivationsList = document.getElementById('motivation-priorities');
-    if (!motivationsList || !Array.isArray(order)) return;
+    if (!motivationsList || !Array.isArray(order)) {
+      console.warn("Liste des motivations non trouvée ou ordre invalide");
+      return;
+    }
 
     // Clone la liste actuelle d'éléments
     const items = Array.from(motivationsList.querySelectorAll('.motivation-item'));
@@ -473,6 +603,8 @@ window.FormPrefiller = (function() {
         }
         
         motivationsList.appendChild(item);
+      } else {
+        console.warn(`Élément de motivation avec valeur '${value}' non trouvé`);
       }
     });
     
@@ -484,10 +616,18 @@ window.FormPrefiller = (function() {
       // Mettre à jour l'affichage du champ "Autre" selon la position
       const otherIndex = order.indexOf('other');
       if (otherIndex < 3) {
-        document.getElementById('other-motivation-container').style.display = 'block';
-        document.getElementById('other-motivation').setAttribute('required', '');
+        const otherContainer = document.getElementById('other-motivation-container');
+        if (otherContainer) {
+          otherContainer.style.display = 'block';
+        }
+        const otherInput = document.getElementById('other-motivation');
+        if (otherInput) {
+          otherInput.setAttribute('required', '');
+        }
       }
     }
+
+    console.log(`Motivations réorganisées selon l'ordre:`, order);
   }
 
   /**
@@ -499,6 +639,9 @@ window.FormPrefiller = (function() {
     if (checkedTransports.length > 0) {
       const event = new Event('change', { bubbles: true });
       checkedTransports[0].dispatchEvent(event);
+      console.log("Événement déclenché pour les moyens de transport");
+    } else {
+      console.warn("Aucun moyen de transport coché trouvé");
     }
   }
 
@@ -514,11 +657,14 @@ window.FormPrefiller = (function() {
  * disponibles pour le pré-remplissage automatique.
  */
 document.addEventListener('DOMContentLoaded', function() {
+  console.log("DOM chargé - Vérification des données pour le pré-remplissage");
+  
   // Vérifier si l'URL contient des paramètres GET pour récupérer les données
   const urlParams = new URLSearchParams(window.location.search);
   const dataId = urlParams.get('parsed_data_id');
   
   if (dataId) {
+    console.log(`ID de données parsées trouvé: ${dataId}`);
     // Faire une requête pour récupérer les données parsées
     fetch(`../api/parsed_data/${dataId}`)
       .then(response => {
@@ -528,6 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return response.json();
       })
       .then(data => {
+        console.log("Données récupérées avec succès depuis l'API");
         // Initialiser le pré-remplissage avec les données récupérées
         window.FormPrefiller.initialize(data);
       })
@@ -535,14 +682,18 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Erreur lors du chargement des données parsées:", error);
       });
   } else {
+    console.log("Aucun ID de données trouvé dans l'URL - Vérification de sessionStorage");
     // Essayer de récupérer les données depuis sessionStorage (si disponible)
     try {
       const storedData = sessionStorage.getItem('parsedCandidateData');
       if (storedData) {
+        console.log("Données trouvées dans sessionStorage");
         window.FormPrefiller.initialize(JSON.parse(storedData));
+      } else {
+        console.log("Aucune donnée trouvée dans sessionStorage");
       }
     } catch (error) {
-      console.warn("Pas de données de pré-remplissage disponibles:", error);
+      console.warn("Erreur lors de la récupération des données depuis sessionStorage:", error);
     }
   }
 });
