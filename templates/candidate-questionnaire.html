@@ -11,19 +11,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- IMPORTANT: Chargement des scripts dans le bon ordre -->
-    <!-- Script Adapter pour les appels API -->
-    <script src="../static/scripts/api-adapter.js"></script>
+    <!-- IMPORTANT: Script d'intégration CV prioritaire -->
+    <script src="../static/scripts/cv-parser-integration.js"></script>
     
-    <!-- 1. Scripts de connexion pour les données parsées -->
+    <!-- Scripts secondaires -->
+    <script src="../static/scripts/api-adapter.js"></script>
     <script src="../static/scripts/form-parser-connector.js"></script>
     <script src="../static/scripts/form-connection.js"></script>
-    
-    <!-- 2. Scripts principaux du formulaire -->
     <script src="../static/scripts/form-prefiller.js"></script>
     <script src="../static/scripts/candidate-questionnaire-analyzer.js"></script>
-    
-    <!-- 3. Script de secours pour pré-remplissage direct -->
     <script src="../static/scripts/direct-prefiller.js"></script>
     
     <!-- Styles pour Google Maps Autocomplete -->
@@ -250,6 +246,12 @@
             border-color: var(--purple);
             box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
             transform: translateY(-2px);
+        }
+
+        /* Styles spécifiques pour les champs avec données CV réelles */
+        .real-cv-data {
+            background-color: rgba(16, 185, 129, 0.05);
+            border-color: #10B981;
         }
 
         textarea.form-control {
@@ -620,8 +622,15 @@
             margin-bottom: 15px;
         }
 
-        /* Style spécifique pour l'indicateur de parsing réussi */
-        .parsing-success-indicator {
+        /* Animations pour les indicateurs */
+        @keyframes pulseCVIndicator {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Indicateur de CV réel */
+        .real-cv-indicator {
             background: rgba(16, 185, 129, 0.1);
             color: #10B981;
             padding: 12px 16px;
@@ -629,13 +638,8 @@
             margin-bottom: 20px;
             text-align: center;
             font-weight: 500;
-            animation: pulseIndicator 2s infinite;
-        }
-
-        @keyframes pulseIndicator {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            border: 2px solid #10B981;
+            animation: pulseCVIndicator 2s infinite;
         }
         
         @media (max-width: 768px) {
