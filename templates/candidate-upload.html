@@ -1241,6 +1241,8 @@
             // Variables pour le chat
             let chatHistory = [];
             let documentData = null;
+            // Variable pour stocker les données complètes du parser CV
+            let completeParserData = null;
             
             // URL de base pour les API - Détection automatique de l'environnement
             const isGitHubPages = window.location.hostname.includes('github.io');
@@ -1304,6 +1306,8 @@
                         loadingIndicator.style.display = 'none';
                         
                         if (data && data.data) {
+                            // Stocker les données complètes du parser
+                            completeParserData = data;
                             const extractedData = data.data;
                             
                             // Mettre à jour l'interface avec les données
@@ -1378,20 +1382,45 @@
             
             nextBtn.addEventListener('click', function() {
                 if (fileInfo.style.display === 'flex' && parsedData.style.display === 'block') {
-                    // Un CV a été analysé, on stocke les données
-                    const parsedData = {
-                        name: document.getElementById('parsedName').textContent,
-                        jobTitle: document.getElementById('parsedJobTitle').textContent,
-                        email: document.getElementById('parsedEmail').textContent,
-                        phone: document.getElementById('parsedPhone').textContent,
-                        skills: document.getElementById('parsedSkills').innerHTML,
-                        software: document.getElementById('parsedSoftware').innerHTML,
-                        languages: document.getElementById('parsedLanguages').innerHTML,
-                        experience: document.getElementById('parsedExperience').innerHTML
-                    };
-                    
-                    // Stockage local des données
-                    localStorage.setItem('parsedCvData', JSON.stringify(parsedData));
+                    if (completeParserData) {
+                        // Stocker les données brutes complètes du parser CV
+                        localStorage.setItem('parsedCvData', JSON.stringify(completeParserData));
+                        console.log("Données CV complètes stockées pour pré-remplissage:", completeParserData);
+                    } else {
+                        // Créer un objet de données à partir des informations affichées
+                        const displayedData = {
+                            data: {
+                                personal_info: {
+                                    name: document.getElementById('parsedName').textContent,
+                                    email: document.getElementById('parsedEmail').textContent,
+                                    phone: document.getElementById('parsedPhone').textContent
+                                },
+                                current_position: document.getElementById('parsedJobTitle').textContent,
+                                skills: Array.from(document.querySelectorAll('#parsedSkills .skill-tag')).map(tag => tag.textContent.replace(/^./, '')),
+                                software: Array.from(document.querySelectorAll('#parsedSoftware .software-item')).map(item => item.textContent.replace(/^./, '')),
+                                languages: Array.from(document.querySelectorAll('#parsedLanguages .language-item')).map(item => {
+                                    return {
+                                        language: item.querySelector('.language-name')?.textContent.replace(/^./, '') || '',
+                                        level: item.querySelector('.language-level')?.textContent || ''
+                                    };
+                                }),
+                                work_experience: Array.from(document.querySelectorAll('#parsedExperience .experience-item')).map(item => {
+                                    const dateText = item.querySelector('.experience-date')?.textContent.replace(/^./, '') || '';
+                                    const dateParts = dateText.split(' - ');
+                                    return {
+                                        title: item.querySelector('.experience-title')?.textContent || '',
+                                        company: item.querySelector('.experience-company')?.textContent.replace(/^./, '') || '',
+                                        start_date: dateParts[0] || '',
+                                        end_date: dateParts[1] || ''
+                                    };
+                                })
+                            }
+                        };
+                        
+                        // Stocker les données dans localStorage
+                        localStorage.setItem('parsedCvData', JSON.stringify(displayedData));
+                        console.log("Données CV générées et stockées pour pré-remplissage:", displayedData);
+                    }
                 } else {
                     // Aucun CV analysé, on continue sans données
                     localStorage.removeItem('parsedCvData');
@@ -2025,6 +2054,7 @@
                 errorMessage.style.display = 'none';
                 stepperProgress.style.width = '0%';
                 documentData = null;
+                completeParserData = null;
             }
             
             function formatFileSize(bytes) {
