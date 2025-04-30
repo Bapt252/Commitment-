@@ -1,15 +1,14 @@
-import axios from 'axios';
+import geoApiService from './geoApiService';
 
 /**
- * Service for geocoding addresses using the Google Maps Geocoding API
- * Through a proxy endpoint to protect the API key
+ * Service pour le géocodage des adresses
  */
 const geocodingService = {
   /**
-   * Geocode an address to get its coordinates
+   * Géocode une adresse pour obtenir les coordonnées
    * 
-   * @param {string} address - The address to geocode
-   * @returns {Promise<Object>} - Promise resolving to coordinates { lat, lng }
+   * @param {string} address - L'adresse à géocoder
+   * @returns {Promise<Object>} - Coordonnées lat/lng
    */
   geocodeAddress: async (address) => {
     try {
@@ -17,26 +16,37 @@ const geocodingService = {
         throw new Error('Adresse non fournie');
       }
       
-      // Using our own API proxy to protect the API key
-      const response = await axios.post('/api/geocode', { address });
+      // Utiliser notre API backend de géocodage
+      const geoResult = await geoApiService.geocodeAddress(address);
       
-      if (!response.data || !response.data.results || response.data.results.length === 0) {
+      if (!geoResult || !geoResult.lat || !geoResult.lng) {
         throw new Error('Aucun résultat trouvé pour cette adresse');
       }
       
-      const { lat, lng } = response.data.results[0].geometry.location;
-      return { lat, lng };
+      return { 
+        lat: geoResult.lat, 
+        lng: geoResult.lng,
+        formatted_address: geoResult.formatted_address || address
+      };
     } catch (error) {
       console.error('Erreur de géocodage:', error);
-      throw error;
+      
+      // Fallback au service direct (méthode précédente)
+      // Seulement en cas d'échec de notre API backend
+      try {
+        return await geocodeAddressFallback(address);
+      } catch (fallbackError) {
+        console.error('Fallback geocoding failed:', fallbackError);
+        throw error; // Rethrow the original error if fallback also fails
+      }
     }
   },
   
   /**
-   * Batch geocode multiple addresses
+   * Géocode par lots plusieurs adresses
    * 
-   * @param {Array<string>} addresses - Array of addresses to geocode
-   * @returns {Promise<Array<Object>>} - Promise resolving to array of results
+   * @param {Array<string>} addresses - Tableau d'adresses à géocoder
+   * @returns {Promise<Array<Object>>} - Tableau de résultats
    */
   batchGeocode: async (addresses) => {
     if (!addresses || !addresses.length) {
@@ -71,5 +81,42 @@ const geocodingService = {
     return results;
   }
 };
+
+/**
+ * Fonction de secours qui utilise l'API proxy précédente
+ * Utilisée uniquement si l'API backend échoue
+ */
+async function geocodeAddressFallback(address) {
+  try {
+    // Utiliser l'API proxy locale comme fallback
+    const response = await fetch('/api/geocode', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ address }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.results || data.results.length === 0) {
+      throw new Error('Aucun résultat trouvé pour cette adresse');
+    }
+    
+    const { lat, lng } = data.results[0].geometry.location;
+    return { 
+      lat, 
+      lng, 
+      formatted_address: data.results[0].formatted_address || address 
+    };
+  } catch (error) {
+    console.error('Fallback geocoding error:', error);
+    throw new Error('Échec du géocodage: ' + error.message);
+  }
+}
 
 export default geocodingService;
