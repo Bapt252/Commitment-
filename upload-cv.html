@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Adaptateur API pour GitHub Pages -->
+    <script src="static/scripts/api-adapter.js"></script>
+    
     <!-- Script de connexion CV-Formulaire -->
     <script src="static/scripts/cv-to-form-connector.js"></script>
     
@@ -243,7 +246,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 9999;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
@@ -261,7 +264,7 @@
             border: 4px solid rgba(124, 58, 237, 0.1);
             border-top: 4px solid var(--purple);
             animation: spin 1s linear infinite;
-            margin-bottom: var(--spacing-md);
+            margin-bottom: 20px;
         }
 
         .loading-text {
@@ -302,6 +305,10 @@
             border-left: 4px solid #EF4444;
         }
         
+        .notification.info {
+            border-left: 4px solid #3B82F6;
+        }
+        
         .notification.show {
             transform: translateY(0);
             opacity: 1;
@@ -319,6 +326,10 @@
             color: #EF4444;
         }
         
+        .notification.info i {
+            color: #3B82F6;
+        }
+        
         .notification-message {
             font-weight: 500;
         }
@@ -333,6 +344,22 @@
         .notification-close:hover {
             color: var(--black);
             transform: rotate(90deg);
+        }
+        
+        /* Indicateur de mode démo */
+        .demo-mode-banner {
+            background-color: rgba(124, 58, 237, 0.1);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--purple);
+            font-weight: 500;
+            display: none;
+        }
+        
+        .demo-mode-banner.active {
+            display: block;
         }
 
         @media (max-width: 768px) {
@@ -411,6 +438,11 @@
 
     <section>
         <div class="container">
+            <!-- Indicateur de mode démo -->
+            <div class="demo-mode-banner" id="demo-mode-banner">
+                <i class="fas fa-info-circle"></i> Mode démonstration - Les données seront simulées
+            </div>
+            
             <div class="step-process">
                 <div class="step">
                     <div class="step-circle">
@@ -530,6 +562,16 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Détecter si nous sommes en mode démo
+            const isDemo = window.location.hostname.includes('github.io') || 
+                         window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1';
+            
+            // Afficher l'indicateur de mode démo si nécessaire
+            if (isDemo) {
+                document.getElementById('demo-mode-banner').classList.add('active');
+            }
+            
             // Création des particules pour l'arrière-plan hero
             const heroParticles = document.querySelector('.hero-particles');
             
@@ -577,6 +619,11 @@
                     fileName.textContent = file.name;
                     fileInfo.classList.add('active');
                     submitBtn.disabled = false;
+                    
+                    // Indiquer le mode démo dans l'interface
+                    if (isDemo) {
+                        showNotification('Mode démonstration: Les données de CV seront simulées', 'info');
+                    }
                 } else {
                     // Réinitialiser si pas de fichier
                     fileInfo.classList.remove('active');
@@ -654,7 +701,13 @@
                 notificationMessage.innerText = message;
                 
                 const icon = notification.querySelector('i:first-child');
-                icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+                if (type === 'success') {
+                    icon.className = 'fas fa-check-circle';
+                } else if (type === 'error') {
+                    icon.className = 'fas fa-exclamation-circle';
+                } else if (type === 'info') {
+                    icon.className = 'fas fa-info-circle';
+                }
                 
                 notification.classList.add('show');
                 
@@ -693,69 +746,6 @@
             menuToggle.addEventListener('click', function() {
                 nav.classList.toggle('active');
                 menuToggle.classList.toggle('active');
-            });
-
-            // Pour tester sans backend, on peut ajouter cette fonction
-            document.getElementById('cv-upload-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Afficher l'overlay de chargement
-                showLoadingOverlay('Analyse de votre CV en cours...');
-                
-                // Simuler un traitement
-                setTimeout(function() {
-                    // Stocker les données fictives pour tester le pré-remplissage
-                    const mockData = {
-                        data: {
-                            personal_info: {
-                                name: "Thomas Dubois",
-                                email: "thomas.dubois@email.com",
-                                phone: "06 12 34 56 78",
-                                address: "15 Rue de la Paix, 75001 Paris"
-                            },
-                            position: "Développeur Full Stack JavaScript",
-                            skills: [
-                                { name: "JavaScript" },
-                                { name: "React" },
-                                { name: "Node.js" }
-                            ],
-                            experience: [
-                                {
-                                    title: "Développeur Frontend",
-                                    company: "TechStart",
-                                    start_date: "Janvier 2021",
-                                    end_date: "Présent",
-                                    description: "Développement d'applications web avec React"
-                                }
-                            ],
-                            education: [
-                                {
-                                    degree: "Master en Informatique",
-                                    institution: "Université Paris-Saclay",
-                                    start_date: "2018",
-                                    end_date: "2020"
-                                }
-                            ],
-                            languages: [
-                                { language: "Français", level: "Natif" },
-                                { language: "Anglais", level: "Courant" }
-                            ],
-                            softwares: ["VS Code", "Git", "Docker", "Figma"]
-                        }
-                    };
-                    
-                    // Stocker les données dans sessionStorage
-                    sessionStorage.setItem('parsedCandidateData', JSON.stringify(mockData));
-                    
-                    // Afficher une notification de succès
-                    hideLoadingOverlay();
-                    showNotification('CV analysé avec succès!', 'success');
-                    
-                    // Rediriger vers le formulaire candidat après un court délai
-                    setTimeout(function() {
-                        window.location.href = 'templates/candidate-questionnaire.html';
-                    }, 1500);
-                }, 2000);
             });
         });
     </script>
