@@ -101,12 +101,27 @@ window.FormPrefiller = (function() {
    * Transforme les données du format backend (parsing CV) au format du formulaire
    */
   function transformCvDataToFormData() {
-    if (!parsedData || !parsedData.data) {
+    if (!parsedData) {
       console.warn("Données invalides pour la transformation");
       return;
     }
 
-    const cvData = parsedData.data;
+    // Vérifier si nous avons un format de données brutes ou déjà transformées
+    if (parsedData.personalInfo) {
+      console.log("Les données sont déjà au format du formulaire");
+      return; // Pas besoin de transformer
+    }
+
+    // Vérifier si nous avons des données du CV parser au format différent
+    let cvData;
+    if (parsedData.data) {
+      cvData = parsedData.data;
+      console.log("Données CV détectées au format backend standard");
+    } else {
+      // Si nous avons reçu directement un objet de données JSON du localStorage
+      cvData = parsedData;
+      console.log("Données CV détectées au format objet direct");
+    }
 
     // Créer une structure de données compatible avec le formulaire
     const formData = {
@@ -148,11 +163,17 @@ window.FormPrefiller = (function() {
       if (cvData.personal_info.address) {
         formData.mobility.address = cvData.personal_info.address;
       }
+    } else if (cvData.name) {
+      // Format alternatif
+      formData.personalInfo.fullName = cvData.name || "";
     }
 
     // Remplir le poste souhaité
-    if (cvData.position) {
-      formData.personalInfo.jobTitle = cvData.position;
+    if (cvData.current_position) {
+      formData.personalInfo.jobTitle = cvData.current_position;
+    } else if (cvData.jobTitle) {
+      // Format alternatif
+      formData.personalInfo.jobTitle = cvData.jobTitle;
     }
 
     // Estimer des valeurs par défaut pour les moyens de transport
@@ -174,10 +195,10 @@ window.FormPrefiller = (function() {
     };
 
     // Essayer de déterminer une fourchette de salaire basée sur le poste
-    if (cvData.position) {
-      const position = cvData.position.toLowerCase();
+    const effectivePosition = formData.personalInfo.jobTitle.toLowerCase();
+    if (effectivePosition) {
       for (const [key, value] of Object.entries(positionToSalaryMap)) {
-        if (position.includes(key)) {
+        if (effectivePosition.includes(key)) {
           formData.motivations.salaryRange = value;
           break;
         }
@@ -189,8 +210,9 @@ window.FormPrefiller = (function() {
     }
 
     // Déterminer le statut d'emploi actuel basé sur les expériences professionnelles
-    if (cvData.experience && cvData.experience.length > 0) {
-      const latestExperience = cvData.experience[0]; // Supposé être la plus récente
+    const workExperience = cvData.work_experience || cvData.experience || [];
+    if (workExperience && workExperience.length > 0) {
+      const latestExperience = workExperience[0]; // Supposé être la plus récente
       if (latestExperience.end_date && 
           (latestExperience.end_date.toLowerCase().includes("présent") || 
            latestExperience.end_date.toLowerCase().includes("present") ||
@@ -210,8 +232,8 @@ window.FormPrefiller = (function() {
       group: ["groupe", "grande entreprise", "multinationale", "corporation"]
     };
 
-    if (cvData.experience) {
-      const allExperienceText = cvData.experience.map(exp => 
+    if (workExperience && workExperience.length > 0) {
+      const allExperienceText = workExperience.map(exp => 
         `${exp.company || ""} ${exp.description || ""}`).join(" ").toLowerCase();
       
       for (const [type, keywords] of Object.entries(structureDetection)) {
@@ -228,12 +250,15 @@ window.FormPrefiller = (function() {
 
     // Détection des langues pour déterminer si la personne a des préférences de secteur
     // Ex: Si la personne parle plusieurs langues, elle pourrait être intéressée par l'international
-    if (cvData.languages && cvData.languages.length > 1) {
-      const hasAdvancedEnglish = cvData.languages.some(lang => 
-        lang.language.toLowerCase().includes("anglais") && 
-        [["courant", "bilingue", "c1", "c2"].some(level => 
-          lang.level.toLowerCase().includes(level))]
-      );
+    const languages = cvData.languages || [];
+    if (languages && languages.length > 1) {
+      const hasAdvancedEnglish = languages.some(lang => {
+        const langName = lang.language || "";
+        const langLevel = lang.level || "";
+        return langName.toLowerCase().includes("anglais") && 
+               ["courant", "bilingue", "c1", "c2"].some(level => 
+                 langLevel.toLowerCase().includes(level));
+      });
 
       if (hasAdvancedEnglish) {
         formData.motivations.hasSectorPreference = true;
@@ -254,11 +279,12 @@ window.FormPrefiller = (function() {
       "revit": "construction"
     };
 
-    if (cvData.softwares && cvData.softwares.length > 0) {
+    const software = cvData.software || [];
+    if (software && software.length > 0) {
       const detectedSectors = new Set();
       
-      for (const software of cvData.softwares) {
-        const softwareLower = software.toLowerCase();
+      for (const sw of software) {
+        const softwareLower = sw.toLowerCase();
         for (const [key, sector] of Object.entries(softwareToSectorMap)) {
           if (softwareLower.includes(key)) {
             detectedSectors.add(sector);
@@ -274,6 +300,7 @@ window.FormPrefiller = (function() {
 
     // Mise à jour des données parsées avec les données transformées
     parsedData = formData;
+    console.log("Transformation des données terminée:", parsedData);
   }
 
   /**
@@ -682,18 +709,28 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Erreur lors du chargement des données parsées:", error);
       });
   } else {
-    console.log("Aucun ID de données trouvé dans l'URL - Vérification de sessionStorage");
-    // Essayer de récupérer les données depuis sessionStorage (si disponible)
+    console.log("Aucun ID de données trouvé dans l'URL - Vérification des stockages locaux");
+    
+    // Essayer de récupérer les données depuis différentes sources
     try {
-      const storedData = sessionStorage.getItem('parsedCandidateData');
+      // 1. Vérifier d'abord dans sessionStorage avec l'ancienne clé
+      let storedData = sessionStorage.getItem('parsedCandidateData');
+      console.log("Recherche dans sessionStorage:", storedData ? "Trouvé" : "Non trouvé");
+      
+      // 2. Si rien n'est trouvé, vérifier dans localStorage avec la clé 'parsedCvData'
+      if (!storedData) {
+        storedData = localStorage.getItem('parsedCvData');
+        console.log("Recherche dans localStorage avec la clé 'parsedCvData':", storedData ? "Trouvé" : "Non trouvé");
+      }
+      
       if (storedData) {
-        console.log("Données trouvées dans sessionStorage");
+        console.log("Données trouvées dans le stockage local:", storedData.substring(0, 100) + "...");
         window.FormPrefiller.initialize(JSON.parse(storedData));
       } else {
-        console.log("Aucune donnée trouvée dans sessionStorage");
+        console.log("Aucune donnée trouvée dans les stockages locaux");
       }
     } catch (error) {
-      console.warn("Erreur lors de la récupération des données depuis sessionStorage:", error);
+      console.warn("Erreur lors de la récupération des données:", error);
     }
   }
 });
