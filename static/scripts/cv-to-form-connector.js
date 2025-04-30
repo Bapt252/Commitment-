@@ -1,5 +1,6 @@
 /**
  * cv-to-form-connector.js - Script pour connecter le service de parsing CV au formulaire candidat
+ * Version améliorée avec support de GitHub Pages et données mockées
  */
 
 /**
@@ -9,6 +10,9 @@ class CvToFormConnector {
   constructor() {
     this.apiBaseUrl = '/api/v1'; // URL de base de l'API
     this.parsedData = null;
+    this.isDemo = window.location.hostname.includes('github.io') || 
+                  window.location.hostname === 'localhost' || 
+                  window.location.hostname === '127.0.0.1';
   }
 
   /**
@@ -20,13 +24,30 @@ class CvToFormConnector {
       this.apiBaseUrl = options.apiBaseUrl;
     }
 
+    console.log(`CV to Form Connector initialisé - Mode ${this.isDemo ? 'DÉMO' : 'PRODUCTION'}`);
+
     // Vérifier si on a un ID de CV dans les paramètres d'URL
     this.checkUrlForCvId();
 
     // Écouter les événements personnalisés pour le parsing CV
     document.addEventListener('cv:parsed', this.handleCvParsed.bind(this));
 
-    console.log('CV to Form Connector initialisé');
+    // Précharger l'adaptateur API si nous sommes en mode démo
+    if (this.isDemo && !window.ApiAdapter) {
+      this.loadApiAdapter();
+    }
+  }
+
+  /**
+   * Charge l'adaptateur API dynamiquement si nécessaire
+   */
+  loadApiAdapter() {
+    const script = document.createElement('script');
+    script.src = "../static/scripts/api-adapter.js";
+    script.onload = () => {
+      console.log("CV to Form Connector: Adaptateur API chargé avec succès");
+    };
+    document.head.appendChild(script);
   }
 
   /**
@@ -47,6 +68,28 @@ class CvToFormConnector {
    * @param {string} cvId - Identifiant du CV parsé
    */
   fetchCvData(cvId) {
+    // Utiliser l'adaptateur API si disponible
+    if (window.ApiAdapter) {
+      window.ApiAdapter.get(`/parsed_data/${cvId}`)
+        .then(data => {
+          console.log('Données du CV récupérées avec succès:', data);
+          this.parsedData = data;
+          
+          // Marquer comme simulé si en mode démo
+          if (this.isDemo && !this.parsedData.isSimulated) {
+            this.parsedData.isSimulated = true;
+          }
+          
+          this.storeDataAndRedirect();
+        })
+        .catch(error => {
+          console.error('Erreur lors de la récupération des données du CV:', error);
+          this.handleApiError();
+        });
+      return;
+    }
+
+    // Méthode traditionnelle si l'adaptateur n'est pas disponible
     fetch(`${this.apiBaseUrl}/parse-results/${cvId}`)
       .then(response => {
         if (!response.ok) {
@@ -57,12 +100,43 @@ class CvToFormConnector {
       .then(data => {
         console.log('Données du CV récupérées avec succès:', data);
         this.parsedData = data;
+        
+        // Marquer comme simulé si en mode démo
+        if (this.isDemo && !this.parsedData.isSimulated) {
+          this.parsedData.isSimulated = true;
+        }
+        
         this.storeDataAndRedirect();
       })
       .catch(error => {
         console.error('Erreur lors de la récupération des données du CV:', error);
-        this.showError('Impossible de récupérer les données du CV. Veuillez réessayer.');
+        this.handleApiError();
       });
+  }
+
+  /**
+   * Gère les erreurs d'API en mode démo
+   */
+  handleApiError() {
+    if (this.isDemo) {
+      console.log("Mode démo: Utilisation des données mockées pour le fallback");
+      
+      // Charger les données mockées
+      const script = document.createElement('script');
+      script.src = "../static/scripts/parsed-data-example.js";
+      script.onload = () => {
+        if (typeof mockParsedData !== 'undefined') {
+          this.parsedData = mockParsedData;
+          this.parsedData.isSimulated = true;
+          this.storeDataAndRedirect();
+        } else {
+          this.showError('Impossible de récupérer les données du CV, même en mode démo.');
+        }
+      };
+      document.head.appendChild(script);
+    } else {
+      this.showError('Impossible de récupérer les données du CV. Veuillez réessayer.');
+    }
   }
 
   /**
@@ -73,6 +147,12 @@ class CvToFormConnector {
     console.log('Événement de parsing CV reçu:', event);
     if (event.detail && event.detail.data) {
       this.parsedData = event.detail.data;
+      
+      // Marquer comme simulé si en mode démo
+      if (this.isDemo && !this.parsedData.isSimulated) {
+        this.parsedData.isSimulated = true;
+      }
+      
       this.storeDataAndRedirect();
     } else {
       console.error('Événement de parsing CV reçu sans données');
@@ -114,6 +194,30 @@ class CvToFormConnector {
     const formData = new FormData();
     formData.append('file', cvFile);
 
+    // Utiliser l'adaptateur API si disponible
+    if (window.ApiAdapter) {
+      console.log("Utilisation de l'adaptateur API pour le parsing");
+      return window.ApiAdapter.post('/parse', formData)
+        .then(data => {
+          console.log('CV parsé avec succès via adaptateur:', data);
+          this.parsedData = data;
+          
+          // Marquer comme simulé si en mode démo
+          if (this.isDemo && !this.parsedData.isSimulated) {
+            this.parsedData.isSimulated = true;
+          }
+          
+          // Déclencher un événement pour informer l'application
+          const event = new CustomEvent('cv:parsed', {
+            detail: { data: this.parsedData }
+          });
+          document.dispatchEvent(event);
+          
+          return this.parsedData;
+        });
+    }
+
+    // Méthode traditionnelle si l'adaptateur n'est pas disponible
     return fetch(`${this.apiBaseUrl}/parse`, {
       method: 'POST',
       body: formData
@@ -128,13 +232,18 @@ class CvToFormConnector {
       console.log('CV parsé avec succès:', data);
       this.parsedData = data;
       
+      // Marquer comme simulé si en mode démo
+      if (this.isDemo && !this.parsedData.isSimulated) {
+        this.parsedData.isSimulated = true;
+      }
+      
       // Déclencher un événement pour informer l'application
       const event = new CustomEvent('cv:parsed', {
-        detail: { data: data }
+        detail: { data: this.parsedData }
       });
       document.dispatchEvent(event);
       
-      return data;
+      return this.parsedData;
     });
   }
 
@@ -167,7 +276,7 @@ class CvToFormConnector {
 
     // Créer une structure compatible avec le formulaire (version simplifée ici)
     // La version complète est dans form-prefiller.js (transformCvDataToFormData)
-    return {
+    const formData = {
       personalInfo: {
         fullName: backendData.data.personal_info?.name || '',
         jobTitle: backendData.data.position || ''
@@ -189,6 +298,13 @@ class CvToFormConnector {
         recruitmentStatus: 'no-leads'
       }
     };
+    
+    // Si nous sommes en mode démo, ajouter un marqueur
+    if (this.isDemo) {
+      formData.isSimulated = true;
+    }
+    
+    return formData;
   }
 }
 
@@ -202,37 +318,87 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (uploadForm) {
     console.log('Page de téléchargement de CV détectée, initialisation du connecteur');
-    window.cvToFormConnector.init();
     
-    // Ajouter l'écouteur d'événement pour le téléchargement de CV
-    uploadForm.addEventListener('submit', function(event) {
-      event.preventDefault();
+    // Injection de l'adaptateur API si nécessaire (environnement de démo)
+    if ((window.location.hostname.includes('github.io') || 
+         window.location.hostname === 'localhost' || 
+         window.location.hostname === '127.0.0.1') && 
+        !document.querySelector('script[src*="api-adapter.js"]')) {
       
-      const fileInput = document.getElementById('cv-file-input');
-      if (fileInput && fileInput.files.length > 0) {
-        // Montrer un indicateur de chargement
-        if (window.showLoadingOverlay) {
-          window.showLoadingOverlay('Analyse de votre CV en cours...');
-        }
+      console.log("Chargement dynamique de l'adaptateur API");
+      const script = document.createElement('script');
+      script.src = "./static/scripts/api-adapter.js";
+      document.head.appendChild(script);
+      
+      // Attendre le chargement de l'adaptateur avant d'initialiser le connecteur
+      script.onload = function() {
+        window.cvToFormConnector.init();
+        setupFormListeners();
+      };
+    } else {
+      window.cvToFormConnector.init();
+      setupFormListeners();
+    }
+    
+    function setupFormListeners() {
+      // Ajouter l'écouteur d'événement pour le téléchargement de CV
+      uploadForm.addEventListener('submit', function(event) {
+        event.preventDefault();
         
-        // Soumettre le CV pour parsing
-        window.cvToFormConnector.submitCvForParsing(fileInput.files[0])
-          .then(() => {
-            // Le connecteur gère la redirection
-          })
-          .catch(error => {
-            console.error('Erreur lors du traitement du CV:', error);
-            window.cvToFormConnector.showError('Erreur lors du traitement du CV. Veuillez réessayer.');
-            
-            // Cacher l'indicateur de chargement
-            if (window.hideLoadingOverlay) {
-              window.hideLoadingOverlay();
-            }
-          });
-      } else {
-        window.cvToFormConnector.showError('Veuillez sélectionner un fichier CV à analyser.');
-      }
-    });
+        const fileInput = document.getElementById('cv-file-input');
+        if (fileInput && fileInput.files.length > 0) {
+          // Montrer un indicateur de chargement
+          if (window.showLoadingOverlay) {
+            window.showLoadingOverlay('Analyse de votre CV en cours...');
+          }
+          
+          // Soumettre le CV pour parsing
+          window.cvToFormConnector.submitCvForParsing(fileInput.files[0])
+            .then(() => {
+              // Le connecteur gère la redirection
+            })
+            .catch(error => {
+              console.error('Erreur lors du traitement du CV:', error);
+              
+              // En mode démo, essayer de charger des données factices
+              if (window.cvToFormConnector.isDemo) {
+                console.log("Mode démo: tentative de récupération avec des données mockées");
+                // Charger les données factices
+                const script = document.createElement('script');
+                script.src = "./static/scripts/parsed-data-example.js";
+                script.onload = function() {
+                  if (typeof mockParsedData !== 'undefined') {
+                    mockParsedData.isSimulated = true;
+                    sessionStorage.setItem('parsedCandidateData', JSON.stringify(mockParsedData));
+                    
+                    // Montrer une notification
+                    if (window.showNotification) {
+                      window.showNotification("Utilisation de données d'exemple (mode démo)", "info");
+                    }
+                    
+                    // Rediriger après un court délai
+                    setTimeout(function() {
+                      window.location.href = './templates/candidate-questionnaire.html';
+                    }, 1500);
+                  } else {
+                    window.cvToFormConnector.showError('Erreur lors du traitement du CV, données de remplacement non disponibles.');
+                  }
+                };
+                document.head.appendChild(script);
+              } else {
+                window.cvToFormConnector.showError('Erreur lors du traitement du CV. Veuillez réessayer.');
+              }
+              
+              // Cacher l'indicateur de chargement
+              if (window.hideLoadingOverlay) {
+                window.hideLoadingOverlay();
+              }
+            });
+        } else {
+          window.cvToFormConnector.showError('Veuillez sélectionner un fichier CV à analyser.');
+        }
+      });
+    }
   } else {
     console.log('Page de téléchargement de CV non détectée');
   }
