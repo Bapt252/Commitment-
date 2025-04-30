@@ -777,7 +777,7 @@
                         
                         <div class="form-group">
                             <label for="address" class="form-label required">4) Adresse exacte</label>
-                            <!-- Remplacer textarea par input de type text -->
+                            <!-- Utilisation d'un input text au lieu d'un textarea -->
                             <input type="text" id="address" name="address" class="form-control" required placeholder="Votre adresse complète (obligatoire pour simuler les temps de trajet)">
                             <div id="address-coords-container" style="display: none;">
                                 <input type="hidden" id="address-lat" name="address-lat">
@@ -1658,10 +1658,10 @@
         });
     </script>
     
-    <!-- Script d'autocomplétion d'adresse avec Google Maps -->
-    <script src="../static/scripts/address-autocomplete.js"></script>
+    <!-- Script d'autocomplétion d'adresse avec Google Maps (version simplifiée) -->
+    <script src="../static/scripts/address-autocomplete-simple.js"></script>
     
-    <!-- Google Maps API avec callback - NE PAS DUPLIQUER CE SCRIPT -->
-    <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBP7x3CwXNA-LM7DWvAMmvg4piOtgY6a-o&libraries=places&callback=initGoogleMapsAutocomplete" async defer></script>
+    <!-- Google Maps API avec une nouvelle clé API et un callback -->
+    <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQg9x3QE5F5xVhCh_-0a4YpLEe4_wnvO0&libraries=places&callback=initAutocompleteCallback" async defer></script>
 </body>
 </html>
