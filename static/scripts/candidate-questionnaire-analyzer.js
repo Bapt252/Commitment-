@@ -1,225 +1,249 @@
 /**
- * Ce script permet d'intégrer l'analyseur de questionnaires candidats 
- * au formulaire existant sans endommager le front-end actuel.
+ * Script pour le formulaire candidat qui gère l'analyse des réponses
+ * et s'assure que le pre-remplissage des champs fonctionne correctement.
  */
 
-// S'assurer que le DOM est chargé
 document.addEventListener('DOMContentLoaded', function() {
-  
-  // Vérifier si nous sommes sur la page du questionnaire candidat
-  const questionnaireForm = document.getElementById('questionnaire-form');
-  if (!questionnaireForm) return;
-  
-  // NOUVEAU: Fonction de redirection directe
-  function goToMatchingPage() {
-    console.log("Redirection vers la page de matching...");
-    document.getElementById('loading-overlay').classList.add('active');
-    setTimeout(() => {
-      window.location.href = 'candidate-matching-improved.html';
-    }, 2000);
-  }
-  
-  // Vérifier que l'analyseur est disponible
-  if (!window.candidateAnalyzer) {
-    console.error('L\'analyseur de questionnaires candidats n\'est pas disponible');
-    return;
-  }
-  
-  // Ajouter les styles nécessaires s'ils ne sont pas déjà chargés
-  if (!document.querySelector('link[href*="candidate-analyzer.css"]')) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '../static/styles/candidate-analyzer.css';
-    document.head.appendChild(link);
-  }
-  
-  // Trouver le bouton de soumission
-  const submitButton = document.getElementById('submit-btn');
-  if (!submitButton) {
-    console.error('Bouton de soumission non trouvé');
-    return;
-  }
-  
-  // Méthode pour extraire toutes les réponses du formulaire
-  function extractFormResponses() {
-    const formData = new FormData(questionnaireForm);
-    const answers = Object.fromEntries(formData.entries());
+    console.log("Script d'analyse du questionnaire candidat chargé");
     
-    // Gérer les groupes de cases à cocher
-    const checkboxGroups = {
-      'transport-method': [],
-      'structure-type': []
+    // Vérifier si le formulaire existe
+    const form = document.getElementById('questionnaire-form');
+    if (!form) {
+        console.error("Formulaire non trouvé");
+        return;
+    }
+    
+    // S'assurer que les fonctions de toggle sont définies au niveau global
+    // pour être utilisées par le FormPrefiller
+    ensureGlobalToggleFunctionsExist();
+    
+    // Gérer la soumission du formulaire
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (validateAllSteps()) {
+                submitForm();
+            }
+        });
+    }
+    
+    // Vérifier les données parsées et les appliquer si disponibles
+    checkAndApplyParsedData();
+});
+
+/**
+ * S'assure que les fonctions de toggle nécessaires sont disponibles globalement
+ */
+function ensureGlobalToggleFunctionsExist() {
+    console.log("Définition des fonctions de toggle au niveau global");
+    
+    // Fonction pour afficher/masquer les préférences de secteur
+    window.toggleSectorPreference = function(radio) {
+        const container = document.getElementById('sector-preference-container');
+        if (container) {
+            container.style.display = radio.value === 'yes' ? 'block' : 'none';
+        }
     };
     
-    // Pour chaque groupe de cases à cocher, récupérer celles qui sont cochées
-    for (const groupName in checkboxGroups) {
-      document.querySelectorAll(`input[name="${groupName}"]:checked`).forEach(checkbox => {
-        checkboxGroups[groupName].push(checkbox.value);
-      });
-      answers[groupName] = checkboxGroups[groupName];
-    }
-    
-    // Gérer les sélections multiples (secteurs, etc.)
-    const multiSelectGroups = ['sector-preference[]', 'prohibited-sector[]'];
-    
-    for (const groupName of multiSelectGroups) {
-      const selectElement = document.querySelector(`select[name="${groupName}"]`);
-      if (selectElement) {
-        answers[groupName] = Array.from(selectElement.selectedOptions).map(option => option.value);
-      }
-    }
-    
-    // Récupérer l'ordre des motivations
-    const motivationOrderInput = document.getElementById('motivation-order');
-    if (motivationOrderInput && motivationOrderInput.value) {
-      answers['motivation-order'] = motivationOrderInput.value.split(',');
-    }
-    
-    return answers;
-  }
-  
-  // Créer l'élément qui va contenir les résultats d'analyse
-  const createAnalysisContainer = () => {
-    // Vérifier si le conteneur existe déjà
-    let analysisContainer = document.getElementById('analysis-results-container');
-    if (analysisContainer) {
-      return analysisContainer;
-    }
-    
-    // Créer le conteneur d'analyse
-    analysisContainer = document.createElement('div');
-    analysisContainer.id = 'analysis-results-container';
-    analysisContainer.className = 'analyzer-container';
-    
-    // Ajouter un titre
-    const title = document.createElement('h2');
-    title.className = 'form-section-title';
-    title.textContent = 'Analyse de votre profil';
-    analysisContainer.appendChild(title);
-    
-    // Ajouter une description
-    const description = document.createElement('p');
-    description.textContent = 'Notre système d\'intelligence artificielle a analysé vos réponses pour ' +
-                              'identifier vos compétences et préférences professionnelles.';
-    analysisContainer.appendChild(description);
-    
-    // Créer le conteneur pour les résultats
-    const resultsDiv = document.createElement('div');
-    resultsDiv.id = 'analysis-results';
-    analysisContainer.appendChild(resultsDiv);
-    
-    return analysisContainer;
-  };
-  
-  // Modifier le comportement du bouton de soumission
-  const originalClickHandler = submitButton.onclick;
-  submitButton.onclick = async function(event) {
-    // Empêcher le comportement par défaut
-    event.preventDefault();
-    
-    // Valider le formulaire (réutiliser la fonction existante)
-    if (typeof validateStep === 'function' && !validateStep(4)) {
-      return;
-    }
-    
-    // NOUVEAU: Redirection simplifiée - aller directement à la page de matching
-    goToMatchingPage();
-    return;
-    
-    // Le code ci-dessous est l'ancien comportement, qui a été désactivé pour simplifier
-    /*
-    // Désactiver le bouton et afficher un état de chargement
-    const originalButtonContent = submitButton.innerHTML;
-    submitButton.disabled = true;
-    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Analyse en cours...</span>';
-    
-    try {
-      // Extraire toutes les réponses du formulaire
-      const answers = extractFormResponses();
-      
-      // Effectuer l'analyse
-      let analysisResults;
-      try {
-        // Essayer d'appeler l'API
-        analysisResults = await window.candidateAnalyzer.analyzeAnswers(answers);
-      } catch (apiError) {
-        console.warn('Impossible de contacter l\'API d\'analyse, utilisation des données de test', apiError);
-        // Utiliser des données de test en cas d'erreur
-        analysisResults = window.candidateAnalyzer.generateMockAnalysisResults();
-      }
-      
-      // Stocker les résultats pour la page suivante
-      sessionStorage.setItem('candidateAnalysis', JSON.stringify(analysisResults));
-      
-      // Créer/obtenir le conteneur d'analyse
-      const analysisContainer = createAnalysisContainer();
-      
-      // Ajouter le conteneur avant les actions du formulaire
-      const formActions = document.querySelector('.form-actions');
-      if (formActions) {
-        formActions.parentNode.insertBefore(analysisContainer, formActions);
-      } else {
-        // Fallback: ajouter à la fin de l'étape actuelle
-        const currentStep = document.querySelector('.form-step.active');
-        if (currentStep) {
-          currentStep.appendChild(analysisContainer);
+    // Fonction pour afficher/masquer les secteurs prohibés
+    window.toggleProhibitedSector = function(radio) {
+        const container = document.getElementById('prohibited-sector-selection');
+        if (container) {
+            container.style.display = radio.value === 'yes' ? 'block' : 'none';
         }
-      }
-      
-      // Afficher les résultats
-      const resultsDiv = document.getElementById('analysis-results');
-      window.candidateAnalyzer.displayAnalysisResults(analysisResults, resultsDiv);
-      
-      // Afficher une notification de succès
-      if (typeof showNotification === 'function') {
-        showNotification('Analyse de votre profil terminée avec succès !', 'success');
-      }
-      
-      // Faire défiler jusqu'aux résultats
-      analysisContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      
-      // Ajouter un bouton pour continuer
-      const actionsDiv = document.createElement('div');
-      actionsDiv.className = 'analysis-actions';
-      
-      const continueButton = document.createElement('button');
-      continueButton.type = 'button';
-      continueButton.className = 'btn-analyze';
-      continueButton.innerHTML = '<i class="fas fa-check-circle"></i> Continuer vers les opportunités';
-      continueButton.onclick = function() {
-        // Réactiver et restaurer le bouton original
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalButtonContent;
+    };
+    
+    // Fonction pour afficher/masquer les sections en fonction du statut d'emploi
+    window.toggleEmploymentStatus = function(radio) {
+        const employedSection = document.getElementById('employed-section');
+        const unemployedSection = document.getElementById('unemployed-section');
         
-        // Appeler le comportement original si disponible
-        if (typeof originalClickHandler === 'function') {
-          originalClickHandler.call(submitButton, event);
-        } else {
-          // Fallback: redirection standard
-          document.getElementById('loading-overlay').classList.add('active');
-          setTimeout(() => {
-            window.location.href = 'candidate-matching-improved.html';
-          }, 2000);
+        if (employedSection && unemployedSection) {
+            employedSection.style.display = radio.value === 'yes' ? 'block' : 'none';
+            unemployedSection.style.display = radio.value === 'yes' ? 'none' : 'block';
+            
+            // Gestion des champs requis
+            if (radio.value === 'yes') {
+                document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
+                    input.setAttribute('required', '');
+                });
+                const noticePeriod = document.getElementById('notice-period');
+                if (noticePeriod) noticePeriod.setAttribute('required', '');
+                document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
+                    input.setAttribute('required', '');
+                });
+                
+                document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
+                    input.removeAttribute('required');
+                });
+            } else {
+                document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
+                    input.setAttribute('required', '');
+                });
+                
+                document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
+                    input.removeAttribute('required');
+                });
+                const noticePeriod = document.getElementById('notice-period');
+                if (noticePeriod) noticePeriod.removeAttribute('required');
+                document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
+                    input.removeAttribute('required');
+                });
+            }
         }
-      };
-      
-      actionsDiv.appendChild(continueButton);
-      analysisContainer.appendChild(actionsDiv);
-      
-    } catch (error) {
-      console.error('Erreur lors de l\'analyse:', error);
-      
-      // Afficher une notification d'erreur
-      if (typeof showNotification === 'function') {
-        showNotification('Erreur lors de l\'analyse de vos réponses', 'error');
-      }
-      
-      // Réactiver et restaurer le bouton
-      submitButton.disabled = false;
-      submitButton.innerHTML = originalButtonContent;
+    };
+}
+
+/**
+ * Vérifie toutes les étapes du formulaire pour validation
+ */
+function validateAllSteps() {
+    for (let i = 1; i <= 4; i++) {
+        if (!window.validateStep(i)) {
+            // Afficher l'étape qui contient des erreurs
+            for (let j = 1; j <= 4; j++) {
+                const formStep = document.getElementById(`form-step${j}`);
+                const step = document.getElementById(`step${j}`);
+                
+                if (j === i) {
+                    formStep.classList.add('active');
+                    step.classList.add('active');
+                    step.classList.remove('completed');
+                } else {
+                    formStep.classList.remove('active');
+                    step.classList.remove('active');
+                    if (j < i) {
+                        step.classList.add('completed');
+                    } else {
+                        step.classList.remove('completed');
+                    }
+                }
+            }
+            
+            // Mettre à jour la barre de progression
+            const progressValues = ['0%', '33%', '66%', '100%'];
+            document.getElementById('stepper-progress').style.width = progressValues[i-1];
+            
+            return false;
+        }
     }
-    */
-  };
-  
-  console.log('Intégration de l\'analyseur de questionnaires candidats terminée');
-});
+    
+    return true;
+}
+
+/**
+ * Soumet le formulaire et redirige vers la page de résultats
+ */
+function submitForm() {
+    // Activer l'animation de chargement
+    document.getElementById('loading-overlay').classList.add('active');
+    
+    // Collecter toutes les données du formulaire
+    const formData = new FormData(document.getElementById('questionnaire-form'));
+    const candidateData = {};
+    
+    for (const [key, value] of formData.entries()) {
+        candidateData[key] = value;
+    }
+    
+    // Ajouter l'ordre des motivations
+    candidateData['motivation-order'] = document.getElementById('motivation-order').value;
+    
+    // Stocker les données du candidat dans sessionStorage pour la page suivante
+    sessionStorage.setItem('candidateFormData', JSON.stringify(candidateData));
+    
+    console.log("Données du formulaire collectées:", candidateData);
+    
+    // Simulation d'une requête au serveur
+    setTimeout(function() {
+        // Redirection vers la page de correspondance
+        window.location.href = 'candidate-matching-improved.html';
+    }, 2000);
+}
+
+/**
+ * Vérifie si des données parsées sont disponibles et les applique au formulaire
+ */
+function checkAndApplyParsedData() {
+    console.log("Vérification des données parsées");
+    
+    // Vérifier l'URL pour un ID de données parsées
+    const urlParams = new URLSearchParams(window.location.search);
+    const dataId = urlParams.get('parsed_data_id');
+    
+    if (dataId) {
+        console.log(`ID de données trouvé: ${dataId}`);
+        // Récupérer les données depuis l'API
+        fetch(`../api/parsed_data/${dataId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la récupération des données');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Données parsées récupérées:", data);
+                if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+                    window.FormPrefiller.initialize(data);
+                } else {
+                    console.warn("FormPrefiller non disponible, stockage des données pour utilisation ultérieure");
+                    sessionStorage.setItem('parsedCandidateData', JSON.stringify(data));
+                    
+                    // Tenter de charger FormPrefiller dynamiquement
+                    loadFormPrefillerScript();
+                }
+            })
+            .catch(error => {
+                console.error("Erreur lors du chargement des données parsées:", error);
+            });
+    } else {
+        // Vérifier dans sessionStorage
+        try {
+            const storedData = sessionStorage.getItem('parsedCandidateData');
+            if (storedData) {
+                console.log("Données trouvées dans sessionStorage");
+                const parsedData = JSON.parse(storedData);
+                
+                if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+                    window.FormPrefiller.initialize(parsedData);
+                } else {
+                    console.warn("FormPrefiller non disponible, tentative de chargement");
+                    loadFormPrefillerScript();
+                }
+            } else {
+                console.log("Aucune donnée parsée trouvée");
+            }
+        } catch (error) {
+            console.error("Erreur lors de la vérification des données stockées:", error);
+        }
+    }
+}
+
+/**
+ * Charge dynamiquement le script de pré-remplissage si nécessaire
+ */
+function loadFormPrefillerScript() {
+    if (!document.querySelector('script[src*="form-prefiller.js"]')) {
+        console.log("Chargement dynamique du script form-prefiller.js");
+        const script = document.createElement('script');
+        script.src = "../static/scripts/form-prefiller.js";
+        script.onload = function() {
+            console.log("Script form-prefiller.js chargé avec succès");
+            // Tenter d'initialiser après chargement
+            try {
+                const storedData = sessionStorage.getItem('parsedCandidateData');
+                if (storedData && window.FormPrefiller) {
+                    window.FormPrefiller.initialize(JSON.parse(storedData));
+                }
+            } catch (error) {
+                console.error("Erreur après chargement du script:", error);
+            }
+        };
+        script.onerror = function() {
+            console.error("Échec du chargement du script form-prefiller.js");
+        };
+        document.head.appendChild(script);
+    }
+}
