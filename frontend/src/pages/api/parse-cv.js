@@ -2,6 +2,7 @@
 import axios from 'axios';
 import formidable from 'formidable';
 import fs from 'fs';
+import path from 'path';
 
 // Désactiver le body parser de Next.js pour les formulaires
 export const config = {
@@ -9,6 +10,16 @@ export const config = {
     bodyParser: false,
   },
 };
+
+// Définir un répertoire sécurisé pour les fichiers temporaires
+const UPLOAD_DIR = path.resolve(process.cwd(), 'tmp/uploads');
+
+// Fonction pour vérifier si un chemin est sécurisé (dans le répertoire autorisé)
+function isPathSafe(filePath) {
+  const normalizedPath = path.normalize(filePath);
+  const resolvedPath = path.resolve(normalizedPath);
+  return resolvedPath.startsWith(UPLOAD_DIR);
+}
 
 // Fonction pour normaliser les données reçues du service de parsing CV
 function normalizeParserResult(data) {
@@ -93,8 +104,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Utiliser formidable pour parser le formulaire multipart
-    const form = new formidable.IncomingForm();
+    // S'assurer que le répertoire de téléchargement existe
+    try {
+      if (!fs.existsSync(UPLOAD_DIR)) {
+        fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+      }
+    } catch (err) {
+      console.error('Erreur lors de la création du répertoire de téléchargement:', err);
+      return res.status(500).json({ error: 'Erreur lors de la configuration du serveur' });
+    }
+
+    // Configurer formidable pour utiliser un répertoire sécurisé
+    const form = new formidable.IncomingForm({
+      uploadDir: UPLOAD_DIR,
+      keepExtensions: true,
+      maxFileSize: 10 * 1024 * 1024 // 10MB
+    });
+
     form.parse(req, async (err, fields, files) => {
       if (err) {
         console.error('Erreur lors du parsing du formulaire:', err);
@@ -106,40 +132,69 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Fichier manquant' });
       }
 
-      // Créer un FormData pour l'envoi au service de parsing
-      const formData = new FormData();
-      
-      // Ajouter le fichier au FormData
-      formData.append('file', new Blob([fs.readFileSync(file.filepath)]), file.originalFilename);
-
-      // Ajouter les options supplémentaires
-      if (fields.force_refresh) {
-        formData.append('force_refresh', fields.force_refresh);
-      }
-      if (fields.detailed_mode) {
-        formData.append('detailed_mode', fields.detailed_mode);
+      // Vérifier si le chemin du fichier est sécurisé
+      if (!isPathSafe(file.filepath)) {
+        console.error('Tentative d\'accès à un chemin non autorisé:', file.filepath);
+        return res.status(403).json({ error: 'Accès au fichier non autorisé' });
       }
 
       try {
-        // URL du service de parsing CV
-        const CV_PARSER_URL = process.env.CV_PARSER_SERVICE_URL || 'http://cv-parser:5000';
+        // Lire le fichier de manière sécurisée
+        const fileBuffer = fs.readFileSync(path.resolve(file.filepath));
         
-        // Appeler le service de parsing CV
-        const response = await axios.post(`${CV_PARSER_URL}/api/parse-cv/`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        // Créer un FormData pour l'envoi au service de parsing
+        const formData = new FormData();
+        
+        // Ajouter le fichier au FormData avec un nom sécurisé
+        const safeFilename = path.basename(file.originalFilename || 'document.pdf');
+        formData.append('file', new Blob([fileBuffer]), safeFilename);
 
-        // Normaliser les données avant de les renvoyer
-        const normalizedData = normalizeParserResult(response.data);
-        res.status(200).json(normalizedData);
-      } catch (error) {
-        console.error('Erreur lors du parsing du CV:', error);
-        res.status(500).json({ 
-          error: 'Erreur lors du parsing du CV',
-          details: error.response?.data || error.message
-        });
+        // Ajouter les options supplémentaires
+        if (fields.force_refresh) {
+          formData.append('force_refresh', fields.force_refresh);
+        }
+        if (fields.detailed_mode) {
+          formData.append('detailed_mode', fields.detailed_mode);
+        }
+
+        try {
+          // URL du service de parsing CV
+          const CV_PARSER_URL = process.env.CV_PARSER_SERVICE_URL || 'http://cv-parser:5000';
+          
+          // Appeler le service de parsing CV
+          const response = await axios.post(`${CV_PARSER_URL}/api/parse-cv/`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+
+          // Nettoyer le fichier temporaire
+          try {
+            fs.unlinkSync(file.filepath);
+          } catch (cleanupErr) {
+            console.error('Erreur lors du nettoyage du fichier temporaire:', cleanupErr);
+          }
+
+          // Normaliser les données avant de les renvoyer
+          const normalizedData = normalizeParserResult(response.data);
+          res.status(200).json(normalizedData);
+        } catch (error) {
+          // Nettoyer le fichier temporaire en cas d'erreur
+          try {
+            fs.unlinkSync(file.filepath);
+          } catch (cleanupErr) {
+            console.error('Erreur lors du nettoyage du fichier temporaire:', cleanupErr);
+          }
+
+          console.error('Erreur lors du parsing du CV:', error);
+          res.status(500).json({ 
+            error: 'Erreur lors du parsing du CV',
+            details: error.response?.data || error.message
+          });
+        }
+      } catch (fileError) {
+        console.error('Erreur lors de la lecture du fichier:', fileError);
+        res.status(500).json({ error: 'Erreur lors de la lecture du fichier' });
       }
     });
   } catch (error) {
