@@ -11,11 +11,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Ajout du script de pré-remplissage automatique du formulaire -->
+    <!-- Chargement des scripts dans le bon ordre pour le pré-remplissage -->
     <script src="../static/scripts/form-prefiller.js"></script>
-    
-    <!-- Ajout du script de débogage pour le pré-remplissage -->
+    <script src="../static/scripts/candidate-questionnaire-analyzer.js"></script>
     <script src="../static/scripts/debug-prefill.js"></script>
+    
+    <!-- Les données d'exemple doivent être chargées en dernier pour pouvoir utiliser les fonctions définies auparavant -->
+    <script src="../static/scripts/parsed-data-example.js"></script>
     
     <style>
         /* Styles spécifiques au questionnaire candidat */
@@ -1230,12 +1232,64 @@
 
     <!-- Scripts JavaScript -->
     <script src="../static/scripts/candidate-analyzer.js"></script>
-    <script src="../static/scripts/candidate-questionnaire-analyzer.js"></script>
-    
-    <!-- Script pour les données de test (à décommenter en développement) -->
-    <script src="../static/scripts/parsed-data-example.js"></script>
     
     <script>
+        // Fonctions globales nécessaires au fonctionnement du formulaire
+        
+        // Fonction pour afficher/masquer les préférences de secteur
+        function toggleSectorPreference(radio) {
+            const container = document.getElementById('sector-preference-container');
+            if (container) {
+                container.style.display = radio.value === 'yes' ? 'block' : 'none';
+            }
+        }
+        
+        // Fonction pour afficher/masquer les secteurs prohibés
+        function toggleProhibitedSector(radio) {
+            const container = document.getElementById('prohibited-sector-selection');
+            if (container) {
+                container.style.display = radio.value === 'yes' ? 'block' : 'none';
+            }
+        }
+        
+        // Fonction pour afficher/masquer les sections en fonction du statut d'emploi
+        function toggleEmploymentStatus(radio) {
+            const employedSection = document.getElementById('employed-section');
+            const unemployedSection = document.getElementById('unemployed-section');
+            
+            if (employedSection && unemployedSection) {
+                employedSection.style.display = radio.value === 'yes' ? 'block' : 'none';
+                unemployedSection.style.display = radio.value === 'yes' ? 'none' : 'block';
+                
+                // Gestion des champs requis
+                if (radio.value === 'yes') {
+                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
+                        input.setAttribute('required', '');
+                    });
+                    document.getElementById('notice-period').setAttribute('required', '');
+                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
+                        input.setAttribute('required', '');
+                    });
+                    
+                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
+                        input.removeAttribute('required');
+                    });
+                } else {
+                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
+                        input.setAttribute('required', '');
+                    });
+                    
+                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
+                        input.removeAttribute('required');
+                    });
+                    document.getElementById('notice-period').removeAttribute('required');
+                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
+                        input.removeAttribute('required');
+                    });
+                }
+            }
+        }
+        
         // Fonction pour rediriger directement vers les matchings en cas d'échec du système d'analyse
         function redirectToMatchingPage() {
             document.getElementById('loading-overlay').classList.add('active');
@@ -1245,9 +1299,6 @@
         }
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Pour tester immédiatement le pré-remplissage, décommentez cette ligne
-            storeParseDataForTesting();
-            
             // En cas d'erreur d'analyse, ajouter un bouton de secours
             const submitBtn = document.getElementById('submit-btn');
             if (submitBtn) {
@@ -1492,68 +1543,6 @@
 
             // Initialiser l'ordre des motivations
             updateMotivationNumbers();
-            
-            // Fonction pour afficher/masquer les sections en fonction des préférences de secteur
-            window.toggleSectorPreference = function(radio) {
-                const container = document.getElementById('sector-preference-container');
-                if (radio.value === 'yes') {
-                    container.style.display = 'block';
-                } else {
-                    container.style.display = 'none';
-                }
-            };
-
-            // Fonction pour afficher/masquer les secteurs rédhibitoires
-            window.toggleProhibitedSector = function(radio) {
-                const container = document.getElementById('prohibited-sector-selection');
-                if (radio.value === 'yes') {
-                    container.style.display = 'block';
-                } else {
-                    container.style.display = 'none';
-                }
-            };
-
-            // Fonction pour afficher/masquer les sections en fonction du statut d'emploi
-            window.toggleEmploymentStatus = function(radio) {
-                const employedSection = document.getElementById('employed-section');
-                const unemployedSection = document.getElementById('unemployed-section');
-                
-                if (radio.value === 'yes') {
-                    employedSection.style.display = 'block';
-                    unemployedSection.style.display = 'none';
-                    
-                    // Rendre les champs de cette section requis
-                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    document.getElementById('notice-period').setAttribute('required', '');
-                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    
-                    // Rendre les champs de l'autre section non requis
-                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                } else {
-                    employedSection.style.display = 'none';
-                    unemployedSection.style.display = 'block';
-                    
-                    // Rendre les champs de cette section requis
-                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    
-                    // Rendre les champs de l'autre section non requis
-                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                    document.getElementById('notice-period').removeAttribute('required');
-                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                }
-            };
             
             // Étape 1 -> Étape 2
             document.getElementById('next-step1').addEventListener('click', function() {
