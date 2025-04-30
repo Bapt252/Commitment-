@@ -1,83 +1,149 @@
+// frontend/src/pages/api/parse-cv.js
 import axios from 'axios';
-import { formidable } from 'formidable';
+import formidable from 'formidable';
 import fs from 'fs';
 
+// Désactiver le body parser de Next.js pour les formulaires
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
+// Fonction pour normaliser les données reçues du service de parsing CV
+function normalizeParserResult(data) {
+  // Si les données sont imbriquées dans un sous-objet 'data'
+  const parsedData = data.data || data;
+  
+  // S'assurer que toutes les propriétés principales existent
+  const normalized = {
+    personal_info: parsedData.personal_info || {},
+    position: parsedData.position || "",
+    skills: [],
+    experience: [],
+    education: [],
+    languages: [],
+    softwares: [],
+    processing_time: parsedData.processing_time || 0
+  };
+  
+  // Normaliser les informations personnelles
+  normalized.personal_info = {
+    name: parsedData.personal_info?.name || "",
+    email: parsedData.personal_info?.email || "",
+    phone: parsedData.personal_info?.phone || "",
+    address: parsedData.personal_info?.address || ""
+  };
+  
+  // Normaliser les compétences
+  normalized.skills = Array.isArray(parsedData.skills) 
+    ? parsedData.skills.map(skill => {
+        if (typeof skill === 'object' && skill !== null) {
+          return skill;
+        }
+        return { name: String(skill) };
+      })
+    : [];
+    
+  // Normaliser l'expérience professionnelle - tenir compte des deux noms possibles (experience/experiences)
+  normalized.experience = Array.isArray(parsedData.experience) || Array.isArray(parsedData.experiences)
+    ? (parsedData.experience || parsedData.experiences || []).map(exp => ({
+        title: exp.title || "",
+        company: exp.company || "",
+        start_date: exp.start_date || "",
+        end_date: exp.end_date || "",
+        description: exp.description || ""
+      }))
+    : [];
+    
+  // Normaliser l'éducation
+  normalized.education = Array.isArray(parsedData.education)
+    ? parsedData.education.map(edu => ({
+        degree: edu.degree || "",
+        institution: edu.institution || "",
+        start_date: edu.start_date || "",
+        end_date: edu.end_date || ""
+      }))
+    : [];
+    
+  // Normaliser les langues
+  normalized.languages = Array.isArray(parsedData.languages)
+    ? parsedData.languages.map(lang => ({
+        language: lang.language || "",
+        level: lang.level || ""
+      }))
+    : [];
+    
+  // Normaliser les logiciels
+  normalized.softwares = Array.isArray(parsedData.softwares)
+    ? parsedData.softwares
+    : [];
+  
+  // Enlever le préfixe "undefined" des noms si présent
+  if (normalized.personal_info.name && normalized.personal_info.name.startsWith("undefined ")) {
+    normalized.personal_info.name = normalized.personal_info.name.replace("undefined ", "");
+  }
+  
+  return normalized;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  console.log('Receiving CV parsing request...');
-  
-  const form = formidable({
-    keepExtensions: true,
-    maxFileSize: 10 * 1024 * 1024, // 10MB max size
-  });
-  
   try {
-    const [fields, files] = await form.parse(req);
-    console.log('Form parsed, fields:', Object.keys(fields));
+    // Utiliser formidable pour parser le formulaire multipart
+    const form = new formidable.IncomingForm();
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        console.error('Erreur lors du parsing du formulaire:', err);
+        return res.status(500).json({ error: 'Erreur lors du parsing du formulaire' });
+      }
 
-    // Dans la v3, files est maintenant un objet avec des arrays
-    const fileArray = files.file;
-    if (!fileArray || fileArray.length === 0) {
-      console.error('No file uploaded');
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-    
-    const file = fileArray[0];
-    console.log(`File received: ${file.originalFilename}, size: ${file.size} bytes, type: ${file.mimetype}`);
-    
-    // Options from fields
-    const forceRefresh = fields.force_refresh && fields.force_refresh[0] === 'true';
-    const detailedMode = fields.detailed_mode && fields.detailed_mode[0] === 'true';
-    
-    console.log(`Options - Force refresh: ${forceRefresh}, Detailed mode: ${detailedMode}`);
-    
-    // Create form data for the API request
-    const formData = new FormData();
-    formData.append('file', new Blob([fs.readFileSync(file.filepath)]), file.originalFilename);
-    
-    // Add the options to the form data
-    if (forceRefresh) {
-      formData.append('force_refresh', 'true');
-    }
-    
-    if (detailedMode) {
-      formData.append('detailed_mode', 'true');
-    }
+      const file = files.file;
+      if (!file) {
+        return res.status(400).json({ error: 'Fichier manquant' });
+      }
 
-    // Forward the request to the CV parser service
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050';
-    console.log(`Forwarding request to ${apiUrl}/api/v1/cv/parse`);
-    
-    const response = await axios.post(`${apiUrl}/api/v1/cv/parse`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      timeout: 60000, // 60 secondes timeout
+      // Créer un FormData pour l'envoi au service de parsing
+      const formData = new FormData();
+      
+      // Ajouter le fichier au FormData
+      formData.append('file', new Blob([fs.readFileSync(file.filepath)]), file.originalFilename);
+
+      // Ajouter les options supplémentaires
+      if (fields.force_refresh) {
+        formData.append('force_refresh', fields.force_refresh);
+      }
+      if (fields.detailed_mode) {
+        formData.append('detailed_mode', fields.detailed_mode);
+      }
+
+      try {
+        // URL du service de parsing CV
+        const CV_PARSER_URL = process.env.CV_PARSER_SERVICE_URL || 'http://cv-parser:5000';
+        
+        // Appeler le service de parsing CV
+        const response = await axios.post(`${CV_PARSER_URL}/api/parse-cv/`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        // Normaliser les données avant de les renvoyer
+        const normalizedData = normalizeParserResult(response.data);
+        res.status(200).json(normalizedData);
+      } catch (error) {
+        console.error('Erreur lors du parsing du CV:', error);
+        res.status(500).json({ 
+          error: 'Erreur lors du parsing du CV',
+          details: error.response?.data || error.message
+        });
+      }
     });
-
-    console.log('CV parsing successful');
-    return res.status(200).json(response.data);
   } catch (error) {
-    console.error('Error parsing CV:', error);
-    
-    // Detailed error information
-    const errorDetails = {
-      error: 'Error processing the CV',
-      message: error.message,
-      status: error.response?.status,
-      details: error.response?.data || 'Unknown error'
-    };
-    
-    console.error('Error details:', JSON.stringify(errorDetails));
-    return res.status(error.response?.status || 500).json(errorDetails);
+    console.error('Erreur serveur:', error);
+    res.status(500).json({ error: 'Erreur serveur interne' });
   }
 }
