@@ -50,6 +50,12 @@
       .pac-item-selected {
         background-color: rgba(124, 58, 237, 0.1) !important;
       }
+      
+      /* Style supplémentaire pour l'input en focus */
+      #address.focused {
+        border-color: #7c3aed !important;
+        box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1) !important;
+      }
     </style>
     
     <!-- Styles spécifiques au questionnaire -->
@@ -1658,10 +1664,10 @@
         });
     </script>
     
-    <!-- Script d'autocomplétion d'adresse avec Google Maps (version simplifiée) -->
-    <script src="../static/scripts/address-autocomplete-simple.js"></script>
+    <!-- Script d'autocomplétion d'adresse avec Google Maps -->
+    <script src="../static/scripts/address-autocomplete.js"></script>
     
-    <!-- Google Maps API avec une nouvelle clé API et un callback -->
+    <!-- Google Maps API avec clé API et callback -->
     <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQg9x3QE5F5xVhCh_-0a4YpLEe4_wnvO0&libraries=places&callback=initAutocompleteCallback" async defer></script>
 </body>
 </html>
