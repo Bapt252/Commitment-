@@ -26,9 +26,7 @@ window.DataTransferService = (function() {
       personal_info: data.personal_info || (data.data && data.data.personal_info) || {},
       
       // Assurer que le titre de poste est accessible par différents chemins pour la compatibilité
-      current_position: data.current_position || 
-                       (data.data && data.data.current_position) || 
-                       '',
+      current_position: extractCurrentPosition(data),
       
       // Conserver également la structure entière pour le traitement avancé
       fullData: data,
@@ -47,7 +45,9 @@ window.DataTransferService = (function() {
     // Stocker les données normalisées
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedData));
-      console.log('Données stockées avec succès:', normalizedData);
+      // Également stocker dans sessionStorage pour la redondance
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedData));
+      console.log('Données stockées avec succès dans localStorage et sessionStorage:', normalizedData);
       return true;
     } catch (error) {
       console.error('Erreur lors du stockage des données:', error);
@@ -56,12 +56,53 @@ window.DataTransferService = (function() {
   }
   
   /**
+   * Extrait l'intitulé de poste depuis n'importe quel format de données
+   * @param {Object} data - Les données brutes
+   * @returns {String} - L'intitulé de poste extrait
+   */
+  function extractCurrentPosition(data) {
+    // Vérifier toutes les sources possibles pour l'intitulé de poste
+    if (data.current_position) {
+      return data.current_position;
+    }
+    
+    if (data.data && data.data.current_position) {
+      return data.data.current_position;
+    }
+    
+    if (data.jobTitle) {
+      return data.jobTitle;
+    }
+    
+    // Vérifier si available dans work_experience
+    if (data.data && data.data.work_experience && data.data.work_experience.length > 0) {
+      return data.data.work_experience[0].title || '';
+    }
+    
+    if (data.work_experience && data.work_experience.length > 0) {
+      return data.work_experience[0].title || '';
+    }
+    
+    return '';
+  }
+  
+  /**
    * Récupère les données du CV parsé depuis le stockage
    * @returns {Object|null} - Les données ou null si non trouvées
    */
   function retrieveData() {
     try {
-      const storedData = localStorage.getItem(STORAGE_KEY);
+      // Essayer d'abord localStorage
+      let storedData = localStorage.getItem(STORAGE_KEY);
+      
+      // Si rien n'est trouvé dans localStorage, essayer sessionStorage
+      if (!storedData) {
+        storedData = sessionStorage.getItem(STORAGE_KEY);
+        console.log('Données récupérées depuis sessionStorage');
+      } else {
+        console.log('Données récupérées depuis localStorage');
+      }
+      
       if (!storedData) {
         console.warn('Aucune donnée trouvée dans le stockage');
         return null;
@@ -116,6 +157,7 @@ window.DataTransferService = (function() {
    */
   function clearData() {
     localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
     console.log('Données effacées du stockage');
   }
   
