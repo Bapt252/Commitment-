@@ -1,12 +1,18 @@
 /**
  * Form-prefiller.js - Script pour pré-remplir automatiquement le formulaire candidat
  * avec les données parsées depuis le backend.
+ * Version améliorée avec support des données simulées dans un environnement de démonstration
  */
 
 // Définir l'objet FormPrefiller dans l'espace global
 window.FormPrefiller = (function() {
   // Stockage des données parsées
   let parsedData = null;
+  
+  // Constante pour détecter l'environnement
+  const IS_DEMO_ENV = window.location.hostname.includes('github.io') || 
+                    window.location.hostname === 'localhost' || 
+                    window.location.hostname === '127.0.0.1';
 
   /**
    * Initialise le système de pré-remplissage
@@ -20,6 +26,13 @@ window.FormPrefiller = (function() {
 
     parsedData = data;
     console.log("Données de pré-remplissage chargées:", parsedData);
+    
+    // Détecter si les données sont simulées
+    const isSimulatedData = parsedData.isSimulated === true || IS_DEMO_ENV;
+    if (isSimulatedData && !parsedData.isSimulated) {
+      parsedData.isSimulated = true;
+      console.log("Données marquées comme simulées (environnement démo)");
+    }
 
     // S'assurer que les fonctions de toggle du formulaire sont définies
     ensureGlobalToggleFunctionsExist();
@@ -159,6 +172,11 @@ window.FormPrefiller = (function() {
         recruitmentStatus: "no-leads"
       }
     };
+    
+    // Préserver le marqueur de données simulées s'il existe
+    if (parsedData.isSimulated) {
+      formData.isSimulated = true;
+    }
 
     // Remplir les informations personnelles
     if (cvData.personal_info) {
@@ -183,6 +201,12 @@ window.FormPrefiller = (function() {
     } else if (cvData.work_experience && cvData.work_experience.length > 0) {
       // Utiliser le titre du poste le plus récent comme fallback
       formData.personalInfo.jobTitle = cvData.work_experience[0].title || "";
+    } else if (cvData.position) {
+      // Format direct
+      formData.personalInfo.jobTitle = cvData.position;
+    } else if (cvData.experience && cvData.experience.length > 0) {
+      // Format alternatif pour l'expérience
+      formData.personalInfo.jobTitle = cvData.experience[0].title || "";
     }
 
     // Estimer des valeurs par défaut pour les moyens de transport
@@ -288,12 +312,12 @@ window.FormPrefiller = (function() {
       "revit": "construction"
     };
 
-    const software = cvData.software || [];
+    const software = cvData.software || cvData.softwares || [];
     if (software && software.length > 0) {
       const detectedSectors = new Set();
       
       for (const sw of software) {
-        const softwareLower = sw.toLowerCase();
+        const softwareLower = typeof sw === 'string' ? sw.toLowerCase() : '';
         for (const [key, sector] of Object.entries(softwareToSectorMap)) {
           if (softwareLower.includes(key)) {
             detectedSectors.add(sector);
@@ -313,6 +337,66 @@ window.FormPrefiller = (function() {
   }
 
   /**
+   * Ajoute un indicateur visuel pour les données simulées/mockées
+   */
+  function addSimulatedDataIndicator() {
+    // Vérifier si l'indicateur existe déjà
+    if (document.querySelector('.demo-mode-indicator')) {
+      return;
+    }
+    
+    const formContainer = document.querySelector('.form-container');
+    if (formContainer) {
+      const demoIndicator = document.createElement('div');
+      demoIndicator.className = 'demo-mode-indicator';
+      demoIndicator.innerHTML = '<i class="fas fa-info-circle"></i> Mode démonstration - Données simulées';
+      demoIndicator.style.background = 'rgba(124, 58, 237, 0.1)';
+      demoIndicator.style.color = 'var(--purple)';
+      demoIndicator.style.padding = '12px 16px';
+      demoIndicator.style.borderRadius = '8px';
+      demoIndicator.style.marginBottom = '20px';
+      demoIndicator.style.textAlign = 'center';
+      demoIndicator.style.fontWeight = '500';
+      formContainer.insertBefore(demoIndicator, formContainer.firstChild);
+      
+      // Ajouter un badge sur les champs pré-remplis
+      setTimeout(() => {
+        const filledFields = document.querySelectorAll('input[type="text"]:not([value=""]), textarea:not(:empty)');
+        filledFields.forEach(field => {
+          // Ajouter un badge uniquement si le champ n'en a pas déjà un
+          if (!field.parentElement.querySelector('.simulated-data-badge')) {
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            wrapper.style.display = 'inline-block';
+            wrapper.style.width = '100%';
+            
+            // Déplacer le champ dans le wrapper
+            field.parentNode.insertBefore(wrapper, field);
+            wrapper.appendChild(field);
+            
+            // Créer le badge
+            const badge = document.createElement('span');
+            badge.className = 'simulated-data-badge';
+            badge.textContent = 'Demo';
+            badge.style.position = 'absolute';
+            badge.style.top = '-8px';
+            badge.style.right = '0';
+            badge.style.backgroundColor = 'var(--purple)';
+            badge.style.color = 'white';
+            badge.style.fontSize = '10px';
+            badge.style.padding = '2px 6px';
+            badge.style.borderRadius = '10px';
+            badge.style.fontWeight = 'bold';
+            badge.style.zIndex = '1';
+            
+            wrapper.appendChild(badge);
+          }
+        });
+      }, 500);
+    }
+  }
+
+  /**
    * Remplit tous les champs du formulaire avec les données disponibles
    */
   function fillForm() {
@@ -328,6 +412,12 @@ window.FormPrefiller = (function() {
     }
 
     console.log("Début du pré-remplissage du formulaire avec les données:", parsedData);
+    
+    // Vérifier si les données sont simulées
+    const isSimulatedData = parsedData.isSimulated === true || IS_DEMO_ENV;
+    if (isSimulatedData) {
+      console.log("Les données sont marquées comme simulées - ajout d'indicateurs visuels");
+    }
 
     try {
       // Remplir les informations personnelles (étape 1)
@@ -496,9 +586,18 @@ window.FormPrefiller = (function() {
 
       console.log("Pré-remplissage du formulaire terminé avec succès");
       
+      // Ajouter un indicateur visuel pour les données simulées si nécessaire
+      if (isSimulatedData) {
+        addSimulatedDataIndicator();
+      }
+      
       // Afficher une notification pour informer l'utilisateur
       if (window.showNotification) {
-        window.showNotification("Formulaire pré-rempli avec vos informations", "success");
+        if (isSimulatedData) {
+          window.showNotification("Formulaire pré-rempli avec des données d'exemple (mode démo)", "info");
+        } else {
+          window.showNotification("Formulaire pré-rempli avec vos informations", "success");
+        }
       }
     } catch (error) {
       console.error("Erreur lors du pré-remplissage du formulaire:", error);
@@ -684,7 +783,8 @@ window.FormPrefiller = (function() {
   // Exposer les fonctions publiques
   return {
     initialize: initialize,
-    fillForm: fillForm
+    fillForm: fillForm,
+    isDemo: IS_DEMO_ENV
   };
 })();
 
@@ -695,33 +795,70 @@ window.FormPrefiller = (function() {
 document.addEventListener('DOMContentLoaded', function() {
   console.log("DOM chargé - Vérification des données pour le pré-remplissage");
   
-  // Vérifier si l'URL contient des paramètres GET pour récupérer les données
-  const urlParams = new URLSearchParams(window.location.search);
-  const dataId = urlParams.get('parsed_data_id');
+  // Détecter l'environnement
+  const IS_DEMO_ENV = window.location.hostname.includes('github.io') || 
+                      window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1';
   
-  if (dataId) {
-    console.log(`ID de données parsées trouvé: ${dataId}`);
-    // Faire une requête pour récupérer les données parsées
-    fetch(`../api/parsed_data/${dataId}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Erreur lors de la récupération des données');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Données récupérées avec succès depuis l'API");
-        // Initialiser le pré-remplissage avec les données récupérées
-        window.FormPrefiller.initialize(data);
-      })
-      .catch(error => {
-        console.error("Erreur lors du chargement des données parsées:", error);
-        // En cas d'erreur, essayer de récupérer depuis le stockage local
-        tryLocalStorageFallback();
-      });
+  // Vérifier si l'adaptateur API est disponible
+  if (IS_DEMO_ENV && !window.ApiAdapter && !document.querySelector('script[src*="api-adapter.js"]')) {
+    console.log("Chargement automatique de l'adaptateur API pour l'environnement démo");
+    const script = document.createElement('script');
+    script.src = "../static/scripts/api-adapter.js";
+    script.onload = function() {
+      console.log("Adaptateur API chargé avec succès");
+      initFormPrefiller();
+    };
+    document.head.appendChild(script);
   } else {
-    console.log("Aucun ID de données trouvé dans l'URL - Vérification des stockages locaux");
-    tryLocalStorageFallback();
+    initFormPrefiller();
+  }
+  
+  function initFormPrefiller() {
+    // Vérifier si l'URL contient des paramètres GET pour récupérer les données
+    const urlParams = new URLSearchParams(window.location.search);
+    const dataId = urlParams.get('parsed_data_id');
+    
+    if (dataId) {
+      console.log(`ID de données parsées trouvé: ${dataId}`);
+      
+      // Vérifier si l'adaptateur API est disponible
+      if (window.ApiAdapter) {
+        console.log("Utilisation de l'adaptateur API pour récupérer les données");
+        window.ApiAdapter.get(`/parsed_data/${dataId}`)
+          .then(data => {
+            console.log("Données récupérées avec succès via adaptateur");
+            // Initialiser le pré-remplissage avec les données récupérées
+            window.FormPrefiller.initialize(data);
+          })
+          .catch(error => {
+            console.error("Erreur lors du chargement des données via adaptateur:", error);
+            tryLocalStorageFallback();
+          });
+      } else {
+        // Méthode traditionnelle
+        fetch(`../api/parsed_data/${dataId}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Erreur lors de la récupération des données');
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log("Données récupérées avec succès depuis l'API");
+            // Initialiser le pré-remplissage avec les données récupérées
+            window.FormPrefiller.initialize(data);
+          })
+          .catch(error => {
+            console.error("Erreur lors du chargement des données parsées:", error);
+            // En cas d'erreur, essayer de récupérer depuis le stockage local
+            tryLocalStorageFallback();
+          });
+      }
+    } else {
+      console.log("Aucun ID de données trouvé dans l'URL - Vérification des stockages locaux");
+      tryLocalStorageFallback();
+    }
   }
   
   // Fonction pour tenter de récupérer les données depuis le stockage local
@@ -753,21 +890,59 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
           const parsedData = JSON.parse(storedData);
+          
+          // Marquer comme données simulées en mode démo
+          if (IS_DEMO_ENV && !parsedData.isSimulated) {
+            parsedData.isSimulated = true;
+          }
+          
           window.FormPrefiller.initialize(parsedData);
         } catch (parseError) {
           console.error("Erreur lors du parsing des données stockées:", parseError);
+          
+          // En mode démo, essayer de charger les données d'exemple
+          if (IS_DEMO_ENV) {
+            loadExampleData();
+          }
         }
       } else {
         console.log("Aucune donnée trouvée dans les stockages locaux");
         
-        // Si aucune donnée n'est trouvée, vérifier si DataTransferService est disponible
-        if (window.DataTransferService && typeof window.DataTransferService.prefillEssentialFields === 'function') {
-          console.log("Tentative de pré-remplissage avec DataTransferService");
-          window.DataTransferService.prefillEssentialFields();
+        // Si en mode démo, utiliser les données d'exemple
+        if (IS_DEMO_ENV) {
+          loadExampleData();
+        } else {
+          // Si aucune donnée n'est trouvée, vérifier si DataTransferService est disponible
+          if (window.DataTransferService && typeof window.DataTransferService.prefillEssentialFields === 'function') {
+            console.log("Tentative de pré-remplissage avec DataTransferService");
+            window.DataTransferService.prefillEssentialFields();
+          }
         }
       }
     } catch (error) {
       console.warn("Erreur lors de la récupération des données:", error);
+      
+      // En mode démo, charger les données d'exemple en dernier recours
+      if (IS_DEMO_ENV) {
+        loadExampleData();
+      }
     }
+  }
+  
+  // Fonction pour charger les données d'exemple en mode démo
+  function loadExampleData() {
+    console.log("Chargement des données d'exemple pour le mode démo");
+    const script = document.createElement('script');
+    script.src = "../static/scripts/parsed-data-example.js";
+    script.onload = function() {
+      if (typeof mockParsedData !== 'undefined') {
+        console.log("Données d'exemple chargées avec succès");
+        mockParsedData.isSimulated = true;
+        window.FormPrefiller.initialize(mockParsedData);
+      } else {
+        console.error("Impossible de charger les données d'exemple");
+      }
+    };
+    document.head.appendChild(script);
   }
 });
