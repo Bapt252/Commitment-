@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List
+import os
 
 from app.services.geo_service import geo_service
 
@@ -118,3 +120,26 @@ async def calculate_distance(request: DistanceRequest):
     if not result:
         raise HTTPException(status_code=404, detail="Impossible de calculer la distance ou le temps de trajet")
     return result
+
+@router.get("/api-key", summary="Obtenir la clé API Google Maps")
+async def get_google_maps_api_key():
+    """
+    Récupère la clé API Google Maps pour une utilisation côté client.
+    Cette clé est restreinte aux domaines autorisés dans la console Google Cloud.
+    
+    Retourne la clé API pour initialiser les services Google Maps côté client.
+    """
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY_CLIENT")
+    
+    # Si aucune clé spécifique au client n'est définie, utilisez la clé principale
+    if not api_key:
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    
+    # Si aucune clé n'est disponible, retournez une erreur ou une clé vide
+    if not api_key:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"detail": "Service Google Maps non disponible", "apiKey": ""}
+        )
+    
+    return {"apiKey": api_key}
