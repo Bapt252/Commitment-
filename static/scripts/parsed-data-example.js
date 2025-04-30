@@ -74,10 +74,64 @@ const mockParsedData = {
  * À exécuter dans la console pour tester le pré-remplissage
  */
 function storeParseDataForTesting() {
-  sessionStorage.setItem('parsedCandidateData', JSON.stringify(mockParsedData));
-  console.log("Données parsées stockées dans sessionStorage. Rechargez la page pour voir le pré-remplissage automatique.");
+  try {
+    // Stocker les données dans sessionStorage
+    sessionStorage.setItem('parsedCandidateData', JSON.stringify(mockParsedData));
+    console.log("✅ Données parsées stockées avec succès dans sessionStorage");
+    
+    // Appliquer directement le pré-remplissage si FormPrefiller est disponible
+    if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+      console.log("⚙️ Tentative d'initialisation du FormPrefiller avec les données mockées");
+      window.FormPrefiller.initialize(mockParsedData);
+    } else {
+      console.warn("⚠️ Le FormPrefiller n'est pas encore disponible, attendez que la page soit complètement chargée");
+      // On va tenter d'appliquer un pré-remplissage manuel basique
+      setTimeout(function() {
+        console.log("⚙️ Tentative de pré-remplissage manuel différé");
+        const nameField = document.getElementById('full-name');
+        const jobField = document.getElementById('job-title');
+        
+        if (nameField && mockParsedData.data && mockParsedData.data.personal_info) {
+          nameField.value = mockParsedData.data.personal_info.name || '';
+          console.log("✅ Champ 'Nom Prénom' pré-rempli avec:", nameField.value);
+        }
+        
+        if (jobField && mockParsedData.data) {
+          jobField.value = mockParsedData.data.position || '';
+          console.log("✅ Champ 'Intitulé de poste' pré-rempli avec:", jobField.value);
+        }
+      }, 500);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("❌ Erreur lors du stockage des données de test:", error);
+    return false;
+  }
 }
 
-// Si vous êtes en mode développement, vous pouvez décommenter cette ligne pour charger 
-// automatiquement les données de test
-// storeParseDataForTesting();
+// Cette fonction est exécutée automatiquement au chargement du script
+(function() {
+  console.log("📝 Script de données d'exemple chargé");
+  
+  // Stocker les données immédiatement
+  const stored = storeParseDataForTesting();
+  
+  // S'assurer que le pré-remplissage sera effectué une fois le DOM chargé
+  if (stored) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log("🔄 DOM chargé, nouvelle tentative de pré-remplissage");
+        if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+          window.FormPrefiller.initialize(mockParsedData);
+        }
+      });
+    } else {
+      // Le DOM est déjà chargé
+      console.log("🔄 DOM déjà chargé, nouvelle tentative de pré-remplissage");
+      if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+        window.FormPrefiller.initialize(mockParsedData);
+      }
+    }
+  }
+})();
