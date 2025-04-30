@@ -34,87 +34,95 @@
         try {
             console.log(`Form-connection: Tentative de récupération des données avec l'ID ${id}`);
             
-            // Code pour l'environnement de production (prioritaire même en démo)
-            try {
-                console.log(`Form-connection: Tentative de récupération depuis l'API réelle`);
-                
-                // Utiliser l'adaptateur API si disponible
-                if (window.ApiAdapter && !IS_DEMO_ENV) {
-                    console.log(`Form-connection: Utilisation de l'adaptateur API réel`);
-                    const realData = await window.ApiAdapter.get(`/parsed_data/${id}`);
-                    if (realData && !realData.isSimulated) {
-                        console.log(`Form-connection: Données réelles récupérées avec succès`);
-                        return realData;
-                    }
+            // Vérifier si les données sont déjà en mémoire (priorité absolue)
+            const realCvData = sessionStorage.getItem('REAL_CV_DATA');
+            if (realCvData) {
+                try {
+                    const parsedRealData = JSON.parse(realCvData);
+                    console.log("Form-connection: Données réelles trouvées dans sessionStorage");
+                    // Marquer explicitement que ce sont des données réelles
+                    parsedRealData.isRealData = true;
+                    parsedRealData.isSimulated = false;
+                    return parsedRealData;
+                } catch (e) {
+                    console.warn("Form-connection: Erreur lors du parsing des données réelles", e);
                 }
-                
-                // Si ce n'est pas API Adapter ou si en démo, essayer l'API directe
-                const apiUrl = `../api/parsed_data/${id}`;
-                const response = await fetch(apiUrl);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log("Form-connection: Données réelles reçues du backend:", data);
-                    return data;
-                }
-            } catch (apiError) {
-                console.warn("Form-connection: Erreur lors de l'appel API réel, continuons avec les fallbacks", apiError);
             }
             
-            // Si nous sommes sur GitHub Pages ou en dev local ou si l'API réelle a échoué
+            // Si pas de données en mémoire, on essaie l'API
+            try {
+                console.log(`Form-connection: Tentative de récupération depuis l'API`);
+                
+                // Utiliser l'adaptateur API
+                if (window.ApiAdapter) {
+                    console.log(`Form-connection: Utilisation de l'adaptateur API`);
+                    const apiResponse = await window.ApiAdapter.get(`/parsed_data/${id}`);
+                    
+                    if (apiResponse) {
+                        console.log("Form-connection: Données reçues de l'API", apiResponse);
+                        
+                        // Si ce sont des données réelles, les stocker pour une utilisation future
+                        if (!apiResponse.isSimulated) {
+                            console.log("Form-connection: Stockage des données réelles");
+                            // Stocker les données brutes
+                            try {
+                                sessionStorage.setItem('REAL_CV_DATA', JSON.stringify(apiResponse.data || apiResponse));
+                                sessionStorage.setItem('REAL_CV_DATA_RECEIVED', 'true');
+                            } catch (e) {
+                                console.warn("Form-connection: Erreur lors du stockage des données", e);
+                            }
+                        }
+                        
+                        return apiResponse;
+                    }
+                }
+            } catch (apiError) {
+                console.warn("Form-connection: Erreur lors de l'appel API", apiError);
+            }
+            
+            // Si nous sommes en mode démo ou si l'API a échoué
             if (IS_DEMO_ENV) {
-                console.warn("Form-connection: Mode démo, tentative avec les données locales d'abord");
+                console.warn("Form-connection: Mode démo ou erreur API, tentative avec les données locales");
                 
                 // 1. D'abord, vérifier si nous avons des données réelles stockées localement
-                try {
-                    const realDataKey = `real_parsed_data_${id}`;
-                    const storedRealData = localStorage.getItem(realDataKey) || sessionStorage.getItem(realDataKey);
-                    
-                    if (storedRealData) {
-                        console.log("Form-connection: Données réelles trouvées dans le stockage local");
-                        return JSON.parse(storedRealData);
-                    }
-                } catch (e) {
-                    console.warn("Form-connection: Erreur lors de la récupération des données réelles stockées", e);
+                const realDataKey = `real_parsed_data_${id}`;
+                const storedRealData = localStorage.getItem(realDataKey) || sessionStorage.getItem(realDataKey);
+                
+                if (storedRealData) {
+                    console.log("Form-connection: Données réelles trouvées dans le stockage local");
+                    return JSON.parse(storedRealData);
                 }
                 
                 // 2. Ensuite, simuler un appel API avec réponse simulée
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         // Charger les données mockées depuis sessionStorage
-                        try {
-                            const storedData = sessionStorage.getItem('parsedCandidateData');
-                            if (storedData) {
-                                console.log("Form-connection: Données mockées récupérées avec succès");
-                                const data = JSON.parse(storedData);
-                                // Ajouter un marqueur de données simulées
-                                if (data && !data.isSimulated) {
-                                    data.isSimulated = true;
+                        const storedData = sessionStorage.getItem('parsedCandidateData');
+                        if (storedData) {
+                            console.log("Form-connection: Données mockées récupérées avec succès");
+                            const data = JSON.parse(storedData);
+                            // Ajouter un marqueur de données simulées
+                            data.isSimulated = true;
+                            resolve(data);
+                        } else {
+                            // Si pas de données, utiliser l'exemple par défaut
+                            console.warn("Form-connection: Aucune donnée trouvée, utilisation des données par défaut");
+                            // Charger dynamiquement les données par défaut
+                            const script = document.createElement('script');
+                            script.src = "../static/scripts/parsed-data-example.js";
+                            script.onload = function() {
+                                if (typeof mockParsedData !== 'undefined') {
+                                    // Ajouter un marqueur de données simulées
+                                    mockParsedData.isSimulated = true;
+                                    sessionStorage.setItem('parsedCandidateData', JSON.stringify(mockParsedData));
+                                    resolve(mockParsedData);
+                                } else {
+                                    resolve(null);
                                 }
-                                resolve(data);
-                            } else {
-                                // Si pas de données, utiliser l'exemple par défaut
-                                console.warn("Form-connection: Aucune donnée trouvée, utilisation des données par défaut");
-                                // Charger dynamiquement les données par défaut
-                                const script = document.createElement('script');
-                                script.src = "../static/scripts/parsed-data-example.js";
-                                script.onload = function() {
-                                    if (typeof mockParsedData !== 'undefined') {
-                                        // Ajouter un marqueur de données simulées
-                                        mockParsedData.isSimulated = true;
-                                        sessionStorage.setItem('parsedCandidateData', JSON.stringify(mockParsedData));
-                                        resolve(mockParsedData);
-                                    } else {
-                                        resolve(null);
-                                    }
-                                };
-                                document.head.appendChild(script);
-                            }
-                        } catch (error) {
-                            console.error("Form-connection: Erreur lors de la récupération des données mockées", error);
-                            resolve(null);
+                            };
+                            document.head.appendChild(script);
                         }
-                    }, 500); // Simule un léger délai réseau
+                    }, 300);
                 });
             }
             
@@ -125,19 +133,40 @@
         }
     }
     
-    // Fonction pour appliquer les données directement au formulaire - Approche simplifiée
+    // Fonction pour appliquer les données directement au formulaire
     function applyDirectFormFilling(data) {
         if (!data) return;
         
-        console.log("Form-connection: Application directe des données au formulaire");
+        console.log("Form-connection: Application directe des données au formulaire", data);
         
         try {
-            const cvData = data.data || (data.fullData ? data.fullData.data : null);
+            // Déterminer la structure des données en fonction de la source
+            const cvData = data.data || 
+                          (data.fullData ? data.fullData.data : null) || 
+                          data;
             
             if (!cvData) {
                 console.error("Form-connection: Format de données non reconnu");
                 return;
             }
+            
+            // Vérifier si le script de parsing CV a déjà reçu des données réelles
+            const realDataFlag = sessionStorage.getItem('REAL_CV_DATA_RECEIVED');
+            if (realDataFlag === 'true') {
+                console.log("Form-connection: Le script CV-Parser a déjà reçu des données réelles, pas besoin de pré-remplir");
+                return;
+            }
+            
+            // Utiliser window.receiveCV pour transmettre les données directement au parser CV
+            // Cela garantit que le pré-remplissage passe toujours par le parser CV
+            if (window.receiveCV && typeof window.receiveCV === 'function') {
+                console.log("Form-connection: Transmission des données au parser CV");
+                window.receiveCV(cvData);
+                return;
+            }
+            
+            // Fallback: si pour une raison quelconque receiveCV n'est pas disponible
+            console.warn("Form-connection: Fonction receiveCV non disponible, pré-remplissage manuel");
             
             // Informations personnelles
             if (cvData.personal_info) {
@@ -148,11 +177,17 @@
                 if (cvData.personal_info.address) {
                     fillField('address', cvData.personal_info.address);
                 }
+            } else if (cvData.name) {
+                fillField('full-name', cvData.name);
             }
             
             // Appliquer le poste
             if (cvData.position) {
                 fillField('job-title', cvData.position);
+            } else if (cvData.current_position) {
+                fillField('job-title', cvData.current_position);
+            } else if (cvData.jobTitle) {
+                fillField('job-title', cvData.jobTitle);
             }
             
             // Transport (cocher transport en commun par défaut)
@@ -186,7 +221,7 @@
     // Ajouter un indicateur visuel de mode démo
     function addDemoModeIndicator() {
         // Vérifier si l'indicateur existe déjà
-        if (document.querySelector('.demo-mode-indicator')) {
+        if (document.querySelector('.demo-mode-indicator') || document.querySelector('.real-cv-indicator')) {
             return;
         }
         
@@ -215,7 +250,7 @@
             const event = new Event('input', { bubbles: true });
             field.dispatchEvent(event);
             
-            console.log(`Form-connection: Champ ${id} rempli avec ${value}`);
+            console.log(`Form-connection: Champ ${id} rempli avec "${value}"`);
         } else {
             console.warn(`Form-connection: Champ ${id} non trouvé`);
         }
@@ -228,19 +263,35 @@
         try {
             const storageKey = `real_parsed_data_${id}`;
             
-            // Stocker dans sessionStorage (prioritaire)
-            sessionStorage.setItem(storageKey, JSON.stringify(data));
+            // Déterminer si ce sont des données réelles ou simulées
+            const isRealData = !data.isSimulated;
             
-            // Également dans localStorage pour persistance
-            try {
-                localStorage.setItem(storageKey, JSON.stringify(data));
-            } catch (e) {
-                console.warn("Impossible de stocker dans localStorage, continuons avec sessionStorage uniquement");
+            // Ne stocker que les données réelles
+            if (isRealData) {
+                console.log(`Form-connection: Sauvegarde des données réelles avec la clé ${storageKey}`);
+                
+                // Stocker dans sessionStorage (prioritaire)
+                sessionStorage.setItem(storageKey, JSON.stringify(data));
+                
+                // Également dans localStorage pour persistance
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(data));
+                } catch (e) {
+                    console.warn("Form-connection: Impossible de stocker dans localStorage, continuons avec sessionStorage uniquement", e);
+                }
+                
+                // Marquer explicitement que ce sont des données réelles
+                if (data.data) {
+                    sessionStorage.setItem('REAL_CV_DATA', JSON.stringify(data.data));
+                    sessionStorage.setItem('REAL_CV_DATA_RECEIVED', 'true');
+                }
+                
+                console.log(`Form-connection: Données réelles sauvegardées avec la clé ${storageKey}`);
+            } else {
+                console.log(`Form-connection: Données simulées non sauvegardées en tant que données réelles`);
             }
-            
-            console.log(`Données réelles sauvegardées avec la clé ${storageKey}`);
         } catch (e) {
-            console.error("Erreur lors de la sauvegarde des données:", e);
+            console.error("Form-connection: Erreur lors de la sauvegarde des données:", e);
         }
     }
     
@@ -248,6 +299,13 @@
     async function initialize() {
         // Extraire l'ID des données parsées depuis l'URL
         parsedDataId = getParsedDataIdFromUrl();
+        
+        // Si nous avons déjà des données CV réelles, pas besoin de continuer
+        const realDataFlag = sessionStorage.getItem('REAL_CV_DATA_RECEIVED');
+        if (realDataFlag === 'true') {
+            console.log("Form-connection: Données CV réelles déjà disponibles, traitement par CV-parser-integration.js");
+            return;
+        }
         
         if (parsedDataId) {
             console.log(`Form-connection: ID de données parsées trouvé: ${parsedDataId}`);
@@ -258,10 +316,9 @@
             // Appliquer les données au formulaire si disponibles
             if (data) {
                 // Sauvegarder les données réelles parsées pour utilisation future
-                if (!data.isSimulated) {
-                    saveRealParsedData(parsedDataId, data);
-                }
+                saveRealParsedData(parsedDataId, data);
                 
+                // Utiliser le pré-remplisseur si disponible
                 if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
                     try {
                         console.log("Form-connection: Utilisation du FormPrefiller");
@@ -276,10 +333,16 @@
                 }
             } else {
                 console.warn("Form-connection: Aucune donnée disponible pour cet ID");
-                // Ne pas charger les données d'exemple ici, car nous voulons privilégier les données réelles
             }
         } else {
             console.log("Form-connection: Aucun ID de données parsées dans l'URL, vérification des données locales");
+            
+            // Vérifier si nous avons des données CV réelles
+            const realCvData = sessionStorage.getItem('REAL_CV_DATA');
+            if (realCvData) {
+                console.log("Form-connection: Données CV réelles trouvées dans sessionStorage");
+                return; // Laisser le script cv-parser-integration gérer cela
+            }
             
             // Essayons de trouver le dernier ID de données parsées utilisé
             const lastParsedId = sessionStorage.getItem('last_parsed_data_id');
@@ -287,61 +350,53 @@
                 console.log(`Form-connection: Dernier ID de données trouvé: ${lastParsedId}, tentative de récupération`);
                 
                 // Chercher des données réelles avec cet ID
-                try {
-                    const realDataKey = `real_parsed_data_${lastParsedId}`;
-                    const storedRealData = localStorage.getItem(realDataKey) || sessionStorage.getItem(realDataKey);
+                const realDataKey = `real_parsed_data_${lastParsedId}`;
+                const storedRealData = localStorage.getItem(realDataKey) || sessionStorage.getItem(realDataKey);
+                
+                if (storedRealData) {
+                    console.log("Form-connection: Données réelles précédentes trouvées, application au formulaire");
+                    const realData = JSON.parse(storedRealData);
                     
-                    if (storedRealData) {
-                        console.log("Form-connection: Données réelles précédentes trouvées, application au formulaire");
-                        const realData = JSON.parse(storedRealData);
-                        
-                        if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
-                            window.FormPrefiller.initialize(realData);
-                        } else {
-                            applyDirectFormFilling(realData);
-                        }
-                        
-                        return; // Sortir de la fonction car nous avons appliqué les données
+                    if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+                        window.FormPrefiller.initialize(realData);
+                    } else {
+                        applyDirectFormFilling(realData);
                     }
-                } catch (e) {
-                    console.warn("Erreur lors de la récupération des données réelles précédentes:", e);
+                    
+                    return; // Sortir de la fonction car nous avons appliqué les données
                 }
             }
             
             // Si aucune donnée réelle trouvée, vérifier le sessionStorage pour des données génériques
-            try {
-                const storedData = sessionStorage.getItem('parsedCandidateData');
-                if (storedData) {
-                    console.log("Form-connection: Données génériques trouvées dans sessionStorage");
-                    const data = JSON.parse(storedData);
-                    // Marquer comme données simulées
-                    data.isSimulated = true;
-                    
-                    if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
-                        try {
-                            window.FormPrefiller.initialize(data);
-                        } catch (error) {
-                            console.error("Form-connection: Erreur avec FormPrefiller, fallback sur méthode directe", error);
-                            applyDirectFormFilling(data);
-                        }
-                    } else {
+            const storedData = sessionStorage.getItem('parsedCandidateData');
+            if (storedData) {
+                console.log("Form-connection: Données génériques trouvées dans sessionStorage");
+                const data = JSON.parse(storedData);
+                // Marquer comme données simulées
+                data.isSimulated = true;
+                
+                if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+                    try {
+                        window.FormPrefiller.initialize(data);
+                    } catch (error) {
+                        console.error("Form-connection: Erreur avec FormPrefiller, fallback sur méthode directe", error);
                         applyDirectFormFilling(data);
                     }
-                } else if (IS_DEMO_ENV) {
-                    // En mode démo, charger directement les données d'exemple
-                    console.log("Form-connection: Mode démo, chargement des données d'exemple");
-                    
-                    // Attente pour s'assurer que le DOM est prêt
-                    setTimeout(function() {
-                        const script = document.createElement('script');
-                        script.src = "../static/scripts/parsed-data-example.js";
-                        document.head.appendChild(script);
-                    }, 500);
                 } else {
-                    console.log("Form-connection: Aucune donnée trouvée, pas de pré-remplissage");
+                    applyDirectFormFilling(data);
                 }
-            } catch (error) {
-                console.error("Form-connection: Erreur lors de la récupération des données locales:", error);
+            } else if (IS_DEMO_ENV) {
+                // En mode démo, charger directement les données d'exemple
+                console.log("Form-connection: Mode démo, chargement des données d'exemple");
+                
+                // Attente pour s'assurer que le DOM est prêt
+                setTimeout(function() {
+                    const script = document.createElement('script');
+                    script.src = "../static/scripts/parsed-data-example.js";
+                    document.head.appendChild(script);
+                }, 500);
+            } else {
+                console.log("Form-connection: Aucune donnée trouvée, pas de pré-remplissage");
             }
         }
     }
