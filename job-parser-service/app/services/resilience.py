@@ -9,7 +9,7 @@ import traceback
 import time
 
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from circuit_breaker import CircuitBreaker
+import pybreaker
 
 from app.core.config import settings
 
@@ -17,11 +17,9 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 # Configuration du circuit breaker
-circuit_breaker = CircuitBreaker(
-    name="openai_circuit",
-    failure_threshold=5,
-    recovery_timeout=30,
-    expected_exception=Exception
+circuit_breaker = pybreaker.CircuitBreaker(
+    fail_max=5,
+    reset_timeout=30
 )
 
 def resilient_openai_call(
@@ -98,7 +96,7 @@ def resilient_openai_call(
     # Utiliser le circuit breaker si activé, sinon appel direct avec retry
     if settings.CIRCUIT_BREAKER_ENABLED:
         try:
-            return circuit_breaker.call(_retry_call_openai)
+            return circuit_breaker(_retry_call_openai)
         except Exception as e:
             logger.error(f"Circuit ouvert ou erreur après tous les retries: {str(e)}")
             # Dernier recours: message d'erreur formaté comme une réponse vide
