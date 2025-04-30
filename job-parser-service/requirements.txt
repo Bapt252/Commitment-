@@ -28,4 +28,4 @@ openai>=1.3.0
 
 # Utilitaires
 tenacity>=8.2.2
-circuit_breaker>=2.0.0
+pybreaker>=1.0.0
