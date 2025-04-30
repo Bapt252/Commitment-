@@ -19,46 +19,56 @@ function initAddressAutocomplete() {
     fields: ['address_components', 'formatted_address', 'geometry', 'place_id']
   });
   
-  // Ajout d'un conteneur pour les coordonnées
-  const coordsContainer = document.createElement('div');
-  coordsContainer.id = 'address-coords-container';
-  coordsContainer.style.display = 'none';
-  
-  // Création des champs cachés
-  const latInput = document.createElement('input');
-  latInput.type = 'hidden';
-  latInput.id = 'address-lat';
-  latInput.name = 'address-lat';
-  
-  const lngInput = document.createElement('input');
-  lngInput.type = 'hidden';
-  lngInput.id = 'address-lng';
-  lngInput.name = 'address-lng';
-  
-  const placeIdInput = document.createElement('input');
-  placeIdInput.type = 'hidden';
-  placeIdInput.id = 'address-place-id';
-  placeIdInput.name = 'address-place-id';
-  
-  coordsContainer.appendChild(latInput);
-  coordsContainer.appendChild(lngInput);
-  coordsContainer.appendChild(placeIdInput);
-  
-  // Insérer les champs cachés
-  addressInput.parentNode.insertBefore(coordsContainer, addressInput.nextSibling);
+  // Ajout d'un conteneur pour les coordonnées (s'il n'existe pas déjà)
+  let coordsContainer = document.getElementById('address-coords-container');
+  if (!coordsContainer) {
+    coordsContainer = document.createElement('div');
+    coordsContainer.id = 'address-coords-container';
+    coordsContainer.style.display = 'none';
+    
+    // Création des champs cachés s'ils n'existent pas déjà
+    if (!document.getElementById('address-lat')) {
+      const latInput = document.createElement('input');
+      latInput.type = 'hidden';
+      latInput.id = 'address-lat';
+      latInput.name = 'address-lat';
+      coordsContainer.appendChild(latInput);
+    }
+    
+    if (!document.getElementById('address-lng')) {
+      const lngInput = document.createElement('input');
+      lngInput.type = 'hidden';
+      lngInput.id = 'address-lng';
+      lngInput.name = 'address-lng';
+      coordsContainer.appendChild(lngInput);
+    }
+    
+    if (!document.getElementById('address-place-id')) {
+      const placeIdInput = document.createElement('input');
+      placeIdInput.type = 'hidden';
+      placeIdInput.id = 'address-place-id';
+      placeIdInput.name = 'address-place-id';
+      coordsContainer.appendChild(placeIdInput);
+    }
+    
+    // Insérer les champs cachés
+    addressInput.parentNode.insertBefore(coordsContainer, addressInput.nextSibling);
+  }
   
   // Écouter les événements de l'autocomplétion
   autocomplete.addListener('place_changed', function() {
     const place = autocomplete.getPlace();
+    console.log('Place selected:', place);
     
     if (!place.geometry) {
+      console.error('Aucune géométrie trouvée pour cette adresse');
       return;
     }
     
     // Mise à jour des champs cachés
-    latInput.value = place.geometry.location.lat();
-    lngInput.value = place.geometry.location.lng();
-    placeIdInput.value = place.place_id;
+    document.getElementById('address-lat').value = place.geometry.location.lat();
+    document.getElementById('address-lng').value = place.geometry.location.lng();
+    document.getElementById('address-place-id').value = place.place_id;
     
     // Mise à jour du champ d'adresse
     addressInput.value = place.formatted_address;
@@ -68,38 +78,54 @@ function initAddressAutocomplete() {
       window.showNotification('Adresse validée avec succès', 'success');
     }
   });
+  
+  console.log('Autocomplétion Google Maps initialisée avec succès!');
 }
+
+// Créer une fonction d'initialisation globale pour que l'API Google Maps puisse l'appeler
+window.initGoogleMapsAutocomplete = function() {
+  console.log('Callback Google Maps appelé');
+  initAddressAutocomplete();
+};
 
 // Chargement du script Google Maps
 function loadGoogleMapsScript() {
   // Vérifier si le script est déjà chargé
-  if (window.google && window.google.maps) {
+  if (window.google && window.google.maps && window.google.maps.places) {
+    console.log('API Google Maps déjà chargée, initialisation directe');
     initAddressAutocomplete();
     return;
   }
   
-  // Clé API Google Maps - Remplacez par votre clé API
+  // Si le script existe déjà mais n'est pas encore chargé, on ne fait rien
+  if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+    console.log('Script Google Maps déjà en cours de chargement, attente...');
+    return;
+  }
+  
+  // Clé API Google Maps
   const apiKey = "AIzaSyBP7x3CwXNA-LM7DWvAMmvg4piOtgY6a-o";
   
   // Charger le script avec la clé API 
   const script = document.createElement('script');
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMapsAutocomplete`;
   script.async = true;
   script.defer = true;
-  
-  script.onload = function() {
-    initAddressAutocomplete();
-  };
   
   script.onerror = function() {
     console.error("Impossible de charger le script Google Maps. Vérifiez votre clé API et votre connexion.");
   };
   
   document.head.appendChild(script);
+  console.log('Script Google Maps en cours de chargement...');
 }
 
 // Charger le script au chargement de la page
-document.addEventListener('DOMContentLoaded', loadGoogleMapsScript);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadGoogleMapsScript);
+} else {
+  loadGoogleMapsScript();
+}
 
 // Ajouter des styles pour l'adresse validée
 const style = document.createElement('style');
