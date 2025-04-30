@@ -35,27 +35,51 @@ function applyCVData(cvData) {
     const data = cvData.data || cvData.fullData || cvData;
     
     try {
-        // DONNÉES PERSONNELLES
+        // DONNÉES PERSONNELLES - Vérifier tous les chemins possibles pour le nom
         if (data.personal_info && data.personal_info.name) {
             fillField('full-name', data.personal_info.name);
         } else if (data.name) {
             fillField('full-name', data.name);
+        } else if (data.fullName) {
+            fillField('full-name', data.fullName);
+        } else if (data.candidateName) {
+            fillField('full-name', data.candidateName);
         }
         
-        // POSTE
+        // POSTE - Vérifier tous les chemins possibles pour le poste
         if (data.position) {
             fillField('job-title', data.position);
         } else if (data.current_position) {
             fillField('job-title', data.current_position);
         } else if (data.jobTitle) {
             fillField('job-title', data.jobTitle);
+        } else if (data.titre || data.title) {
+            fillField('job-title', data.titre || data.title);
+        } else if (data.experience && data.experience.length > 0 && data.experience[0].title) {
+            // Récupérer le dernier poste occupé comme fallback
+            fillField('job-title', data.experience[0].title);
         }
         
-        // ADRESSE
+        // ADRESSE - Vérifier tous les chemins possibles pour l'adresse
         if (data.personal_info && data.personal_info.address) {
             fillField('address', data.personal_info.address);
         } else if (data.address) {
             fillField('address', data.address);
+        } else if (data.location) {
+            fillField('address', data.location);
+        }
+        
+        // RÉMUNÉRATION - Essayer de trouver une fourchette de rémunération
+        if (data.salary_range || data.salaryRange) {
+            fillField('salary-range', data.salary_range || data.salaryRange);
+        } else if (data.salary) {
+            // Convertir un salaire simple en fourchette
+            const salary = parseFloat(data.salary.replace(/[^\d.]/g, ''));
+            if (!isNaN(salary)) {
+                const lowerBound = Math.floor(salary * 0.9);
+                const upperBound = Math.ceil(salary * 1.1);
+                fillField('salary-range', `${lowerBound}K€ - ${upperBound}K€ brut annuel`);
+            }
         }
         
         // Mode transport par défaut
@@ -66,6 +90,17 @@ function applyCVData(cvData) {
             const event = new Event('change', { bubbles: true });
             publicTransportCheckbox.dispatchEvent(event);
         }
+        
+        // Marquer les champs remplis avec les données du CV
+        const filledFields = document.querySelectorAll('.real-cv-data');
+        filledFields.forEach(field => {
+            // Ajouter une bordure spéciale pour indiquer que les données viennent du CV
+            field.style.borderColor = '#10B981';
+            field.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+            
+            // Ajouter un attribut de données pour indiquer la source
+            field.setAttribute('data-source', 'parsed-cv');
+        });
         
         // Ajouter indicateur visuel
         addRealCVIndicator();
