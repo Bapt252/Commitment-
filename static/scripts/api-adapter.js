@@ -16,7 +16,7 @@ window.ApiAdapter = (function() {
                 setTimeout(() => {
                     // Charger les données mockées
                     const script = document.createElement('script');
-                    script.src = "/static/scripts/parsed-data-example.js";
+                    script.src = "../static/scripts/parsed-data-example.js";
                     script.onload = function() {
                         if (typeof mockParsedData !== 'undefined') {
                             // Générer un ID unique
