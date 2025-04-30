@@ -70,36 +70,6 @@ const mockParsedData = {
 };
 
 /**
- * Fonction pour stocker les données dans sessionStorage
- * et initialiser le pré-remplissage du formulaire
- */
-function storeParseDataForTesting() {
-  try {
-    // Stocker les données dans sessionStorage
-    sessionStorage.setItem('parsedCandidateData', JSON.stringify(mockParsedData));
-    console.log("✅ Données parsées stockées avec succès dans sessionStorage");
-    
-    // Définir les fonctions globales si elles n'existent pas encore
-    ensureGlobalFunctionsExist();
-    
-    // Appliquer directement le pré-remplissage si FormPrefiller est disponible
-    if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
-      console.log("⚙️ Initialisation du FormPrefiller avec les données mockées");
-      window.FormPrefiller.initialize(mockParsedData);
-    } else {
-      console.log("⚠️ Le FormPrefiller n'est pas encore disponible, programmation d'une nouvelle tentative...");
-      // Effectuer plusieurs tentatives de pré-remplissage avec délais croissants
-      attemptFormFilling(0);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error("❌ Erreur lors du stockage des données de test:", error);
-    return false;
-  }
-}
-
-/**
  * S'assure que les fonctions globales requises pour le formulaire existent
  */
 function ensureGlobalFunctionsExist() {
@@ -167,66 +137,10 @@ function ensureGlobalFunctionsExist() {
 }
 
 /**
- * Tente de remplir le formulaire à plusieurs reprises avec des délais croissants
- * @param {number} attempt - Numéro de la tentative actuelle
- */
-function attemptFormFilling(attempt) {
-  const maxAttempts = 5;
-  const delays = [500, 1000, 2000, 3000, 5000]; // Délais croissants entre chaque tentative
-  
-  if (attempt >= maxAttempts) {
-    console.warn("⚠️ Nombre maximum de tentatives atteint. Pré-remplissage automatique abandonné.");
-    return;
-  }
-  
-  setTimeout(function() {
-    console.log(`🔄 Tentative de pré-remplissage #${attempt + 1}`);
-    
-    if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
-      window.FormPrefiller.initialize(mockParsedData);
-      console.log(`✅ Pré-remplissage réussi à la tentative #${attempt + 1}`);
-    } else {
-      console.log(`⏳ FormPrefiller toujours pas disponible. Nouvelle tentative programmée...`);
-      // Programmation de la prochaine tentative
-      attemptFormFilling(attempt + 1);
-      
-      // Si c'est la deuxième tentative, essayons de charger dynamiquement le script
-      if (attempt === 1) {
-        loadFormPrefillerScript();
-      }
-      
-      // Après plusieurs tentatives, essayons un remplissage manuel basique
-      if (attempt === 3) {
-        applyBasicFormFilling();
-      }
-    }
-  }, delays[attempt]);
-}
-
-/**
- * Charge dynamiquement le script FormPrefiller s'il n'est pas déjà chargé
- */
-function loadFormPrefillerScript() {
-  if (!document.querySelector('script[src*="form-prefiller.js"]')) {
-    console.log("📥 Chargement dynamique du script form-prefiller.js");
-    const script = document.createElement('script');
-    script.src = "../static/scripts/form-prefiller.js";
-    script.onload = function() {
-      console.log("✅ Script form-prefiller.js chargé avec succès");
-      if (window.FormPrefiller) {
-        window.FormPrefiller.initialize(mockParsedData);
-      }
-    };
-    document.head.appendChild(script);
-  }
-}
-
-/**
  * Applique un pré-remplissage basique pour les champs essentiels
- * quand tout le reste échoue
  */
 function applyBasicFormFilling() {
-  console.log("🔧 Application d'un pré-remplissage basique de secours");
+  console.log("🔧 Application d'un pré-remplissage basique direct");
   
   try {
     // Informations personnelles
@@ -260,53 +174,52 @@ function applyBasicFormFilling() {
     
     // Afficher une notification
     if (window.showNotification) {
-      window.showNotification("Formulaire partiellement pré-rempli avec vos informations", "success");
+      window.showNotification("Formulaire pré-rempli avec vos informations", "success");
     }
   } catch (error) {
     console.error("❌ Erreur lors du pré-remplissage basique:", error);
   }
 }
 
-// Exécution automatique au chargement du script
+// Exécution automatique au chargement du script - Version simplifiée sans récursion
 (function() {
   console.log("📝 Script de données d'exemple chargé");
   
-  // Vérifier si les données sont déjà stockées pour éviter tout doublon
-  const existingData = sessionStorage.getItem('parsedCandidateData');
-  if (!existingData) {
-    console.log("🔄 Première exécution, stockage et application des données de test");
-    storeParseDataForTesting();
-  } else {
-    console.log("📋 Données déjà présentes dans sessionStorage");
-    
-    // Si les données existent mais le formulaire n'est pas encore rempli, on tente quand même
-    const fullNameField = document.getElementById('full-name');
-    if (fullNameField && !fullNameField.value && document.readyState !== 'loading') {
-      console.log("🔄 Formulaire non rempli, nouvelle tentative de pré-remplissage");
-      storeParseDataForTesting();
-    }
+  // Stocker les données dans sessionStorage
+  try {
+    sessionStorage.setItem('parsedCandidateData', JSON.stringify(mockParsedData));
+    console.log("✅ Données parsées stockées avec succès dans sessionStorage");
+  } catch (e) {
+    console.error("Erreur lors du stockage des données:", e);
   }
   
-  // S'assurer que le pré-remplissage est effectué une fois le DOM chargé
-  if (document.readyState === 'loading') {
+  // Définir les fonctions globales
+  ensureGlobalFunctionsExist();
+  
+  // Appliquer directement le pré-remplissage si le DOM est chargé
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(applyBasicFormFilling, 500);
+  } else {
     document.addEventListener('DOMContentLoaded', function() {
-      console.log("🔄 DOM chargé, vérification de l'état du pré-remplissage");
-      // Vérifier si le formulaire a des valeurs
-      const fullNameField = document.getElementById('full-name');
-      if (fullNameField && !fullNameField.value) {
-        console.log("🔄 Formulaire non rempli après chargement du DOM, nouvelle tentative");
-        storeParseDataForTesting();
-      }
+      setTimeout(applyBasicFormFilling, 500);
     });
   }
   
-  // Ajouter un événement au cas où la page aurait fini de charger avant notre exécution
+  // Ajouter une notification de mode démo
   window.addEventListener('load', function() {
-    console.log("🔄 Page entièrement chargée, vérification finale de l'état du pré-remplissage");
-    const fullNameField = document.getElementById('full-name');
-    if (fullNameField && !fullNameField.value) {
-      console.log("🔄 Formulaire toujours non rempli, dernière tentative");
-      storeParseDataForTesting();
+    const formContainer = document.querySelector('.form-container');
+    if (formContainer && !document.querySelector('.demo-mode-indicator')) {
+      const demoIndicator = document.createElement('div');
+      demoIndicator.className = 'demo-mode-indicator';
+      demoIndicator.innerHTML = '<i class="fas fa-info-circle"></i> Mode démonstration - Données simulées';
+      demoIndicator.style.background = 'rgba(124, 58, 237, 0.1)';
+      demoIndicator.style.color = 'var(--purple)';
+      demoIndicator.style.padding = '12px 16px';
+      demoIndicator.style.borderRadius = '8px';
+      demoIndicator.style.marginBottom = '20px';
+      demoIndicator.style.textAlign = 'center';
+      demoIndicator.style.fontWeight = '500';
+      formContainer.insertBefore(demoIndicator, formContainer.firstChild);
     }
   });
 })();
