@@ -1379,71 +1379,147 @@
             skipBtn.addEventListener('click', function() {
                 // Aucun CV chargé, on passe à l'étape suivante sans données
                 localStorage.removeItem('parsedCvData');
+                sessionStorage.removeItem('parsedCvData');
                 window.location.href = 'candidate-questionnaire.html';
             });
             
             nextBtn.addEventListener('click', function() {
                 if (fileInfo.style.display === 'flex' && parsedData.style.display === 'block') {
                     if (completeParserData) {
+                        // S'assurer que le titre de poste est également accessible au niveau racine
+                        // pour une meilleure compatibilité
+                        const jobTitle = getJobTitleFromData(completeParserData);
+                        if (jobTitle) {
+                            completeParserData.current_position = jobTitle;
+                        }
+                        
                         // Utiliser le service de transfert de données si disponible
                         if (window.DataTransferService) {
-                            window.DataTransferService.storeData(completeParserData);
+                            if (window.DataTransferService.storeData(completeParserData)) {
+                                console.log("Données CV complètes stockées pour pré-remplissage via DataTransferService:", completeParserData);
+                            } else {
+                                console.warn("Échec du stockage via DataTransferService, utilisation de localStorage comme fallback");
+                                // Fallback - Ancien comportement
+                                storeDataInLocalStorage(completeParserData);
+                            }
                         } else {
                             // Fallback - Ancien comportement
-                            localStorage.setItem('parsedCvData', JSON.stringify(completeParserData));
+                            storeDataInLocalStorage(completeParserData);
                         }
-                        console.log("Données CV complètes stockées pour pré-remplissage:", completeParserData);
                     } else {
                         // Créer un objet de données à partir des informations affichées
-                        const displayedData = {
-                            data: {
-                                personal_info: {
-                                    name: document.getElementById('parsedName').textContent,
-                                    email: document.getElementById('parsedEmail').textContent,
-                                    phone: document.getElementById('parsedPhone').textContent
-                                },
-                                current_position: document.getElementById('parsedJobTitle').textContent,
-                                skills: Array.from(document.querySelectorAll('#parsedSkills .skill-tag')).map(tag => tag.textContent.replace(/^./, '')),
-                                software: Array.from(document.querySelectorAll('#parsedSoftware .software-item')).map(item => item.textContent.replace(/^./, '')),
-                                languages: Array.from(document.querySelectorAll('#parsedLanguages .language-item')).map(item => {
-                                    return {
-                                        language: item.querySelector('.language-name')?.textContent.replace(/^./, '') || '',
-                                        level: item.querySelector('.language-level')?.textContent || ''
-                                    };
-                                }),
-                                work_experience: Array.from(document.querySelectorAll('#parsedExperience .experience-item')).map(item => {
-                                    const dateText = item.querySelector('.experience-date')?.textContent.replace(/^./, '') || '';
-                                    const dateParts = dateText.split(' - ');
-                                    return {
-                                        title: item.querySelector('.experience-title')?.textContent || '',
-                                        company: item.querySelector('.experience-company')?.textContent.replace(/^./, '') || '',
-                                        start_date: dateParts[0] || '',
-                                        end_date: dateParts[1] || ''
-                                    };
-                                })
-                            }
-                        };
-                        
-                        // S'assurer que le titre du poste est également accessible au niveau racine
-                        displayedData.current_position = displayedData.data.current_position;
+                        const displayedData = createDataFromDisplay();
                         
                         // Utiliser le service de transfert de données si disponible
                         if (window.DataTransferService) {
-                            window.DataTransferService.storeData(displayedData);
+                            if (window.DataTransferService.storeData(displayedData)) {
+                                console.log("Données CV générées et stockées pour pré-remplissage via DataTransferService:", displayedData);
+                            } else {
+                                console.warn("Échec du stockage via DataTransferService, utilisation de localStorage comme fallback");
+                                storeDataInLocalStorage(displayedData);
+                            }
                         } else {
                             // Fallback - Ancien comportement
-                            localStorage.setItem('parsedCvData', JSON.stringify(displayedData));
+                            storeDataInLocalStorage(displayedData);
                         }
-                        console.log("Données CV générées et stockées pour pré-remplissage:", displayedData);
                     }
                 } else {
                     // Aucun CV analysé, on continue sans données
                     localStorage.removeItem('parsedCvData');
+                    sessionStorage.removeItem('parsedCvData');
                 }
                 
                 // Redirection vers l'étape suivante dans tous les cas
                 window.location.href = 'candidate-questionnaire.html';
             });
+            
+            /**
+             * Crée un objet de données à partir des informations affichées dans l'interface
+             */
+            function createDataFromDisplay() {
+                const displayedData = {
+                    data: {
+                        personal_info: {
+                            name: document.getElementById('parsedName').textContent,
+                            email: document.getElementById('parsedEmail').textContent,
+                            phone: document.getElementById('parsedPhone').textContent
+                        },
+                        current_position: document.getElementById('parsedJobTitle').textContent,
+                        skills: Array.from(document.querySelectorAll('#parsedSkills .skill-tag')).map(tag => tag.textContent.replace(/^./, '')),
+                        software: Array.from(document.querySelectorAll('#parsedSoftware .software-item')).map(item => item.textContent.replace(/^./, '')),
+                        languages: Array.from(document.querySelectorAll('#parsedLanguages .language-item')).map(item => {
+                            return {
+                                language: item.querySelector('.language-name')?.textContent.replace(/^./, '') || '',
+                                level: item.querySelector('.language-level')?.textContent || ''
+                            };
+                        }),
+                        work_experience: Array.from(document.querySelectorAll('#parsedExperience .experience-item')).map(item => {
+                            const dateText = item.querySelector('.experience-date')?.textContent.replace(/^./, '') || '';
+                            const dateParts = dateText.split(' - ');
+                            return {
+                                title: item.querySelector('.experience-title')?.textContent || '',
+                                company: item.querySelector('.experience-company')?.textContent.replace(/^./, '') || '',
+                                start_date: dateParts[0] || '',
+                                end_date: dateParts[1] || ''
+                            };
+                        })
+                    }
+                };
+                
+                // S'assurer que le titre du poste est également accessible au niveau racine pour compatibilité
+                displayedData.current_position = displayedData.data.current_position;
+                
+                return displayedData;
+            }
+            
+            /**
+             * Stocke les données dans localStorage et sessionStorage pour maximiser la compatibilité
+             */
+            function storeDataInLocalStorage(data) {
+                try {
+                    const dataString = JSON.stringify(data);
+                    localStorage.setItem('parsedCvData', dataString);
+                    sessionStorage.setItem('parsedCvData', dataString);
+                    console.log("Données CV stockées dans localStorage et sessionStorage pour pré-remplissage:", data);
+                    return true;
+                } catch (error) {
+                    console.error("Erreur lors du stockage des données:", error);
+                    return false;
+                }
+            }
+            
+            /**
+             * Extrait l'intitulé du poste à partir des données, en vérifiant plusieurs sources possibles
+             */
+            function getJobTitleFromData(data) {
+                if (data.current_position) {
+                    return data.current_position;
+                }
+                
+                if (data.data && data.data.current_position) {
+                    return data.data.current_position;
+                }
+                
+                if (data.jobTitle) {
+                    return data.jobTitle;
+                }
+                
+                if (data.data && data.data.work_experience && data.data.work_experience.length > 0) {
+                    return data.data.work_experience[0].title || '';
+                }
+                
+                if (data.work_experience && data.work_experience.length > 0) {
+                    return data.work_experience[0].title || '';
+                }
+                
+                // Récupérer depuis l'élément DOM comme dernier recours
+                const jobTitleElement = document.getElementById('parsedJobTitle');
+                if (jobTitleElement && jobTitleElement.textContent !== 'Non détecté') {
+                    return jobTitleElement.textContent;
+                }
+                
+                return '';
+            }
             
             // Événements pour le chat
             openChatBtn.addEventListener('click', function() {
