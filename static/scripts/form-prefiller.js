@@ -117,6 +117,10 @@ window.FormPrefiller = (function() {
     if (parsedData.data) {
       cvData = parsedData.data;
       console.log("Données CV détectées au format backend standard");
+    } else if (parsedData.fullData) {
+      // Nouveau format du DataTransferService
+      cvData = parsedData.fullData.data || parsedData.fullData;
+      console.log("Données CV détectées au format DataTransferService");
     } else {
       // Si nous avons reçu directement un objet de données JSON du localStorage
       cvData = parsedData;
@@ -168,12 +172,17 @@ window.FormPrefiller = (function() {
       formData.personalInfo.fullName = cvData.name || "";
     }
 
-    // Remplir le poste souhaité
-    if (cvData.current_position) {
+    // Remplir le poste souhaité (avec plus de sources possibles)
+    if (parsedData.current_position) {
+      formData.personalInfo.jobTitle = parsedData.current_position;
+    } else if (cvData.current_position) {
       formData.personalInfo.jobTitle = cvData.current_position;
     } else if (cvData.jobTitle) {
       // Format alternatif
       formData.personalInfo.jobTitle = cvData.jobTitle;
+    } else if (cvData.work_experience && cvData.work_experience.length > 0) {
+      // Utiliser le titre du poste le plus récent comme fallback
+      formData.personalInfo.jobTitle = cvData.work_experience[0].title || "";
     }
 
     // Estimer des valeurs par défaut pour les moyens de transport
@@ -707,27 +716,55 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .catch(error => {
         console.error("Erreur lors du chargement des données parsées:", error);
+        // En cas d'erreur, essayer de récupérer depuis le stockage local
+        tryLocalStorageFallback();
       });
   } else {
     console.log("Aucun ID de données trouvé dans l'URL - Vérification des stockages locaux");
-    
-    // Essayer de récupérer les données depuis différentes sources
+    tryLocalStorageFallback();
+  }
+  
+  // Fonction pour tenter de récupérer les données depuis le stockage local
+  function tryLocalStorageFallback() {
     try {
-      // 1. Vérifier d'abord dans sessionStorage avec l'ancienne clé
-      let storedData = sessionStorage.getItem('parsedCandidateData');
-      console.log("Recherche dans sessionStorage:", storedData ? "Trouvé" : "Non trouvé");
+      // Tableau des clés à vérifier dans l'ordre de priorité
+      const storageSources = [
+        { type: 'localStorage', key: 'parsedCvData' },
+        { type: 'sessionStorage', key: 'parsedCvData' },
+        { type: 'localStorage', key: 'parsedCandidateData' },
+        { type: 'sessionStorage', key: 'parsedCandidateData' }
+      ];
       
-      // 2. Si rien n'est trouvé, vérifier dans localStorage avec la clé 'parsedCvData'
-      if (!storedData) {
-        storedData = localStorage.getItem('parsedCvData');
-        console.log("Recherche dans localStorage avec la clé 'parsedCvData':", storedData ? "Trouvé" : "Non trouvé");
+      let storedData = null;
+      let sourceFound = null;
+      
+      // Parcourir toutes les sources possibles jusqu'à trouver des données
+      for (const source of storageSources) {
+        const data = window[source.type].getItem(source.key);
+        if (data) {
+          storedData = data;
+          sourceFound = `${source.type}.${source.key}`;
+          break;
+        }
       }
       
       if (storedData) {
-        console.log("Données trouvées dans le stockage local:", storedData.substring(0, 100) + "...");
-        window.FormPrefiller.initialize(JSON.parse(storedData));
+        console.log(`Données trouvées dans ${sourceFound}:`, storedData.substring(0, 100) + "...");
+        
+        try {
+          const parsedData = JSON.parse(storedData);
+          window.FormPrefiller.initialize(parsedData);
+        } catch (parseError) {
+          console.error("Erreur lors du parsing des données stockées:", parseError);
+        }
       } else {
         console.log("Aucune donnée trouvée dans les stockages locaux");
+        
+        // Si aucune donnée n'est trouvée, vérifier si DataTransferService est disponible
+        if (window.DataTransferService && typeof window.DataTransferService.prefillEssentialFields === 'function') {
+          console.log("Tentative de pré-remplissage avec DataTransferService");
+          window.DataTransferService.prefillEssentialFields();
+        }
       }
     } catch (error) {
       console.warn("Erreur lors de la récupération des données:", error);
