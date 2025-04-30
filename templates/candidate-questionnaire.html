@@ -12,6 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- IMPORTANT: Chargement des scripts dans le bon ordre -->
+    <!-- Script Adapter pour les appels API -->
+    <script src="../static/scripts/api-adapter.js"></script>
+    
     <!-- 1. Script de connexion avec le backend pour le parsing de CV réel -->
     <script src="../static/scripts/form-connection.js"></script>
     
@@ -19,8 +22,8 @@
     <script src="../static/scripts/form-prefiller.js"></script>
     <script src="../static/scripts/candidate-questionnaire-analyzer.js"></script>
     
-    <!-- Script Adapter pour les appels API -->
-    <script src="../static/scripts/api-adapter.js"></script>
+    <!-- 3. Script de secours pour pré-remplissage direct -->
+    <script src="../static/scripts/direct-prefiller.js"></script>
     
     <!-- Styles pour Google Maps Autocomplete -->
     <style id="google-maps-autocomplete-styles">
