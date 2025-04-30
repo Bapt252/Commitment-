@@ -617,6 +617,39 @@
             }
         }
     </style>
+    
+    <!-- Styles pour Google Maps Autocomplete -->
+    <style>
+      .address-validated {
+        border-color: #10B981 !important;
+        background-color: rgba(16, 185, 129, 0.05) !important;
+      }
+      
+      .pac-container {
+        z-index: 10000;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        font-family: 'Inter', sans-serif;
+        border: none;
+        margin-top: 5px;
+      }
+      
+      .pac-item {
+        padding: 10px;
+        cursor: pointer;
+      }
+      
+      .pac-item:hover {
+        background-color: rgba(124, 58, 237, 0.05);
+      }
+      
+      .pac-item-selected {
+        background-color: rgba(124, 58, 237, 0.1);
+      }
+    </style>
+    
+    <!-- Script Adapter pour les appels API -->
+    <script src="../static/scripts/api-adapter.js"></script>
 </head>
 <body>
     <!-- Notification bar -->
@@ -753,6 +786,11 @@
                         <div class="form-group">
                             <label for="address" class="form-label required">4) Adresse exacte</label>
                             <textarea id="address" name="address" class="form-control" required placeholder="Votre adresse complète (obligatoire pour simuler les temps de trajet)"></textarea>
+                            <div id="address-coords-container" style="display: none;">
+                                <input type="hidden" id="address-lat" name="address-lat">
+                                <input type="hidden" id="address-lng" name="address-lng">
+                                <input type="hidden" id="address-place-id" name="address-place-id">
+                            </div>
                             <small class="text-muted">Nous utiliserons cette adresse pour calculer le temps de trajet vers les entreprises</small>
                         </div>
                         
@@ -1626,6 +1664,9 @@
             });
         });
     </script>
+    
+    <!-- Google Maps API avec callback -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBP7x3CwXNA-LM7DWvAMmvg4piOtgY6a-o&libraries=places&callback=initGoogleMapsAutocomplete" async defer></script>
     
     <!-- Script pour l'autocomplétion d'adresse avec Google Maps -->
     <script src="../static/scripts/address-autocomplete.js"></script>
