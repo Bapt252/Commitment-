@@ -125,54 +125,21 @@
         }
     }
     
-    // Fonction pour appliquer les données au formulaire
-    function applyDataToForm(data) {
-        if (!data || (!data.data && !data.fullData)) {
-            console.warn("Form-connection: Données invalides pour le pré-remplissage");
-            return;
-        }
+    // Fonction pour appliquer les données directement au formulaire - Approche simplifiée
+    function applyDirectFormFilling(data) {
+        if (!data) return;
         
-        console.log("Form-connection: Application des données au formulaire");
-        
-        // Vérifier si les données sont simulées
-        const isSimulatedData = data.isSimulated === true || IS_DEMO_ENV;
-        
-        // Utiliser FormPrefiller si disponible
-        if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
-            // Ajouter l'indicateur de simulation aux données avant de les passer au prefiller
-            if (isSimulatedData && !data.isSimulated) {
-                data.isSimulated = true;
-            }
-            
-            window.FormPrefiller.initialize(data);
-            console.log("Form-connection: Données appliquées via FormPrefiller");
-        } else {
-            console.warn("Form-connection: FormPrefiller non disponible, application manuelle des données");
-            applyDataManually(data);
-        }
-        
-        // Afficher une notification si disponible
-        if (window.showNotification) {
-            const message = isSimulatedData 
-                ? "Formulaire pré-rempli avec des données d'exemple (mode démo)" 
-                : "Formulaire pré-rempli avec les données de votre CV";
-                
-            const type = isSimulatedData ? "info" : "success";
-            window.showNotification(message, type);
-        }
-    }
-    
-    // Fonction pour appliquer manuellement les données au formulaire si FormPrefiller n'est pas disponible
-    function applyDataManually(data) {
-        const cvData = data.data || (data.fullData ? data.fullData.data : null);
-        
-        if (!cvData) {
-            console.error("Form-connection: Format de données non reconnu pour l'application manuelle");
-            return;
-        }
+        console.log("Form-connection: Application directe des données au formulaire");
         
         try {
-            // Appliquer les informations personnelles de base
+            const cvData = data.data || (data.fullData ? data.fullData.data : null);
+            
+            if (!cvData) {
+                console.error("Form-connection: Format de données non reconnu");
+                return;
+            }
+            
+            // Informations personnelles
             if (cvData.personal_info) {
                 if (cvData.personal_info.name) {
                     fillField('full-name', cvData.personal_info.name);
@@ -188,14 +155,31 @@
                 fillField('job-title', cvData.position);
             }
             
-            console.log("Form-connection: Données de base appliquées manuellement");
+            // Transport (cocher transport en commun par défaut)
+            const publicTransportCheckbox = document.querySelector('input[name="transport-method"][value="public-transport"]');
+            if (publicTransportCheckbox) {
+                publicTransportCheckbox.checked = true;
+                publicTransportCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+            }
             
-            // Ajouter un indicateur visuel pour les données simulées
-            if (data.isSimulated) {
+            // Ajouter indicateur visuel mode démo
+            if (data.isSimulated || IS_DEMO_ENV) {
                 addDemoModeIndicator();
             }
+            
+            // Notification
+            if (window.showNotification) {
+                const message = (data.isSimulated || IS_DEMO_ENV) 
+                    ? "Formulaire pré-rempli avec des données d'exemple (mode démo)" 
+                    : "Formulaire pré-rempli avec les données de votre CV";
+                    
+                const type = (data.isSimulated || IS_DEMO_ENV) ? "info" : "success";
+                window.showNotification(message, type);
+            }
+            
+            console.log("Form-connection: Données appliquées avec succès");
         } catch (error) {
-            console.error("Form-connection: Erreur lors de l'application manuelle des données:", error);
+            console.error("Form-connection: Erreur lors de l'application des données:", error);
         }
     }
     
@@ -250,22 +234,31 @@
             
             // Appliquer les données au formulaire si disponibles
             if (data) {
-                applyDataToForm(data);
+                if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+                    try {
+                        console.log("Form-connection: Utilisation du FormPrefiller");
+                        window.FormPrefiller.initialize(data);
+                    } catch (error) {
+                        console.error("Form-connection: Erreur avec FormPrefiller, fallback sur méthode directe", error);
+                        applyDirectFormFilling(data);
+                    }
+                } else {
+                    console.log("Form-connection: FormPrefiller non disponible, utilisation de la méthode directe");
+                    applyDirectFormFilling(data);
+                }
             } else {
                 console.warn("Form-connection: Aucune donnée disponible pour cet ID");
                 
-                // En mode démo, essayer de charger des données d'exemple si rien n'est trouvé
+                // En mode démo, charger les données d'exemple
                 if (IS_DEMO_ENV) {
-                    console.log("Form-connection: Mode démo, tentative de chargement des données d'exemple");
-                    const script = document.createElement('script');
-                    script.src = "../static/scripts/parsed-data-example.js";
-                    script.onload = function() {
-                        if (typeof mockParsedData !== 'undefined') {
-                            mockParsedData.isSimulated = true;
-                            applyDataToForm(mockParsedData);
-                        }
-                    };
-                    document.head.appendChild(script);
+                    console.log("Form-connection: Mode démo, chargement des données d'exemple");
+                    
+                    // Attente pour s'assurer que le DOM est prêt
+                    setTimeout(function() {
+                        const script = document.createElement('script');
+                        script.src = "../static/scripts/parsed-data-example.js";
+                        document.head.appendChild(script);
+                    }, 500);
                 }
             }
         } else {
@@ -281,7 +274,27 @@
                     if (IS_DEMO_ENV && !data.isSimulated) {
                         data.isSimulated = true;
                     }
-                    applyDataToForm(data);
+                    
+                    if (window.FormPrefiller && typeof window.FormPrefiller.initialize === 'function') {
+                        try {
+                            window.FormPrefiller.initialize(data);
+                        } catch (error) {
+                            console.error("Form-connection: Erreur avec FormPrefiller, fallback sur méthode directe", error);
+                            applyDirectFormFilling(data);
+                        }
+                    } else {
+                        applyDirectFormFilling(data);
+                    }
+                } else if (IS_DEMO_ENV) {
+                    // En mode démo, charger directement les données d'exemple
+                    console.log("Form-connection: Mode démo, chargement des données d'exemple");
+                    
+                    // Attente pour s'assurer que le DOM est prêt
+                    setTimeout(function() {
+                        const script = document.createElement('script');
+                        script.src = "../static/scripts/parsed-data-example.js";
+                        document.head.appendChild(script);
+                    }, 500);
                 } else {
                     console.log("Form-connection: Aucune donnée trouvée, pas de pré-remplissage");
                 }
