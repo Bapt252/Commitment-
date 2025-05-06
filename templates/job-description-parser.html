@@ -960,7 +960,7 @@
         <main class="parser-container">
             <section class="page-header">
                 <h2>Intelligence d'analyse documentaire</h2>
-                <p>Notre technologie avancée analyse vos fiches de poste et CV pour extraire automatiquement les compétences, expériences et exigences clés. Laissez l'IA faire le travail pour vous.</p>
+                <p>Notre technologie avancée analyse vos fiches de poste pour extraire automatiquement les compétences, expériences et exigences clés. Laissez l'IA faire le travail pour vous.</p>
             </section>
 
             <div class="particles-container" id="particles"></div>
@@ -972,7 +972,7 @@
                         <h3>Option 1: Coller votre texte</h3>
                     </div>
                     <div class="input-content">
-                        <textarea id="document-text" placeholder="Collez le contenu de votre fiche de poste ou CV ici..."></textarea>
+                        <textarea id="document-text" placeholder="Collez le contenu de votre fiche de poste ici..."></textarea>
                         <button id="parse-text-btn" class="action-btn">
                             <i class="fas fa-robot"></i> Analyser avec l'IA
                         </button>
@@ -1084,6 +1084,12 @@
             const scrollTopBtn = document.getElementById('scroll-to-top');
             const header = document.querySelector('header');
             
+            // URL de l'API Job Parser
+            const JOB_PARSER_API_URL = 'http://localhost:5053/api/parse-job';
+            
+            // Variable pour stocker les résultats du parsing
+            let parsedJobData = null;
+            
             // Créer des particules de fond
             createParticles();
             
@@ -1138,6 +1144,12 @@
                 document.querySelector('.file-input-label').classList.remove('file-selected');
             });
             
+            // Fonction pour créer un fichier temporaire à partir du texte
+            function createFileFromText(text) {
+                const blob = new Blob([text], { type: 'text/plain' });
+                return new File([blob], 'job-description.txt', { type: 'text/plain' });
+            }
+            
             // Analyser le texte
             parseTextBtn.addEventListener('click', async function() {
                 const text = documentText.value.trim();
@@ -1147,11 +1159,13 @@
                 }
                 
                 // Animation de bouton
-                this.classList.add('active');
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
                 
                 // Afficher le chargement
                 loadingElement.classList.add('visible');
                 resultsContainer.innerHTML = '';
+                resultsContainer.classList.remove('visible');
                 continueBtn.classList.remove('visible');
                 
                 // Défiler vers l'indicateur de chargement
@@ -1159,40 +1173,54 @@
                     loadingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 200);
                 
-                // Simuler un délai pour le chargement (à remplacer par l'appel API réel)
-                setTimeout(() => {
-                    try {
-                        // Simuler des résultats (à remplacer par les vrais résultats de l'API)
-                        const results = simulateResults();
-                        
-                        // Afficher les résultats
-                        displayResults(results);
-                        
-                        // Sauvegarder les résultats dans le sessionStorage
-                        sessionStorage.setItem('parsingResults', JSON.stringify(results));
-                        
-                        // Afficher le bouton Continuer
-                        continueBtn.classList.add('visible');
-                        
-                        // Scroll vers les résultats avec délai pour voir l'animation
-                        setTimeout(() => {
-                            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 400);
-                    } catch (error) {
-                        resultsContainer.innerHTML = `
-                            <div class="result-section" style="background-color: #fff0f0; border-left: 4px solid #ff4d4d;">
-                                <h3><i class="fas fa-exclamation-circle" style="color: #ff4d4d;"></i> Erreur</h3>
-                                <p>${error.message || 'Une erreur est survenue lors de l\'analyse du document.'}</p>
-                            </div>
-                        `;
-                        
-                        // Rendre visible
-                        resultsContainer.classList.add('visible');
-                    } finally {
-                        loadingElement.classList.remove('visible');
-                        this.classList.remove('active');
+                try {
+                    // Créer un fichier temporaire à partir du texte
+                    const file = createFileFromText(text);
+                    
+                    // Créer un FormData pour l'envoi
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('force_refresh', 'true');
+                    
+                    // Appel à l'API
+                    const response = await fetch(JOB_PARSER_API_URL, {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erreur lors de l'appel à l'API: ${response.status} ${response.statusText}`);
                     }
-                }, 2500);
+                    
+                    const result = await response.json();
+                    parsedJobData = result.data;
+                    
+                    // Afficher les résultats
+                    displayResults(parsedJobData);
+                    
+                    // Afficher le bouton Continuer
+                    continueBtn.classList.add('visible');
+                    
+                    // Scroll vers les résultats avec délai pour voir l'animation
+                    setTimeout(() => {
+                        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 400);
+                } catch (error) {
+                    console.error("Erreur lors de l'analyse:", error);
+                    resultsContainer.innerHTML = `
+                        <div class="result-section" style="background-color: #fff0f0; border-left: 4px solid #ff4d4d;">
+                            <h3><i class="fas fa-exclamation-circle" style="color: #ff4d4d;"></i> Erreur</h3>
+                            <p>${error.message || 'Une erreur est survenue lors de l\'analyse du document.'}</p>
+                        </div>
+                    `;
+                    
+                    // Rendre visible
+                    resultsContainer.classList.add('visible');
+                } finally {
+                    loadingElement.classList.remove('visible');
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-robot"></i> Analyser avec l\'IA';
+                }
             });
             
             // Analyser le fichier
@@ -1204,11 +1232,13 @@
                 }
                 
                 // Animation de bouton
-                this.classList.add('active');
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
                 
                 // Afficher le chargement
                 loadingElement.classList.add('visible');
                 resultsContainer.innerHTML = '';
+                resultsContainer.classList.remove('visible');
                 continueBtn.classList.remove('visible');
                 
                 // Défiler vers l'indicateur de chargement
@@ -1216,50 +1246,81 @@
                     loadingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 200);
                 
-                // Simuler un délai pour le chargement (à remplacer par l'appel API réel)
-                setTimeout(() => {
-                    try {
-                        // Simuler des résultats (à remplacer par les vrais résultats de l'API)
-                        const results = simulateResults();
-                        
-                        // Afficher les résultats
-                        displayResults(results);
-                        
-                        // Sauvegarder les résultats dans le sessionStorage
-                        sessionStorage.setItem('parsingResults', JSON.stringify(results));
-                        
-                        // Afficher le bouton Continuer
-                        continueBtn.classList.add('visible');
-                        
-                        // Scroll vers les résultats avec délai pour voir l'animation
-                        setTimeout(() => {
-                            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 400);
-                    } catch (error) {
-                        resultsContainer.innerHTML = `
-                            <div class="result-section" style="background-color: #fff0f0; border-left: 4px solid #ff4d4d;">
-                                <h3><i class="fas fa-exclamation-circle" style="color: #ff4d4d;"></i> Erreur</h3>
-                                <p>${error.message || 'Une erreur est survenue lors de l\'analyse du document.'}</p>
-                            </div>
-                        `;
-                        
-                        // Rendre visible
-                        resultsContainer.classList.add('visible');
-                    } finally {
-                        loadingElement.classList.remove('visible');
-                        this.classList.remove('active');
+                try {
+                    // Créer un FormData pour l'envoi
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('force_refresh', 'true');
+                    
+                    // Appel à l'API
+                    const response = await fetch(JOB_PARSER_API_URL, {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erreur lors de l'appel à l'API: ${response.status} ${response.statusText}`);
                     }
-                }, 2800);
+                    
+                    const result = await response.json();
+                    parsedJobData = result.data;
+                    
+                    // Afficher les résultats
+                    displayResults(parsedJobData);
+                    
+                    // Afficher le bouton Continuer
+                    continueBtn.classList.add('visible');
+                    
+                    // Scroll vers les résultats avec délai pour voir l'animation
+                    setTimeout(() => {
+                        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 400);
+                } catch (error) {
+                    console.error("Erreur lors de l'analyse:", error);
+                    resultsContainer.innerHTML = `
+                        <div class="result-section" style="background-color: #fff0f0; border-left: 4px solid #ff4d4d;">
+                            <h3><i class="fas fa-exclamation-circle" style="color: #ff4d4d;"></i> Erreur</h3>
+                            <p>${error.message || 'Une erreur est survenue lors de l\'analyse du document.'}</p>
+                        </div>
+                    `;
+                    
+                    // Rendre visible
+                    resultsContainer.classList.add('visible');
+                } finally {
+                    loadingElement.classList.remove('visible');
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-robot"></i> Lancer l\'analyse';
+                }
             });
             
             // Continuer vers le questionnaire
             continueBtn.addEventListener('click', function() {
+                // S'assurer que nous avons des données à renvoyer
+                if (!parsedJobData) {
+                    alert('Aucune donnée d\'analyse disponible. Veuillez d\'abord analyser un document.');
+                    return;
+                }
+                
                 // Animation du bouton
                 this.classList.add('clicked');
                 
+                // Préparation des données à envoyer au parent
+                const jobDataToSend = {
+                    title: parsedJobData.title || '',
+                    skills: parsedJobData.required_skills || [],
+                    experience: getExperienceFromRequirements(parsedJobData),
+                    contract: parsedJobData.contract_type || ''
+                };
+                
+                // Envoyer les données au parent (client-questionnaire.html)
+                window.parent.postMessage({
+                    type: 'jobParsingResult',
+                    jobData: jobDataToSend
+                }, '*');
+                
                 // Redirection avec léger délai pour effet visuel
                 setTimeout(() => {
-                    window.location.href = 'client-questionnaire.html';
+                    // Le message postMessage va fermer la modale, pas besoin de redirection
                 }, 300);
             });
             
@@ -1304,32 +1365,22 @@
                 }
             }
             
-            // Fonction pour simuler les résultats (à remplacer par l'API réelle)
-            function simulateResults() {
-                return {
-                    type: 'Fiche de poste',
-                    title: 'Développeur Full-Stack JavaScript',
-                    company: 'TechInnov',
-                    skills: [
-                        'JavaScript', 'React.js', 'Node.js', 'Express', 'MongoDB', 
-                        'HTML/CSS', 'Git', 'RESTful API', 'TypeScript', 'Jest'
-                    ],
-                    experience: '3-5 ans',
-                    education: 'Bac+5 en informatique ou équivalent',
-                    location: 'Paris (75)',
-                    salary: '45-60K€',
-                    responsibilities: [
-                        'Développer des applications web performantes',
-                        'Collaborer avec l\'équipe design',
-                        'Participer aux revues de code',
-                        'Maintenir la documentation technique',
-                        'Résoudre des problèmes techniques complexes'
-                    ],
-                    contract: 'CDI',
-                    remote: 'Hybride (3j bureau / 2j télétravail)',
-                    team_size: '8 personnes',
-                    start_date: 'Dès que possible'
-                };
+            // Fonction pour extraire l'expérience des exigences
+            function getExperienceFromRequirements(data) {
+                // Vérifier si les requirements contiennent des informations sur l'expérience
+                if (data.requirements && Array.isArray(data.requirements)) {
+                    const experiencePattern = /(\d+[\-\s]?\d*)\s*(an|année|années|ans|year|years)/i;
+                    
+                    for (const requirement of data.requirements) {
+                        const match = requirement.match(experiencePattern);
+                        if (match) {
+                            return requirement;
+                        }
+                    }
+                }
+                
+                // Si aucune expérience trouvée dans les requirements, retourner une valeur par défaut
+                return '';
             }
             
             // Fonction pour afficher les résultats
@@ -1337,7 +1388,7 @@
                 let html = `
                     <div class="result-section document-type animate-on-scroll">
                         <h3><i class="fas fa-file-alt"></i> Type de document</h3>
-                        <p>Le document analysé est une <strong>${results.type}</strong></p>
+                        <p>Le document analysé est une <strong>Fiche de poste</strong></p>
                     </div>
                     
                     <div class="result-section animate-on-scroll">
@@ -1345,72 +1396,115 @@
                         <div class="results-grid">
                             <div class="result-item">
                                 <strong>Titre du poste</strong>
-                                <p>${results.title}</p>
+                                <p>${results.title || 'Non spécifié'}</p>
                             </div>
                             <div class="result-item">
                                 <strong>Entreprise</strong>
-                                <p>${results.company}</p>
+                                <p>${results.company || 'Non spécifiée'}</p>
                             </div>
                             <div class="result-item">
                                 <strong>Localisation</strong>
-                                <p>${results.location}</p>
+                                <p>${results.location || 'Non spécifiée'}</p>
                             </div>
                             <div class="result-item">
                                 <strong>Type de contrat</strong>
-                                <p>${results.contract}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="result-section animate-on-scroll">
-                        <h3><i class="fas fa-graduation-cap"></i> Prérequis & Conditions</h3>
-                        <div class="results-grid">
-                            <div class="result-item">
-                                <strong>Expérience requise</strong>
-                                <p>${results.experience}</p>
-                            </div>
-                            <div class="result-item">
-                                <strong>Formation</strong>
-                                <p>${results.education}</p>
-                            </div>
-                            <div class="result-item">
-                                <strong>Rémunération</strong>
-                                <p>${results.salary}</p>
-                            </div>
-                            <div class="result-item">
-                                <strong>Télétravail</strong>
-                                <p>${results.remote}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="result-section animate-on-scroll">
-                        <h3><i class="fas fa-cogs"></i> Compétences & Responsabilités</h3>
-                        <div class="results-grid">
-                            <div class="result-item">
-                                <strong>Compétences techniques</strong>
-                                <ul>
-                                    ${results.skills.map(skill => `<li>${skill}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div class="result-item">
-                                <strong>Responsabilités</strong>
-                                <ul>
-                                    ${results.responsibilities.map(resp => `<li>${resp}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div class="result-item">
-                                <strong>Taille de l'équipe</strong>
-                                <p>${results.team_size}</p>
-                            </div>
-                            <div class="result-item">
-                                <strong>Date de début</strong>
-                                <p>${results.start_date}</p>
+                                <p>${results.contract_type || 'Non spécifié'}</p>
                             </div>
                         </div>
                     </div>
                 `;
                 
+                // Section Prérequis & Conditions si disponible
+                if (results.requirements && results.requirements.length > 0) {
+                    html += `
+                        <div class="result-section animate-on-scroll">
+                            <h3><i class="fas fa-graduation-cap"></i> Prérequis & Conditions</h3>
+                            <div class="results-grid">
+                                <div class="result-item">
+                                    <strong>Exigences</strong>
+                                    <ul>
+                                        ${results.requirements.map(req => `<li>${req}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                ${results.salary_range ? `
+                                <div class="result-item">
+                                    <strong>Rémunération</strong>
+                                    <p>${results.salary_range}</p>
+                                </div>
+                                ` : ''}
+                                ${results.remote_policy ? `
+                                <div class="result-item">
+                                    <strong>Télétravail</strong>
+                                    <p>${results.remote_policy}</p>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Section Compétences & Responsabilités
+                html += `
+                    <div class="result-section animate-on-scroll">
+                        <h3><i class="fas fa-cogs"></i> Compétences & Responsabilités</h3>
+                        <div class="results-grid">
+                `;
+                
+                // Compétences requises
+                if (results.required_skills && results.required_skills.length > 0) {
+                    html += `
+                        <div class="result-item">
+                            <strong>Compétences requises</strong>
+                            <ul>
+                                ${results.required_skills.map(skill => `<li>${skill}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                // Compétences souhaitées
+                if (results.preferred_skills && results.preferred_skills.length > 0) {
+                    html += `
+                        <div class="result-item">
+                            <strong>Compétences souhaitées</strong>
+                            <ul>
+                                ${results.preferred_skills.map(skill => `<li>${skill}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                // Responsabilités
+                if (results.responsibilities && results.responsibilities.length > 0) {
+                    html += `
+                        <div class="result-item">
+                            <strong>Responsabilités</strong>
+                            <ul>
+                                ${results.responsibilities.map(resp => `<li>${resp}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                // Avantages
+                if (results.benefits && results.benefits.length > 0) {
+                    html += `
+                        <div class="result-item">
+                            <strong>Avantages</strong>
+                            <ul>
+                                ${results.benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                // Fermer la div .results-grid et .result-section
+                html += `
+                        </div>
+                    </div>
+                `;
+                
+                // Mettre à jour le conteneur
                 resultsContainer.innerHTML = html;
                 
                 // Animer l'apparition des résultats
@@ -1424,10 +1518,12 @@
             const menuToggle = document.querySelector('.menu-toggle');
             const nav = document.querySelector('nav');
             
-            menuToggle.addEventListener('click', function() {
-                this.classList.toggle('active');
-                nav.classList.toggle('active');
-            });
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    nav.classList.toggle('active');
+                });
+            }
             
             // Améliorer l'interaction avec la zone de dépôt de fichier
             const dropZone = document.querySelector('.file-input-label');
