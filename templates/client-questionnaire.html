@@ -995,6 +995,14 @@
             border-left: 4px solid var(--purple);
             display: none;
             animation: fadeIn 0.5s ease forwards;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .job-info-container:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.15);
+            background: rgba(255, 255, 255, 0.9);
         }
         
         .job-info-container.visible {
@@ -1011,6 +1019,10 @@
             gap: 10px;
         }
         
+        .job-info-title i {
+            color: var(--purple);
+        }
+        
         .job-info-list {
             margin: 0;
             padding: 0;
@@ -1018,10 +1030,17 @@
         }
         
         .job-info-item {
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px dashed rgba(124, 58, 237, 0.2);
             display: flex;
             align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+        
+        .job-info-item:hover {
+            background-color: rgba(124, 58, 237, 0.05);
+            padding-left: 10px;
+            border-radius: 8px;
         }
         
         .job-info-item:last-child {
@@ -1037,9 +1056,43 @@
         .job-info-value {
             color: var(--gray);
             flex: 1;
+            transition: all 0.3s ease;
         }
         
-        /* Modal pour l'analyseur de fiche de poste */
+        .job-info-item:hover .job-info-value {
+            color: var(--black-light);
+        }
+        
+        /* Animation de badge pour les nouvelles informations */
+        .badge-new {
+            display: inline-block;
+            padding: 3px 8px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+        
+        /* Style pour les compétences extraites */
+        .skill-tag {
+            display: inline-block;
+            margin: 2px;
+            padding: 4px 10px;
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--purple-dark);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        .skill-tag:hover {
+            background: rgba(124, 58, 237, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        /* Modal pour l'analyseur de description de poste */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1426,6 +1479,7 @@
                                     <div id="job-info-container" class="job-info-container">
                                         <div class="job-info-title">
                                             <i class="fas fa-check-circle"></i> Informations extraites de votre fiche de poste
+                                            <span class="badge-new">Extrait par IA</span>
                                         </div>
                                         <ul class="job-info-list">
                                             <li class="job-info-item">
@@ -1445,6 +1499,11 @@
                                                 <div class="job-info-value" id="job-contract-value">-</div>
                                             </li>
                                         </ul>
+                                        <div style="text-align: right; margin-top: 15px;">
+                                            <button type="button" id="edit-parsed-info" class="btn-generate">
+                                                <i class="fas fa-edit"></i> Modifier manuellement
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -1996,94 +2055,14 @@
                     }, 50);
                 }, index * 100);
             });
-            
-            // Gestion du modal pour l'analyseur de description de poste
-            const openJobParserBtn = document.getElementById('open-job-parser');
-            const closeJobParserBtn = document.getElementById('close-job-parser');
-            const jobParserModal = document.getElementById('job-parser-modal');
-            const jobParserIframe = document.getElementById('job-parser-iframe');
-            const jobInfoContainer = document.getElementById('job-info-container');
-            
-            // Ouvrir le modal
-            openJobParserBtn.addEventListener('click', function() {
-                jobParserModal.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Empêcher le défilement de la page
-            });
-            
-            // Fermer le modal
-            closeJobParserBtn.addEventListener('click', function() {
-                jobParserModal.classList.remove('active');
-                document.body.style.overflow = ''; // Réactiver le défilement
-            });
-            
-            // Permettre aussi de fermer en cliquant en dehors du modal
-            jobParserModal.addEventListener('click', function(e) {
-                if (e.target === jobParserModal) {
-                    jobParserModal.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            });
-            
-            // Communication avec l'iframe
-            window.addEventListener('message', function(event) {
-                // Vérifier l'origine du message pour la sécurité
-                // Si nous sommes sur le même domaine, pas besoin de vérifier l'origine
-                
-                // Vérifier si nous recevons des données du parser
-                if (event.data && event.data.type === 'jobParsingResult') {
-                    const jobData = event.data.jobData;
-                    
-                    // Mettre à jour les informations du poste dans notre formulaire
-                    if (jobData) {
-                        // Afficher le conteneur d'informations
-                        jobInfoContainer.classList.add('visible');
-                        
-                        // Mettre à jour les valeurs
-                        document.getElementById('job-title-value').textContent = jobData.title || '-';
-                        document.getElementById('job-skills-value').textContent = jobData.skills ? jobData.skills.join(', ') : '-';
-                        document.getElementById('job-experience-value').textContent = jobData.experience || '-';
-                        document.getElementById('job-contract-value').textContent = jobData.contract || '-';
-                        
-                        // Fermer automatiquement le modal après avoir reçu les données
-                        setTimeout(() => {
-                            jobParserModal.classList.remove('active');
-                            document.body.style.overflow = '';
-                            showNotification('Les informations du poste ont été extraites avec succès !', 'success');
-                        }, 1000);
-                        
-                        // Pré-remplir les champs du formulaire dans l'étape 3 si nécessaire
-                        if (jobData.contract) {
-                            document.getElementById('contract-type').value = jobData.contract;
-                        }
-                        
-                        // Sélectionner l'option d'expérience appropriée
-                        if (jobData.experience) {
-                            const expSelect = document.getElementById('required-experience');
-                            const expText = jobData.experience.toLowerCase();
-                            
-                            if (expText.includes('junior') || expText.includes('débutant')) {
-                                expSelect.value = 'junior';
-                            } else if (expText.includes('2') || expText.includes('3')) {
-                                expSelect.value = '2-3years';
-                            } else if (expText.includes('5') || expText.includes('10')) {
-                                expSelect.value = '5-10years';
-                            } else if (expText.includes('10+') || expText.includes('senior')) {
-                                expSelect.value = '10+years';
-                            }
-                        }
-                        
-                        // Mettre à jour la rémunération si disponible
-                        if (jobData.salary) {
-                            document.getElementById('compensation').value = jobData.salary;
-                        }
-                    }
-                }
-            });
         });
     </script>
     
     <!-- Script d'autocomplétion d'adresse avec Google Maps -->
     <script src="../static/scripts/address-autocomplete.js"></script>
+    
+    <!-- Script d'intégration du job parser -->
+    <script src="../static/js/job-parser-display.js"></script>
     
     <!-- Google Maps API avec clé API et callback -->
     <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initAutocompleteCallback" async defer></script>
