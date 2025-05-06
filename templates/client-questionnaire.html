@@ -10,6 +10,42 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Styles pour Google Maps Autocomplete -->
+    <style id="google-maps-autocomplete-styles">
+      .address-validated {
+        border-color: #10B981 !important;
+        background-color: rgba(16, 185, 129, 0.05) !important;
+      }
+      
+      .pac-container {
+        z-index: 10000 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+        font-family: 'Inter', sans-serif !important;
+        border: none !important;
+        margin-top: 5px !important;
+      }
+      
+      .pac-item {
+        padding: 10px !important;
+        cursor: pointer !important;
+      }
+      
+      .pac-item:hover {
+        background-color: rgba(124, 58, 237, 0.05) !important;
+      }
+      
+      .pac-item-selected {
+        background-color: rgba(124, 58, 237, 0.1) !important;
+      }
+      
+      /* Style supplémentaire pour l'input en focus */
+      #address.focused {
+        border-color: #7c3aed !important;
+        box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1) !important;
+      }
+    </style>
+    
     <style>
         :root {
             /* Palette de couleurs Nexten */
@@ -1306,7 +1342,12 @@
                             
                             <div class="form-group">
                                 <label for="address" class="form-label required">Adresse complète</label>
-                                <textarea id="address" name="address" class="form-control" required placeholder="Adresse complète de votre entreprise"></textarea>
+                                <input type="text" id="address" name="address" class="form-control" required placeholder="Adresse complète de votre entreprise">
+                                <div id="address-coords-container" style="display: none;">
+                                    <input type="hidden" id="address-lat" name="address-lat">
+                                    <input type="hidden" id="address-lng" name="address-lng">
+                                    <input type="hidden" id="address-place-id" name="address-place-id">
+                                </div>
                             </div>
                             
                             <div class="form-group">
@@ -2040,5 +2081,11 @@
             });
         });
     </script>
+    
+    <!-- Script d'autocomplétion d'adresse avec Google Maps -->
+    <script src="../static/scripts/address-autocomplete.js"></script>
+    
+    <!-- Google Maps API avec clé API et callback -->
+    <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initAutocompleteCallback" async defer></script>
 </body>
 </html>
