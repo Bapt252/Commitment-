@@ -44,20 +44,22 @@ def resilient_openai_call(
     def _call_openai() -> str:
         try:
             # Import déplacé à l'intérieur de la fonction pour permettre le mock en test
-            import openai
+            from openai import OpenAI
             
             # S'assurer que la clé API est configurée
-            if not openai.api_key and settings.OPENAI:
-                openai.api_key = settings.OPENAI
+            api_key = settings.OPENAI
             
-            if not openai.api_key:
+            if not api_key:
                 raise ValueError("Clé API OpenAI non configurée")
+            
+            # Initialiser le client OpenAI avec la clé API
+            client = OpenAI(api_key=api_key)
             
             # Appel à l'API avec un système de messages pour plus de contrôle
             start_time = time.time()
             logger.info(f"Appel à OpenAI avec le modèle {model} et {len(prompt)} caractères")
             
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model=model,
                 messages=[
                     {"role": "system", "content": "Tu es un expert en analyse de documents qui extrait avec précision les informations demandées."},
