@@ -11,6 +11,7 @@ import re
 
 from app.core.config import settings
 from app.services.resilience import resilient_openai_call
+from app.services.mock_parser import get_mock_job_data
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -49,26 +50,21 @@ def parse_job(file_path: str, file_format: Optional[str] = None) -> Dict[str, An
         start_time = time.time()
         
         try:
-            # Utiliser l'API OpenAI
-            parsed_data = analyze_job_with_gpt(job_text)
-            
-            # Post-traitement pour corriger et enrichir les données
-            parsed_data = postprocess_job_data(parsed_data, job_text)
+            # Si USE_MOCK_PARSER est activé, utiliser le mock au lieu de l'API
+            if settings.USE_MOCK_PARSER:
+                logger.info(f"Utilisation du mock parser (mode de simulation) pour {file_path}")
+                parsed_data = get_mock_job_data(job_text, os.path.basename(file_path))
+            else:
+                # Sinon, utiliser l'API OpenAI
+                parsed_data = analyze_job_with_gpt(job_text)
+                
+                # Post-traitement pour corriger et enrichir les données
+                parsed_data = postprocess_job_data(parsed_data, job_text)
         except Exception as e:
-            logger.error(f"Erreur lors de l'analyse de la fiche de poste: {str(e)}.")
+            logger.error(f"Erreur lors de l'analyse de la fiche de poste: {str(e)}. Fallback sur le mock parser.")
             logger.error(f"Stacktrace: {traceback.format_exc()}")
-            # Créer un dict minimal avec une structure valide
-            parsed_data = {
-                "title": "",
-                "company": "",
-                "location": "",
-                "contract_type": "",
-                "required_skills": [],
-                "preferred_skills": [],
-                "responsibilities": [],
-                "requirements": [],
-                "benefits": []
-            }
+            # En cas d'erreur, utiliser le mock parser comme fallback
+            parsed_data = get_mock_job_data(job_text, os.path.basename(file_path))
         
         processing_time = time.time() - start_time
         logger.info(f"Fiche de poste parsée en {processing_time:.2f} secondes")
@@ -78,7 +74,7 @@ def parse_job(file_path: str, file_format: Optional[str] = None) -> Dict[str, An
             "processing_time": processing_time,
             "parsed_at": time.time(),
             "file_format": file_format,
-            "model": settings.OPENAI_MODEL,
+            "model": "mock" if settings.USE_MOCK_PARSER else settings.OPENAI_MODEL,
             "data": parsed_data
         }
         
@@ -145,6 +141,12 @@ def postprocess_job_data(data: Dict[str, Any], original_text: str) -> Dict[str, 
         if contract_type:
             data["contract_type"] = contract_type
     
+    # Extraire les compétences requises si aucune n'a été détectée
+    if not data.get("required_skills"):
+        skills = extract_skills_from_text(original_text)
+        if skills:
+            data["required_skills"] = skills
+    
     return data
 
 def extract_contract_type(text: str) -> str:
@@ -165,6 +167,27 @@ def extract_contract_type(text: str) -> str:
             return match.group(0).capitalize()
     
     return ""
+
+def extract_skills_from_text(text: str) -> List[str]:
+    """Extrait des compétences potentielles du texte de la fiche de poste"""
+    skills = []
+    
+    # Liste de compétences courantes en finance/comptabilité
+    common_skills = [
+        'Comptabilité générale', 'Comptabilité analytique', 'Comptabilité clients', 
+        'Comptabilité fournisseurs', 'Fiscalité', 'Audit', 'Contrôle de gestion',
+        'Gestion de trésorerie', 'Finance d\'entreprise', 'Normes IFRS', 'Normes US GAAP',
+        'Consolidation', 'Reporting', 'Budget', 'Prévisions', 'Analyse financière',
+        'Clôture comptable', 'Rapprochement bancaire', 'Liasse fiscale', 'Bilan',
+        'SAP', 'Oracle', 'Sage', 'Excel', 'Power BI', 'Anglais'
+    ]
+    
+    # Rechercher les compétences dans le texte
+    for skill in common_skills:
+        if re.search(r'\b' + re.escape(skill) + r'\b', text, re.IGNORECASE):
+            skills.append(skill)
+    
+    return skills
 
 def extract_text_from_file(file_path: str, file_format: Optional[str] = None) -> str:
     """Extrait le texte d'un fichier
@@ -193,38 +216,253 @@ def extract_text_from_file(file_path: str, file_format: Optional[str] = None) ->
     # Extraction selon le format avec gestion d'erreur améliorée
     try:
         if file_format.lower() in [".pdf", ".PDF"]:
+            return extract_text_from_pdf(file_path)
+        elif file_format.lower() in [".docx", ".DOCX"]:
+            return extract_text_from_docx(file_path)
+        elif file_format.lower() in [".doc", ".DOC"]:
+            return extract_text_from_doc(file_path)
+        elif file_format.lower() in [".txt", ".TXT", ".text"]:
+            return extract_text_from_txt(file_path)
+        elif file_format.lower() in [".rtf", ".RTF"]:
+            return extract_text_from_rtf(file_path)
+        else:
+            # Tenter une extraction générique pour les formats non reconnus
+            logger.warning(f"Format non reconnu: {file_format}. Tentative d'extraction générique.")
+            return extract_text_generic(file_path)
+    except Exception as e:
+        logger.error(f"Erreur lors de l'extraction du texte ({file_format}): {str(e)}")
+        logger.error(f"Stacktrace: {traceback.format_exc()}")
+        # En cas d'échec, tenter une extraction générique alternative
+        try:
+            logger.info("Tentative d'extraction alternative...")
+            return extract_text_generic(file_path)
+        except Exception as alt_e:
+            logger.error(f"Échec de l'extraction alternative: {str(alt_e)}")
+            # Retourner une chaîne vide mais non None pour éviter des erreurs en aval
+            return f"Échec d'extraction du texte. Format: {file_format}. Erreur: {str(e)}"
+
+def extract_text_generic(file_path: str) -> str:
+    """Méthode d'extraction générique qui tente plusieurs approches"""
+    logger.info(f"Extraction générique pour {file_path}")
+    
+    # Essayer des méthodes alternatives d'extraction
+    try:
+        # Tenter avec textract qui supporte de nombreux formats
+        try:
+            import textract
+            text = textract.process(file_path).decode('utf-8')
+            if text and len(text) > 100:  # Vérifier qu'on a extrait quelque chose de significatif
+                return text
+        except:
+            logger.warning("Échec de l'extraction avec textract")
+        
+        # Tenter avec pdfplumber (autre bibliothèque pour PDF)
+        try:
+            import pdfplumber
+            with pdfplumber.open(file_path) as pdf:
+                text = ""
+                for page in pdf.pages:
+                    text += page.extract_text() or ""
+                if text:
+                    return text
+        except:
+            logger.warning("Échec de l'extraction avec pdfplumber")
+        
+        # Utiliser notre propre méthode PDF comme dernier recours
+        try:
+            return extract_text_from_pdf(file_path)
+        except:
+            logger.warning("Échec de l'extraction PDF standard")
+        
+        # Si tout échoue, tenter une lecture binaire simple
+        with open(file_path, 'rb') as f:
+            content = f.read()
+            try:
+                # Tenter plusieurs encodages
+                for encoding in ['utf-8', 'latin-1', 'windows-1252', 'ascii']:
+                    try:
+                        return content.decode(encoding)
+                    except:
+                        continue
+            except:
+                pass
+        
+        return "Extraction de texte échouée pour ce document."
+    except Exception as e:
+        logger.error(f"Toutes les méthodes d'extraction ont échoué: {str(e)}")
+        return "Échec de toutes les méthodes d'extraction de texte."
+
+def extract_text_from_pdf(file_path: str) -> str:
+    """Extrait le texte d'un fichier PDF avec meilleure gestion d'erreurs"""
+    try:
+        logger.info(f"Tentative d'extraction PDF depuis {file_path}")
+        
+        # Première tentative avec PyPDF2
+        try:
             from PyPDF2 import PdfReader
+            
             with open(file_path, 'rb') as file:
                 reader = PdfReader(file)
                 text = ""
                 for page in reader.pages:
-                    text += page.extract_text() + "\n"
+                    extracted_text = page.extract_text()
+                    if extracted_text:
+                        text += extracted_text + "\n"
+                
+                if text.strip():  # Vérifier que le texte extrait n'est pas vide
+                    logger.info(f"Extraction PyPDF2 réussie: {len(text)} caractères")
+                    return text
+                else:
+                    logger.warning("PyPDF2 n'a pas extrait de texte - le PDF pourrait être scanné ou contenir des images")
+        except Exception as e:
+            logger.warning(f"Échec de l'extraction avec PyPDF2: {str(e)}")
+        
+        # Deuxième tentative avec pdfminer.six
+        try:
+            from pdfminer.high_level import extract_text as pdfminer_extract
+            text = pdfminer_extract(file_path)
+            if text.strip():
+                logger.info(f"Extraction pdfminer.six réussie: {len(text)} caractères")
                 return text
-        elif file_format.lower() in [".docx", ".DOCX"]:
-            import docx
-            doc = docx.Document(file_path)
-            return "\n".join([paragraph.text for paragraph in doc.paragraphs])
-        elif file_format.lower() in [".doc", ".DOC"]:
-            # Pour les .doc, on peut utiliser antiword si disponible
-            try:
-                import subprocess
-                result = subprocess.run(['antiword', file_path], stdout=subprocess.PIPE)
-                return result.stdout.decode('utf-8')
-            except:
-                # Fallback: tenter d'ouvrir comme un fichier texte
-                with open(file_path, 'rb') as f:
-                    return f.read().decode('utf-8', errors='ignore')
-        elif file_format.lower() in [".txt", ".TXT", ".text"]:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
-                return file.read()
-        else:
-            # Format non supporté
-            logger.warning(f"Format de fichier non supporté: {file_format}")
-            # Tentative simple de lecture du fichier comme texte
-            with open(file_path, 'rb') as file:
-                return file.read().decode('utf-8', errors='ignore')
+            else:
+                logger.warning("pdfminer.six n'a pas extrait de texte")
+        except Exception as e:
+            logger.warning(f"Échec de l'extraction avec pdfminer.six: {str(e)}")
+        
+        # Troisième tentative avec OCR si les autres méthodes échouent
+        try:
+            import pytesseract
+            from PIL import Image
+            import pdf2image
+            
+            logger.info("Tentative d'extraction via OCR (conversion PDF en images puis OCR)")
+            pages = pdf2image.convert_from_path(file_path)
+            text = ""
+            for page in pages:
+                text += pytesseract.image_to_string(page) + "\n"
+            
+            if text.strip():
+                logger.info(f"Extraction OCR réussie: {len(text)} caractères")
+                return text
+        except Exception as e:
+            logger.warning(f"Échec de l'extraction avec OCR: {str(e)}")
+        
+        # Si toutes les méthodes échouent
+        return "Texte non extractible de ce PDF. Il pourrait s'agir d'un document scanné ou protégé."
+        
     except Exception as e:
-        logger.error(f"Erreur lors de l'extraction du texte: {str(e)}")
+        logger.error(f"Erreur lors de l'extraction du texte PDF: {str(e)}")
+        raise
+
+def extract_text_from_docx(file_path: str) -> str:
+    """Extrait le texte d'un fichier DOCX"""
+    try:
+        import docx
+        doc = docx.Document(file_path)
+        text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+        
+        # Extraire également les tableaux qui peuvent contenir des informations importantes
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    text += cell.text + " "
+                text += "\n"
+                
+        return text
+    except Exception as e:
+        logger.error(f"Erreur lors de l'extraction du texte DOCX: {str(e)}")
+        raise
+
+def extract_text_from_doc(file_path: str) -> str:
+    """Extrait le texte d'un fichier DOC (ancien format Word)"""
+    try:
+        # Plusieurs approches possibles
+        methods_tried = []
+        
+        # Essayer avec textract (nécessite installation système)
+        try:
+            import textract
+            text = textract.process(file_path).decode('utf-8')
+            methods_tried.append("textract")
+            if text:
+                return text
+        except ImportError:
+            logger.warning("Module textract non disponible pour l'extraction DOC")
+        except Exception as e:
+            logger.warning(f"Échec de l'extraction DOC avec textract: {str(e)}")
+        
+        # Essayer avec antiword
+        try:
+            import subprocess
+            result = subprocess.run(['antiword', file_path], stdout=subprocess.PIPE)
+            text = result.stdout.decode('utf-8')
+            methods_tried.append("antiword")
+            if text:
+                return text
+        except Exception as e:
+            logger.warning(f"Échec de l'extraction DOC avec antiword: {str(e)}")
+        
+        # Essayer avec pywin32 (Windows uniquement)
+        try:
+            import win32com.client
+            word = win32com.client.Dispatch("Word.Application")
+            word.Visible = False
+            doc = word.Documents.Open(file_path)
+            text = doc.Content.Text
+            doc.Close()
+            word.Quit()
+            methods_tried.append("win32com")
+            if text:
+                return text
+        except Exception as e:
+            logger.warning(f"Échec de l'extraction DOC avec win32com: {str(e)}")
+
+        if not methods_tried:
+            raise NotImplementedError("Aucune méthode d'extraction DOC n'a fonctionné")
+        else:
+            raise Exception(f"Échec de l'extraction DOC avec les méthodes: {', '.join(methods_tried)}")
+    except Exception as e:
+        logger.error(f"Erreur lors de l'extraction du texte DOC: {str(e)}")
+        raise
+
+def extract_text_from_txt(file_path: str) -> str:
+    """Extrait le texte d'un fichier texte"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except UnicodeDecodeError:
+        # Essayer avec des encodages alternatifs
+        for encoding in ['latin-1', 'windows-1252', 'iso-8859-1', 'cp1252']:
+            try:
+                with open(file_path, 'r', encoding=encoding) as file:
+                    return file.read()
+            except UnicodeDecodeError:
+                continue
+        
+        # Si tous les encodages échouent, essayer en mode binaire
+        with open(file_path, 'rb') as file:
+            content = file.read()
+            return str(content)
+    except Exception as e:
+        logger.error(f"Erreur lors de l'extraction du texte TXT: {str(e)}")
+        raise
+
+def extract_text_from_rtf(file_path: str) -> str:
+    """Extrait le texte d'un fichier RTF"""
+    try:
+        # Essayer avec striprtf
+        try:
+            from striprtf.striprtf import rtf_to_text
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
+                content = file.read()
+            return rtf_to_text(content)
+        except ImportError:
+            # Fallback à textract
+            import textract
+            text = textract.process(file_path).decode('utf-8')
+            return text
+    except Exception as e:
+        logger.error(f"Erreur lors de l'extraction du texte RTF: {str(e)}")
         raise
 
 def analyze_job_with_gpt(job_text: str) -> Dict[str, Any]:
