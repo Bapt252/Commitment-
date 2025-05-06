@@ -3,1850 +3,509 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analyseur de documents - Nexten</title>
-    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <title>Analyseur de Fiche de Poste</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Palette de couleurs Nexten */
             --cream: #F8F7F3;
             --cream-dark: #EFEEE9;
             --black: #1A1A1A;
             --black-light: #2D2D2D;
-            --black-lighter: #3F3F3F;
             --purple: #7C3AED;
             --purple-light: #A78BFA;
             --purple-dark: #5B21B6;
             --purple-glass: rgba(124, 58, 237, 0.1);
             --gray: #666666;
             --gray-light: #9CA3AF;
-            --gray-lightest: #F3F4F6;
             --white: #FFFFFF;
         }
         
-        /* Reset spécifique pour cette page */
-        body {
+        body, html {
+            font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%);
+            margin: 0;
+            padding: 0;
             min-height: 100vh;
+            color: var(--black);
         }
         
-        .page-wrapper {
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        .page-wrapper::before {
-            content: '';
-            position: absolute;
-            top: -10%;
-            right: -10%;
-            width: 70%;
-            height: 70%;
-            background: radial-gradient(circle, var(--purple-glass) 0%, transparent 70%);
-            opacity: 0.6;
-            z-index: -1;
-            border-radius: 50%;
-            filter: blur(50px);
-        }
-        
-        .page-wrapper::after {
-            content: '';
-            position: absolute;
-            bottom: -20%;
-            left: -10%;
-            width: 50%;
-            height: 50%;
-            background: radial-gradient(circle, var(--purple-glass) 0%, transparent 70%);
-            opacity: 0.4;
-            z-index: -1;
-            border-radius: 50%;
-            filter: blur(40px);
-        }
-        
-        /* Header avec effet glassmorphism plus prononcé */
-        header {
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            background-color: rgba(255, 255, 255, 0.7);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        
-        /* Conteneur principal */
-        .parser-container {
-            max-width: 1200px;
+        .container {
+            max-width: 900px;
             margin: 0 auto;
             padding: 40px 20px;
         }
         
-        /* Style de la notification avec animation plus fluide */
-        .notification-bar {
-            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-dark) 100%);
-            padding: 10px 0;
-        }
-        
-        .notification-bar::before {
-            animation: shine 2.5s infinite;
-        }
-        
-        /* En-tête de la page avec effet visuel */
-        .page-header {
+        .header {
             text-align: center;
-            margin-bottom: 50px;
-            position: relative;
-            padding-top: 60px;
+            margin-bottom: 40px;
         }
         
-        .page-header::before {
-            content: '';
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            background: var(--purple-glass);
-            border-radius: 50%;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: -1;
-            filter: blur(30px);
-        }
-        
-        .page-header h2 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
+        .header h1 {
+            font-size: 2.4rem;
+            font-weight: 600;
             background: linear-gradient(135deg, var(--black) 0%, var(--purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-fill-color: transparent;
-            text-transform: none;
         }
         
-        .page-header h2::after {
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--purple-light) 0%, var(--purple) 100%);
-            bottom: -15px;
-        }
-        
-        .page-header p {
+        .header p {
             color: var(--gray);
+            font-size: 1.1rem;
             max-width: 700px;
             margin: 0 auto;
-            font-size: 1.1rem;
-            line-height: 1.8;
         }
         
-        /* Section des options d'entrée avec effet de carte plus prononcé */
-        .input-section {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 30px;
-            margin-bottom: 60px;
-            position: relative;
-        }
-        
-        .input-option {
-            background: rgba(255, 255, 255, 0.7);
+        .parser-container {
+            background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-radius: 16px;
-            overflow: hidden;
-            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+            padding: 30px;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.7);
-            z-index: 1;
         }
         
-        .input-option::before {
+        .tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            color: var(--purple);
+        }
+        
+        .tab.active {
+            color: var(--purple);
+        }
+        
+        .tab.active::after {
             content: '';
             position: absolute;
-            top: 0;
+            bottom: -1px;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, transparent 0%, var(--purple-glass) 100%);
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            z-index: -1;
+            height: 3px;
+            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
+            border-radius: 3px 3px 0 0;
         }
         
-        .input-option:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.15);
+        .tab-content {
+            display: none;
         }
         
-        .input-option:hover::before {
-            opacity: 1;
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease forwards;
         }
         
-        .input-header {
-            padding: 20px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .upload-section, .paste-section {
+            padding: 20px 0;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--black-light);
+        }
+        
+        .drop-zone {
+            border: 2px dashed rgba(124, 58, 237, 0.3);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--purple);
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.1);
+        }
+        
+        .drop-icon {
+            font-size: 2.5rem;
+            color: var(--purple-light);
+            margin-bottom: 15px;
+        }
+        
+        .drop-text {
+            font-size: 1.1rem;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .browse-btn {
+            display: inline-block;
             background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
             color: var(--white);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .input-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: all 0.8s ease;
-        }
-        
-        .input-option:hover .input-header::before {
-            left: 100%;
-        }
-        
-        .input-header h3 {
-            font-weight: 500;
-            margin: 0;
-            font-size: 1.3rem;
-            letter-spacing: 0.5px;
-        }
-        
-        .input-header i {
-            font-size: 1.4rem;
-            opacity: 0.9;
-            transition: transform 0.3s ease;
-        }
-        
-        .input-option:hover .input-header i {
-            transform: scale(1.2) rotate(5deg);
-        }
-        
-        .input-content {
-            padding: 30px;
-            transition: all 0.3s ease;
-        }
-        
-        .input-option:hover .input-content {
-            background-color: rgba(255, 255, 255, 0.9);
-        }
-        
-        /* Zone de texte avec effet de focus amélioré */
-        textarea {
-            width: 100%;
-            min-height: 280px;
-            padding: 16px;
-            border: 1px solid rgba(124, 58, 237, 0.2);
+            padding: 12px 24px;
             border-radius: 12px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            resize: vertical;
-            background: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            cursor: pointer;
             transition: all 0.3s ease;
-            line-height: 1.6;
-            color: var(--black);
+            border: none;
+            margin-top: 10px;
         }
         
-        textarea:focus {
+        .browse-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
+        }
+        
+        .file-info {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(124, 58, 237, 0.1);
+            border-radius: 8px;
+            color: var(--purple-dark);
+        }
+        
+        .upload-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            color: var(--white);
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            margin-top: 20px;
+            font-size: 1rem;
+            text-align: center;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
+        }
+        
+        .text-area {
+            width: 100%;
+            min-height: 250px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.7);
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .text-area:focus {
             outline: none;
             border-color: var(--purple);
             box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
             background: var(--white);
         }
         
-        textarea::placeholder {
-            color: var(--gray-light);
-            opacity: 0.7;
-        }
-        
-        /* Section d'upload de fichier plus interactive */
-        .file-upload {
-            margin-top: 0;
-        }
-        
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
+        .analyze-btn {
             display: inline-block;
-            width: 100%;
-            height: 280px;
-            margin-bottom: 16px;
-        }
-        
-        .file-input-label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.8);
-            border: 2px dashed rgba(124, 58, 237, 0.3);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            color: var(--gray);
-            text-align: center;
-            height: 100%;
-            flex-direction: column;
-        }
-        
-        .file-input-label:hover {
-            border-color: var(--purple);
-            color: var(--purple);
-            background: rgba(124, 58, 237, 0.05);
-            transform: scale(1.01);
-        }
-        
-        .file-input-label i {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            color: var(--purple-light);
-            transition: all 0.4s ease;
-        }
-        
-        .file-input-label:hover i {
-            transform: scale(1.2) translateY(-5px);
-            color: var(--purple);
-        }
-        
-        .file-input-label span {
-            display: block;
-            font-size: 1.1rem;
-            font-weight: 400;
-            margin-bottom: 5px;
-        }
-        
-        .file-input-label .file-types {
-            font-size: 0.85rem;
-            margin-top: 10px;
-            opacity: 0.7;
-            color: var(--gray);
-            background: rgba(255, 255, 255, 0.7);
-            padding: 5px 12px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .file-input-label:hover .file-types {
-            background: var(--white);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        input[type="file"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-        
-        .chosen-file {
-            display: none;
-            margin-top: 15px;
-            padding: 12px 15px;
-            background: rgba(124, 58, 237, 0.08);
-            border-radius: 12px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(124, 58, 237, 0.2);
-        }
-        
-        .chosen-file.visible {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            animation: fadeInUp 0.5s forwards;
-        }
-        
-        .chosen-file:hover {
-            background: rgba(124, 58, 237, 0.12);
-        }
-        
-        .chosen-file i {
-            margin-right: 10px;
-            color: var(--purple);
-            font-size: 1.1rem;
-        }
-        
-        .chosen-file .file-info {
-            display: flex;
-            align-items: center;
-        }
-        
-        .btn-remove {
-            background: none;
-            border: none;
-            color: var(--gray);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .btn-remove:hover {
-            color: #ff4d4d;
-            background: rgba(255, 77, 77, 0.1);
-            transform: rotate(90deg);
-        }
-
-        /* Zone de debug */
-        .debug-container {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 12px;
-            overflow-x: auto;
-            display: none;
-        }
-        
-        .debug-container.visible {
-            display: block;
-        }
-        
-        /* Boutons d'action plus interactifs */
-        .action-btn {
-            display: inline-block;
-            padding: 16px 30px;
             background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
             color: var(--white);
-            border: none;
+            padding: 12px 24px;
             border-radius: 12px;
-            font-family: 'Inter', sans-serif;
             font-weight: 500;
-            font-size: 1rem;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            width: 100%;
-            margin-top: 25px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.2);
-            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+            margin-top: 15px;
         }
         
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: 0.6s;
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
         }
         
-        .action-btn:hover::before {
-            left: 100%;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(124, 58, 237, 0.4);
-        }
-        
-        .action-btn:active {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
-        }
-        
-        .action-btn i {
-            margin-right: 10px;
-            transition: transform 0.3s ease;
-        }
-        
-        .action-btn:hover i {
-            transform: scale(1.2);
-        }
-        
-        /* Indicateur de chargement plus élégant */
-        .loading {
+        .loading-indicator {
             display: none;
-            text-align: center;
-            margin: 50px 0;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease;
-        }
-        
-        .loading.visible {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .spinner-container {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 20px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
         }
         
         .spinner {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 4px solid rgba(124, 58, 237, 0.1);
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(124, 58, 237, 0.2);
             border-radius: 50%;
-            border-top-color: var(--purple);
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        .spinner::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            right: -4px;
-            bottom: -4px;
-            border: 4px solid transparent;
-            border-top-color: rgba(124, 58, 237, 0.3);
-            border-radius: 50%;
-            animation: spin 1.5s linear infinite;
-        }
-        
-        .loading p {
-            color: var(--gray);
-            font-weight: 400;
-            font-size: 1.1rem;
-        }
-        
-        /* Conteneur des résultats avec animation */
-        .results-container {
-            margin-top: 60px;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-        
-        .results-container.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        /* Sections de résultats plus interactives */
-        .result-section {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 25px 30px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .result-section:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            background: rgba(255, 255, 255, 0.9);
-        }
-        
-        .result-section::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--purple-light) 0%, var(--purple) 100%);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.5s ease;
-        }
-        
-        .result-section:hover::after {
-            transform: scaleX(1);
-        }
-        
-        .result-section h3 {
+            border-top: 4px solid var(--purple);
+            animation: spin 1s linear infinite;
             margin-bottom: 20px;
-            color: var(--black);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 500;
-            font-size: 1.3rem;
-            position: relative;
         }
         
-        .result-section h3 i {
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
             color: var(--purple);
-            font-size: 1.4rem;
-            transition: all 0.3s ease;
-        }
-        
-        .result-section:hover h3 i {
-            transform: scale(1.2) rotate(5deg);
-        }
-        
-        .document-type {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(124, 58, 237, 0.08) 100%);
-        }
-        
-        .document-type:hover {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(124, 58, 237, 0.12) 100%);
-        }
-        
-        .document-type h3 {
-            color: var(--purple-dark);
-        }
-        
-        .document-type p {
-            font-size: 1.1rem;
-            color: var(--black);
-        }
-        
-        .document-type p strong {
-            color: var(--purple-dark);
-            background: rgba(124, 58, 237, 0.1);
-            padding: 3px 10px;
-            border-radius: 20px;
             font-weight: 500;
+            font-size: 1.1rem;
         }
         
-        /* Grille de résultats plus interactive */
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+        .result-container {
+            display: none;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .result-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .result-header h3 {
+            color: var(--purple-dark);
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .result-content {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
         }
         
         .result-item {
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed rgba(124, 58, 237, 0.2);
+            display: flex;
+            flex-wrap: wrap;
         }
         
-        .result-item:hover {
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-            transform: translateY(-5px) scale(1.01);
-            background: rgba(255, 255, 255, 0.9);
-        }
-        
-        .result-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(to bottom, var(--purple-light), var(--purple));
-            opacity: 0.7;
-            transition: width 0.3s ease;
-        }
-        
-        .result-item:hover::before {
-            width: 6px;
-        }
-        
-        .result-item strong {
-            display: block;
-            margin-bottom: 10px;
-            color: var(--black);
-            font-weight: 500;
-            font-size: 1.05rem;
-            transition: all 0.3s ease;
-        }
-        
-        .result-item:hover strong {
-            color: var(--purple-dark);
-            transform: translateX(5px);
-        }
-        
-        .result-item p {
+        .result-item:last-child {
+            border-bottom: none;
             margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .result-label {
+            font-weight: 600;
+            color: var(--black-light);
+            min-width: 180px;
+            margin-right: 20px;
+        }
+        
+        .result-value {
             color: var(--gray);
-            transition: all 0.3s ease;
+            flex: 1;
         }
         
-        .result-item:hover p {
-            color: var(--black);
+        .result-full {
+            flex-direction: column;
         }
         
-        .result-item ul {
-            margin: 0;
-            padding-left: 20px;
-            color: var(--gray);
-            transition: all 0.3s ease;
+        .result-full .result-label {
+            margin-bottom: 10px;
         }
         
-        .result-item:hover ul {
-            color: var(--black);
-        }
-        
-        .result-item li {
-            margin-bottom: 5px;
-            position: relative;
-        }
-        
-        .result-item li::before {
-            content: '';
-            position: absolute;
-            left: -15px;
-            top: 10px;
-            width: 5px;
-            height: 5px;
-            background: var(--purple);
-            border-radius: 50%;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-        
-        .result-item:hover li::before {
-            opacity: 1;
-        }
-        
-        /* Bouton continuer plus interactif */
-        .continue-wrapper {
+        .result-actions {
             display: flex;
             justify-content: center;
-            margin: 60px 0 40px;
+            gap: 15px;
+            margin-top: 30px;
         }
         
-        .continue-btn {
-            display: none;
-            padding: 16px 36px;
-            background: linear-gradient(135deg, var(--black-light) 0%, var(--black) 100%);
-            color: var(--white);
-            border: none;
+        .btn {
+            padding: 12px 25px;
             border-radius: 12px;
-            font-family: 'Inter', sans-serif;
             font-weight: 500;
-            font-size: 1.05rem;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-            min-width: 300px;
-            letter-spacing: 0.5px;
-        }
-        
-        .continue-btn.visible {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            animation: fadeInUp 0.8s forwards;
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .continue-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: 0.6s;
-        }
-        
-        .continue-btn:hover::before {
-            left: 100%;
-        }
-        
-        .continue-btn:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-            letter-spacing: 1px;
-        }
-        
-        .continue-btn:active {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-        
-        .continue-btn i {
             transition: all 0.3s ease;
-        }
-        
-        .continue-btn:hover i {
-            transform: translateX(8px);
-        }
-        
-        /* Footer plus élégant */
-        footer {
-            margin-top: 80px;
-            background: linear-gradient(135deg, var(--black-light) 0%, var(--black) 100%);
-            color: var(--white);
-        }
-        
-        /* Bouton retour en haut plus interactif */
-        .scroll-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 50px;
-            height: 50px;
-            background: var(--white);
-            color: var(--black);
             border: none;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 99;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            font-size: 1rem;
         }
         
-        .scroll-to-top::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        .btn-primary {
             background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: -1;
-        }
-        
-        .scroll-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.5);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(124, 58, 237, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
-            }
-        }
-        
-        .scroll-to-top:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
-        
-        .scroll-to-top:hover::before {
-            opacity: 1;
-        }
-        
-        .scroll-to-top i {
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .scroll-to-top:hover i {
             color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
+        }
+        
+        .btn-secondary {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--purple);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(124, 58, 237, 0.2);
             transform: translateY(-3px);
         }
         
-        /* Animation lors du défilement */
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+        .supported-formats {
+            margin-top: 15px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            text-align: center;
         }
         
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        /* Styles pour les effets de particules */
-        .particles-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: -1;
-        }
-        
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(124, 58, 237, 0.2);
-            pointer-events: none;
-        }
-        
-        /* Responsive */
         @media (max-width: 768px) {
-            .input-section {
-                grid-template-columns: 1fr;
+            .container {
+                padding: 20px 15px;
             }
             
-            .page-header h2 {
-                font-size: 2rem;
-            }
-            
-            .result-section {
+            .parser-container {
                 padding: 20px;
             }
             
-            .results-grid {
-                grid-template-columns: 1fr;
+            .tabs {
+                flex-direction: column;
+                border-bottom: none;
             }
             
-            .continue-btn {
+            .tab {
+                border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+                padding: 15px 0;
+            }
+            
+            .tab.active::after {
+                display: none;
+            }
+            
+            .drop-zone {
+                padding: 30px 15px;
+            }
+            
+            .result-item {
+                flex-direction: column;
+            }
+            
+            .result-label {
+                margin-bottom: 5px;
+            }
+            
+            .result-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
                 width: 100%;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .input-header h3 {
-                font-size: 1.1rem;
-            }
-            
-            .file-input-label span {
-                font-size: 0.9rem;
-            }
-            
-            .result-section h3 {
-                font-size: 1.1rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="page-wrapper">
-        <!-- Notification bar -->
-        <div class="notification-bar">
-            Découvrez notre nouvelle expérience d'analyse de documents basée sur l'IA
+    <div class="container">
+        <div class="header">
+            <h1>Analyseur de Fiche de Poste</h1>
+            <p>Notre intelligence artificielle analyse votre fiche de poste pour extraire automatiquement les informations clés.</p>
         </div>
-
-        <header>
-            <div class="container">
-                <div class="logo">
-                    <a href="index.html">
-                        <img src="../static/images/nexten-logo.svg" alt="Nexten Logo" class="site-logo" onerror="this.src='../assets/images/logo.png'">
-                    </a>
-                </div>
-                
-                <button class="menu-toggle" aria-label="Menu principal">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <nav>
-                    <ul>
-                        <li><a href="../index.html">Accueil</a></li>
-                        <li><a href="dashboard.html">Tableau de bord</a></li>
-                        <li><a href="client-questionnaire.html">Recrutement</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </header>
-
-        <main class="parser-container">
-            <section class="page-header">
-                <h2>Intelligence d'analyse documentaire</h2>
-                <p>Notre technologie avancée analyse vos fiches de poste pour extraire automatiquement les compétences, expériences et exigences clés. Laissez l'IA faire le travail pour vous.</p>
-            </section>
-
-            <div class="particles-container" id="particles"></div>
-
-            <div class="input-section">
-                <div class="input-option animate-on-scroll">
-                    <div class="input-header">
-                        <i class="fas fa-paste"></i>
-                        <h3>Option 1: Coller votre texte</h3>
-                    </div>
-                    <div class="input-content">
-                        <textarea id="document-text" placeholder="Collez le contenu de votre fiche de poste ici..."></textarea>
-                        <button id="parse-text-btn" class="action-btn">
-                            <i class="fas fa-robot"></i> Analyser avec l'IA
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="input-option animate-on-scroll">
-                    <div class="input-header">
-                        <i class="fas fa-file-upload"></i>
-                        <h3>Option 2: Importer un fichier</h3>
-                    </div>
-                    <div class="input-content">
-                        <div class="file-upload">
-                            <div class="file-input-wrapper">
-                                <label for="document-file" class="file-input-label">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <span>Glissez votre document ici</span>
-                                    <span>ou cliquez pour sélectionner</span>
-                                    <span class="file-types">Formats acceptés: TXT, PDF, DOCX</span>
-                                    <input type="file" id="document-file" accept=".txt,.pdf,.docx">
-                                </label>
-                            </div>
-                            <div id="chosen-file" class="chosen-file">
-                                <div class="file-info">
-                                    <i class="fas fa-file-alt"></i>
-                                    <span id="file-name">Aucun fichier choisi</span>
-                                </div>
-                                <button id="remove-file" class="btn-remove">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <button id="parse-file-btn" class="action-btn">
-                                <i class="fas fa-robot"></i> Lancer l'analyse
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Zone de debug -->
-            <div id="debug-container" class="debug-container">
-                <h4>Debug</h4>
-                <div id="debug-output"></div>
-            </div>
-
-            <div id="loading" class="loading">
-                <div class="spinner-container">
-                    <div class="spinner"></div>
-                </div>
-                <p>Notre IA analyse votre document en profondeur...</p>
-            </div>
-
-            <div id="results-container" class="results-container"></div>
-
-            <div class="continue-wrapper">
-                <button id="continue-btn" class="continue-btn">
-                    Continuer vers le questionnaire <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
-        </main>
-
-        <footer>
-            <div class="container">
-                <div class="footer-content">
-                    <div>
-                        <div class="footer-logo">
-                            <img src="../static/images/nexten-logo-white.svg" alt="Nexten Logo" onerror="this.src='../assets/images/logo.png'" style="height: 60px; width: auto; margin-bottom: 20px;">
-                        </div>
-                        <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant des correspondances personnalisées pour les candidats et les recruteurs.</p>
-                    </div>
-                    
-                    <div>
-                        <h4 class="footer-heading">Navigation</h4>
-                        <ul class="footer-links">
-                            <li><a href="../index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
-                            <li><a href="dashboard.html"><i class="fas fa-chevron-right"></i> Tableau de bord</a></li>
-                            <li><a href="client-questionnaire.html"><i class="fas fa-chevron-right"></i> Recrutement</a></li>
-                        </ul>
-                    </div>
-                    
-                    <div>
-                        <h4 class="footer-heading">Contact</h4>
-                        <div class="footer-contact">
-                            <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
-                            <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
-                            <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="footer-bottom">
-                    <p>&copy; 2025 Nexten - Tous droits réservés</p>
-                </div>
-            </div>
-        </footer>
         
-        <!-- Bouton de retour en haut -->
-        <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
-            <i class="fas fa-arrow-up"></i>
-        </button>
+        <div class="parser-container">
+            <div class="tabs">
+                <div class="tab active" data-tab="upload">Importer un fichier</div>
+                <div class="tab" data-tab="paste">Coller le texte</div>
+            </div>
+            
+            <div id="upload-section" class="tab-content active">
+                <div class="section-title">Importer votre fiche de poste</div>
+                
+                <form id="upload-form">
+                    <div id="drop-zone" class="drop-zone">
+                        <i class="fas fa-cloud-upload-alt drop-icon"></i>
+                        <div class="drop-text">Glissez-déposez votre fichier ici</div>
+                        <div>ou</div>
+                        <input type="file" id="file-input" class="file-input" accept=".pdf,.docx,.doc,.txt">
+                        <label for="file-input" class="browse-btn">Parcourir les fichiers</label>
+                    </div>
+                    
+                    <div id="file-info" class="file-info">
+                        <i class="fas fa-file-alt"></i>
+                        <span id="selected-file-name">Nom du fichier</span>
+                    </div>
+                    
+                    <button type="submit" class="upload-btn">
+                        <i class="fas fa-upload"></i> Analyser le document
+                    </button>
+                    
+                    <div class="supported-formats">
+                        Formats supportés: PDF, DOCX, DOC, TXT
+                    </div>
+                </form>
+            </div>
+            
+            <div id="paste-section" class="tab-content">
+                <div class="section-title">Collez le texte de votre fiche de poste</div>
+                
+                <textarea id="paste-text" class="text-area" placeholder="Collez ici le contenu de votre fiche de poste..."></textarea>
+                
+                <button id="analyze-text-btn" class="analyze-btn">
+                    <i class="fas fa-robot"></i> Analyser le texte
+                </button>
+            </div>
+            
+            <div id="loading-indicator" class="loading-indicator">
+                <div class="spinner"></div>
+                <div class="loading-text">Analyse en cours...</div>
+            </div>
+            
+            <div id="result-container" class="result-container">
+                <!-- Results will be populated by JavaScript -->
+            </div>
+        </div>
     </div>
-
+    
     <script>
+        // Tab switching functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const parseTextBtn = document.getElementById('parse-text-btn');
-            const parseFileBtn = document.getElementById('parse-file-btn');
-            const documentText = document.getElementById('document-text');
-            const documentFile = document.getElementById('document-file');
-            const resultsContainer = document.getElementById('results-container');
-            const loadingElement = document.getElementById('loading');
-            const continueBtn = document.getElementById('continue-btn');
-            const chosenFile = document.getElementById('chosen-file');
-            const fileName = document.getElementById('file-name');
-            const removeFile = document.getElementById('remove-file');
-            const scrollTopBtn = document.getElementById('scroll-to-top');
-            const header = document.querySelector('header');
-            const debugContainer = document.getElementById('debug-container');
-            const debugOutput = document.getElementById('debug-output');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
             
-            // URL de l'API Job Parser
-            // Essayons avec différentes options d'URL
-            const JOB_PARSER_API_URLS = [
-                'http://localhost:5053/api/parse-job',
-                'http://127.0.0.1:5053/api/parse-job',
-                '/api/parse-job',  // URL relative si le service est sur le même domaine
-                window.location.origin + ':5053/api/parse-job'  // Utilisation du même domaine mais port différent
-            ];
-            
-            // URL active
-            let activeApiUrl = JOB_PARSER_API_URLS[0]; // On commence avec la première
-            
-            // Variable pour stocker les résultats du parsing
-            let parsedJobData = null;
-            
-            // Activer le mode debug (visible en prod pour diagnostiquer)
-            debugContainer.classList.add('visible');
-            
-            // Ajouter un log de debug
-            function addDebugLog(message, data = null) {
-                const logEntry = document.createElement('div');
-                logEntry.style.marginBottom = '8px';
-                logEntry.style.borderBottom = '1px solid #eee';
-                logEntry.style.paddingBottom = '8px';
-                
-                // Créer un horodatage
-                const timestamp = new Date().toLocaleTimeString();
-                logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
-                
-                // Si des données sont fournies, les afficher
-                if (data) {
-                    const dataString = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
-                    logEntry.innerHTML += `<pre style="margin-top:5px;padding:5px;background:#f1f1f1;border-radius:4px;overflow:auto;max-height:200px">${dataString}</pre>`;
-                }
-                
-                debugOutput.appendChild(logEntry);
-                debugContainer.scrollTop = debugContainer.scrollHeight;
-            }
-            
-            // Créer des particules de fond
-            createParticles();
-            
-            // Initialisation des animations au scroll
-            function checkVisibility() {
-                const elements = document.querySelectorAll('.animate-on-scroll');
-                elements.forEach(element => {
-                    const position = element.getBoundingClientRect();
-                    if (position.top < window.innerHeight * 0.9) {
-                        element.classList.add('visible');
-                    }
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to selected tab and content
+                    this.classList.add('active');
+                    document.getElementById(tabId + '-section').classList.add('active');
                 });
-                
-                // Afficher/masquer le bouton retour en haut
-                if (window.scrollY > 300) {
-                    scrollTopBtn.classList.add('visible');
-                } else {
-                    scrollTopBtn.classList.remove('visible');
-                }
-                
-                // Effet header lors du scroll
-                if (window.scrollY > 50) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            }
-            
-            window.addEventListener('scroll', checkVisibility);
-            checkVisibility(); // Vérifier dès le chargement
-            
-            // Cacher le bouton Continuer jusqu'à ce qu'on ait des résultats
-            continueBtn.classList.remove('visible');
-            
-            // Afficher le nom du fichier choisi
-            documentFile.addEventListener('change', function() {
-                if (this.files.length > 0) {
-                    fileName.textContent = this.files[0].name;
-                    chosenFile.classList.add('visible');
-                    // Ajouter une classe pour l'animation
-                    document.querySelector('.file-input-label').classList.add('file-selected');
-                    
-                    // Log de debug
-                    addDebugLog(`Fichier sélectionné: ${this.files[0].name} (taille: ${this.files[0].size} bytes, type: ${this.files[0].type})`);
-                } else {
-                    chosenFile.classList.remove('visible');
-                    document.querySelector('.file-input-label').classList.remove('file-selected');
-                }
-            });
-            
-            // Supprimer le fichier choisi
-            removeFile.addEventListener('click', function() {
-                documentFile.value = '';
-                chosenFile.classList.remove('visible');
-                document.querySelector('.file-input-label').classList.remove('file-selected');
-                addDebugLog('Fichier supprimé');
-            });
-            
-            // Fonction pour créer un fichier temporaire à partir du texte
-            function createFileFromText(text) {
-                const blob = new Blob([text], { type: 'text/plain' });
-                return new File([blob], 'job-description.txt', { type: 'text/plain' });
-            }
-            
-            // Fonction pour tester l'API sur chaque URL jusqu'à succès
-            async function tryAllApiUrls(formData) {
-                let bestError = null;
-                
-                // Essayer chaque URL
-                for (const url of JOB_PARSER_API_URLS) {
-                    try {
-                        addDebugLog(`Tentative d'appel API sur: ${url}`);
-                        
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            body: formData,
-                        });
-                        
-                        if (response.ok) {
-                            addDebugLog(`Succès avec l'URL: ${url}`);
-                            activeApiUrl = url;  // Sauvegarder l'URL qui fonctionne
-                            return await response.json();
-                        } else {
-                            const errorText = await response.text();
-                            addDebugLog(`Échec avec l'URL ${url}: ${response.status} ${response.statusText}`, errorText);
-                            bestError = { status: response.status, text: errorText, url: url };
-                        }
-                    } catch (error) {
-                        addDebugLog(`Erreur lors de l'appel à ${url}: ${error.message}`);
-                        if (!bestError) bestError = { error: error, url: url };
-                    }
-                }
-                
-                // Si toutes les URL ont échoué, relancer l'erreur
-                if (bestError) {
-                    throw new Error(`Échec de toutes les URL. Dernière tentative sur ${bestError.url}: ${bestError.status || bestError.error}`);
-                } else {
-                    throw new Error('Échec de toutes les URL pour des raisons inconnues');
-                }
-            }
-            
-            // Analyser le texte
-            parseTextBtn.addEventListener('click', async function() {
-                const text = documentText.value.trim();
-                if (!text) {
-                    alert('Veuillez entrer du texte à analyser.');
-                    return;
-                }
-                
-                // Animation de bouton
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
-                
-                // Afficher le chargement
-                loadingElement.classList.add('visible');
-                resultsContainer.innerHTML = '';
-                resultsContainer.classList.remove('visible');
-                continueBtn.classList.remove('visible');
-                
-                // Log de debug
-                addDebugLog('Démarrage de l\'analyse de texte', { 
-                    textLength: text.length,
-                    textPreview: text.substring(0, 100) + '...' 
-                });
-                
-                // Défiler vers l'indicateur de chargement
-                setTimeout(() => {
-                    loadingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 200);
-                
-                try {
-                    // Créer un fichier temporaire à partir du texte
-                    const file = createFileFromText(text);
-                    
-                    // Créer un FormData pour l'envoi
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('force_refresh', 'true');
-                    
-                    // Log de debug avant l'appel API
-                    addDebugLog('Envoi du texte à l\'API', { apiUrl: activeApiUrl });
-                    
-                    try {
-                        // Essayer toutes les URLs jusqu'à succès
-                        const result = await tryAllApiUrls(formData);
-                        
-                        // Log de debug après réponse API réussie
-                        addDebugLog('Réponse API reçue', result);
-                        
-                        parsedJobData = result.data;
-                        
-                        // Afficher les résultats
-                        displayResults(parsedJobData);
-                        
-                        // Afficher le bouton Continuer
-                        continueBtn.classList.add('visible');
-                        
-                        // Scroll vers les résultats avec délai pour voir l'animation
-                        setTimeout(() => {
-                            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 400);
-                    } catch (apiError) {
-                        addDebugLog('Erreur lors de la tentative sur toutes les URLs', { error: apiError.message });
-                        
-                        // Essayer avec une solution de fallback (simuler des données)
-                        addDebugLog('Utilisation des données simulées comme fallback');
-                        
-                        // Simuler les résultats pour ne pas bloquer l'utilisateur
-                        parsedJobData = simulateResults();
-                        
-                        // Afficher les résultats simulés
-                        displayResults(parsedJobData);
-                        
-                        // Afficher le bouton Continuer
-                        continueBtn.classList.add('visible');
-                        
-                        // Afficher une alerte discrète
-                        addDebugLog('ATTENTION: Les données affichées sont simulées car le service API est inaccessible!', { simulatedData: parsedJobData });
-                        
-                        // Scroll vers les résultats
-                        setTimeout(() => {
-                            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 400);
-                    }
-                } catch (error) {
-                    addDebugLog('Erreur lors de l\'analyse', { error: error.message, stack: error.stack });
-                    
-                    resultsContainer.innerHTML = `
-                        <div class="result-section" style="background-color: #fff0f0; border-left: 4px solid #ff4d4d;">
-                            <h3><i class="fas fa-exclamation-circle" style="color: #ff4d4d;"></i> Erreur</h3>
-                            <p>${error.message || 'Une erreur est survenue lors de l\'analyse du document.'}</p>
-                        </div>
-                    `;
-                    
-                    // Rendre visible
-                    resultsContainer.classList.add('visible');
-                } finally {
-                    loadingElement.classList.remove('visible');
-                    this.disabled = false;
-                    this.innerHTML = '<i class="fas fa-robot"></i> Analyser avec l\'IA';
-                }
-            });
-            
-            // Analyser le fichier
-            parseFileBtn.addEventListener('click', async function() {
-                const file = documentFile.files[0];
-                if (!file) {
-                    alert('Veuillez sélectionner un fichier à analyser.');
-                    return;
-                }
-                
-                // Animation de bouton
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
-                
-                // Afficher le chargement
-                loadingElement.classList.add('visible');
-                resultsContainer.innerHTML = '';
-                resultsContainer.classList.remove('visible');
-                continueBtn.classList.remove('visible');
-                
-                // Log de debug
-                addDebugLog('Démarrage de l\'analyse de fichier', { 
-                    fileName: file.name,
-                    fileSize: file.size,
-                    fileType: file.type
-                });
-                
-                // Défiler vers l'indicateur de chargement
-                setTimeout(() => {
-                    loadingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 200);
-                
-                try {
-                    // Créer un FormData pour l'envoi
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('force_refresh', 'true');
-                    
-                    // Log de debug avant l'appel API
-                    addDebugLog('Envoi du fichier à l\'API', { apiUrl: activeApiUrl });
-                    
-                    try {
-                        // Essayer toutes les URLs jusqu'à succès
-                        const result = await tryAllApiUrls(formData);
-                        
-                        // Log de debug après réponse API réussie
-                        addDebugLog('Réponse API reçue', result);
-                        
-                        parsedJobData = result.data;
-                        
-                        // Afficher les résultats
-                        displayResults(parsedJobData);
-                        
-                        // Afficher le bouton Continuer
-                        continueBtn.classList.add('visible');
-                        
-                        // Scroll vers les résultats avec délai pour voir l'animation
-                        setTimeout(() => {
-                            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 400);
-                    } catch (apiError) {
-                        addDebugLog('Erreur lors de la tentative sur toutes les URLs', { error: apiError.message });
-                        
-                        // Essayer avec une solution de fallback (simuler des données)
-                        addDebugLog('Utilisation des données simulées comme fallback');
-                        
-                        // Simuler les résultats pour ne pas bloquer l'utilisateur
-                        parsedJobData = simulateResults();
-                        
-                        // Afficher les résultats simulés
-                        displayResults(parsedJobData);
-                        
-                        // Afficher le bouton Continuer
-                        continueBtn.classList.add('visible');
-                        
-                        // Afficher une alerte discrète
-                        addDebugLog('ATTENTION: Les données affichées sont simulées car le service API est inaccessible!', { simulatedData: parsedJobData });
-                        
-                        // Scroll vers les résultats
-                        setTimeout(() => {
-                            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 400);
-                    }
-                } catch (error) {
-                    addDebugLog('Erreur lors de l\'analyse', { error: error.message, stack: error.stack });
-                    
-                    resultsContainer.innerHTML = `
-                        <div class="result-section" style="background-color: #fff0f0; border-left: 4px solid #ff4d4d;">
-                            <h3><i class="fas fa-exclamation-circle" style="color: #ff4d4d;"></i> Erreur</h3>
-                            <p>${error.message || 'Une erreur est survenue lors de l\'analyse du document.'}</p>
-                        </div>
-                    `;
-                    
-                    // Rendre visible
-                    resultsContainer.classList.add('visible');
-                } finally {
-                    loadingElement.classList.remove('visible');
-                    this.disabled = false;
-                    this.innerHTML = '<i class="fas fa-robot"></i> Lancer l\'analyse';
-                }
-            });
-            
-            // Continuer vers le questionnaire
-            continueBtn.addEventListener('click', function() {
-                // S'assurer que nous avons des données à renvoyer
-                if (!parsedJobData) {
-                    alert('Aucune donnée d\'analyse disponible. Veuillez d\'abord analyser un document.');
-                    return;
-                }
-                
-                // Animation du bouton
-                this.classList.add('clicked');
-                
-                // Préparation des données à envoyer au parent
-                const jobDataToSend = {
-                    title: parsedJobData.title || '',
-                    skills: parsedJobData.required_skills || [],
-                    experience: getExperienceFromRequirements(parsedJobData),
-                    contract: parsedJobData.contract_type || ''
-                };
-                
-                // Log de debug
-                addDebugLog('Envoi des résultats au questionnaire parent', jobDataToSend);
-                
-                // Envoyer les données au parent (client-questionnaire.html)
-                window.parent.postMessage({
-                    type: 'jobParsingResult',
-                    jobData: jobDataToSend
-                }, '*');
-                
-                // Redirection avec léger délai pour effet visuel
-                setTimeout(() => {
-                    // Le message postMessage va fermer la modale, pas besoin de redirection
-                    addDebugLog('Message envoyé au parent');
-                }, 300);
-            });
-            
-            // Retour en haut
-            scrollTopBtn.addEventListener('click', function() {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            });
-            
-            // Créer des particules de fond
-            function createParticles() {
-                const container = document.getElementById('particles');
-                const particleCount = 20;
-                
-                for (let i = 0; i < particleCount; i++) {
-                    const particle = document.createElement('div');
-                    particle.classList.add('particle');
-                    
-                    // Taille aléatoire
-                    const size = Math.random() * 15 + 5;
-                    particle.style.width = `${size}px`;
-                    particle.style.height = `${size}px`;
-                    
-                    // Position aléatoire
-                    const posX = Math.random() * 100;
-                    const posY = Math.random() * 100;
-                    particle.style.left = `${posX}%`;
-                    particle.style.top = `${posY}%`;
-                    
-                    // Opacité aléatoire
-                    const opacity = Math.random() * 0.2;
-                    particle.style.opacity = opacity;
-                    
-                    // Animation
-                    const duration = Math.random() * 60 + 30;
-                    const delay = Math.random() * 10;
-                    particle.style.animation = `float ${duration}s ${delay}s infinite linear`;
-                    
-                    container.appendChild(particle);
-                }
-            }
-            
-            // Fonction pour générer des données simulées
-            function simulateResults() {
-                // Adaptation en fonction du fichier ou texte
-                let title = "Développeur Full-Stack JavaScript";
-                let company = "TechInnov";
-                
-                // Si un fichier est sélectionné et son nom contient des indices
-                if (documentFile.files.length > 0) {
-                    const filename = documentFile.files[0].name.toLowerCase();
-                    
-                    if (filename.includes('controleur') || filename.includes('gestion')) {
-                        title = "Contrôleur de Gestion";
-                        company = "FinanceExpert";
-                        
-                        return {
-                            "title": "Contrôleur de Gestion",
-                            "company": "FinanceExpert",
-                            "location": "Paris (75)",
-                            "contract_type": "CDI",
-                            "required_skills": [
-                                "Comptabilité analytique",
-                                "Contrôle de gestion",
-                                "Analyse financière",
-                                "Excel avancé",
-                                "SAP"
-                            ],
-                            "preferred_skills": [
-                                "Power BI",
-                                "VBA",
-                                "Anglais professionnel"
-                            ],
-                            "responsibilities": [
-                                "Élaboration et suivi du budget",
-                                "Reporting financier mensuel",
-                                "Analyse des écarts",
-                                "Mise en place d'indicateurs de performance",
-                                "Participation aux clôtures mensuelles"
-                            ],
-                            "requirements": [
-                                "Bac+5 en finance/contrôle de gestion",
-                                "3-5 ans d'expérience en contrôle de gestion",
-                                "Maîtrise des outils de BI",
-                                "Rigueur et organisation"
-                            ],
-                            "benefits": [
-                                "RTT",
-                                "Tickets restaurant",
-                                "Télétravail partiel",
-                                "Mutuelle d'entreprise"
-                            ],
-                            "salary_range": "45-60K€"
-                        };
-                    }
-                }
-                
-                // Données par défaut
-                return {
-                    "title": title,
-                    "company": company,
-                    "location": "Paris (75)",
-                    "contract_type": "CDI",
-                    "required_skills": [
-                        "JavaScript",
-                        "React.js",
-                        "Node.js",
-                        "Express",
-                        "MongoDB"
-                    ],
-                    "preferred_skills": [
-                        "TypeScript",
-                        "GraphQL",
-                        "Docker",
-                        "AWS"
-                    ],
-                    "responsibilities": [
-                        "Développer des applications web performantes",
-                        "Collaborer avec l'équipe design",
-                        "Participer aux revues de code",
-                        "Maintenir la documentation technique",
-                        "Résoudre des problèmes techniques complexes"
-                    ],
-                    "requirements": [
-                        "Bac+5 en informatique ou équivalent",
-                        "3-5 ans d'expérience en développement web",
-                        "Maîtrise des frameworks JavaScript modernes",
-                        "Connaissance des bases de données NoSQL"
-                    ],
-                    "benefits": [
-                        "RTT",
-                        "Tickets restaurant",
-                        "Télétravail 3j/semaine",
-                        "Mutuelle d'entreprise"
-                    ],
-                    "salary_range": "45-60K€",
-                    "remote_policy": "Hybride (3j bureau / 2j télétravail)"
-                };
-            }
-            
-            // Fonction pour extraire l'expérience des exigences
-            function getExperienceFromRequirements(data) {
-                // Log de debug
-                addDebugLog('Extraction de l\'expérience à partir des exigences', { requirements: data.requirements });
-                
-                // Vérifier si les requirements contiennent des informations sur l'expérience
-                if (data.requirements && Array.isArray(data.requirements)) {
-                    const experiencePattern = /(\d+[\-\s]?\d*)\s*(an|année|années|ans|year|years)/i;
-                    
-                    for (const requirement of data.requirements) {
-                        const match = requirement.match(experiencePattern);
-                        if (match) {
-                            addDebugLog('Expérience trouvée', { requirement: requirement, match: match[0] });
-                            return requirement;
-                        }
-                    }
-                }
-                
-                // Si aucune expérience trouvée dans les requirements, retourner une valeur par défaut
-                addDebugLog('Aucune expérience trouvée dans les exigences');
-                return '';
-            }
-            
-            // Fonction pour afficher les résultats
-            function displayResults(results) {
-                // Log de debug
-                addDebugLog('Affichage des résultats', results);
-                
-                let html = `
-                    <div class="result-section document-type animate-on-scroll">
-                        <h3><i class="fas fa-file-alt"></i> Type de document</h3>
-                        <p>Le document analysé est une <strong>Fiche de poste</strong></p>
-                    </div>
-                    
-                    <div class="result-section animate-on-scroll">
-                        <h3><i class="fas fa-briefcase"></i> Informations principales</h3>
-                        <div class="results-grid">
-                            <div class="result-item">
-                                <strong>Titre du poste</strong>
-                                <p>${results.title || 'Non spécifié'}</p>
-                            </div>
-                            <div class="result-item">
-                                <strong>Entreprise</strong>
-                                <p>${results.company || 'Non spécifiée'}</p>
-                            </div>
-                            <div class="result-item">
-                                <strong>Localisation</strong>
-                                <p>${results.location || 'Non spécifiée'}</p>
-                            </div>
-                            <div class="result-item">
-                                <strong>Type de contrat</strong>
-                                <p>${results.contract_type || 'Non spécifié'}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Section Prérequis & Conditions si disponible
-                if (results.requirements && results.requirements.length > 0) {
-                    html += `
-                        <div class="result-section animate-on-scroll">
-                            <h3><i class="fas fa-graduation-cap"></i> Prérequis & Conditions</h3>
-                            <div class="results-grid">
-                                <div class="result-item">
-                                    <strong>Exigences</strong>
-                                    <ul>
-                                        ${results.requirements.map(req => `<li>${req}</li>`).join('')}
-                                    </ul>
-                                </div>
-                                ${results.salary_range ? `
-                                <div class="result-item">
-                                    <strong>Rémunération</strong>
-                                    <p>${results.salary_range}</p>
-                                </div>
-                                ` : ''}
-                                ${results.remote_policy ? `
-                                <div class="result-item">
-                                    <strong>Télétravail</strong>
-                                    <p>${results.remote_policy}</p>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Section Compétences & Responsabilités
-                html += `
-                    <div class="result-section animate-on-scroll">
-                        <h3><i class="fas fa-cogs"></i> Compétences & Responsabilités</h3>
-                        <div class="results-grid">
-                `;
-                
-                // Compétences requises
-                if (results.required_skills && results.required_skills.length > 0) {
-                    html += `
-                        <div class="result-item">
-                            <strong>Compétences requises</strong>
-                            <ul>
-                                ${results.required_skills.map(skill => `<li>${skill}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-                
-                // Compétences souhaitées
-                if (results.preferred_skills && results.preferred_skills.length > 0) {
-                    html += `
-                        <div class="result-item">
-                            <strong>Compétences souhaitées</strong>
-                            <ul>
-                                ${results.preferred_skills.map(skill => `<li>${skill}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-                
-                // Responsabilités
-                if (results.responsibilities && results.responsibilities.length > 0) {
-                    html += `
-                        <div class="result-item">
-                            <strong>Responsabilités</strong>
-                            <ul>
-                                ${results.responsibilities.map(resp => `<li>${resp}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-                
-                // Avantages
-                if (results.benefits && results.benefits.length > 0) {
-                    html += `
-                        <div class="result-item">
-                            <strong>Avantages</strong>
-                            <ul>
-                                ${results.benefits.map(benefit => `<li>${benefit}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-                
-                // Fermer la div .results-grid et .result-section
-                html += `
-                        </div>
-                    </div>
-                `;
-                
-                // Mettre à jour le conteneur
-                resultsContainer.innerHTML = html;
-                
-                // Animer l'apparition des résultats
-                resultsContainer.classList.add('visible');
-                
-                // Activer les animations des éléments
-                setTimeout(checkVisibility, 100);
-            }
-            
-            // Toggle menu pour mobile
-            const menuToggle = document.querySelector('.menu-toggle');
-            const nav = document.querySelector('nav');
-            
-            if (menuToggle) {
-                menuToggle.addEventListener('click', function() {
-                    this.classList.toggle('active');
-                    nav.classList.toggle('active');
-                });
-            }
-            
-            // Améliorer l'interaction avec la zone de dépôt de fichier
-            const dropZone = document.querySelector('.file-input-label');
-            
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, preventDefaults, false);
-            });
-            
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, highlight, false);
-            });
-            
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, unhighlight, false);
-            });
-            
-            function highlight() {
-                dropZone.classList.add('highlight');
-            }
-            
-            function unhighlight() {
-                dropZone.classList.remove('highlight');
-            }
-            
-            dropZone.addEventListener('drop', handleDrop, false);
-            
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                
-                if (files.length > 0) {
-                    documentFile.files = files;
-                    fileName.textContent = files[0].name;
-                    chosenFile.classList.add('visible');
-                    dropZone.classList.add('file-selected');
-                    
-                    // Log de debug
-                    addDebugLog(`Fichier déposé: ${files[0].name} (taille: ${files[0].size} bytes, type: ${files[0].type})`);
-                }
-            }
-            
-            // Log de debug initial
-            addDebugLog('Application initialisée', { 
-                apiUrl: activeApiUrl,
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                windowSize: `${window.innerWidth}x${window.innerHeight}`,
-                dateTime: new Date().toISOString()
             });
         });
     </script>
+    
+    <!-- Include the job parser integration script -->
+    <script src="../static/js/job-description-parser.js"></script>
 </body>
 </html>
