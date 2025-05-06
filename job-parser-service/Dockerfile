@@ -51,8 +51,11 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*.whl \
 # Créer l'utilisateur non-root
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Créer les répertoires nécessaires
-RUN mkdir -p /app/logs /app/temp && chown -R appuser:appuser /app
+# Créer les répertoires nécessaires avec les permissions correctes
+RUN mkdir -p /app/logs /app/temp && \
+    chmod 777 /app/logs && \
+    chmod 777 /app/temp && \
+    chown -R appuser:appuser /app
 
 # Définir le répertoire de travail
 WORKDIR /app
