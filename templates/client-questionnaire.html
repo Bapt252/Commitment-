@@ -1952,9 +1952,9 @@
                 });
             });
             
-            // Génération de présentation par IA
+            // Génération de présentation par IA - VERSION SIMPLIFIÉE CÔTÉ CLIENT
             document.getElementById('generate-presentation').addEventListener('click', function() {
-                const websiteUrl = document.getElementById('website').value;
+                const websiteUrl = document.getElementById('website').value.toLowerCase();
                 const presentation = document.getElementById('presentation');
                 const generateBtn = document.getElementById('generate-presentation');
                 
@@ -1967,20 +1967,31 @@
                 generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
                 generateBtn.disabled = true;
                 
-                // Simuler la génération (dans un environnement réel, cela ferait une requête API)
+                // Afficher un message de chargement dans le champ de texte
                 presentation.value = 'Analyse du site web et génération en cours...';
-                presentation.classList.add('loading');
                 
+                // Simuler un délai de traitement
                 setTimeout(() => {
-                    presentation.value = 'Entreprise innovante spécialisée dans le développement de solutions digitales. Fondée en 2018, notre mission est d\'accompagner les entreprises dans leur transformation numérique. Nous comptons actuellement 45 collaborateurs experts et sommes reconnus pour notre approche centrée sur l\'utilisateur et notre expertise technique.';
-                    presentation.classList.remove('loading');
+                    // Générer différentes descriptions selon le domaine du site
+                    if (websiteUrl.includes('securitas')) {
+                        presentation.value = "Securitas est un leader mondial des services de sécurité privée. Fondée en 1934 en Suède, l'entreprise propose une gamme complète de solutions incluant la surveillance humaine, la sécurité électronique et la gestion des risques. Avec plus de 345 000 employés répartis dans 47 pays, Securitas s'engage à protéger les entreprises, les institutions et les personnes grâce à une expertise approfondie et des services personnalisés adaptés aux besoins spécifiques de chaque client.";
+                    } else if (websiteUrl.includes('sncf')) {
+                        presentation.value = "La SNCF est l'opérateur ferroviaire national français, assurant le transport de voyageurs et de marchandises sur l'ensemble du territoire. Créée en 1938, cette entreprise publique gère l'infrastructure ferroviaire française et exploite un réseau de plus de 30 000 km de lignes. Avec environ 270 000 collaborateurs, la SNCF propose des services variés incluant les TGV, TER, Transilien et le fret ferroviaire, tout en s'engageant dans une démarche de modernisation et de transition écologique.";
+                    } else if (websiteUrl.includes('orange')) {
+                        presentation.value = "Orange est un opérateur de télécommunications multinational français, leader dans les services de téléphonie mobile, internet et de télévision. Fondé en 1988 sous le nom de France Télécom, le groupe emploie plus de 140 000 personnes dans le monde et sert près de 260 millions de clients. Orange se distingue par son engagement dans l'innovation technologique et le développement de services numériques, tout en accordant une importance particulière à la responsabilité sociale et environnementale.";
+                    } else if (websiteUrl.includes('carrefour')) {
+                        presentation.value = "Carrefour est un groupe français de grande distribution, pionnier du concept d'hypermarché. Fondé en 1959, l'entreprise est aujourd'hui présente dans plus de 30 pays avec plus de 12 000 magasins sous différentes enseignes. Leader européen et deuxième distributeur mondial, Carrefour emploie plus de 320 000 collaborateurs et propose une large gamme de produits alimentaires et non alimentaires. Le groupe s'engage fortement dans la transition alimentaire pour tous, promouvant une alimentation de qualité, accessible et durable.";
+                    } else {
+                        // Description générique pour les autres sites
+                        presentation.value = "Entreprise reconnue dans son secteur d'activité, se distinguant par son expertise et son engagement envers l'excellence. Notre mission est d'offrir des solutions innovantes et personnalisées répondant précisément aux défis de nos clients. Avec une équipe expérimentée et passionnée, nous nous efforçons d'établir des relations durables basées sur la confiance et la performance. Notre approche centrée sur le client et notre vision à long terme nous permettent de nous adapter continuellement aux évolutions du marché.";
+                    }
                     
                     // Restaurer le bouton
                     generateBtn.innerHTML = '<i class="fas fa-magic"></i> Générer avec l\'IA';
                     generateBtn.disabled = false;
                     
-                    showNotification('Présentation générée avec succès ! Vous pouvez la modifier si nécessaire.');
-                }, 2000);
+                    showNotification('Présentation générée avec succès !', 'success');
+                }, 1500);
             });
             
             // Soumission du formulaire
