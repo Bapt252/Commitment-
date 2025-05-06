@@ -1,0 +1,206 @@
+/* Styles pour la section d'affichage des résultats du parser de fiche de poste */
+
+/* Conteneur principal */
+.job-info-container {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    border-left: 4px solid var(--purple);
+    display: none;
+    animation: fadeIn 0.5s ease forwards;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.job-info-container:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.15);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.job-info-container.visible {
+    display: block;
+}
+
+/* Titre et en-tête */
+.job-info-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: var(--purple-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.job-info-title i {
+    color: var(--purple);
+}
+
+/* Liste des informations */
+.job-info-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.job-info-item {
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(124, 58, 237, 0.2);
+    display: flex;
+    align-items: flex-start;
+    transition: all 0.3s ease;
+}
+
+.job-info-item:hover {
+    background-color: rgba(124, 58, 237, 0.05);
+    padding-left: 10px;
+    border-radius: 8px;
+}
+
+.job-info-item:last-child {
+    border-bottom: none;
+}
+
+.job-info-label {
+    font-weight: 500;
+    min-width: 140px;
+    color: var(--black-light);
+}
+
+.job-info-value {
+    color: var(--gray);
+    flex: 1;
+    transition: all 0.3s ease;
+}
+
+.job-info-item:hover .job-info-value {
+    color: var(--black-light);
+}
+
+/* Animation de badge pour les nouvelles informations */
+.badge-new {
+    display: inline-block;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+    color: white;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    margin-left: 10px;
+    animation: pulse 2s infinite;
+}
+
+/* Style pour les compétences extraites */
+.skill-tag {
+    display: inline-block;
+    margin: 2px;
+    padding: 4px 10px;
+    background: rgba(124, 58, 237, 0.1);
+    color: var(--purple-dark);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.skill-tag:hover {
+    background: rgba(124, 58, 237, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(124, 58, 237, 0.15);
+}
+
+/* Animation de pulsation */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(124, 58, 237, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
+    }
+}
+
+/* Animation de fondu */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Adaptations mobiles */
+@media (max-width: 768px) {
+    .job-info-item {
+        flex-direction: column;
+    }
+    
+    .job-info-label {
+        margin-bottom: 5px;
+    }
+    
+    .skill-tag {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+    }
+}
+
+/* Styles pour le formulaire d'édition manuel */
+.edit-form-container {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    border-left: 3px solid var(--purple-light);
+    animation: fadeIn 0.4s ease forwards;
+}
+
+/* Bouton d'édition */
+.btn-edit {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    color: var(--purple);
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.btn-edit:hover {
+    background: rgba(124, 58, 237, 0.1);
+    transform: translateY(-3px);
+}
+
+.btn-edit i {
+    transition: transform 0.3s ease;
+}
+
+.btn-edit:hover i {
+    transform: rotate(15deg);
+}
+
+/* Conteneur pour le cas d'erreur */
+.parsing-error {
+    padding: 15px;
+    margin-top: 15px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 12px;
+    border-left: 4px solid #EF4444;
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.parsing-error h4 {
+    color: #EF4444;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.parsing-error i {
+    color: #EF4444;
+}
