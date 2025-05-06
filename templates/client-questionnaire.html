@@ -1893,8 +1893,8 @@
                 });
             });
             
-            // Génération de présentation par IA
-            document.getElementById('generate-presentation').addEventListener('click', function() {
+            // Génération de présentation par IA - NOUVEAU CODE UTILISANT L'API
+            document.getElementById('generate-presentation').addEventListener('click', async function() {
                 const websiteUrl = document.getElementById('website').value;
                 const presentation = document.getElementById('presentation');
                 const generateBtn = document.getElementById('generate-presentation');
@@ -1908,12 +1908,28 @@
                 generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
                 generateBtn.disabled = true;
                 
-                // Simuler la génération (dans un environnement réel, cela ferait une requête API)
+                // Afficher un message de chargement dans le champ de texte
                 presentation.value = 'Analyse du site web et génération en cours...';
                 presentation.classList.add('loading');
                 
-                setTimeout(() => {
-                    presentation.value = 'Entreprise innovante spécialisée dans le développement de solutions digitales. Fondée en 2018, notre mission est d\'accompagner les entreprises dans leur transformation numérique. Nous comptons actuellement 45 collaborateurs experts et sommes reconnus pour notre approche centrée sur l\'utilisateur et notre expertise technique.';
+                try {
+                    // Appel API pour extraire le contenu du site web et générer la description
+                    const response = await fetch('http://localhost:3000/api/generate-description', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: websiteUrl })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la génération de la description');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Mettre à jour le champ avec la description générée
+                    presentation.value = data.description;
                     presentation.classList.remove('loading');
                     
                     // Restaurer le bouton
@@ -1921,7 +1937,19 @@
                     generateBtn.disabled = false;
                     
                     showNotification('Présentation générée avec succès ! Vous pouvez la modifier si nécessaire.');
-                }, 2000);
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    
+                    // Mode de secours si le serveur n'est pas disponible
+                    presentation.value = 'Entreprise innovante spécialisée dans le développement de solutions digitales. Fondée en 2018, notre mission est d\'accompagner les entreprises dans leur transformation numérique. Nous comptons actuellement 45 collaborateurs experts et sommes reconnus pour notre approche centrée sur l\'utilisateur et notre expertise technique.';
+                    presentation.classList.remove('loading');
+                    
+                    // Restaurer le bouton
+                    generateBtn.innerHTML = '<i class="fas fa-magic"></i> Générer avec l\'IA';
+                    generateBtn.disabled = false;
+                    
+                    showNotification('La génération avec IA a rencontré un problème. Une description par défaut a été utilisée.', 'error');
+                }
             });
             
             // Soumission du formulaire

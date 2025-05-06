@@ -1,101 +1,56 @@
-# Commitment - Parsing et Matching de CV et Fiches de Poste
+# Commitment - Plateforme de recrutement innovante
 
-Ce projet contient les microservices Docker pour le parsing et le matching de CV et fiches de poste.
+## Générateur de description d'entreprise avec IA
 
-## Configuration requise
+Cette fonctionnalité utilise l'API GPT pour automatiquement générer une description professionnelle d'entreprise à partir de son site web.
 
-1. **Clé API OpenAI** : Vous devez disposer d'une clé API OpenAI valide pour utiliser les services de parsing.
-   - Créez un fichier `.env` à la racine du projet (en vous basant sur `.env.example`)
-   - Ajoutez votre clé API OpenAI : `OPENAI=votre_clé_api_openai`
+### Fonctionnement
 
-2. **Docker et Docker Compose** : Assurez-vous d'avoir Docker et Docker Compose installés sur votre système.
+1. L'utilisateur saisit l'URL du site web de son entreprise
+2. L'utilisateur clique sur le bouton "Générer avec l'IA"
+3. Le backend extrait le contenu pertinent du site web
+4. Le contenu est analysé par l'API GPT pour générer une description concise
+5. La description est affichée dans le formulaire
 
-## Installation rapide
+### Installation
 
+#### Backend
+
+1. Installer les dépendances :
 ```bash
-# Cloner le projet
-git clone https://github.com/Bapt252/Commitment-.git
-cd Commitment-
-
-# Créer le fichier .env
-cp .env.example .env
-# Éditer .env et ajouter votre clé API OpenAI
-
-# Lancer tous les services
-docker-compose up -d
+cd backend
+npm install
 ```
 
-## Accès aux services
-
-Après avoir lancé les conteneurs, les services sont accessibles aux URLs suivantes:
-
-- **Frontend**: http://localhost:3000
-- **API principale**: http://localhost:5050
-- **Service de parsing CV**: http://localhost:5051
-- **Service de parsing fiches de poste**: http://localhost:5053
-- **Service de matching**: http://localhost:5052
-- **MinIO (stockage)**: http://localhost:9000 (API) et http://localhost:9001 (Console)
-- **Redis Commander**: http://localhost:8081
-- **RQ Dashboard**: http://localhost:9181
-
-## Scripts utilitaires
-
-Le projet contient plusieurs scripts utilitaires pour faciliter le développement:
-
-- `./build_all.sh`: Script pour reconstruire tous les services
-- `./restart-cv-parser.sh`: Script pour redémarrer uniquement le service cv-parser
-- `./curl-test-cv-parser.sh`: Script pour tester l'API de parsing de CV avec curl
-- `./curl-test-job-parser.sh`: Script pour tester l'API de parsing de fiches de poste avec curl
-
-## Tester le service de parsing CV
-
-Pour tester manuellement le service de parsing CV:
-
-```bash
-# Tester le endpoint health
-curl http://localhost:5051/health
-
-# Tester le parsing d'un CV
-curl -X POST \
-  http://localhost:5051/api/parse-cv/ \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@/chemin/vers/votre/cv.pdf" \
-  -F "force_refresh=false"
+2. Créer un fichier `.env` avec votre clé API OpenAI :
+```
+PORT=3000
+OPENAI_API_KEY=votre_clé_api
 ```
 
-## Tester le service de parsing de fiches de poste
-
-Pour tester manuellement le service de parsing de fiches de poste:
-
+3. Démarrer le serveur :
 ```bash
-# Tester le endpoint health
-curl http://localhost:5053/health
-
-# Tester le parsing d'une fiche de poste
-curl -X POST \
-  http://localhost:5053/api/parse-job \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@/chemin/vers/votre/fiche_poste.pdf" \
-  -F "force_refresh=false"
+npm start
 ```
 
-Ou utilisez le script utilitaire:
+#### Frontend
 
-```bash
-# Assurez-vous que le script est exécutable
-chmod +x curl-test-job-parser.sh
+Aucune installation supplémentaire n'est nécessaire. Le frontend est déjà configuré pour communiquer avec le backend sur `http://localhost:3000`.
 
-# Exécutez le script en spécifiant le chemin vers votre fiche de poste
-./curl-test-job-parser.sh /chemin/vers/votre/fiche_poste.pdf
-```
+### Utilisation
 
-## Architecture
+1. Ouvrir le formulaire de questionnaire client
+2. Saisir l'URL du site web dans le champ "Site internet"
+3. Cliquer sur "Générer avec l'IA"
+4. La description sera automatiquement générée et remplira le champ "Présentation rapide"
 
-Le projet utilise une architecture microservices avec les composants suivants :
+### Technologies utilisées
 
-1. **Service de parsing CV** : Extrait les informations des CV en utilisant GPT-4o-mini
-2. **Service de parsing de fiches de poste** : Extrait les informations des offres d'emploi en utilisant GPT-4o-mini
-3. **Service de matching** : Match les CV avec les offres d'emploi
-4. **Redis** : File d'attente pour le traitement asynchrone et cache
-5. **MinIO** : Stockage des fichiers (CV et fiches de poste)
-6. **PostgreSQL** : Base de données principale
+- **Frontend**: HTML, CSS, JavaScript
+- **Backend**: Node.js, Express
+- **Web Scraping**: Axios, Cheerio
+- **IA**: OpenAI API (GPT-4 ou GPT-3.5)
+
+### Sécurité
+
+La clé API OpenAI est stockée de manière sécurisée dans les variables d'environnement du serveur et dans les secrets GitHub pour le déploiement.
