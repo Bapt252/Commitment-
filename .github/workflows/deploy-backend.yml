@@ -1,0 +1,51 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm install
+          
+      - name: Create .env file
+        run: |
+          cd backend
+          echo "PORT=3000" > .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI }}" >> .env
+        
+      - name: Start server (for testing)
+        run: |
+          cd backend
+          npm start &
+          sleep 5
+          curl http://localhost:3000 || true
+          
+      # Ici, vous pourriez ajouter des étapes pour le déploiement réel sur votre serveur
+      # Par exemple, en utilisant ssh-deploy, heroku-deploy, ou tout autre action de déploiement
+      
+      # Exemple pour Heroku (à décommenter et configurer si nécessaire)
+      # - name: Deploy to Heroku
+      #   uses: akhileshns/heroku-deploy@v3.12.13
+      #   with:
+      #     heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+      #     heroku_app_name: "your-app-name"
+      #     heroku_email: "your-email@example.com"
+      #     appdir: "backend"
