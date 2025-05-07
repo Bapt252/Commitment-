@@ -987,74 +987,21 @@
             transform: rotate(15deg);
         }
         
-        /* Modal pour l'analyseur de description de poste */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+        /* Style pour l'analyseur de fiche de poste intégré */
+        #inline-job-parser {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            animation: fadeIn 0.4s ease;
         }
         
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal-container {
-            width: 90%;
-            max-width: 1200px;
-            height: 90vh;
-            background: var(--white);
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-            transform: scale(0.95);
-            transition: transform 0.3s ease;
-        }
-        
-        .modal-overlay.active .modal-container {
-            transform: scale(1);
-        }
-        
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--black);
-            transition: all 0.3s ease;
-            z-index: 10;
-            border: none;
-            font-size: 1.2rem;
-        }
-        
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: rotate(90deg);
-        }
-        
-        .modal-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        #inline-job-parser h3 {
+            color: var(--purple);
+            margin-bottom: 15px;
+            font-weight: 600;
         }
         
         /* Navigation principale */
@@ -1113,6 +1060,82 @@
         nav ul li a:hover::after {
             transform: scaleX(1);
             transform-origin: left;
+        }
+        
+        /* Job info container style */
+        .job-info-container {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: none;
+        }
+        
+        .job-info-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: var(--purple-dark);
+        }
+        
+        .job-info-title i {
+            color: #10B981;
+            margin-right: 8px;
+        }
+        
+        .badge-new {
+            background: var(--purple-light);
+            color: white;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 30px;
+            margin-left: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .job-info-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .job-info-item {
+            display: flex;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+        }
+        
+        .job-info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .job-info-label {
+            font-weight: 500;
+            color: var(--black-light);
+            width: 30%;
+            flex-shrink: 0;
+        }
+        
+        .job-info-value {
+            color: var(--black);
+        }
+        
+        .skill-tag {
+            display: inline-block;
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--purple-dark);
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            margin: 2px;
         }
         
         /* Responsive design amélioré */
@@ -1362,13 +1385,32 @@
                             </div>
                             
                             <div id="recruitment-details" class="dropdown-section">
-                                <!-- Ajout du bouton pour ouvrir l'analyseur de fiche de poste -->
+                                <!-- Nouvelle interface d'analyseur intégrée -->
                                 <div class="form-group">
                                     <label class="form-label">Description du poste</label>
                                     <p>Laissez notre IA analyser votre fiche de poste pour extraire automatiquement les compétences, expériences et exigences clés.</p>
                                     <button type="button" id="open-job-parser" class="btn-parser">
                                         <i class="fas fa-file-alt"></i> Analyser ma fiche de poste
                                     </button>
+                                    
+                                    <!-- Nouvelle interface intégrée pour l'analyse de fiche de poste -->
+                                    <div id="inline-job-parser" style="display: none; margin-top: 20px; background: #fff; border-radius: 12px; padding: 20px; border: 1px solid rgba(124, 58, 237, 0.2);">
+                                        <h3 style="color: #7C3AED; margin-bottom: 15px;">Analyse de fiche de poste</h3>
+                                        
+                                        <textarea id="job-description-text" class="form-control" style="min-height: 150px; margin-bottom: 15px;" placeholder="Collez le texte de votre fiche de poste ici..."></textarea>
+                                        
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                                            <button type="button" id="analyze-job-text" class="btn-generate" style="background-color: #7C3AED; color: white;">
+                                                <i class="fas fa-search"></i> Analyser le texte
+                                            </button>
+                                            <button type="button" id="close-inline-parser" class="btn-generate">
+                                                <i class="fas fa-times"></i> Fermer
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Conteneur pour les résultats d'analyse -->
+                                        <div id="inline-analysis-results" style="display: none; background: rgba(124, 58, 237, 0.05); padding: 15px; border-radius: 8px;"></div>
+                                    </div>
                                     
                                     <!-- Conteneur pour afficher les informations extraites du poste -->
                                     <div id="job-info-container" class="job-info-container">
@@ -1586,16 +1628,6 @@
                 </div>
             </div>
         </section>
-        
-        <!-- Modal pour l'analyseur de description de poste -->
-        <div class="modal-overlay" id="job-parser-modal">
-            <div class="modal-container">
-                <button class="modal-close" id="close-job-parser">
-                    <i class="fas fa-times"></i>
-                </button>
-                <iframe src="job-description-parser.html" class="modal-iframe" id="job-parser-iframe"></iframe>
-            </div>
-        </div>
         
         <!-- Notification -->
         <div class="notification" id="notification">
@@ -1958,20 +1990,378 @@
                     recruitmentDetails.style.display = 'block';
                 }
             }, 1000);
+
+            // Gestion de l'analyseur de fiche de poste intégré
+            const openJobParserBtn = document.getElementById('open-job-parser');
+            const inlineJobParser = document.getElementById('inline-job-parser');
+            const closeInlineParserBtn = document.getElementById('close-inline-parser');
+            const analyzeJobTextBtn = document.getElementById('analyze-job-text');
+            const jobDescriptionText = document.getElementById('job-description-text');
+            const inlineAnalysisResults = document.getElementById('inline-analysis-results');
+            const jobInfoContainer = document.getElementById('job-info-container');
+
+            // Bouton pour ouvrir l'analyseur de fiche de poste
+            if (openJobParserBtn) {
+                openJobParserBtn.addEventListener('click', function() {
+                    inlineJobParser.style.display = 'block';
+                    
+                    // Pré-remplir avec un exemple de texte si vide
+                    if (jobDescriptionText && !jobDescriptionText.value.trim()) {
+                        jobDescriptionText.value = `Développeur Frontend - CDI
+
+Notre entreprise recherche un développeur frontend expérimenté pour travailler sur nos applications web.
+
+Compétences requises:
+- JavaScript
+- React
+- CSS/SASS
+- HTML5
+- Git
+
+Expérience: 3-5 ans d'expérience en développement frontend.
+
+Type de contrat: CDI à temps plein
+Lieu: Paris`;
+                    }
+                });
+            }
+
+            // Bouton pour fermer l'analyseur
+            if (closeInlineParserBtn) {
+                closeInlineParserBtn.addEventListener('click', function() {
+                    inlineJobParser.style.display = 'none';
+                });
+            }
+
+            // Bouton pour analyser le texte
+            if (analyzeJobTextBtn) {
+                analyzeJobTextBtn.addEventListener('click', function() {
+                    const text = jobDescriptionText.value.trim();
+                    if (!text) {
+                        showNotification('Veuillez saisir du texte à analyser.', 'error');
+                        return;
+                    }
+
+                    // Afficher un indicateur de chargement
+                    inlineAnalysisResults.style.display = 'block';
+                    inlineAnalysisResults.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #7C3AED;"></i><p>Analyse en cours...</p></div>';
+
+                    // Simuler un délai d'analyse
+                    setTimeout(function() {
+                        // Analyser le texte (version simplifiée pour la démonstration)
+                        const results = analyzeJobText(text);
+                        
+                        // Afficher les résultats
+                        displayResults(results);
+                    }, 1500);
+                });
+            }
+
+            // Fonction d'analyse du texte
+            function analyzeJobText(text) {
+                // Texte normalisé pour l'analyse
+                const normalizedText = text.toLowerCase();
+                
+                // Titre - première ligne ou début du texte
+                let title = text.split('\n')[0].trim();
+                if (title.length > 50) {
+                    title = title.substring(0, 50) + '...';
+                }
+                
+                // Type de contrat
+                let contract = "Non spécifié";
+                if (normalizedText.includes('cdi')) {
+                    contract = "CDI";
+                } else if (normalizedText.includes('cdd')) {
+                    contract = "CDD";
+                } else if (normalizedText.includes('stage')) {
+                    contract = "Stage";
+                } else if (normalizedText.includes('alternance')) {
+                    contract = "Alternance";
+                } else if (normalizedText.includes('freelance')) {
+                    contract = "Freelance";
+                }
+                
+                // Expérience
+                let experience = "Non spécifiée";
+                const expMatches = [
+                    normalizedText.match(/(\d+)[\s-]*ans? d['']expérience/i),
+                    normalizedText.match(/expérience .*?(\d+)[\s-]*ans?/i),
+                    normalizedText.match(/(\d+)[\s-]*à[\s-]*(\d+)[\s-]*ans? d['']expérience/i)
+                ].filter(m => m);
+                
+                if (expMatches.length > 0) {
+                    const match = expMatches[0];
+                    if (match[2]) {
+                        experience = `${match[1]}-${match[2]} ans d'expérience`;
+                    } else {
+                        experience = `${match[1]} ans d'expérience`;
+                    }
+                }
+                
+                // Compétences
+                const skillKeywords = [
+                    "javascript", "react", "angular", "vue", "node", "python", "java", "php", "html", "css",
+                    "sql", "nosql", "mongodb", "git", "agile", "scrum", "devops", "aws", "docker", "kubernetes",
+                    "typescript", "sass", "less", "jquery", "bootstrap", "tailwind", "figma", "photoshop",
+                    "illustration", "sketch", "redux", "graphql", "rest", "api", "frontend", "backend", "fullstack"
+                ];
+                
+                const skills = [];
+                for (const skill of skillKeywords) {
+                    if (normalizedText.includes(skill)) {
+                        skills.push(skill.charAt(0).toUpperCase() + skill.slice(1));
+                    }
+                }
+                
+                return {
+                    title: title,
+                    skills: skills.length > 0 ? skills : ["Non spécifiées"],
+                    experience: experience,
+                    contract: contract
+                };
+            }
+
+            // Afficher les résultats dans le conteneur
+            function displayResults(results) {
+                let html = '<h4 style="margin-bottom: 15px; color: #7C3AED;">Informations extraites</h4>';
+                
+                html += `<div style="margin-bottom: 10px;"><strong>Titre du poste:</strong> ${results.title}</div>`;
+                
+                html += '<div style="margin-bottom: 10px;"><strong>Compétences requises:</strong> ';
+                if (results.skills.length > 0) {
+                    html += '<div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">';
+                    results.skills.forEach(skill => {
+                        html += `<span style="background: rgba(124, 58, 237, 0.1); color: #5B21B6; padding: 4px 8px; border-radius: 20px; font-size: 0.9rem;">${skill}</span>`;
+                    });
+                    html += '</div>';
+                } else {
+                    html += 'Non spécifiées';
+                }
+                html += '</div>';
+                
+                html += `<div style="margin-bottom: 10px;"><strong>Expérience:</strong> ${results.experience}</div>`;
+                html += `<div style="margin-bottom: 15px;"><strong>Type de contrat:</strong> ${results.contract}</div>`;
+                
+                html += `<button id="apply-inline-results" style="background: #7C3AED; color: white; border: none; border-radius: 8px; padding: 8px 15px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-check"></i> Appliquer ces informations
+                </button>`;
+                
+                inlineAnalysisResults.innerHTML = html;
+                
+                // Gérer le bouton d'application des résultats
+                document.getElementById('apply-inline-results').addEventListener('click', function() {
+                    updateFormWithResults(results);
+                    
+                    // Afficher une notification
+                    showNotification('Les informations ont été appliquées avec succès!', 'success');
+                    
+                    // Fermer l'analyseur après un court délai
+                    setTimeout(() => {
+                        inlineJobParser.style.display = 'none';
+                    }, 1000);
+                });
+            }
+
+            // Mettre à jour le formulaire principal avec les résultats
+            function updateFormWithResults(results) {
+                // Afficher le conteneur d'informations
+                if (jobInfoContainer) {
+                    jobInfoContainer.style.display = 'block';
+                }
+                
+                // Mettre à jour le titre
+                const jobTitleValue = document.getElementById('job-title-value');
+                if (jobTitleValue) {
+                    jobTitleValue.textContent = results.title || '-';
+                }
+                
+                // Mettre à jour les compétences
+                const jobSkillsValue = document.getElementById('job-skills-value');
+                if (jobSkillsValue) {
+                    if (results.skills && results.skills.length > 0) {
+                        const skillsHtml = results.skills.map(skill => 
+                            `<span class="skill-tag">${skill}</span>`
+                        ).join(' ');
+                        jobSkillsValue.innerHTML = skillsHtml;
+                    } else {
+                        jobSkillsValue.textContent = '-';
+                    }
+                }
+                
+                // Mettre à jour l'expérience
+                const jobExperienceValue = document.getElementById('job-experience-value');
+                if (jobExperienceValue) {
+                    jobExperienceValue.textContent = results.experience || '-';
+                }
+                
+                // Mettre à jour le type de contrat
+                const jobContractValue = document.getElementById('job-contract-value');
+                if (jobContractValue) {
+                    jobContractValue.textContent = results.contract || '-';
+                }
+                
+                // Pré-remplir d'autres champs du formulaire
+                if (results.contract) {
+                    const contractTypeField = document.getElementById('contract-type');
+                    if (contractTypeField) {
+                        contractTypeField.value = results.contract;
+                    }
+                }
+                
+                // Pré-remplir le niveau d'expérience
+                if (results.experience) {
+                    const experienceField = document.getElementById('required-experience');
+                    if (experienceField) {
+                        const expText = results.experience.toLowerCase();
+                        
+                        if (expText.includes('junior') || expText.includes('débutant')) {
+                            experienceField.value = 'junior';
+                        } else if (expText.includes('2') || expText.includes('3')) {
+                            experienceField.value = '2-3years';
+                        } else if (expText.includes('5') || (expText.includes('10') && !expText.includes('10+'))) {
+                            experienceField.value = '5-10years';
+                        } else if (expText.includes('10+') || expText.includes('senior')) {
+                            experienceField.value = '10+years';
+                        }
+                    }
+                }
+            }
+
+            // Gestion du bouton d'édition manuelle des informations
+            const editParsedInfoBtn = document.getElementById('edit-parsed-info');
+            if (editParsedInfoBtn) {
+                editParsedInfoBtn.addEventListener('click', function() {
+                    // Récupérer les valeurs actuelles
+                    const jobTitleValue = document.getElementById('job-title-value');
+                    const jobSkillsValue = document.getElementById('job-skills-value');
+                    const jobExperienceValue = document.getElementById('job-experience-value');
+                    const jobContractValue = document.getElementById('job-contract-value');
+                    
+                    const title = jobTitleValue ? (jobTitleValue.textContent !== '-' ? jobTitleValue.textContent : '') : '';
+                    const skills = jobSkillsValue ? jobSkillsValue.textContent.replace(/-/g, '').trim() : '';
+                    const experience = jobExperienceValue ? (jobExperienceValue.textContent !== '-' ? jobExperienceValue.textContent : '') : '';
+                    const contract = jobContractValue ? (jobContractValue.textContent !== '-' ? jobContractValue.textContent : '') : '';
+                    
+                    // Créer un formulaire d'édition
+                    const editHTML = `
+                        <div style="margin-top: 15px; background: rgba(255, 255, 255, 0.7); padding: 15px; border-radius: 12px;">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Poste</label>
+                                <input type="text" id="edit-title" class="form-control" value="${title}">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Compétences (séparées par des virgules)</label>
+                                <input type="text" id="edit-skills" class="form-control" value="${skills.replace(/<[^>]*>/g, '').trim()}">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Expérience</label>
+                                <input type="text" id="edit-experience" class="form-control" value="${experience}">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Type de contrat</label>
+                                <input type="text" id="edit-contract" class="form-control" value="${contract}">
+                            </div>
+                            <div style="text-align: right;">
+                                <button type="button" id="save-edits" class="btn-generate" style="background-color: var(--purple); color: white;">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                                <button type="button" id="cancel-edits" class="btn-generate">
+                                    <i class="fas fa-times"></i> Annuler
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Ajouter le formulaire d'édition
+                    const formContainer = document.createElement('div');
+                    formContainer.id = 'edit-form-container';
+                    formContainer.innerHTML = editHTML;
+                    editParsedInfoBtn.parentNode.appendChild(formContainer);
+                    
+                    // Cacher le bouton d'édition
+                    editParsedInfoBtn.style.display = 'none';
+                    
+                    // Gestion du bouton d'enregistrement
+                    document.getElementById('save-edits').addEventListener('click', function() {
+                        // Récupérer les valeurs éditées
+                        const newTitle = document.getElementById('edit-title').value || '-';
+                        const newSkills = document.getElementById('edit-skills').value || '-';
+                        const newExperience = document.getElementById('edit-experience').value || '-';
+                        const newContract = document.getElementById('edit-contract').value || '-';
+                        
+                        // Mettre à jour les valeurs
+                        if (jobTitleValue) jobTitleValue.textContent = newTitle;
+                        
+                        // Convertir les compétences en tags
+                        if (jobSkillsValue) {
+                            if (newSkills !== '-') {
+                                const skillsArray = newSkills.split(',').map(s => s.trim()).filter(s => s);
+                                if (skillsArray.length > 0) {
+                                    jobSkillsValue.innerHTML = skillsArray.map(skill => 
+                                        `<span class="skill-tag">${skill}</span>`
+                                    ).join(' ');
+                                } else {
+                                    jobSkillsValue.textContent = '-';
+                                }
+                            } else {
+                                jobSkillsValue.textContent = '-';
+                            }
+                        }
+                        
+                        if (jobExperienceValue) jobExperienceValue.textContent = newExperience;
+                        if (jobContractValue) jobContractValue.textContent = newContract;
+                        
+                        // Pré-remplir les champs du formulaire
+                        const contractTypeField = document.getElementById('contract-type');
+                        if (contractTypeField && newContract !== '-') {
+                            contractTypeField.value = newContract;
+                        }
+                        
+                        // Pré-remplir l'expérience
+                        const experienceField = document.getElementById('required-experience');
+                        if (experienceField && newExperience !== '-') {
+                            const expText = newExperience.toLowerCase();
+                            
+                            if (expText.includes('junior') || expText.includes('débutant')) {
+                                experienceField.value = 'junior';
+                            } else if (expText.includes('2') || expText.includes('3')) {
+                                experienceField.value = '2-3years';
+                            } else if (expText.includes('5') || (expText.includes('10') && !expText.includes('10+'))) {
+                                experienceField.value = '5-10years';
+                            } else if (expText.includes('10+') || expText.includes('senior')) {
+                                experienceField.value = '10+years';
+                            }
+                        }
+                        
+                        // Supprimer le formulaire d'édition
+                        formContainer.remove();
+                        
+                        // Réafficher le bouton d'édition
+                        editParsedInfoBtn.style.display = '';
+                        
+                        // Notification
+                        showNotification('Informations mises à jour avec succès !', 'success');
+                    });
+                    
+                    // Gestion du bouton d'annulation
+                    document.getElementById('cancel-edits').addEventListener('click', function() {
+                        // Supprimer le formulaire d'édition
+                        formContainer.remove();
+                        
+                        // Réafficher le bouton d'édition
+                        editParsedInfoBtn.style.display = '';
+                    });
+                });
+            }
         });
     </script>
     
     <!-- Script d'autocomplétion d'adresse avec Google Maps -->
     <script src="../static/scripts/address-autocomplete.js"></script>
     
-    <!-- Script d'intégration du job parser -->
-    <script src="../static/js/job-parser-display.js"></script>
-    
-    <!-- Script de pont pour améliorer la communication entre l'iframe et la page principale -->
-    <script src="../static/js/job-parser-bridge.js"></script>
-    
-    <!-- Nouvel outil de débogage pour résoudre les problèmes de communication -->
-    <script src="../static/js/job-parser-debug.js"></script>
+    <!-- Intégration du nouveau script d'analyseur de fiche de poste -->
+    <script src="../static/js/inline-job-parser.js"></script>
     
     <!-- Google Maps API avec clé API et callback -->
     <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initAutocompleteCallback" async defer></script>
