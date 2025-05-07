@@ -3,7 +3,11 @@ Configuration centrale pour le service de parsing de fiches de poste.
 """
 import os
 from typing import Any, Dict, Optional
-from pydantic import BaseSettings, validator
+try:
+    from pydantic_settings import BaseSettings
+    from pydantic import validator
+except ImportError:
+    from pydantic import BaseSettings, validator
 
 class Settings(BaseSettings):
     """Paramètres de configuration du service"""
