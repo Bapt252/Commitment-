@@ -425,6 +425,8 @@
     </div>
     
     <!-- Scripts -->
+    <!-- Notre nouveau client pour la communication avec l'API -->
+    <script src="../static/js/job-parser-client.js"></script>
     <script src="../static/js/job-parser-integration.js"></script>
     <script src="../static/js/file-upload-fix.js"></script>
     <script src="../static/js/job-parser-bridge.js"></script>
@@ -446,6 +448,7 @@
                             File Input: ${!!document.getElementById('file-input')}<br>
                             Analyse Button: ${!!document.getElementById('analyse-button')}<br>
                             In iframe: ${window !== window.parent}<br>
+                            API URL: ${window.JobParser ? 'Available' : 'Not available'}<br>
                             <button onclick="testParentMessage()">Test Message</button>
                         `;
                         
