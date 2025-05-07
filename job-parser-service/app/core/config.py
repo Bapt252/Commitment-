@@ -2,12 +2,12 @@
 Configuration centrale pour le service de parsing de fiches de poste.
 """
 import os
+import logging
 from typing import Any, Dict, Optional
-try:
-    from pydantic_settings import BaseSettings
-    from pydantic import validator
-except ImportError:
-    from pydantic import BaseSettings, validator
+
+# Utilisation du module de compatibilité pour Pydantic v1 et v2
+from pydantic_compat import BaseSettings
+from pydantic import validator
 
 class Settings(BaseSettings):
     """Paramètres de configuration du service"""
@@ -45,7 +45,6 @@ class Settings(BaseSettings):
     def validate_openai_api_key(cls, v, values, **kwargs):
         """Valide la clé API OpenAI"""
         if not v and not values.get('USE_MOCK_PARSER'):
-            import logging
             logging.warning("Aucune clé API OpenAI n'a été fournie. Le service utilisera le mode de simulation par défaut.")
             values['USE_MOCK_PARSER'] = True
         return v
@@ -60,6 +59,5 @@ settings = Settings()
 # Si aucune clé API n'est définie et que le mode mock n'est pas explicitement activé, 
 # activer le mode mock automatiquement
 if not settings.OPENAI_API_KEY and not settings.USE_MOCK_PARSER:
-    import logging
     logging.warning("Aucune clé API OpenAI trouvée. Activation automatique du mode de simulation (mock).")
     settings.USE_MOCK_PARSER = True
