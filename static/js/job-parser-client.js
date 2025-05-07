@@ -5,13 +5,17 @@
 window.JobParser = (function() {
     // Configuration
     const API_URL = 'http://localhost:5053'; // Local development URL
-    const DEPLOYED_API_URL = 'https://bapt252.github.io/Commitment-/job-parser-service'; // GitHub Pages deployment
+    
+    // Dans l'environnement GitHub Pages, nous utiliserons une simulation
+    // puisque nous n'avons pas de backend réel déployé
+    const isGitHubPages = window.location.hostname.includes('github.io');
     
     // Helper function to determine the best API URL to use
     function getApiUrl() {
-        // If we're on GitHub Pages, use the deployed API URL
-        if (window.location.hostname.includes('github.io')) {
-            return DEPLOYED_API_URL;
+        // If we're on GitHub Pages, use simulation mode
+        if (isGitHubPages) {
+            console.log('Running on GitHub Pages - using simulation mode');
+            return null;
         }
         // Otherwise use the local development URL
         return API_URL;
@@ -21,6 +25,12 @@ window.JobParser = (function() {
     async function analyzeFile(file) {
         try {
             console.log(`Starting file analysis of ${file.name}...`);
+            
+            // Si nous sommes sur GitHub Pages, simuler immédiatement
+            if (isGitHubPages) {
+                console.log('GitHub Pages detected, using simulation mode');
+                return simulateParsingResult(file.name);
+            }
             
             // Create a FormData object to send the file
             const formData = new FormData();
@@ -60,6 +70,12 @@ window.JobParser = (function() {
         try {
             console.log('Starting text analysis...');
             
+            // Si nous sommes sur GitHub Pages, simuler immédiatement
+            if (isGitHubPages) {
+                console.log('GitHub Pages detected, using simulation mode for text analysis');
+                return simulateParsingResultFromText(text);
+            }
+            
             // Create a blob and a file from the text
             const blob = new Blob([text], { type: 'text/plain' });
             const file = new File([blob], 'job-description.txt', { type: 'text/plain' });
@@ -91,7 +107,7 @@ window.JobParser = (function() {
         } catch (error) {
             console.error('Error analyzing text:', error);
             // Fall back to simulation if the API call fails
-            return simulateParsingResult('text-input');
+            return simulateParsingResultFromText(text);
         }
     }
     
@@ -116,6 +132,58 @@ window.JobParser = (function() {
         };
         
         return formattedData;
+    }
+    
+    // Fonction pour simuler des résultats d'analyse de texte
+    function simulateParsingResultFromText(text) {
+        console.log(`Simulating parsing for text input`);
+        
+        // On utilise le texte pour tenter d'extraire des informations pertinentes
+        let simulatedTitle = "Poste à pourvoir";
+        let simulatedSkills = ["Communication", "Organisation", "Travail d'équipe"];
+        let simulatedExp = "2-3 ans d'expérience";
+        let simulatedContract = "CDI";
+        
+        // Extraire des informations intéressantes du texte
+        if (text.toLowerCase().includes('développeur') || text.toLowerCase().includes('developer')) {
+            simulatedTitle = "Développeur";
+            simulatedSkills = ["JavaScript", "React", "Node.js", "Git"];
+            simulatedExp = "3-5 ans d'expérience en développement";
+        } else if (text.toLowerCase().includes('comptable')) {
+            simulatedTitle = "Comptable";
+            simulatedSkills = ["Excel", "SAP", "Comptabilité générale"];
+            simulatedExp = "2 ans minimum en comptabilité";
+        } else if (text.toLowerCase().includes('marketing')) {
+            simulatedTitle = "Responsable Marketing";
+            simulatedSkills = ["SEO", "Réseaux sociaux", "Google Analytics"];
+            simulatedExp = "3 ans en marketing digital";
+        }
+        
+        // Si le texte contient des informations sur le contrat, les extraire
+        if (text.toLowerCase().includes('cdi')) {
+            simulatedContract = "CDI";
+        } else if (text.toLowerCase().includes('cdd')) {
+            simulatedContract = "CDD";
+        } else if (text.toLowerCase().includes('stage')) {
+            simulatedContract = "Stage";
+        } else if (text.toLowerCase().includes('alternance')) {
+            simulatedContract = "Alternance";
+        }
+        
+        return {
+            data: {
+                title: simulatedTitle,
+                company: "Entreprise",
+                location: "Paris",
+                contract_type: simulatedContract,
+                required_skills: simulatedSkills,
+                preferred_skills: [],
+                experience: simulatedExp,
+                responsibilities: [
+                    "Responsabilités extraites du texte fourni"
+                ]
+            }
+        };
     }
     
     // Function to simulate parsing results when the API is unavailable
@@ -162,6 +230,7 @@ window.JobParser = (function() {
     // Return the public API
     return {
         analyzeFile,
-        analyzeText
+        analyzeText,
+        simulateParsingResult // Exposer cette fonction pour des tests
     };
 })();
