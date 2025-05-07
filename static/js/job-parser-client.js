@@ -4,7 +4,7 @@
 // Create a JobParser object in the global scope
 window.JobParser = (function() {
     // Configuration
-    const API_URL = 'http://localhost:5053'; // Local development URL
+    const API_URL = 'http://localhost:5054'; // Local development URL
     
     // Dans l'environnement GitHub Pages, nous utiliserons une simulation
     // puisque nous n'avons pas de backend réel déployé
