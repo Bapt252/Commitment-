@@ -1138,6 +1138,83 @@
             margin: 2px;
         }
         
+        /* Styles pour le drag-n-drop */
+        .drop-zone {
+            width: 100%;
+            min-height: 150px;
+            border: 2px dashed rgba(124, 58, 237, 0.3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .drop-zone:hover, .drop-zone.highlight {
+            border-color: var(--purple);
+            background-color: rgba(124, 58, 237, 0.05);
+        }
+        
+        .drop-zone-icon {
+            font-size: 2.5rem;
+            color: var(--purple-light);
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone:hover .drop-zone-icon {
+            transform: translateY(-5px);
+            color: var(--purple);
+        }
+        
+        .drop-zone-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--black-light);
+            margin-bottom: 5px;
+        }
+        
+        .drop-zone-subtext {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .format-info {
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .separator {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            width: 100%;
+        }
+        
+        .separator hr {
+            flex-grow: 1;
+            height: 1px;
+            background-color: rgba(124, 58, 237, 0.2);
+            border: none;
+        }
+        
+        .separator-text {
+            padding: 0 15px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+        
         /* Responsive design amélioré */
         @media (max-width: 768px) {
             .stepper {
@@ -1397,11 +1474,26 @@
                                     <div id="inline-job-parser" style="display: none; margin-top: 20px; background: #fff; border-radius: 12px; padding: 20px; border: 1px solid rgba(124, 58, 237, 0.2);">
                                         <h3 style="color: #7C3AED; margin-bottom: 15px;">Analyse de fiche de poste</h3>
                                         
+                                        <!-- Zone de drag-n-drop -->
+                                        <div id="job-drop-zone" class="drop-zone">
+                                            <i class="fas fa-cloud-upload-alt drop-zone-icon"></i>
+                                            <div class="drop-zone-text">Glissez-déposez votre fichier ici</div>
+                                            <div class="drop-zone-subtext">ou cliquez pour sélectionner un fichier</div>
+                                            <input type="file" id="job-file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
+                                        </div>
+                                        <p class="format-info">Formats supportés: PDF, DOCX, DOC, TXT</p>
+                                        
+                                        <div class="separator">
+                                            <hr>
+                                            <span class="separator-text">OU</span>
+                                            <hr>
+                                        </div>
+                                        
                                         <textarea id="job-description-text" class="form-control" style="min-height: 150px; margin-bottom: 15px;" placeholder="Collez le texte de votre fiche de poste ici..."></textarea>
                                         
                                         <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                                             <button type="button" id="analyze-job-text" class="btn-generate" style="background-color: #7C3AED; color: white;">
-                                                <i class="fas fa-search"></i> Analyser le texte
+                                                <i class="fas fa-search"></i> Analyser avec GPT
                                             </button>
                                             <button type="button" id="close-inline-parser" class="btn-generate">
                                                 <i class="fas fa-times"></i> Fermer
@@ -1997,6 +2089,8 @@
             const closeInlineParserBtn = document.getElementById('close-inline-parser');
             const analyzeJobTextBtn = document.getElementById('analyze-job-text');
             const jobDescriptionText = document.getElementById('job-description-text');
+            const jobFileInput = document.getElementById('job-file-input');
+            const jobDropZone = document.getElementById('job-drop-zone');
             const inlineAnalysisResults = document.getElementById('inline-analysis-results');
             const jobInfoContainer = document.getElementById('job-info-container');
 
@@ -2033,33 +2127,129 @@ Lieu: Paris`;
                 });
             }
 
-            // Bouton pour analyser le texte
+            // Gestion du Drop Zone
+            if (jobDropZone && jobFileInput) {
+                // Simuler un clic sur l'input de fichier quand on clique sur la zone de drop
+                jobDropZone.addEventListener('click', function() {
+                    jobFileInput.click();
+                });
+
+                // Empêcher le comportement par défaut de dragover pour permettre le drop
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    jobDropZone.addEventListener(eventName, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, false);
+                });
+
+                // Mettre en évidence la zone de drop
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    jobDropZone.addEventListener(eventName, function() {
+                        jobDropZone.classList.add('highlight');
+                    }, false);
+                });
+
+                // Enlever la mise en évidence
+                ['dragleave', 'drop'].forEach(eventName => {
+                    jobDropZone.addEventListener(eventName, function() {
+                        jobDropZone.classList.remove('highlight');
+                    }, false);
+                });
+
+                // Gérer le drop de fichier
+                jobDropZone.addEventListener('drop', function(e) {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        jobFileInput.files = files;
+                        handleFileSelection(files[0]);
+                    }
+                }, false);
+
+                // Gérer la sélection de fichier via l'input
+                jobFileInput.addEventListener('change', function() {
+                    if (this.files.length > 0) {
+                        handleFileSelection(this.files[0]);
+                    }
+                });
+
+                // Fonction pour traiter le fichier sélectionné
+                function handleFileSelection(file) {
+                    const fileName = file.name;
+                    const fileExtension = fileName.split('.').pop().toLowerCase();
+                    
+                    // Vérifier si l'extension du fichier est autorisée
+                    const allowedExtensions = ['pdf', 'doc', 'docx', 'txt'];
+                    if (!allowedExtensions.includes(fileExtension)) {
+                        showNotification(`Format de fichier non supporté. Veuillez utiliser PDF, DOC, DOCX ou TXT.`, 'error');
+                        return;
+                    }
+                    
+                    // Afficher le nom du fichier dans la zone de drop
+                    const dropZoneText = jobDropZone.querySelector('.drop-zone-text');
+                    if (dropZoneText) {
+                        dropZoneText.textContent = `Fichier sélectionné: ${fileName}`;
+                    }
+
+                    // Proposer d'analyser le fichier immédiatement
+                    showNotification(`Fichier "${fileName}" sélectionné. Cliquez sur "Analyser avec GPT" pour continuer.`, 'success');
+                }
+            }
+
+            // Bouton pour analyser (simulé pour la démo)
             if (analyzeJobTextBtn) {
                 analyzeJobTextBtn.addEventListener('click', function() {
-                    const text = jobDescriptionText.value.trim();
-                    if (!text) {
-                        showNotification('Veuillez saisir du texte à analyser.', 'error');
+                    // Vérifier si un fichier a été sélectionné ou si du texte a été entré
+                    const hasFile = jobFileInput && jobFileInput.files && jobFileInput.files.length > 0;
+                    const hasText = jobDescriptionText && jobDescriptionText.value.trim() !== '';
+                    
+                    if (!hasFile && !hasText) {
+                        showNotification('Veuillez sélectionner un fichier ou saisir du texte à analyser.', 'error');
                         return;
                     }
 
                     // Afficher un indicateur de chargement
                     inlineAnalysisResults.style.display = 'block';
-                    inlineAnalysisResults.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #7C3AED;"></i><p>Analyse en cours...</p></div>';
+                    inlineAnalysisResults.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #7C3AED;"></i><p>Analyse en cours avec GPT...</p></div>';
 
-                    // Simuler un délai d'analyse
+                    // Simuler l'analyse (dans un environnement réel, cela ferait une requête à un backend GPT)
                     setTimeout(function() {
-                        // Analyser le texte (version simplifiée pour la démonstration)
-                        const results = analyzeJobText(text);
+                        let analysisData;
+                        
+                        if (hasFile) {
+                            // Simuler une analyse de fichier
+                            const fileName = jobFileInput.files[0].name;
+                            const fileExtension = fileName.split('.').pop().toLowerCase();
+                            
+                            // Simulation différente selon le type de fichier
+                            if (fileExtension === 'pdf') {
+                                analysisData = {
+                                    title: "Ingénieur DevOps",
+                                    skills: ["Docker", "Kubernetes", "AWS", "CI/CD", "Python", "Linux"],
+                                    experience: "5 ans d'expérience minimum",
+                                    contract: "CDI"
+                                };
+                            } else {
+                                analysisData = {
+                                    title: "Développeur Full Stack",
+                                    skills: ["JavaScript", "React", "NodeJS", "MongoDB", "Git", "Agile"],
+                                    experience: "3-5 ans d'expérience",
+                                    contract: "CDI"
+                                };
+                            }
+                        } else {
+                            // Analyser le texte saisi
+                            analysisData = analyzeJobText(jobDescriptionText.value);
+                        }
                         
                         // Afficher les résultats
-                        displayResults(results);
-                    }, 1500);
+                        displayResults(analysisData);
+                    }, 2000);
                 });
             }
 
             // Fonction d'analyse du texte
             function analyzeJobText(text) {
-                // Texte normalisé pour l'analyse
+                // Version simplifiée pour la démo
                 const normalizedText = text.toLowerCase();
                 
                 // Titre - première ligne ou début du texte
@@ -2124,7 +2314,7 @@ Lieu: Paris`;
 
             // Afficher les résultats dans le conteneur
             function displayResults(results) {
-                let html = '<h4 style="margin-bottom: 15px; color: #7C3AED;">Informations extraites</h4>';
+                let html = '<h4 style="margin-bottom: 15px; color: #7C3AED;">Informations extraites par GPT</h4>';
                 
                 html += `<div style="margin-bottom: 10px;"><strong>Titre du poste:</strong> ${results.title}</div>`;
                 
@@ -2359,9 +2549,6 @@ Lieu: Paris`;
     
     <!-- Script d'autocomplétion d'adresse avec Google Maps -->
     <script src="../static/scripts/address-autocomplete.js"></script>
-    
-    <!-- Intégration du nouveau script d'analyseur de fiche de poste -->
-    <script src="../static/js/inline-job-parser.js"></script>
     
     <!-- Google Maps API avec clé API et callback -->
     <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initAutocompleteCallback" async defer></script>
