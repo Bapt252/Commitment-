@@ -29,12 +29,22 @@ document.addEventListener('DOMContentLoaded', function() {
         jobContractValue: !!jobContractValue
     });
     
+    // Si le conteneur d'informations existe, s'assurer qu'il est initialement visible
+    if (jobInfoContainer) {
+        console.log('Setting initial style for job info container');
+        jobInfoContainer.style.display = 'none'; // Par défaut, caché
+    }
+    
     // Ouvrir le modal
     if (openJobParserBtn) {
         openJobParserBtn.addEventListener('click', function() {
             console.log('Opening job parser modal');
-            jobParserModal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Empêcher le défilement de la page
+            if (jobParserModal) {
+                jobParserModal.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Empêcher le défilement de la page
+            } else {
+                console.error('Job parser modal element not found');
+            }
         });
     }
     
@@ -42,8 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeJobParserBtn) {
         closeJobParserBtn.addEventListener('click', function() {
             console.log('Closing job parser modal');
-            jobParserModal.classList.remove('active');
-            document.body.style.overflow = ''; // Réactiver le défilement
+            if (jobParserModal) {
+                jobParserModal.classList.remove('active');
+                document.body.style.overflow = ''; // Réactiver le défilement
+            }
         });
     }
     
@@ -64,10 +76,10 @@ document.addEventListener('DOMContentLoaded', function() {
         editParsedInfoBtn.addEventListener('click', function() {
             console.log('Edit button clicked');
             // Créer un formulaire d'édition
-            const jobTitle = jobTitleValue.textContent !== '-' ? jobTitleValue.textContent : '';
-            const jobSkills = jobSkillsValue.textContent !== '-' ? jobSkillsValue.textContent : '';
-            const jobExperience = jobExperienceValue.textContent !== '-' ? jobExperienceValue.textContent : '';
-            const jobContract = jobContractValue.textContent !== '-' ? jobContractValue.textContent : '';
+            const jobTitle = jobTitleValue ? (jobTitleValue.textContent !== '-' ? jobTitleValue.textContent : '') : '';
+            const jobSkills = jobSkillsValue ? (jobSkillsValue.textContent !== '-' ? jobSkillsValue.textContent : '') : '';
+            const jobExperience = jobExperienceValue ? (jobExperienceValue.textContent !== '-' ? jobExperienceValue.textContent : '') : '';
+            const jobContract = jobContractValue ? (jobContractValue.textContent !== '-' ? jobContractValue.textContent : '') : '';
             
             // Créer et afficher un formulaire d'édition
             const editHTML = `
@@ -117,24 +129,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 const newContract = document.getElementById('edit-contract').value || '-';
                 
                 // Mettre à jour les valeurs affichées
-                jobTitleValue.textContent = newTitle;
+                if (jobTitleValue) jobTitleValue.textContent = newTitle;
                 
                 // Convertir les compétences en tags si elles sont fournies
-                if (newSkills !== '-') {
-                    const skillsArray = newSkills.split(',').map(s => s.trim()).filter(s => s);
-                    if (skillsArray.length > 0) {
-                        jobSkillsValue.innerHTML = skillsArray.map(skill => 
-                            `<span class="skill-tag">${skill}</span>`
-                        ).join(' ');
+                if (jobSkillsValue) {
+                    if (newSkills !== '-') {
+                        const skillsArray = newSkills.split(',').map(s => s.trim()).filter(s => s);
+                        if (skillsArray.length > 0) {
+                            jobSkillsValue.innerHTML = skillsArray.map(skill => 
+                                `<span class="skill-tag">${skill}</span>`
+                            ).join(' ');
+                        } else {
+                            jobSkillsValue.textContent = '-';
+                        }
                     } else {
                         jobSkillsValue.textContent = '-';
                     }
-                } else {
-                    jobSkillsValue.textContent = '-';
                 }
                 
-                jobExperienceValue.textContent = newExperience;
-                jobContractValue.textContent = newContract;
+                if (jobExperienceValue) jobExperienceValue.textContent = newExperience;
+                if (jobContractValue) jobContractValue.textContent = newContract;
                 
                 // Pré-remplir également les champs du formulaire
                 prefillFormWithEditedData(newTitle, newSkills, newExperience, newContract);
@@ -162,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Écoute des événements postMessage depuis l'iframe
     window.addEventListener('message', function(event) {
         // Vérifier si nous recevons des données du parser
-        console.log('Received message event:', event.data?.type);
+        console.log('Received message event:', event.data);
         
         if (event.data && event.data.type === 'jobParsingResult') {
             const jobData = event.data.jobData;
@@ -172,46 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Mettre à jour les informations du poste dans notre formulaire
             if (jobData) {
-                // Afficher le conteneur d'informations
-                if (jobInfoContainer) {
-                    jobInfoContainer.classList.add('visible');
-                    console.log('Job info container is now visible');
-                } else {
-                    console.error('Job info container element not found');
-                }
-                
-                // Mettre à jour les valeurs si les éléments existent
-                if (jobTitleValue) {
-                    jobTitleValue.textContent = jobData.title || '-';
-                    console.log('Updated job title:', jobData.title || '-');
-                }
-                
-                // Formater les compétences avec des balises individuelles pour un meilleur affichage
-                if (jobSkillsValue) {
-                    if (jobData.skills && jobData.skills.length > 0) {
-                        const skillsHtml = jobData.skills.map(skill => 
-                            `<span class="skill-tag">${skill}</span>`
-                        ).join(' ');
-                        jobSkillsValue.innerHTML = skillsHtml;
-                        console.log('Updated job skills:', jobData.skills.join(', '));
-                    } else {
-                        jobSkillsValue.textContent = '-';
-                        console.log('No skills found in job data');
-                    }
-                }
-                
-                if (jobExperienceValue) {
-                    jobExperienceValue.textContent = jobData.experience || '-';
-                    console.log('Updated job experience:', jobData.experience || '-');
-                }
-                
-                if (jobContractValue) {
-                    jobContractValue.textContent = jobData.contract || '-';
-                    console.log('Updated job contract:', jobData.contract || '-');
-                }
-                
-                // Pré-remplir certains champs du formulaire avec les informations extraites
-                prefillFormFields(jobData);
+                // Appeler la fonction de mise à jour
+                updateJobInfoDisplay(jobData);
                 
                 // Fermer automatiquement le modal après avoir reçu les données
                 setTimeout(() => {
@@ -226,40 +202,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('No job data received in the message');
                 showNotification('Aucune information n\'a pu être extraite du document', 'error');
             }
+        } else if (event.data && (event.data.type === 'testCommunication' || event.data.type === 'testMessage' || event.data.type === 'loadedMessage')) {
+            // Message de test reçu
+            console.log('Test message received:', event.data);
+            
+            // Répondre au message de test
+            if (window.jobParserIframe && window.jobParserIframe.contentWindow) {
+                try {
+                    window.jobParserIframe.contentWindow.postMessage({
+                        type: 'testResponse',
+                        message: 'Message reçu par la page parente',
+                        originalMessage: event.data.message,
+                        timestamp: new Date().toISOString()
+                    }, '*');
+                    console.log('Response sent to iframe');
+                } catch (e) {
+                    console.error('Error sending response to iframe:', e);
+                }
+            }
         }
     });
     
-    // Si aucune donnée n'est reçue après 5 secondes, fournir un ensemble de données par défaut
+    // Générer des données de test après 8 secondes si aucune donnée n'a été reçue
     setTimeout(() => {
-        if (jobInfoContainer && !jobInfoContainer.classList.contains('visible')) {
+        if (jobInfoContainer && jobInfoContainer.style.display === 'none') {
             console.log('No data received after timeout, using default data');
             
             // Simuler la réception de données
             const defaultJobData = {
-                title: "Comptable Auxiliaire",
-                skills: ["Excel", "SAP", "Comptabilité générale", "Analyse financière", "Saisie comptable"],
-                experience: "2-3 ans d'expérience en comptabilité",
-                contract: "CDI",
-                location: "Paris",
-                salary: "30-35K€ selon expérience",
-                responsibilities: "Participation à la clôture mensuelle, saisie des factures, rapprochements bancaires, suivi des immobilisations"
+                title: "Développeur Web Frontend",
+                skills: ["JavaScript", "React", "CSS", "HTML5", "UI/UX"],
+                experience: "2-3 ans d'expérience en développement web",
+                contract: "CDI"
             };
             
             // Mettre à jour l'interface
             updateJobInfoDisplay(defaultJobData);
+            
+            // Afficher une notification
+            showNotification('Données d\'exemple chargées automatiquement pour démonstration', 'success');
         }
-    }, 5000);
+    }, 3000);
     
     // Fonction pour mettre à jour l'affichage des informations du poste
     function updateJobInfoDisplay(jobData) {
+        console.log('Updating job info display with data:', jobData);
+        
         // Afficher le conteneur d'informations
         if (jobInfoContainer) {
+            jobInfoContainer.style.display = 'block';
+            // Ajouter la classe visible si elle est utilisée
             jobInfoContainer.classList.add('visible');
-            console.log('Job info container made visible with default data');
+            console.log('Job info container made visible');
+        } else {
+            console.error('Job info container element not found');
         }
         
         // Mettre à jour les valeurs
-        if (jobTitleValue) jobTitleValue.textContent = jobData.title || '-';
+        if (jobTitleValue) {
+            jobTitleValue.textContent = jobData.title || '-';
+            console.log('Updated job title to:', jobData.title || '-');
+        } else {
+            console.warn('job-title-value element not found');
+        }
         
         // Formater les compétences
         if (jobSkillsValue) {
@@ -268,26 +273,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     `<span class="skill-tag">${skill}</span>`
                 ).join(' ');
                 jobSkillsValue.innerHTML = skillsHtml;
+                console.log('Updated job skills with HTML tags');
             } else {
                 jobSkillsValue.textContent = '-';
+                console.log('No skills to display');
             }
+        } else {
+            console.warn('job-skills-value element not found');
         }
         
-        if (jobExperienceValue) jobExperienceValue.textContent = jobData.experience || '-';
-        if (jobContractValue) jobContractValue.textContent = jobData.contract || '-';
+        if (jobExperienceValue) {
+            jobExperienceValue.textContent = jobData.experience || '-';
+            console.log('Updated job experience to:', jobData.experience || '-');
+        } else {
+            console.warn('job-experience-value element not found');
+        }
+        
+        if (jobContractValue) {
+            jobContractValue.textContent = jobData.contract || '-';
+            console.log('Updated job contract to:', jobData.contract || '-');
+        } else {
+            console.warn('job-contract-value element not found');
+        }
         
         // Pré-remplir les champs du formulaire
         prefillFormFields(jobData);
-        
-        // Fermer le modal s'il est ouvert
-        if (jobParserModal && jobParserModal.classList.contains('active')) {
-            setTimeout(() => {
-                jobParserModal.classList.remove('active');
-                document.body.style.overflow = '';
-            }, 1000);
-        }
-        
-        showNotification('Informations du poste mises à jour', 'success');
     }
     
     // Fonction pour pré-remplir les champs du formulaire
@@ -403,6 +413,32 @@ document.addEventListener('DOMContentLoaded', function() {
             notification.classList.remove('show');
         }, 5000);
     }
+    
+    // Exposer cette fonction pour qu'elle soit accessible globalement
+    window.showNotification = showNotification;
+    
+    // Envoyer un message à l'iframe pour vérifier la communication
+    function testIframeCommunication() {
+        if (jobParserIframe && jobParserIframe.contentWindow) {
+            try {
+                jobParserIframe.contentWindow.postMessage({
+                    type: 'testCommunication',
+                    message: 'Test de communication depuis la page principale',
+                    timestamp: new Date().toISOString()
+                }, '*');
+                console.log('Test message sent to iframe');
+                return true;
+            } catch (e) {
+                console.error('Error sending test message to iframe:', e);
+                return false;
+            }
+        }
+        console.warn('Iframe not accessible for communication test');
+        return false;
+    }
+    
+    // Test automatique après 2 secondes
+    setTimeout(testIframeCommunication, 2000);
     
     // Fonction pour gérer les erreurs
     function handleError(error) {
