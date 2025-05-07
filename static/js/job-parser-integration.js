@@ -243,31 +243,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 messageId: new Date().getTime()
             });
             
-            // Essayer d'envoyer via l'API de pont si disponible
-            if (typeof window.sendToParent === 'function') {
-                window.sendToParent({
-                    type: 'jobParsingResult',
-                    jobData: jobData,
-                    messageId: new Date().getTime()
-                });
-            } else {
-                // Sinon, utiliser directement postMessage
-                window.parent.postMessage({
-                    type: 'jobParsingResult',
-                    jobData: jobData,
-                    messageId: new Date().getTime()
-                }, '*');
+            // Envoyer plusieurs fois pour s'assurer que le message est reçu
+            // (cette technique de redondance peut aider dans certains cas)
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    // Essayer d'envoyer via l'API de pont si disponible
+                    if (typeof window.sendToParent === 'function') {
+                        window.sendToParent({
+                            type: 'jobParsingResult',
+                            jobData: jobData,
+                            messageId: new Date().getTime() + i
+                        });
+                    } else {
+                        // Sinon, utiliser directement postMessage
+                        window.parent.postMessage({
+                            type: 'jobParsingResult',
+                            jobData: jobData,
+                            messageId: new Date().getTime() + i
+                        }, '*');
+                    }
+                    
+                    console.log(`Sent data to parent (attempt ${i+1}/3)`);
+                }, i * 500); // Espacer les tentatives de 500ms
             }
             
-            // Pour des tests, envoyer aussi un message de test distinct
-            console.log('Sending test message to parent');
-            window.parent.postMessage({
-                type: 'testMessage', 
-                message: 'Test from job-parser-integration.js',
-                timestamp: new Date().toISOString()
-            }, '*');
+            // Tenter d'appeler directement la fonction de mise à jour si elle existe dans le parent
+            try {
+                if (window.parent.updateJobInfoDisplay) {
+                    console.log('Direct function call to parent.updateJobInfoDisplay');
+                    window.parent.updateJobInfoDisplay(jobData);
+                }
+            } catch (e) {
+                console.warn('Could not call parent function directly:', e);
+            }
+            
+            // Pour des tests, on pourrait aussi stocker les données dans le sessionStorage
+            // afin que la page parente puisse les récupérer même sans communication directe
+            sessionStorage.setItem('lastJobParseData', JSON.stringify(jobData));
+            console.log('Data saved to sessionStorage for parent retrieval');
+            
+            // Pour les tests, retourner les données
+            return true;
         } else {
             console.log('Not in iframe, cannot send data to parent');
+            return false;
         }
     }
     
@@ -385,10 +404,33 @@ document.addEventListener('DOMContentLoaded', function() {
         if (applyButton) {
             applyButton.addEventListener('click', function() {
                 // Envoyer les données à la page parente (si dans un iframe)
-                sendDataToParent({
+                const success = sendDataToParent({
                     data: parsedData
                 });
-                alert('Les informations ont été appliquées avec succès !');
+                
+                if (success) {
+                    // Retarder pour que l'utilisateur puisse voir l'information traitée
+                    setTimeout(() => {
+                        // Fermer la fenêtre modale parente si dans un iframe
+                        if (window.parent && window.parent !== window) {
+                            try {
+                                // Essayer de fermer le modal via postMessage
+                                window.parent.postMessage({
+                                    type: 'closeModal',
+                                    reason: 'dataApplied'
+                                }, '*');
+                                
+                                alert('Les informations ont été appliquées avec succès !');
+                            } catch (e) {
+                                console.error('Error sending close modal message:', e);
+                            }
+                        } else {
+                            alert('Les informations ont été analysées avec succès !');
+                        }
+                    }, 1000);
+                } else {
+                    alert('Les informations ont été analysées, mais n\'ont pas pu être transmises à la page principale.');
+                }
             });
         }
         
@@ -403,6 +445,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         message: 'Ceci est un test de communication',
                         timestamp: new Date().toISOString()
                     }, '*');
+                    
+                    // Également essayer d'accéder directement à une fonction du parent
+                    try {
+                        if (window.parent.showNotification) {
+                            window.parent.showNotification('Test de communication réussi!', 'success');
+                        }
+                    } catch (e) {
+                        console.warn('Could not call parent.showNotification:', e);
+                    }
                     
                     // Afficher un message sur la page
                     const testResult = document.createElement('div');
@@ -422,6 +473,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         testResult.style.opacity = '0';
                         testResult.style.transition = 'opacity 0.5s ease';
                     }, 3000);
+                    
+                    // Essayer également la méthode directe
+                    sendDataToParent({
+                        data: {
+                            title: "Test de Communication",
+                            required_skills: ["Communication", "Test", "iFrame"],
+                            experience: "Test d'expérience",
+                            contract_type: "Test de contrat"
+                        }
+                    });
                 } else {
                     alert('Cette page n\'est pas chargée dans un iframe.');
                 }
@@ -489,6 +550,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, '*');
             }
         }
+        
+        // Si nous recevons une demande de données, les envoyer
+        if (event.data && event.data.type === 'requestJobData') {
+            console.log('Received request for job data, checking localStorage');
+            const lastResult = localStorage.getItem('lastJobParseResult');
+            if (lastResult) {
+                try {
+                    const data = JSON.parse(lastResult);
+                    console.log('Found cached data, sending to parent');
+                    sendDataToParent(data);
+                } catch (e) {
+                    console.error('Error parsing cached data:', e);
+                }
+            }
+        }
     });
     
     // Initialiser la page - vérifier s'il y a des résultats en cache
@@ -516,6 +592,11 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 displayResults(data);
             }, 500);
+            
+            // Envoyer les données au parent
+            setTimeout(() => {
+                sendDataToParent(data);
+            }, 1000);
         } catch (e) {
             console.error('Erreur lors de la récupération des résultats en cache:', e);
         }
@@ -532,4 +613,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }, '*');
         }
     }, 1000);
+    
+    // Exposer cette fonction pour la page parente
+    window.sendJobDataToParent = function() {
+        const lastResult = localStorage.getItem('lastJobParseResult');
+        if (lastResult) {
+            try {
+                const data = JSON.parse(lastResult);
+                return sendDataToParent(data);
+            } catch (e) {
+                console.error('Error sending data to parent:', e);
+                return false;
+            }
+        }
+        return false;
+    };
 });
