@@ -432,6 +432,9 @@
     <script src="../static/js/job-parser-bridge.js"></script>
     <script src="../static/js/upload-direct-fix.js"></script>
     
+    <!-- Nouvel outil de débogage pour résoudre les problèmes de communication -->
+    <script src="../static/js/job-parser-debug.js"></script>
+    
     <script>
         // Activer/désactiver le mode debug avec un raccourci clavier (Ctrl+Shift+D)
         document.addEventListener('keydown', function(e) {
@@ -456,8 +459,14 @@
                         window.testParentMessage = function() {
                             if (window.parent && window.parent !== window) {
                                 window.parent.postMessage({
-                                    type: 'debug',
-                                    message: 'Test depuis iframe'
+                                    type: 'jobParsingResult',
+                                    jobData: {
+                                        title: "Développeur Test (envoyé depuis iframe debug)",
+                                        skills: ["JavaScript", "Debug", "Test"],
+                                        experience: "3 ans d'expérience minimum",
+                                        contract: "CDI"
+                                    },
+                                    messageId: new Date().getTime()
                                 }, '*');
                                 debugInfo.innerHTML += '<br>Message envoyé au parent';
                             } else {
@@ -468,6 +477,29 @@
                 }
             }
         });
+        
+        // Simulation de données après 5 secondes pour tester la communication
+        setTimeout(function() {
+            // Créer un exemple d'offre d'emploi dans le champ de texte
+            const textInput = document.getElementById('text-input');
+            if (textInput && !textInput.value) {
+                textInput.value = `Développeur Frontend - CDI
+                
+Notre entreprise recherche un développeur frontend expérimenté pour travailler sur nos applications web.
+
+Compétences requises:
+- JavaScript
+- React
+- CSS/SASS
+- HTML5
+- Git
+
+Expérience: 3-5 ans d'expérience en développement frontend.
+
+Type de contrat: CDI à temps plein
+Lieu: Paris`;
+            }
+        }, 500);
     </script>
 </body>
 </html>
