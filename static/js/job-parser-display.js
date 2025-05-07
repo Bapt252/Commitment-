@@ -29,10 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
         jobContractValue: !!jobContractValue
     });
     
-    // Si le conteneur d'informations existe, s'assurer qu'il est initialement visible
+    // Si le conteneur d'informations existe, s'assurer qu'il est initialement caché
     if (jobInfoContainer) {
         console.log('Setting initial style for job info container');
         jobInfoContainer.style.display = 'none'; // Par défaut, caché
+    } else {
+        console.warn('Job info container not found in the DOM');
     }
     
     // Ouvrir le modal
@@ -176,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Écoute des événements postMessage depuis l'iframe
     window.addEventListener('message', function(event) {
         // Vérifier si nous recevons des données du parser
-        console.log('Received message event:', event.data);
+        console.log('Received message event in display script:', event.data);
         
         if (event.data && event.data.type === 'jobParsingResult') {
             const jobData = event.data.jobData;
@@ -184,20 +186,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             console.log(`Received job parsing data (messageId: ${messageId}):`, jobData);
             
-            // Mettre à jour les informations du poste dans notre formulaire
             if (jobData) {
+                // Ne pas fermer tout de suite le modal (laisser l'utilisateur voir le résultat)
                 // Appeler la fonction de mise à jour
                 updateJobInfoDisplay(jobData);
                 
-                // Fermer automatiquement le modal après avoir reçu les données
+                // Fermer le modal après un délai
                 setTimeout(() => {
-                    if (jobParserModal) {
+                    if (jobParserModal && jobParserModal.classList.contains('active')) {
                         jobParserModal.classList.remove('active');
                         document.body.style.overflow = '';
-                        console.log('Modal automatically closed');
+                        console.log('Modal automatically closed after delay');
                     }
                     showNotification('Les informations du poste ont été extraites avec succès !', 'success');
-                }, 1000);
+                }, 2000); // Délai augmenté à 2 secondes pour que l'utilisateur voie le résultat
             } else {
                 console.error('No job data received in the message');
                 showNotification('Aucune information n\'a pu être extraite du document', 'error');
@@ -207,9 +209,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Test message received:', event.data);
             
             // Répondre au message de test
-            if (window.jobParserIframe && window.jobParserIframe.contentWindow) {
+            if (jobParserIframe && jobParserIframe.contentWindow) {
                 try {
-                    window.jobParserIframe.contentWindow.postMessage({
+                    jobParserIframe.contentWindow.postMessage({
                         type: 'testResponse',
                         message: 'Message reçu par la page parente',
                         originalMessage: event.data.message,
@@ -223,8 +225,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Générer des données de test après 8 secondes si aucune donnée n'a été reçue
+    // Attendre un peu plus longtemps pour les données, car l'analyse peut prendre du temps
     setTimeout(() => {
+        // Vérifie si le conteneur est présent mais toujours caché
         if (jobInfoContainer && jobInfoContainer.style.display === 'none') {
             console.log('No data received after timeout, using default data');
             
@@ -240,9 +243,9 @@ document.addEventListener('DOMContentLoaded', function() {
             updateJobInfoDisplay(defaultJobData);
             
             // Afficher une notification
-            showNotification('Données d\'exemple chargées automatiquement pour démonstration', 'success');
+            showNotification('Données d\'exemple chargées pour démonstration', 'success');
         }
-    }, 3000);
+    }, 5000); // Attendre 5 secondes avant de charger des données par défaut
     
     // Fonction pour mettre à jour l'affichage des informations du poste
     function updateJobInfoDisplay(jobData) {
@@ -255,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
             jobInfoContainer.classList.add('visible');
             console.log('Job info container made visible');
         } else {
-            console.error('Job info container element not found');
+            console.error('Job info container element not found when updating display');
         }
         
         // Mettre à jour les valeurs
@@ -445,4 +448,26 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error in job parser display:', error);
         showNotification('Une erreur est survenue: ' + error.message, 'error');
     }
+    
+    // Fonction pour forcer l'affichage des données (pour les tests)
+    window.forceDisplayJobData = function(testData) {
+        const data = testData || {
+            title: "Développeur Test",
+            skills: ["JavaScript", "Test", "Debugging"],
+            experience: "3-5 ans d'expérience en test",
+            contract: "CDI"
+        };
+        
+        updateJobInfoDisplay(data);
+        showNotification("Données de test affichées avec succès", "success");
+    };
+    
+    // Exposer une fonction de test pour le bouton de démonstration
+    window.testJobParserFunction = function() {
+        showNotification("Test de l'analyseur de fiche de poste...", "success");
+        // Forcer l'affichage de données de test après 1 seconde
+        setTimeout(() => {
+            window.forceDisplayJobData();
+        }, 1000);
+    };
 });
