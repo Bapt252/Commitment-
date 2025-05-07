@@ -74,7 +74,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Fonction pour mettre à jour l'affichage des informations du poste
         function updateJobDisplay(jobData) {
-            if (!jobData) return;
+            if (!jobData) {
+                console.error('No job data provided to updateJobDisplay');
+                return;
+            }
+            
+            console.log('Updating job display with data:', jobData);
             
             const jobTitleValue = document.getElementById('job-title-value');
             const jobSkillsValue = document.getElementById('job-skills-value');
@@ -85,11 +90,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Rendre le conteneur visible
             if (jobInfoContainer) {
                 jobInfoContainer.style.display = 'block';
+                // Ajouter la classe visible si elle est utilisée
+                jobInfoContainer.classList.add('visible');
             }
             
             // Mettre à jour les valeurs
             if (jobTitleValue) {
                 jobTitleValue.textContent = jobData.title || '-';
+                console.log('Updated job title to:', jobData.title || '-');
+            } else {
+                console.warn('job-title-value element not found');
             }
             
             if (jobSkillsValue) {
@@ -98,17 +108,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         `<span class="skill-tag">${skill}</span>`
                     ).join(' ');
                     jobSkillsValue.innerHTML = skillsHtml;
+                    console.log('Updated job skills with HTML tags');
                 } else {
                     jobSkillsValue.textContent = '-';
+                    console.log('No skills to display');
                 }
+            } else {
+                console.warn('job-skills-value element not found');
             }
             
             if (jobExperienceValue) {
                 jobExperienceValue.textContent = jobData.experience || '-';
+                console.log('Updated job experience to:', jobData.experience || '-');
+            } else {
+                console.warn('job-experience-value element not found');
             }
             
             if (jobContractValue) {
                 jobContractValue.textContent = jobData.contract || '-';
+                console.log('Updated job contract to:', jobData.contract || '-');
+            } else {
+                console.warn('job-contract-value element not found');
             }
             
             // Pré-remplir d'autres champs du formulaire
@@ -116,6 +136,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 const contractTypeField = document.getElementById('contract-type');
                 if (contractTypeField) {
                     contractTypeField.value = jobData.contract;
+                    console.log('Pre-filled contract-type field with:', jobData.contract);
+                }
+            }
+            
+            // Tenter de mapper l'expérience à un niveau prédéfini
+            if (jobData.experience) {
+                const experienceField = document.getElementById('required-experience');
+                if (experienceField) {
+                    const expText = jobData.experience.toLowerCase();
+                    
+                    if (expText.includes('junior') || expText.includes('débutant')) {
+                        experienceField.value = 'junior';
+                    } else if (expText.includes('2') || expText.includes('3')) {
+                        experienceField.value = '2-3years';
+                    } else if (expText.includes('5') || (expText.includes('10') && !expText.includes('10+'))) {
+                        experienceField.value = '5-10years';
+                    } else if (expText.includes('10+') || expText.includes('senior')) {
+                        experienceField.value = '10+years';
+                    }
+                    console.log('Mapped experience to dropdown value');
                 }
             }
         }
@@ -129,16 +169,54 @@ document.addEventListener('DOMContentLoaded', function() {
         window.sendToParent = function(data) {
             console.log('Sending data to parent:', data);
             if (window.parent) {
-                window.parent.postMessage(data, '*');
-                return true;
+                try {
+                    window.parent.postMessage(data, '*');
+                    console.log('Message sent to parent successfully');
+                    return true;
+                } catch (e) {
+                    console.error('Error sending message to parent:', e);
+                    return false;
+                }
             }
+            console.warn('Parent window not accessible');
             return false;
         };
+        
+        // Fonction pour tester la communication
+        window.testParentCommunication = function() {
+            console.log('Testing communication with parent window');
+            return window.sendToParent({
+                type: 'testCommunication',
+                message: 'Hello from iframe!',
+                timestamp: new Date().toISOString()
+            });
+        };
+        
+        // Test de communication automatique après un court délai
+        setTimeout(() => {
+            console.log('Running automatic communication test...');
+            window.testParentCommunication();
+        }, 1500);
         
         // Vérifier si le parent est accessible
         try {
             if (window.parent && window.parent !== window) {
-                console.log('Parent window accessible');
+                console.log('Parent window is accessible');
+                
+                // Écouter les messages du parent
+                window.addEventListener('message', function(event) {
+                    console.log('Iframe received message:', event.data);
+                    
+                    // Si le parent demande un test, répondre
+                    if (event.data && event.data.type === 'testCommunication') {
+                        window.sendToParent({
+                            type: 'testResponse',
+                            message: 'Iframe received your message',
+                            originalMessage: event.data.message,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                });
             }
         } catch (e) {
             console.error('Unable to access parent window:', e);
