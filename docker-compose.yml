@@ -220,7 +220,7 @@ services:
   job-parser:
     build:
       context: ./job-parser-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.simple
     container_name: nexten-job-parser
     command: python main.py
     ports:
@@ -266,7 +266,7 @@ services:
   job-parser-worker:
     build:
       context: ./job-parser-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.simple
     command: python worker.py
     volumes:
       - ./job-parser-service/logs:/app/logs
