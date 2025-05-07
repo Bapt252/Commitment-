@@ -33,18 +33,29 @@ if ! command -v docker-compose &> /dev/null; then
     exit 1
 fi
 
+# Vérification des arguments
+fix_dockerfile=false
+if [ "$1" == "--fix" ]; then
+    print_status "Utilisation du Dockerfile corrigé pour contourner le problème de circuit_breaker"
+    fix_dockerfile=true
+fi
+
 # Arrêt des services liés au job parser
 print_status "Arrêt des services de parsing de fiches de poste..."
 docker-compose stop job-parser job-parser-worker
 
 # Vérifier si on doit nettoyer les conteneurs
-if [ "$1" == "--clean" ]; then
+if [ "$1" == "--clean" ] || [ "$2" == "--clean" ]; then
     print_status "Nettoyage des conteneurs job-parser..."
     docker-compose rm -f job-parser job-parser-worker
 fi
 
-# Reconstruction des images si besoin
-if [ "$1" == "--rebuild" ] || [ "$1" == "--clean" ]; then
+# Reconstruction des images
+if $fix_dockerfile; then
+    print_status "Construction des images avec le Dockerfile corrigé..."
+    docker build -t nexten-job-parser -f job-parser-service/Dockerfile.fix job-parser-service/
+    docker build -t nexten-job-parser-worker -f job-parser-service/Dockerfile.fix job-parser-service/
+elif [ "$1" == "--rebuild" ] || [ "$1" == "--clean" ] || [ "$2" == "--rebuild" ]; then
     print_status "Reconstruction des images job-parser..."
     docker-compose build job-parser job-parser-worker
 fi
