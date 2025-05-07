@@ -1,15 +1,23 @@
 /**
  * Script de débogage pour résoudre les problèmes de communication
  * entre l'iframe d'analyse de fiche de poste et la page principale.
+ * 
+ * Version modifiée : panneau de débogage désactivé pour les utilisateurs finaux
  */
 (function() {
-    console.log('Initializing job parser debugging tools');
+    console.log('Initializing job parser debugging tools - UI disabled');
     
     // Vérifier si nous sommes dans une iframe ou dans la page principale
     const isIframe = window !== window.parent;
     
+    // Mode de débogage désactivé pour la production
+    const DEBUG_MODE = false;
+    
     // Fonction pour créer un bouton de débogage
     function createDebugButton() {
+        // Seulement afficher le bouton en mode débogage
+        if (!DEBUG_MODE) return null;
+        
         // Créer un bouton flottant
         const button = document.createElement('button');
         button.textContent = 'Test Parser';
@@ -69,6 +77,13 @@
     
     // Fonction pour afficher une zone de statut
     function createStatusPanel() {
+        // Ne pas créer le panneau si le mode débogage est désactivé
+        if (!DEBUG_MODE) {
+            // Créer une fonction fictive pour que les appels ne génèrent pas d'erreur
+            window.updateDebugStatus = function() {};
+            return null;
+        }
+        
         const panel = document.createElement('div');
         panel.style.cssText = `
             position: fixed;
@@ -114,7 +129,8 @@
             if (statusElem) statusElem.textContent = status;
             if (messageElem) messageElem.textContent = message || '';
             
-            panel.style.display = 'block';
+            // Ne pas afficher automatiquement le panneau
+            // panel.style.display = 'block';
         };
         
         return panel;
@@ -213,7 +229,7 @@
             console.log('Debug: Received message:', event.data);
             
             if (event.data && event.data.type) {
-                // Mettre à jour le statut de débogage
+                // Mettre à jour le statut de débogage (sans afficher l'UI)
                 window.updateDebugStatus('Message received', 
                     `Type: ${event.data.type} | ID: ${event.data.messageId || 'N/A'}`);
                 
@@ -236,7 +252,7 @@
     
     // Fonction principale
     function initialize() {
-        // Créer le panneau de statut
+        // Créer le panneau de statut (désactivé en production)
         createStatusPanel();
         
         // Injecter les fonctions de débogage
@@ -245,14 +261,11 @@
         // Configurer les écouteurs de messages
         setupMessageListeners();
         
-        // Créer le bouton de débogage
+        // Créer le bouton de débogage (désactivé en production)
         createDebugButton();
         
-        // Initial status
-        window.updateDebugStatus('Ready', 
-            `Context: ${isIframe ? 'iframe' : 'parent page'} | Time: ${new Date().toLocaleTimeString()}`);
-        
-        console.log('Job parser debug tools initialized');
+        // Initial status - log uniquement en console, pas dans l'UI
+        console.log(`Job parser debug tools initialized | Context: ${isIframe ? 'iframe' : 'parent page'} | Time: ${new Date().toLocaleTimeString()}`);
     }
     
     // Démarrer l'initialisation après que la page soit chargée
