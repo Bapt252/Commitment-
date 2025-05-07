@@ -41,7 +41,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-2. Le service sera accessible à l'adresse `http://localhost:5053`
+2. Le service sera accessible à l'adresse `http://localhost:5054`
 
 ## Test du service
 
@@ -50,14 +50,14 @@ Pour tester le service, vous pouvez:
 1. Ouvrir le fichier `test-api.html` dans votre navigateur
 2. Utiliser curl:
 ```bash
-curl -X POST -F "file=@/chemin/vers/votre/fiche_poste.pdf" http://localhost:5053/api/parse-job
+curl -X POST -F "file=@/chemin/vers/votre/fiche_poste.pdf" http://localhost:5054/api/parse-job
 ```
 
 ## Intégration avec le frontend existant
 
 Pour intégrer ce service avec le frontend existant:
 
-1. Assurez-vous que le service fonctionne sur le port 5053
+1. Assurez-vous que le service fonctionne sur le port 5054
 2. Remplacez le code JavaScript actuel par la version dans `frontend-debug.js`
 3. Désactivez le mode simulation en définissant `SIMULATION_MODE = false`
 
