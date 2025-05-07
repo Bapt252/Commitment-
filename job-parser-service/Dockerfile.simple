@@ -1,0 +1,67 @@
+FROM python:3.11-slim
+
+# Dépendances runtime pour traitement de documents
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    libmagic1 \
+    curl \
+    poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-fra \
+    antiword \
+    unrtf \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
+
+# Variables d'environnement
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    CIRCUIT_BREAKER_ENABLED=false
+
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers du projet
+COPY . .
+
+# Créer les répertoires nécessaires
+RUN mkdir -p /app/logs /app/temp && \
+    chmod 777 /app/logs && \
+    chmod 777 /app/temp
+
+# Installation directe des dépendances spécifiées sans circuit_breaker
+RUN pip install --no-cache-dir \
+    fastapi>=0.100.0 \
+    uvicorn>=0.23.0 \
+    python-multipart>=0.0.6 \
+    python-dotenv>=1.0.0 \
+    pydantic>=2.1.0 \
+    pydantic-settings>=2.0.0 \
+    requests>=2.31.0 \
+    PyPDF2>=3.0.0 \
+    pdfminer.six>=20220524 \
+    python-docx>=0.8.11 \
+    striprtf>=0.0.24 \
+    pdfplumber>=0.9.0 \
+    pdf2image>=1.16.3 \
+    pytesseract>=0.3.10 \
+    redis>=4.6.0 \
+    rq>=1.15.0 \
+    minio>=7.1.15 \
+    openai>=1.3.0 \
+    tenacity>=8.2.2 \
+    pybreaker>=1.0.0 \
+    python-magic>=0.4.27
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Port exposé
+EXPOSE 5000
+
+# Commande par défaut
+CMD ["python", "main.py"]
