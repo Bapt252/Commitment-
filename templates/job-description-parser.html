@@ -212,6 +212,133 @@
             margin-right: auto;
         }
         
+        .results-container {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+        }
+        
+        .results-container h2 {
+            color: var(--purple);
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .results-container h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
+            border-radius: 2px;
+        }
+        
+        .result-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .result-item strong {
+            color: var(--black);
+            font-weight: 600;
+            margin-right: 5px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .skill-list, .responsibility-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .skill-list li {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--purple-dark);
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        
+        .responsibility-list li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: var(--black-light);
+        }
+        
+        .responsibility-list li::before {
+            content: '•';
+            color: var(--purple);
+            position: absolute;
+            left: 0;
+            font-size: 1.5rem;
+            line-height: 1;
+            top: -2px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            color: var(--white);
+            box-shadow: 0 8px 15px rgba(124, 58, 237, 0.25);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(124, 58, 237, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--black);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(124, 58, 237, 0.05);
+            border-color: var(--purple);
+        }
+        
         @media (max-width: 768px) {
             .drop-text {
                 font-size: 1rem;
@@ -228,6 +355,31 @@
             .description {
                 font-size: 1rem;
             }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+        
+        /* Style pour le débug */
+        #debug-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 9999;
+            max-width: 300px;
+            max-height: 200px;
+            overflow: auto;
+            display: none;
         }
     </style>
 </head>
@@ -266,10 +418,51 @@
         
         <!-- Section de résultat, initialement vide -->
         <div id="result-section"></div>
+        
+        <!-- Zone d'information de débogage -->
+        <div id="debug-info"></div>
     </div>
     
     <!-- Scripts -->
     <script src="../static/js/job-parser-integration.js"></script>
     <script src="../static/js/file-upload-fix.js"></script>
+    <script src="../static/js/job-parser-bridge.js"></script>
+    
+    <script>
+        // Activer/désactiver le mode debug avec un raccourci clavier (Ctrl+Shift+D)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                const debugInfo = document.getElementById('debug-info');
+                if (debugInfo) {
+                    debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+                    
+                    if (debugInfo.style.display === 'block') {
+                        // Afficher des informations utiles pour le débogage
+                        debugInfo.innerHTML = `
+                            <strong>Debug Mode</strong><br>
+                            Drop Zone: ${!!document.getElementById('drop-zone')}<br>
+                            File Input: ${!!document.getElementById('file-input')}<br>
+                            Analyse Button: ${!!document.getElementById('analyse-button')}<br>
+                            In iframe: ${window !== window.parent}<br>
+                            <button onclick="testParentMessage()">Test Message</button>
+                        `;
+                        
+                        // Fonction de test de communication
+                        window.testParentMessage = function() {
+                            if (window.parent && window.parent !== window) {
+                                window.parent.postMessage({
+                                    type: 'debug',
+                                    message: 'Test depuis iframe'
+                                }, '*');
+                                debugInfo.innerHTML += '<br>Message envoyé au parent';
+                            } else {
+                                debugInfo.innerHTML += '<br>Pas de fenêtre parente accessible';
+                            }
+                        };
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
