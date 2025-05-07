@@ -1,236 +1,150 @@
-// job-parser-client.js
-// Client-side library for communicating with the job-parser API
+/**
+ * Client JavaScript pour l'analyseur de fiche de poste
+ * Ce fichier fournit une interface simple pour analyser les fiches de poste
+ * en se connectant à une API simulée (pour la démo).
+ */
 
-// Create a JobParser object in the global scope
+// Namespace pour l'analyseur de poste
 window.JobParser = (function() {
-    // Configuration
-    const API_URL = 'http://localhost:5054'; // Local development URL
+    console.log('Job Parser Client initialized');
     
-    // Dans l'environnement GitHub Pages, nous utiliserons une simulation
-    // puisque nous n'avons pas de backend réel déployé
-    const isGitHubPages = window.location.hostname.includes('github.io');
+    // Configuration (simulée pour la démo)
+    const config = {
+        apiEndpoint: 'https://api.example.com/job-parser',  // Simulé
+        timeout: 5000
+    };
     
-    // Helper function to determine the best API URL to use
-    function getApiUrl() {
-        // If we're on GitHub Pages, use simulation mode
-        if (isGitHubPages) {
-            console.log('Running on GitHub Pages - using simulation mode');
-            return null;
-        }
-        // Otherwise use the local development URL
-        return API_URL;
-    }
-    
-    // Function to analyze a file using the API
+    /**
+     * Analyser un fichier de fiche de poste
+     * @param {File} file - Le fichier à analyser
+     * @returns {Promise} - Promesse résolue avec les données analysées
+     */
     async function analyzeFile(file) {
-        try {
-            console.log(`Starting file analysis of ${file.name}...`);
-            
-            // Si nous sommes sur GitHub Pages, simuler immédiatement
-            if (isGitHubPages) {
-                console.log('GitHub Pages detected, using simulation mode');
-                return simulateParsingResult(file.name);
-            }
-            
-            // Create a FormData object to send the file
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('force_refresh', 'true');
-            
-            // Make the API request
-            const apiUrl = `${getApiUrl()}/api/parse-job`;
-            console.log(`Sending request to: ${apiUrl}`);
-            
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                body: formData,
-                // Don't set Content-Type header - FormData will set it automatically
-            });
-            
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            console.log('API response:', result);
-            
-            // Format the result for display
-            const formattedResult = formatApiResponse(result);
-            return formattedResult;
-        } catch (error) {
-            console.error('Error analyzing file:', error);
-            // Fall back to simulation if the API call fails
-            console.log('Using simulated data instead');
-            return simulateParsingResult(file.name);
-        }
+        console.log('JobParser.analyzeFile called with:', file);
+        
+        // Simuler une analyse de fichier
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                // Données simulées pour la démo
+                const result = {
+                    data: {
+                        title: "Développeur Full Stack",
+                        company: "Tech Innovations",
+                        location: "Paris, France",
+                        contract_type: "CDI",
+                        required_skills: ["JavaScript", "React", "Node.js", "MongoDB", "Git"],
+                        preferred_skills: ["TypeScript", "Docker", "AWS"],
+                        experience: "3-5 ans d'expérience",
+                        responsibilities: [
+                            "Développer des applications web responsive",
+                            "Collaborer avec l'équipe de design",
+                            "Maintenir les services existants"
+                        ]
+                    }
+                };
+                resolve(result);
+            }, 2000); // Simuler un délai d'analyse
+        });
     }
     
-    // Function to analyze text using the API
+    /**
+     * Analyser un texte de fiche de poste
+     * @param {string} text - Le texte à analyser
+     * @returns {Promise} - Promesse résolue avec les données analysées
+     */
     async function analyzeText(text) {
-        try {
-            console.log('Starting text analysis...');
-            
-            // Si nous sommes sur GitHub Pages, simuler immédiatement
-            if (isGitHubPages) {
-                console.log('GitHub Pages detected, using simulation mode for text analysis');
-                return simulateParsingResultFromText(text);
-            }
-            
-            // Create a blob and a file from the text
-            const blob = new Blob([text], { type: 'text/plain' });
-            const file = new File([blob], 'job-description.txt', { type: 'text/plain' });
-            
-            // Create a FormData object
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('force_refresh', 'true');
-            
-            // Make the API request
-            const apiUrl = `${getApiUrl()}/api/parse-job`;
-            console.log(`Sending request to: ${apiUrl}`);
-            
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                body: formData,
-            });
-            
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            console.log('API response:', result);
-            
-            // Format the result for display
-            const formattedResult = formatApiResponse(result);
-            return formattedResult;
-        } catch (error) {
-            console.error('Error analyzing text:', error);
-            // Fall back to simulation if the API call fails
-            return simulateParsingResultFromText(text);
-        }
-    }
-    
-    // Function to format the API response into a consistent structure
-    function formatApiResponse(apiResponse) {
-        // Check if the response is already in the expected format
-        if (apiResponse.data) {
-            return apiResponse;
-        }
+        console.log('JobParser.analyzeText called with text:', text.substring(0, 50) + '...');
         
-        // Convert the API response to our expected format
-        const formattedData = {
-            data: {
-                title: apiResponse.title || '',
-                company: apiResponse.company || '',
-                location: apiResponse.location || '',
-                contract_type: apiResponse.contract_type || '',
-                required_skills: Array.isArray(apiResponse.skills) ? apiResponse.skills : [],
-                experience: apiResponse.experience || '',
-                responsibilities: []
-            }
+        // Extraction basique de données depuis le texte
+        const result = {
+            data: extractJobDataFromText(text)
         };
         
-        return formattedData;
+        return Promise.resolve(result);
     }
     
-    // Fonction pour simuler des résultats d'analyse de texte
-    function simulateParsingResultFromText(text) {
-        console.log(`Simulating parsing for text input`);
+    /**
+     * Extraction basique de données de poste depuis un texte
+     * @param {string} text - Texte à analyser 
+     */
+    function extractJobDataFromText(text) {
+        // Normalisation du texte
+        const normalizedText = text.toLowerCase();
         
-        // On utilise le texte pour tenter d'extraire des informations pertinentes
-        let simulatedTitle = "Poste à pourvoir";
-        let simulatedSkills = ["Communication", "Organisation", "Travail d'équipe"];
-        let simulatedExp = "2-3 ans d'expérience";
-        let simulatedContract = "CDI";
-        
-        // Extraire des informations intéressantes du texte
-        if (text.toLowerCase().includes('développeur') || text.toLowerCase().includes('developer')) {
-            simulatedTitle = "Développeur";
-            simulatedSkills = ["JavaScript", "React", "Node.js", "Git"];
-            simulatedExp = "3-5 ans d'expérience en développement";
-        } else if (text.toLowerCase().includes('comptable')) {
-            simulatedTitle = "Comptable";
-            simulatedSkills = ["Excel", "SAP", "Comptabilité générale"];
-            simulatedExp = "2 ans minimum en comptabilité";
-        } else if (text.toLowerCase().includes('marketing')) {
-            simulatedTitle = "Responsable Marketing";
-            simulatedSkills = ["SEO", "Réseaux sociaux", "Google Analytics"];
-            simulatedExp = "3 ans en marketing digital";
+        // Titre du poste - première ligne ou contenu entre le début et la première ligne vide
+        let title = text.split('\\n')[0].trim();
+        if (title.length > 50) {
+            // Si trop long, prendre les 50 premiers caractères
+            title = title.substring(0, 50) + '...';
         }
         
-        // Si le texte contient des informations sur le contrat, les extraire
-        if (text.toLowerCase().includes('cdi')) {
-            simulatedContract = "CDI";
-        } else if (text.toLowerCase().includes('cdd')) {
-            simulatedContract = "CDD";
-        } else if (text.toLowerCase().includes('stage')) {
-            simulatedContract = "Stage";
-        } else if (text.toLowerCase().includes('alternance')) {
-            simulatedContract = "Alternance";
+        // Type de contrat
+        let contract_type = "Non spécifié";
+        if (normalizedText.includes('cdi')) {
+            contract_type = "CDI";
+        } else if (normalizedText.includes('cdd')) {
+            contract_type = "CDD";
+        } else if (normalizedText.includes('stage')) {
+            contract_type = "Stage";
+        } else if (normalizedText.includes('alternance')) {
+            contract_type = "Alternance";
+        } else if (normalizedText.includes('freelance')) {
+            contract_type = "Freelance";
         }
         
+        // Expérience
+        let experience = "Non spécifiée";
+        // Patterns pour l'expérience
+        const expPatterns = [
+            /(\d+)[\s-]*ans? d['']expérience/i,
+            /expérience .*?(\d+)[\s-]*ans?/i,
+            /(\d+)[\s-]*à[\s-]*(\d+)[\s-]*ans? d['']expérience/i
+        ];
+        
+        for (const pattern of expPatterns) {
+            const match = normalizedText.match(pattern);
+            if (match) {
+                if (match[2]) {
+                    experience = `${match[1]}-${match[2]} ans d'expérience`;
+                } else {
+                    experience = `${match[1]} ans d'expérience`;
+                }
+                break;
+            }
+        }
+        
+        // Compétences 
+        const skillKeywords = [
+            "javascript", "react", "angular", "vue", "node", "python", "java", "php", "html", "css",
+            "sql", "nosql", "mongodb", "git", "agile", "scrum", "devops", "aws", "docker", "kubernetes",
+            "gestion de projet", "leadership", "communication", "marketing", "vente", "comptabilité",
+            "finance", "rh", "ressources humaines", "support", "service client", "design"
+        ];
+        
+        const skills = [];
+        for (const skill of skillKeywords) {
+            if (normalizedText.includes(skill)) {
+                // Ajouter la compétence avec la première lettre en majuscule
+                skills.push(skill.charAt(0).toUpperCase() + skill.slice(1));
+            }
+        }
+        
+        // Retourner les données extraites
         return {
-            data: {
-                title: simulatedTitle,
-                company: "Entreprise",
-                location: "Paris",
-                contract_type: simulatedContract,
-                required_skills: simulatedSkills,
-                preferred_skills: [],
-                experience: simulatedExp,
-                responsibilities: [
-                    "Responsabilités extraites du texte fourni"
-                ]
-            }
+            title: title || "Poste non spécifié",
+            company: "", // Non extrait pour simplifier
+            location: "", // Non extrait pour simplifier
+            contract_type: contract_type,
+            required_skills: skills.length > 0 ? skills : ["Compétences non spécifiées"],
+            preferred_skills: [],
+            experience: experience,
+            responsibilities: []
         };
     }
     
-    // Function to simulate parsing results when the API is unavailable
-    function simulateParsingResult(fileName) {
-        console.log(`Simulating parsing for: ${fileName}`);
-        
-        // Create a simulated response based on the file name
-        let simulatedTitle = "Poste à pourvoir";
-        let simulatedSkills = ["Communication", "Organisation", "Travail d'équipe"];
-        let simulatedExp = "2-3 ans d'expérience";
-        let simulatedContract = "CDI";
-        
-        // Try to extract some info from the file name
-        if (fileName.toLowerCase().includes('dev')) {
-            simulatedTitle = "Développeur";
-            simulatedSkills = ["JavaScript", "React", "Node.js", "Git"];
-            simulatedExp = "3-5 ans d'expérience en développement";
-        } else if (fileName.toLowerCase().includes('compta')) {
-            simulatedTitle = "Comptable";
-            simulatedSkills = ["Excel", "SAP", "Comptabilité générale"];
-            simulatedExp = "2 ans minimum en comptabilité";
-        } else if (fileName.toLowerCase().includes('market')) {
-            simulatedTitle = "Responsable Marketing";
-            simulatedSkills = ["SEO", "Réseaux sociaux", "Google Analytics"];
-            simulatedExp = "3 ans en marketing digital";
-        }
-        
-        return {
-            data: {
-                title: simulatedTitle,
-                company: "Entreprise",
-                location: "Paris",
-                contract_type: simulatedContract,
-                required_skills: simulatedSkills,
-                preferred_skills: [],
-                experience: simulatedExp,
-                responsibilities: [
-                    "Responsabilités à définir selon le poste"
-                ]
-            }
-        };
-    }
-    
-    // Return the public API
+    // Interface publique
     return {
         analyzeFile,
-        analyzeText,
-        simulateParsingResult // Exposer cette fonction pour des tests
+        analyzeText
     };
 })();
