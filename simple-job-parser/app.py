@@ -260,5 +260,5 @@ def options_parse_job():
     return "", 200
 
 if __name__ == '__main__':
-    logger.info("Démarrage du serveur sur le port 5053...")
-    app.run(host='0.0.0.0', port=5053, debug=True)
+    logger.info("Démarrage du serveur sur le port 5054...")
+    app.run(host='0.0.0.0', port=5054, debug=True)
