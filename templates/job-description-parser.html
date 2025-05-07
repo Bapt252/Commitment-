@@ -4,508 +4,271 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analyseur de Fiche de Poste</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../static/css/job-parser-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --cream: #F8F7F3;
             --cream-dark: #EFEEE9;
             --black: #1A1A1A;
             --black-light: #2D2D2D;
+            --black-lighter: #3F3F3F;
             --purple: #7C3AED;
             --purple-light: #A78BFA;
             --purple-dark: #5B21B6;
             --purple-glass: rgba(124, 58, 237, 0.1);
             --gray: #666666;
             --gray-light: #9CA3AF;
+            --gray-lightest: #F3F4F6;
             --white: #FFFFFF;
         }
         
-        body, html {
-            font-family: 'Inter', sans-serif;
+        /* Reset spécifique pour cette page */
+        body {
             background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%);
-            margin: 0;
-            padding: 0;
             min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
             color: var(--black);
         }
         
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
+        .page-wrapper {
+            position: relative;
+            width: 100%;
         }
         
-        .header {
+        h1 {
             text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .header h1 {
-            font-size: 2.4rem;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            color: var(--purple);
             font-weight: 600;
-            background: linear-gradient(135deg, var(--black) 0%, var(--purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-fill-color: transparent;
         }
         
-        .header p {
-            color: var(--gray);
+        .description {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 40px;
             font-size: 1.1rem;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        .parser-container {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-            padding: 30px;
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.7);
-        }
-        
-        .tabs {
-            display: flex;
-            margin-bottom: 25px;
-            border-bottom: 1px solid rgba(124, 58, 237, 0.2);
-        }
-        
-        .tab {
-            padding: 12px 25px;
-            cursor: pointer;
-            font-weight: 500;
             color: var(--gray);
-            position: relative;
+            line-height: 1.6;
+        }
+        
+        .upload-container {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px dashed rgba(124, 58, 237, 0.3);
             transition: all 0.3s ease;
         }
         
-        .tab:hover {
-            color: var(--purple);
-        }
-        
-        .tab.active {
-            color: var(--purple);
-        }
-        
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
-            border-radius: 3px 3px 0 0;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.4s ease forwards;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .upload-section, .paste-section {
-            padding: 20px 0;
-        }
-        
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: var(--black-light);
+        .upload-container:hover {
+            border-color: var(--purple);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.15);
         }
         
         .drop-zone {
+            width: 100%;
+            padding: 40px 20px;
+            text-align: center;
             border: 2px dashed rgba(124, 58, 237, 0.3);
             border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            margin: 20px 0;
+            background-color: rgba(255, 255, 255, 0.7);
             transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            position: relative;
         }
         
-        .drop-zone:hover, .drop-zone.dragover {
+        .drop-zone:hover, .drop-zone.highlight {
             border-color: var(--purple);
-            background: rgba(255, 255, 255, 0.8);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.1);
+            background-color: rgba(124, 58, 237, 0.05);
         }
         
         .drop-icon {
-            font-size: 2.5rem;
+            font-size: 3rem;
             color: var(--purple-light);
             margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        .drop-zone:hover .drop-icon {
+            transform: translateY(-5px);
         }
         
         .drop-text {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            color: var(--black-light);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .drop-subtext {
+            font-size: 0.9rem;
             color: var(--gray);
-            margin-bottom: 15px;
+        }
+        
+        .or-separator {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            width: 100%;
+        }
+        
+        .or-separator hr {
+            flex-grow: 1;
+            height: 1px;
+            background: rgba(124, 58, 237, 0.2);
+            border: none;
+        }
+        
+        .or-text {
+            padding: 0 20px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+        
+        .text-input-container {
+            width: 100%;
+        }
+        
+        textarea.text-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 20px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.8);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: var(--black);
+            transition: all 0.3s ease;
+            resize: vertical;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        textarea.text-input:focus {
+            outline: none;
+            border-color: var(--purple);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+            background-color: var(--white);
+        }
+        
+        .analyse-button {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 16px 36px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+        }
+        
+        .analyse-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.35);
+        }
+        
+        .analyse-button:active {
+            transform: translateY(2px);
         }
         
         .file-input {
             display: none;
         }
         
-        .browse-btn {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            color: var(--white);
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            margin-top: 10px;
-        }
-        
-        .browse-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
-        }
-        
-        .file-info {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(124, 58, 237, 0.1);
-            border-radius: 8px;
-            color: var(--purple-dark);
-        }
-        
-        .upload-btn {
-            display: block;
-            width: 100%;
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            color: var(--white);
-            padding: 16px;
-            border-radius: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            margin-top: 20px;
-            font-size: 1rem;
-            text-align: center;
-        }
-        
-        .upload-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
-        }
-        
-        .text-area {
-            width: 100%;
-            min-height: 250px;
-            border: 1px solid rgba(124, 58, 237, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.7);
-            resize: vertical;
-            transition: all 0.3s ease;
-        }
-        
-        .text-area:focus {
-            outline: none;
-            border-color: var(--purple);
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
-            background: var(--white);
-        }
-        
-        .analyze-btn {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            color: var(--white);
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
+        .formats-info {
             margin-top: 15px;
-        }
-        
-        .analyze-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
-        }
-        
-        .loading-indicator {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 0;
-        }
-        
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(124, 58, 237, 0.2);
-            border-radius: 50%;
-            border-top: 4px solid var(--purple);
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-text {
-            color: var(--purple);
-            font-weight: 500;
-            font-size: 1.1rem;
-        }
-        
-        .result-container {
-            display: none;
-            animation: fadeIn 0.5s ease forwards;
-        }
-        
-        .result-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        
-        .result-header h3 {
-            color: var(--purple-dark);
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
-        
-        .result-content {
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        
-        .result-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px dashed rgba(124, 58, 237, 0.2);
-            display: flex;
-            flex-wrap: wrap;
-        }
-        
-        .result-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        .result-label {
-            font-weight: 600;
-            color: var(--black-light);
-            min-width: 180px;
-            margin-right: 20px;
-        }
-        
-        .result-value {
+            font-size: 0.85rem;
             color: var(--gray);
-            flex: 1;
         }
         
-        .result-full {
-            flex-direction: column;
-        }
-        
-        .result-full .result-label {
-            margin-bottom: 10px;
-        }
-        
-        .result-actions {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        
-        .btn {
-            padding: 12px 25px;
-            border-radius: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            font-size: 1rem;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            color: var(--white);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
-        }
-        
-        .btn-secondary {
-            background: rgba(124, 58, 237, 0.1);
-            color: var(--purple);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(124, 58, 237, 0.2);
-            transform: translateY(-3px);
-        }
-        
-        .supported-formats {
-            margin-top: 15px;
-            color: var(--gray);
-            font-size: 0.9rem;
-            text-align: center;
+        /* Styles pour les résultats */
+        #result-section {
+            margin-top: 50px;
+            padding: 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         @media (max-width: 768px) {
-            .container {
-                padding: 20px 15px;
+            .drop-text {
+                font-size: 1rem;
             }
             
-            .parser-container {
+            .upload-container {
                 padding: 20px;
             }
             
-            .tabs {
-                flex-direction: column;
-                border-bottom: none;
+            h1 {
+                font-size: 1.8rem;
             }
             
-            .tab {
-                border-bottom: 1px solid rgba(124, 58, 237, 0.1);
-                padding: 15px 0;
-            }
-            
-            .tab.active::after {
-                display: none;
-            }
-            
-            .drop-zone {
-                padding: 30px 15px;
-            }
-            
-            .result-item {
-                flex-direction: column;
-            }
-            
-            .result-label {
-                margin-bottom: 5px;
-            }
-            
-            .result-actions {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
+            .description {
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Analyseur de Fiche de Poste</h1>
-            <p>Notre intelligence artificielle analyse votre fiche de poste pour extraire automatiquement les informations clés.</p>
+    <div class="page-wrapper">
+        <h1>Analyseur de Fiche de Poste</h1>
+        <p class="description">
+            Notre intelligence artificielle analyse votre fiche de poste pour extraire automatiquement les informations clés. Importez votre fichier ou collez directement le texte ci-dessous.
+        </p>
+        
+        <div class="upload-container">
+            <div class="drop-zone" id="drop-zone">
+                <i class="fas fa-cloud-upload-alt drop-icon"></i>
+                <div class="drop-text">Glissez-déposez votre fichier ici</div>
+                <div class="drop-subtext">ou cliquez pour sélectionner un fichier</div>
+                <input type="file" id="file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
+            </div>
+            
+            <p class="formats-info">Formats supportés: PDF, DOCX, DOC, TXT</p>
+            
+            <div class="or-separator">
+                <hr>
+                <div class="or-text">OU</div>
+                <hr>
+            </div>
+            
+            <div class="text-input-container">
+                <textarea id="text-input" class="text-input" placeholder="Collez le texte de votre fiche de poste ici..."></textarea>
+            </div>
+            
+            <button id="analyse-button" class="analyse-button">
+                <i class="fas fa-search"></i>
+                Analyser le document
+            </button>
         </div>
         
-        <div class="parser-container">
-            <div class="tabs">
-                <div class="tab active" data-tab="upload">Importer un fichier</div>
-                <div class="tab" data-tab="paste">Coller le texte</div>
-            </div>
-            
-            <div id="upload-section" class="tab-content active">
-                <div class="section-title">Importer votre fiche de poste</div>
-                
-                <form id="upload-form">
-                    <div id="drop-zone" class="drop-zone">
-                        <i class="fas fa-cloud-upload-alt drop-icon"></i>
-                        <div class="drop-text">Glissez-déposez votre fichier ici</div>
-                        <div>ou</div>
-                        <input type="file" id="file-input" class="file-input" accept=".pdf,.docx,.doc,.txt">
-                        <label for="file-input" class="browse-btn">Parcourir les fichiers</label>
-                    </div>
-                    
-                    <div id="file-info" class="file-info">
-                        <i class="fas fa-file-alt"></i>
-                        <span id="selected-file-name">Nom du fichier</span>
-                    </div>
-                    
-                    <button type="submit" class="upload-btn">
-                        <i class="fas fa-upload"></i> Analyser le document
-                    </button>
-                    
-                    <div class="supported-formats">
-                        Formats supportés: PDF, DOCX, DOC, TXT
-                    </div>
-                </form>
-            </div>
-            
-            <div id="paste-section" class="tab-content">
-                <div class="section-title">Collez le texte de votre fiche de poste</div>
-                
-                <textarea id="paste-text" class="text-area" placeholder="Collez ici le contenu de votre fiche de poste..."></textarea>
-                
-                <button id="analyze-text-btn" class="analyze-btn">
-                    <i class="fas fa-robot"></i> Analyser le texte
-                </button>
-            </div>
-            
-            <div id="loading-indicator" class="loading-indicator">
-                <div class="spinner"></div>
-                <div class="loading-text">Analyse en cours...</div>
-            </div>
-            
-            <div id="result-container" class="result-container">
-                <!-- Results will be populated by JavaScript -->
-            </div>
-        </div>
+        <!-- Section de résultat, initialement vide -->
+        <div id="result-section"></div>
     </div>
     
-    <script>
-        // Tab switching functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabs = document.querySelectorAll('.tab');
-            const tabContents = document.querySelectorAll('.tab-content');
-            
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    
-                    // Remove active class from all tabs and contents
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tabContents.forEach(c => c.classList.remove('active'));
-                    
-                    // Add active class to selected tab and content
-                    this.classList.add('active');
-                    document.getElementById(tabId + '-section').classList.add('active');
-                });
-            });
-        });
-    </script>
-    
-    <!-- Include the job parser integration script -->
-    <script src="../static/js/job-description-parser.js"></script>
+    <!-- Scripts -->
+    <script src="../static/js/job-parser-integration.js"></script>
 </body>
 </html>
