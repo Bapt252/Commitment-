@@ -4,14 +4,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Références aux éléments du DOM
     const dropZone = document.querySelector('.drop-zone') || document.querySelector('.upload-container');
-    const fileInput = document.querySelector('input[type=\"file\"]');
-    const analyseButton = document.querySelector('.analyse-button') || document.querySelector('button[type=\"submit\"]');
+    const fileInput = document.querySelector('input[type="file"]');
+    const analyseButton = document.querySelector('.analyse-button') || document.querySelector('button[type="submit"]');
     let resultSection = document.querySelector('#result-section');
     const loadingIndicator = document.createElement('div');
     
     // Configuration du loading indicator
     loadingIndicator.className = 'loading-indicator';
-    loadingIndicator.innerHTML = '<div class=\"spinner\"></div><p>Analyse en cours...</p>';
+    loadingIndicator.innerHTML = '<div class="spinner"></div><p>Analyse en cours...</p>';
     loadingIndicator.style.cssText = `
         position: fixed;
         top: 0;
@@ -105,19 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('lastJobParseResult', JSON.stringify(result));
                 
                 // Tenter d'envoyer les données à la page parente (si dans un iframe)
-                if (window.parent && window.parent !== window) {
-                    console.log('Sending parsed data to parent window');
-                    window.parent.postMessage({
-                        type: 'jobParsingResult',
-                        jobData: {
-                            title: result.data.title,
-                            skills: result.data.required_skills,
-                            experience: result.data.experience,
-                            contract: result.data.contract_type
-                        },
-                        messageId: new Date().getTime()
-                    }, '*');
-                }
+                sendDataToParent(result);
             } else {
                 console.warn("Client-side parser not available, falling back to simulation mode");
                 
@@ -141,17 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 "Collaborer avec l'équipe de design",
                                 "Maintenir les services existants",
                                 "Participer aux revues de code"
-                            ],
-                            requirements: [
-                                "Diplôme en informatique ou équivalent",
-                                "Expérience en développement full stack",
-                                "Connaissance des principes de CI/CD"
-                            ],
-                            benefits: [
-                                "Télétravail partiel",
-                                "Tickets restaurant",
-                                "Mutuelle d'entreprise",
-                                "Formation continue"
                             ]
                         }
                     };
@@ -163,19 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('lastJobParseResult', JSON.stringify(simulatedData));
                     
                     // Tenter d'envoyer les données à la page parente (si dans un iframe)
-                    if (window.parent && window.parent !== window) {
-                        console.log('Sending parsed data to parent window');
-                        window.parent.postMessage({
-                            type: 'jobParsingResult',
-                            jobData: {
-                                title: simulatedData.data.title,
-                                skills: simulatedData.data.required_skills,
-                                experience: simulatedData.data.experience,
-                                contract: simulatedData.data.contract_type
-                            },
-                            messageId: new Date().getTime()
-                        }, '*');
-                    }
+                    sendDataToParent(simulatedData);
                 }, 2000);
             }
         } catch (error) {
@@ -198,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("Using client-side parser for text");
                 
                 // Utiliser l'analyseur côté client
-                const result = window.JobParser.analyzeText(text);
+                const result = await window.JobParser.analyzeText(text);
                 
                 // Masquer l'indicateur de chargement
                 loadingIndicator.style.display = 'none';
@@ -210,19 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('lastJobParseResult', JSON.stringify(result));
                 
                 // Tenter d'envoyer les données à la page parente (si dans un iframe)
-                if (window.parent && window.parent !== window) {
-                    console.log('Sending parsed text data to parent window');
-                    window.parent.postMessage({
-                        type: 'jobParsingResult',
-                        jobData: {
-                            title: result.data.title,
-                            skills: result.data.required_skills,
-                            experience: result.data.experience,
-                            contract: result.data.contract_type
-                        },
-                        messageId: new Date().getTime()
-                    }, '*');
-                }
+                sendDataToParent(result);
             } else {
                 console.warn("Client-side parser not available, falling back to simulation mode");
                 
@@ -246,17 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 "Gérer une équipe de développeurs",
                                 "Assurer la communication avec les clients",
                                 "Définir les roadmaps et suivre les KPIs"
-                            ],
-                            requirements: [
-                                "Formation supérieure en informatique ou management",
-                                "Expérience significative en gestion de projet IT",
-                                "Excellent communicant"
-                            ],
-                            benefits: [
-                                "Télétravail 3j/semaine",
-                                "RTT",
-                                "Plan d'épargne entreprise",
-                                "Formation continue"
                             ]
                         }
                     };
@@ -268,25 +210,64 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('lastJobParseResult', JSON.stringify(simulatedData));
                     
                     // Tenter d'envoyer les données à la page parente (si dans un iframe)
-                    if (window.parent && window.parent !== window) {
-                        console.log('Sending parsed text data to parent window');
-                        window.parent.postMessage({
-                            type: 'jobParsingResult',
-                            jobData: {
-                                title: simulatedData.data.title,
-                                skills: simulatedData.data.required_skills,
-                                experience: simulatedData.data.experience,
-                                contract: simulatedData.data.contract_type
-                            },
-                            messageId: new Date().getTime()
-                        }, '*');
-                    }
+                    sendDataToParent(simulatedData);
                 }, 2000);
             }
         } catch (error) {
             console.error("Error during text analysis:", error);
             loadingIndicator.style.display = 'none';
             alert('Une erreur est survenue lors de l\'analyse du texte. Veuillez réessayer.');
+        }
+    }
+    
+    // Fonction pour envoyer les données à la page parente
+    function sendDataToParent(result) {
+        if (window.parent && window.parent !== window) {
+            console.log('Sending parsed data to parent window');
+            
+            // Extraire les données importantes
+            const parsedData = result.data || result;
+            
+            // Standardiser le format des données pour la communication
+            const jobData = {
+                title: parsedData.title || '',
+                skills: parsedData.required_skills || [],
+                experience: parsedData.experience || '',
+                contract: parsedData.contract_type || ''
+            };
+            
+            // Ajouter des logs détaillés
+            console.log('Data being sent to parent:', {
+                type: 'jobParsingResult',
+                jobData: jobData,
+                messageId: new Date().getTime()
+            });
+            
+            // Essayer d'envoyer via l'API de pont si disponible
+            if (typeof window.sendToParent === 'function') {
+                window.sendToParent({
+                    type: 'jobParsingResult',
+                    jobData: jobData,
+                    messageId: new Date().getTime()
+                });
+            } else {
+                // Sinon, utiliser directement postMessage
+                window.parent.postMessage({
+                    type: 'jobParsingResult',
+                    jobData: jobData,
+                    messageId: new Date().getTime()
+                }, '*');
+            }
+            
+            // Pour des tests, envoyer aussi un message de test distinct
+            console.log('Sending test message to parent');
+            window.parent.postMessage({
+                type: 'testMessage', 
+                message: 'Test from job-parser-integration.js',
+                timestamp: new Date().toISOString()
+            }, '*');
+        } else {
+            console.log('Not in iframe, cannot send data to parent');
         }
     }
     
@@ -299,32 +280,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Si la structure n'est pas celle attendue, essayer d'adapter
         if (!parsedData) {
+            console.log("Adapting data structure");
             parsedData = data;
         }
         
         // Construire le HTML pour l'affichage des résultats
-        let resultHTML = '<div class=\"results-container\">';
+        let resultHTML = '<div class="results-container">';
         resultHTML += '<h2>Informations extraites</h2>';
         
         if (parsedData.title) {
-            resultHTML += `<div class=\"result-item\"><strong>Titre du poste:</strong> ${parsedData.title}</div>`;
+            resultHTML += `<div class="result-item"><strong>Titre du poste:</strong> ${parsedData.title}</div>`;
         }
         
         if (parsedData.company) {
-            resultHTML += `<div class=\"result-item\"><strong>Entreprise:</strong> ${parsedData.company}</div>`;
+            resultHTML += `<div class="result-item"><strong>Entreprise:</strong> ${parsedData.company}</div>`;
         }
         
         if (parsedData.location) {
-            resultHTML += `<div class=\"result-item\"><strong>Localisation:</strong> ${parsedData.location}</div>`;
+            resultHTML += `<div class="result-item"><strong>Localisation:</strong> ${parsedData.location}</div>`;
         }
         
         if (parsedData.contract_type) {
-            resultHTML += `<div class=\"result-item\"><strong>Type de contrat:</strong> ${parsedData.contract_type}</div>`;
+            resultHTML += `<div class="result-item"><strong>Type de contrat:</strong> ${parsedData.contract_type}</div>`;
         }
         
         if (parsedData.required_skills && parsedData.required_skills.length > 0) {
-            resultHTML += '<div class=\"result-item\"><strong>Compétences requises:</strong>';
-            resultHTML += '<ul class=\"skill-list\">';
+            resultHTML += '<div class="result-item"><strong>Compétences requises:</strong>';
+            resultHTML += '<ul class="skill-list">';
             parsedData.required_skills.forEach(skill => {
                 resultHTML += `<li>${skill}</li>`;
             });
@@ -332,8 +314,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (parsedData.preferred_skills && parsedData.preferred_skills.length > 0) {
-            resultHTML += '<div class=\"result-item\"><strong>Compétences souhaitées:</strong>';
-            resultHTML += '<ul class=\"skill-list\">';
+            resultHTML += '<div class="result-item"><strong>Compétences souhaitées:</strong>';
+            resultHTML += '<ul class="skill-list">';
             parsedData.preferred_skills.forEach(skill => {
                 resultHTML += `<li>${skill}</li>`;
             });
@@ -341,8 +323,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (parsedData.responsibilities && parsedData.responsibilities.length > 0) {
-            resultHTML += '<div class=\"result-item\"><strong>Responsabilités:</strong>';
-            resultHTML += '<ul class=\"responsibility-list\">';
+            resultHTML += '<div class="result-item"><strong>Responsabilités:</strong>';
+            resultHTML += '<ul class="responsibility-list">';
             parsedData.responsibilities.forEach(resp => {
                 resultHTML += `<li>${resp}</li>`;
             });
@@ -350,8 +332,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (parsedData.requirements && parsedData.requirements.length > 0) {
-            resultHTML += '<div class=\"result-item\"><strong>Prérequis:</strong>';
-            resultHTML += '<ul class=\"responsibility-list\">';
+            resultHTML += '<div class="result-item"><strong>Prérequis:</strong>';
+            resultHTML += '<ul class="responsibility-list">';
             parsedData.requirements.forEach(req => {
                 resultHTML += `<li>${req}</li>`;
             });
@@ -359,8 +341,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (parsedData.benefits && parsedData.benefits.length > 0) {
-            resultHTML += '<div class=\"result-item\"><strong>Avantages:</strong>';
-            resultHTML += '<ul class=\"responsibility-list\">';
+            resultHTML += '<div class="result-item"><strong>Avantages:</strong>';
+            resultHTML += '<ul class="responsibility-list">';
             parsedData.benefits.forEach(benefit => {
                 resultHTML += `<li>${benefit}</li>`;
             });
@@ -368,14 +350,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (parsedData.experience) {
-            resultHTML += `<div class=\"result-item\"><strong>Expérience requise:</strong> ${parsedData.experience}</div>`;
+            resultHTML += `<div class="result-item"><strong>Expérience requise:</strong> ${parsedData.experience}</div>`;
         }
         
         // Ajouter des boutons d'action
         resultHTML += `
-            <div class=\"action-buttons\">
-                <button id=\"apply-results\" class=\"btn btn-primary\">
-                    <i class=\"fas fa-check\"></i> Appliquer ces informations
+            <div class="action-buttons">
+                <button id="apply-results" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Appliquer ces informations
+                </button>
+                <button id="test-communication" class="btn btn-secondary">
+                    <i class="fas fa-sync"></i> Tester la communication
                 </button>
             </div>
         `;
@@ -400,22 +385,45 @@ document.addEventListener('DOMContentLoaded', function() {
         if (applyButton) {
             applyButton.addEventListener('click', function() {
                 // Envoyer les données à la page parente (si dans un iframe)
+                sendDataToParent({
+                    data: parsedData
+                });
+                alert('Les informations ont été appliquées avec succès !');
+            });
+        }
+        
+        // Ajouter le gestionnaire pour le bouton de test
+        const testButton = document.getElementById('test-communication');
+        if (testButton) {
+            testButton.addEventListener('click', function() {
                 if (window.parent && window.parent !== window) {
+                    console.log('Sending test communication');
                     window.parent.postMessage({
-                        type: 'jobParsingResult',
-                        jobData: {
-                            title: parsedData.title,
-                            skills: parsedData.required_skills,
-                            experience: parsedData.experience,
-                            contract: parsedData.contract_type
-                        },
-                        messageId: new Date().getTime()
+                        type: 'testCommunication',
+                        message: 'Ceci est un test de communication',
+                        timestamp: new Date().toISOString()
                     }, '*');
-                    alert('Les informations ont été appliquées avec succès !');
+                    
+                    // Afficher un message sur la page
+                    const testResult = document.createElement('div');
+                    testResult.style.cssText = `
+                        background-color: rgba(124, 58, 237, 0.1);
+                        padding: 10px 15px;
+                        border-radius: 8px;
+                        margin-top: 15px;
+                        color: #5B21B6;
+                        font-size: 0.9rem;
+                    `;
+                    testResult.innerHTML = 'Message de test envoyé à la page parente...';
+                    document.querySelector('.action-buttons').appendChild(testResult);
+                    
+                    // Faire disparaître le message après 3 secondes
+                    setTimeout(() => {
+                        testResult.style.opacity = '0';
+                        testResult.style.transition = 'opacity 0.5s ease';
+                    }, 3000);
                 } else {
-                    // Si pas dans un iframe, afficher un message approprié
-                    console.log("Not in iframe, cannot send data to parent");
-                    alert('Les informations ont été analysées avec succès !');
+                    alert('Cette page n\'est pas chargée dans un iframe.');
                 }
             });
         }
@@ -465,6 +473,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Écouter les messages du parent
+    window.addEventListener('message', function(event) {
+        console.log('Received message in integration script:', event.data);
+        
+        // Si nous recevons un message de test, répondre
+        if (event.data && event.data.type === 'testCommunication') {
+            console.log('Received test communication, sending response');
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'testResponse',
+                    message: 'Message reçu par l\'intégration',
+                    originalMessage: event.data.message,
+                    timestamp: new Date().toISOString()
+                }, '*');
+            }
+        }
+    });
+    
     // Initialiser la page - vérifier s'il y a des résultats en cache
     const lastResult = localStorage.getItem('lastJobParseResult');
     if (lastResult) {
@@ -494,4 +520,16 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Erreur lors de la récupération des résultats en cache:', e);
         }
     }
+    
+    // Tentative de communication test au chargement
+    setTimeout(() => {
+        console.log('Sending initial test message');
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'loadedMessage',
+                message: 'Script job-parser-integration.js chargé et initialisé',
+                timestamp: new Date().toISOString()
+            }, '*');
+        }
+    }, 1000);
 });
