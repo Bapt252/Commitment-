@@ -1,5 +1,5 @@
 // Constantes de configuration
-const API_URL = 'http://localhost:5053/api/parse-job';
+const API_URL = 'http://localhost:5054/api/parse-job';
 const SIMULATION_MODE = false; // Désactiver le mode simulation
 const DEBUG_MODE = true; // Activer le mode débogage
 
@@ -321,6 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
       logDebug(`Test de connectivité à l'API: ${response.status}`);
     })
     .catch(error => {
-      logDebug(`Erreur de connectivité à l'API: ${error.message}. Vérifiez que le serveur est en cours d'exécution sur le port 5053.`);
+      logDebug(`Erreur de connectivité à l'API: ${error.message}. Vérifiez que le serveur est en cours d'exécution sur le port 5054.`);
     });
 });
