@@ -3,8 +3,14 @@ fastapi>=0.100.0
 uvicorn>=0.23.0
 python-multipart>=0.0.6
 python-dotenv>=1.0.0
-pydantic>=2.1.0
+
+# Support pour Pydantic v2 (préféré)
+pydantic>=2.1.0,<3.0.0
 pydantic-settings>=2.0.0
+
+# Fallback pour Pydantic v1 si nécessaire (commenté par défaut)
+# pydantic>=1.10.0,<2.0.0
+
 requests>=2.31.0
 
 # Extraction de texte
@@ -14,7 +20,7 @@ python-docx>=0.8.11
 striprtf>=0.0.24
 pdfplumber>=0.9.0
 
-# Tentative OCR (optionnel)
+# OCR
 pdf2image>=1.16.3
 pytesseract>=0.3.10
 
@@ -30,5 +36,8 @@ openai>=1.3.0
 tenacity>=8.2.2
 pybreaker>=1.0.0
 
-# Ajout pour détecter le type de fichier
+# Détection du type de fichier
 python-magic>=0.4.27
+
+# Analyse de texte
+regex>=2022.8.0
