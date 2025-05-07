@@ -61,8 +61,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Fermer automatiquement le modal après traitement
                 if (jobParserModal) {
-                    jobParserModal.classList.remove('active');
-                    document.body.style.overflow = '';
+                    setTimeout(() => {
+                        jobParserModal.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }, 1500); // Délai pour permettre à l'utilisateur de voir que l'analyse est terminée
                 }
                 
                 // Afficher une notification
@@ -217,10 +219,39 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                     }
                 });
+                
+                // Notifier le parent que l'iframe est prête
+                window.sendToParent({
+                    type: 'iframeReady',
+                    message: 'Iframe is loaded and ready',
+                    timestamp: new Date().toISOString()
+                });
             }
         } catch (e) {
             console.error('Unable to access parent window:', e);
         }
+        
+        // Capture les événements d'analyse pour les envoyer au parent
+        document.addEventListener('analysisComplete', function(e) {
+            if (e.detail && e.detail.data) {
+                console.log('Analysis complete event captured with data:', e.detail.data);
+                
+                // Standardiser le format des données pour la communication
+                const jobData = {
+                    title: e.detail.data.title || '',
+                    skills: e.detail.data.required_skills || [],
+                    experience: e.detail.data.experience || '',
+                    contract: e.detail.data.contract_type || ''
+                };
+                
+                // Envoyer les données au parent
+                window.sendToParent({
+                    type: 'jobParsingResult',
+                    jobData: jobData,
+                    messageId: new Date().getTime()
+                });
+            }
+        });
     }
     
     console.log('Job parser bridge ready');
