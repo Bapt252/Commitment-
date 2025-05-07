@@ -154,7 +154,7 @@ services:
       REDIS_RESULT_TTL: 3600
       OPENAI: ${OPENAI:-}
       OPENAI_MODEL: gpt-4o-mini
-      CIRCUIT_BREAKER_ENABLED: "true"
+      CIRCUIT_BREAKER_ENABLED: "false"
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json
@@ -196,7 +196,7 @@ services:
       REDIS_RESULT_TTL: 3600
       OPENAI: ${OPENAI:-}
       OPENAI_MODEL: gpt-4o-mini
-      CIRCUIT_BREAKER_ENABLED: "true"
+      CIRCUIT_BREAKER_ENABLED: "false"
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json
@@ -243,7 +243,7 @@ services:
       REDIS_RESULT_TTL: 3600
       OPENAI: ${OPENAI:-}
       OPENAI_MODEL: gpt-4o-mini
-      CIRCUIT_BREAKER_ENABLED: "true"
+      CIRCUIT_BREAKER_ENABLED: "false"
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json
@@ -285,7 +285,7 @@ services:
       REDIS_RESULT_TTL: 3600
       OPENAI: ${OPENAI:-}
       OPENAI_MODEL: gpt-4o-mini
-      CIRCUIT_BREAKER_ENABLED: "true"
+      CIRCUIT_BREAKER_ENABLED: "false"
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json
