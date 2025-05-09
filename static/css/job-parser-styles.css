@@ -62,12 +62,67 @@
     font-weight: bold;
 }
 
-.responsibility-list li:before {
+.responsibility-list li:before, .benefits-list li:before {
     content: "•";
     color: #6c5ce7;
     position: absolute;
     left: 0;
     font-weight: bold;
+}
+
+/* Listes dans le conteneur de job info */
+.job-info-container ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 5px 0;
+}
+
+.job-info-container ul li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.job-info-container ul li:before {
+    content: "•";
+    color: #7C3AED;
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.job-info-container .responsibility-list li:before, .job-info-container .benefits-list li:before {
+    content: "•";
+    color: #7C3AED;
+}
+
+/* Badge pour les listes */
+.list-badge {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: #6c5ce7;
+    background-color: rgba(108, 92, 231, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 10px;
+    font-weight: 500;
+}
+
+/* Style pour les champs de formulaire dans l'édition */
+.job-info-container .form-control-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    margin-top: 4px;
+    width: 100%;
+    border: 1px solid #ced4da;
+}
+
+.job-info-container textarea.form-control-sm {
+    min-height: 80px;
 }
 
 /* Indicateur de chargement */
@@ -271,5 +326,14 @@
     .rating label, .options label {
         margin-right: 0;
         margin-bottom: 5px;
+    }
+    
+    .job-info-item {
+        flex-direction: column;
+    }
+    
+    .job-info-label {
+        width: 100%;
+        margin-bottom: 8px;
     }
 }
