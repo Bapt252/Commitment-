@@ -19,7 +19,13 @@ const SELECTORS = {
   jobSkillsValue: '#job-skills-value',
   jobExperienceValue: '#job-experience-value',
   jobContractValue: '#job-contract-value',
-  editButton: '#edit-parsed-info'
+  editButton: '#edit-parsed-info',
+  // Nouveaux sélecteurs pour les champs additionnels
+  jobLocationValue: '#job-location-value',
+  jobResponsibilitiesValue: '#job-responsibilities-value',
+  jobEducationValue: '#job-education-value',
+  jobBenefitsValue: '#job-benefits-value',
+  jobSalaryValue: '#job-salary-value'
 };
 
 // Classe principale du connecteur
@@ -263,6 +269,80 @@ class JobParserConnector {
         this.elements.jobContractValue.textContent = jobData.contract_type || 'Non spécifié';
       }
       
+      // Mettre à jour le lieu de travail
+      if (this.elements.jobLocationValue) {
+        this.elements.jobLocationValue.textContent = jobData.location || 'Non spécifié';
+      }
+      
+      // Mettre à jour les responsabilités/missions
+      if (this.elements.jobResponsibilitiesValue) {
+        if (jobData.responsibilities && jobData.responsibilities.length > 0) {
+          // Créer une liste de responsabilités
+          this.elements.jobResponsibilitiesValue.innerHTML = '';
+          const ul = document.createElement('ul');
+          ul.className = 'responsibility-list';
+          
+          jobData.responsibilities.forEach(resp => {
+            const li = document.createElement('li');
+            li.textContent = resp;
+            ul.appendChild(li);
+          });
+          
+          this.elements.jobResponsibilitiesValue.appendChild(ul);
+        } else {
+          this.elements.jobResponsibilitiesValue.textContent = 'Non spécifié';
+        }
+      }
+      
+      // Mettre à jour la formation requise
+      if (this.elements.jobEducationValue) {
+        let education = 'Non spécifié';
+        
+        // Chercher la formation/éducation dans les prérequis
+        if (jobData.requirements && jobData.requirements.length > 0) {
+          const eduReq = jobData.requirements.find(req =>
+            req.toLowerCase().includes('diplôme') ||
+            req.toLowerCase().includes('formation') ||
+            req.toLowerCase().includes('bac') ||
+            req.toLowerCase().includes('master') ||
+            req.toLowerCase().includes('ingénieur') ||
+            req.toLowerCase().includes('degree') ||
+            req.toLowerCase().includes('education')
+          );
+          
+          if (eduReq) {
+            education = eduReq;
+          }
+        }
+        
+        this.elements.jobEducationValue.textContent = education;
+      }
+      
+      // Mettre à jour les avantages
+      if (this.elements.jobBenefitsValue) {
+        if (jobData.benefits && jobData.benefits.length > 0) {
+          // Créer une liste d'avantages
+          this.elements.jobBenefitsValue.innerHTML = '';
+          const ul = document.createElement('ul');
+          ul.className = 'benefits-list';
+          
+          jobData.benefits.forEach(benefit => {
+            const li = document.createElement('li');
+            li.textContent = benefit;
+            ul.appendChild(li);
+          });
+          
+          this.elements.jobBenefitsValue.appendChild(ul);
+        } else {
+          this.elements.jobBenefitsValue.textContent = 'Non spécifié';
+        }
+      }
+      
+      // Mettre à jour le salaire
+      if (this.elements.jobSalaryValue) {
+        this.elements.jobSalaryValue.textContent = jobData.salary || 'Non spécifié';
+      }
+      
       // Afficher le conteneur d'information
       if (this.elements.jobInfoContainer) {
         this.elements.jobInfoContainer.style.display = 'block';
@@ -284,7 +364,14 @@ class JobParserConnector {
   // Activer l'édition manuelle des informations extraites
   enableManualEditing() {
     // Transformer chaque valeur en champ éditable
-    const fields = ['jobTitleValue', 'jobExperienceValue', 'jobContractValue'];
+    const fields = [
+      'jobTitleValue', 
+      'jobExperienceValue', 
+      'jobContractValue',
+      'jobLocationValue',
+      'jobEducationValue',
+      'jobSalaryValue'
+    ];
     
     fields.forEach(field => {
       if (this.elements[field]) {
@@ -327,6 +414,52 @@ class JobParserConnector {
       skillsElement.appendChild(textarea);
     }
     
+    // Cas spécial pour les responsabilités (liste)
+    if (this.elements.jobResponsibilitiesValue) {
+      const responsibilitiesElement = this.elements.jobResponsibilitiesValue;
+      const currentResponsibilities = [];
+      
+      // Collecter les responsabilités actuelles
+      const listItems = responsibilitiesElement.querySelectorAll('li');
+      listItems.forEach(item => {
+        currentResponsibilities.push(item.textContent);
+      });
+      
+      // Créer un textarea pour les responsabilités
+      const textarea = document.createElement('textarea');
+      textarea.className = 'form-control form-control-sm';
+      textarea.placeholder = 'Entrez les responsabilités/missions, une par ligne...';
+      textarea.value = currentResponsibilities.join('\n');
+      textarea.rows = 4;
+      
+      // Remplacer la liste par le textarea
+      responsibilitiesElement.innerHTML = '';
+      responsibilitiesElement.appendChild(textarea);
+    }
+    
+    // Cas spécial pour les avantages (liste)
+    if (this.elements.jobBenefitsValue) {
+      const benefitsElement = this.elements.jobBenefitsValue;
+      const currentBenefits = [];
+      
+      // Collecter les avantages actuels
+      const listItems = benefitsElement.querySelectorAll('li');
+      listItems.forEach(item => {
+        currentBenefits.push(item.textContent);
+      });
+      
+      // Créer un textarea pour les avantages
+      const textarea = document.createElement('textarea');
+      textarea.className = 'form-control form-control-sm';
+      textarea.placeholder = 'Entrez les avantages, un par ligne...';
+      textarea.value = currentBenefits.join('\n');
+      textarea.rows = 3;
+      
+      // Remplacer la liste par le textarea
+      benefitsElement.innerHTML = '';
+      benefitsElement.appendChild(textarea);
+    }
+    
     // Remplacer le bouton d'édition par un bouton de sauvegarde
     if (this.elements.editButton) {
       this.elements.editButton.innerHTML = '<i class="fas fa-save"></i> Enregistrer les modifications';
@@ -360,11 +493,43 @@ class JobParserConnector {
       updatedData.contract_type = contractInput.value;
     }
     
+    // Lieu de travail
+    const locationInput = this.elements.jobLocationValue.querySelector('input');
+    if (locationInput) {
+      updatedData.location = locationInput.value;
+    }
+    
+    // Formation requise
+    const educationInput = this.elements.jobEducationValue.querySelector('input');
+    if (educationInput) {
+      updatedData.education = educationInput.value;
+    }
+    
+    // Salaire
+    const salaryInput = this.elements.jobSalaryValue.querySelector('input');
+    if (salaryInput) {
+      updatedData.salary = salaryInput.value;
+    }
+    
     // Compétences
     const skillsTextarea = this.elements.jobSkillsValue.querySelector('textarea');
     if (skillsTextarea) {
       const skills = skillsTextarea.value.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
       updatedData.required_skills = skills;
+    }
+    
+    // Responsabilités
+    const responsibilitiesTextarea = this.elements.jobResponsibilitiesValue.querySelector('textarea');
+    if (responsibilitiesTextarea) {
+      const responsibilities = responsibilitiesTextarea.value.split('\n').map(item => item.trim()).filter(item => item !== '');
+      updatedData.responsibilities = responsibilities;
+    }
+    
+    // Avantages
+    const benefitsTextarea = this.elements.jobBenefitsValue.querySelector('textarea');
+    if (benefitsTextarea) {
+      const benefits = benefitsTextarea.value.split('\n').map(item => item.trim()).filter(item => item !== '');
+      updatedData.benefits = benefits;
     }
     
     // Mettre à jour les données en cache
@@ -455,6 +620,7 @@ class JobParserConnector {
         company: "Tech Innovations",
         location: "Paris, France",
         contract_type: "CDI",
+        salary: "45K€ - 55K€ selon expérience",
         required_skills: [
           "JavaScript",
           "React",
@@ -472,7 +638,8 @@ class JobParserConnector {
           "Développer des applications web complètes",
           "Collaborer avec l'équipe produit",
           "Maintenir et améliorer les applications existantes",
-          "Participer aux code reviews"
+          "Participer aux code reviews",
+          "Contribuer à l'architecture technique des projets"
         ],
         requirements: [
           "3+ ans d'expérience en développement web",
@@ -480,10 +647,12 @@ class JobParserConnector {
           "Bonne maîtrise de l'anglais"
         ],
         benefits: [
-          "Télétravail partiel",
-          "RTT",
-          "Tickets restaurant",
-          "Mutuelle d'entreprise"
+          "Télétravail partiel (3j/semaine)",
+          "RTT et 25 jours de congés",
+          "Tickets restaurant (12€/jour)",
+          "Mutuelle d'entreprise prise en charge à 80%",
+          "Plan d'épargne entreprise",
+          "Formation continue et conférences"
         ]
       }
     };
