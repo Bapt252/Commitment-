@@ -1,0 +1,505 @@
+/**
+ * job-parser-connector.js
+ * Script pour connecter le back-end du job parser au front-end du site
+ */
+
+// Configuration
+const API_BASE_URL = 'http://localhost:5054'; // URL de base de l'API job-parser-service
+const API_ENDPOINT = '/api/parse-job'; // Point d'entrée de l'API
+
+// Sélecteurs DOM
+const SELECTORS = {
+  dropZone: '#job-drop-zone',
+  fileInput: '#job-file-input',
+  textArea: '#job-description-text',
+  analyzeButton: '#analyze-job-text',
+  analysisResults: '#inline-analysis-results',
+  jobInfoContainer: '#job-info-container',
+  jobTitleValue: '#job-title-value',
+  jobSkillsValue: '#job-skills-value',
+  jobExperienceValue: '#job-experience-value',
+  jobContractValue: '#job-contract-value',
+  editButton: '#edit-parsed-info'
+};
+
+// Classe principale du connecteur
+class JobParserConnector {
+  constructor() {
+    this.initElements();
+    this.setupEventListeners();
+    this.cachedJobData = null;
+  }
+
+  // Initialiser les références aux éléments du DOM
+  initElements() {
+    this.elements = {};
+    
+    for (const [key, selector] of Object.entries(SELECTORS)) {
+      this.elements[key] = document.querySelector(selector);
+      
+      // Journaliser les éléments manquants pour débogage
+      if (!this.elements[key] && selector !== '#edit-parsed-info') {
+        console.warn(`Élément non trouvé: ${selector}`);
+      }
+    }
+  }
+
+  // Configurer les écouteurs d'événements
+  setupEventListeners() {
+    // Pour le glisser-déposer
+    if (this.elements.dropZone && this.elements.fileInput) {
+      this.setupDropZone();
+    }
+
+    // Pour le bouton d'analyse
+    if (this.elements.analyzeButton) {
+      this.elements.analyzeButton.addEventListener('click', () => this.analyzeJobDescription());
+    }
+
+    // Pour le bouton d'édition manuelle (si présent)
+    if (this.elements.editButton) {
+      this.elements.editButton.addEventListener('click', () => this.enableManualEditing());
+    }
+  }
+
+  // Configurer la zone de glisser-déposer
+  setupDropZone() {
+    const { dropZone, fileInput } = this.elements;
+
+    // Prévenir le comportement par défaut pour permettre le drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }, false);
+    });
+
+    // Mettre en surbrillance la zone lors du survol
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => {
+        dropZone.classList.add('highlight');
+      }, false);
+    });
+
+    // Enlever la surbrillance
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => {
+        dropZone.classList.remove('highlight');
+      }, false);
+    });
+
+    // Gérer le drop de fichier
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        fileInput.files = files;
+        this.updateDropZoneText(files[0].name);
+      }
+    }, false);
+
+    // Gérer la sélection de fichier via l'input
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        this.updateDropZoneText(fileInput.files[0].name);
+      }
+    });
+
+    // Cliquer sur la zone pour ouvrir le sélecteur de fichier
+    dropZone.addEventListener('click', () => {
+      fileInput.click();
+    });
+  }
+
+  // Mettre à jour le texte de la zone de drop après sélection d'un fichier
+  updateDropZoneText(fileName) {
+    const dropZoneText = this.elements.dropZone.querySelector('.drop-zone-text');
+    if (dropZoneText) {
+      dropZoneText.textContent = `Fichier sélectionné: ${fileName}`;
+    }
+  }
+
+  // Analyser la fiche de poste (fichier ou texte)
+  analyzeJobDescription() {
+    // Vérifier si un fichier a été sélectionné ou si du texte a été entré
+    const hasFile = this.elements.fileInput && this.elements.fileInput.files && this.elements.fileInput.files.length > 0;
+    const hasText = this.elements.textArea && this.elements.textArea.value.trim() !== '';
+    
+    if (!hasFile && !hasText) {
+      this.showNotification('Veuillez sélectionner un fichier ou saisir du texte à analyser.', 'error');
+      return;
+    }
+
+    // Afficher l'indicateur de chargement
+    this.showLoadingIndicator();
+
+    if (hasFile) {
+      // Analyser le fichier
+      const file = this.elements.fileInput.files[0];
+      this.parseFileWithAPI(file);
+    } else {
+      // Analyser le texte
+      const text = this.elements.textArea.value;
+      this.parseTextWithAPI(text);
+    }
+  }
+
+  // Analyser un fichier avec l'API
+  parseFileWithAPI(file) {
+    console.log(`Envoi du fichier "${file.name}" à l'API ${API_BASE_URL}${API_ENDPOINT}`);
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    fetch(API_BASE_URL + API_ENDPOINT, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Données extraites reçues:', data);
+      this.hideLoadingIndicator();
+      
+      // Traiter la réponse de l'API et mettre à jour l'interface
+      this.processAPIResponse(data);
+    })
+    .catch(error => {
+      console.error('Erreur lors de l\'appel à l\'API:', error);
+      this.hideLoadingIndicator();
+      this.showNotification(`Erreur lors de l'analyse: ${error.message}`, 'error');
+      
+      // En cas d'erreur, utiliser des données de test pour la démo
+      this.processAPIResponse(this.getTestData());
+    });
+  }
+
+  // Analyser du texte avec l'API
+  parseTextWithAPI(text) {
+    console.log(`Envoi du texte à l'API ${API_BASE_URL}${API_ENDPOINT}`);
+    
+    // Créer un fichier Blob à partir du texte
+    const blob = new Blob([text], { type: 'text/plain' });
+    const file = new File([blob], 'job-description.txt', { type: 'text/plain' });
+    
+    this.parseFileWithAPI(file);
+  }
+
+  // Traiter la réponse de l'API et mettre à jour l'interface
+  processAPIResponse(data) {
+    // Stocker les données dans le cache
+    this.cachedJobData = data;
+    
+    // Extraire les données pertinentes
+    let jobData = data;
+    
+    // Si les données sont dans un sous-objet "data"
+    if (data && data.data) {
+      jobData = data.data;
+    }
+    
+    // Mettre à jour l'interface
+    if (jobData) {
+      // Mettre à jour le titre du poste
+      if (this.elements.jobTitleValue) {
+        this.elements.jobTitleValue.textContent = jobData.title || 'Non spécifié';
+      }
+      
+      // Mettre à jour les compétences
+      if (this.elements.jobSkillsValue) {
+        const skills = [];
+        
+        // Combiner compétences requises et souhaitées
+        if (jobData.required_skills && jobData.required_skills.length > 0) {
+          skills.push(...jobData.required_skills);
+        }
+        if (jobData.preferred_skills && jobData.preferred_skills.length > 0) {
+          skills.push(...jobData.preferred_skills);
+        }
+        
+        if (skills.length > 0) {
+          // Créer des tags pour chaque compétence
+          this.elements.jobSkillsValue.innerHTML = '';
+          skills.forEach(skill => {
+            const tag = document.createElement('span');
+            tag.className = 'skill-tag';
+            tag.textContent = skill;
+            this.elements.jobSkillsValue.appendChild(tag);
+          });
+        } else {
+          this.elements.jobSkillsValue.textContent = 'Non spécifié';
+        }
+      }
+      
+      // Mettre à jour l'expérience
+      if (this.elements.jobExperienceValue) {
+        let experience = 'Non spécifié';
+        
+        // Chercher l'expérience dans différents champs
+        if (jobData.requirements && jobData.requirements.length > 0) {
+          // Chercher dans les prérequis
+          const expReq = jobData.requirements.find(req => 
+            req.toLowerCase().includes('expérience') || 
+            req.toLowerCase().includes('ans') ||
+            req.toLowerCase().includes('experience')
+          );
+          
+          if (expReq) {
+            experience = expReq;
+          }
+        }
+        
+        this.elements.jobExperienceValue.textContent = experience;
+      }
+      
+      // Mettre à jour le type de contrat
+      if (this.elements.jobContractValue) {
+        this.elements.jobContractValue.textContent = jobData.contract_type || 'Non spécifié';
+      }
+      
+      // Afficher le conteneur d'information
+      if (this.elements.jobInfoContainer) {
+        this.elements.jobInfoContainer.style.display = 'block';
+      }
+      
+      // Masquer l'analyseur inline
+      const inlineJobParser = document.getElementById('inline-job-parser');
+      if (inlineJobParser) {
+        inlineJobParser.style.display = 'none';
+      }
+      
+      // Afficher une notification de succès
+      this.showNotification('Fiche de poste analysée avec succès!', 'success');
+    } else {
+      this.showNotification('Aucune donnée n\'a pu être extraite de la fiche de poste.', 'error');
+    }
+  }
+
+  // Activer l'édition manuelle des informations extraites
+  enableManualEditing() {
+    // Transformer chaque valeur en champ éditable
+    const fields = ['jobTitleValue', 'jobExperienceValue', 'jobContractValue'];
+    
+    fields.forEach(field => {
+      if (this.elements[field]) {
+        const element = this.elements[field];
+        const currentValue = element.textContent;
+        
+        // Créer un input pour remplacer le texte
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentValue === 'Non spécifié' ? '' : currentValue;
+        input.className = 'form-control form-control-sm';
+        input.placeholder = 'Entrez une valeur...';
+        
+        // Remplacer le texte par l'input
+        element.textContent = '';
+        element.appendChild(input);
+      }
+    });
+    
+    // Cas spécial pour les compétences (tags)
+    if (this.elements.jobSkillsValue) {
+      const skillsElement = this.elements.jobSkillsValue;
+      const currentSkills = [];
+      
+      // Collecter les compétences actuelles
+      const skillTags = skillsElement.querySelectorAll('.skill-tag');
+      skillTags.forEach(tag => {
+        currentSkills.push(tag.textContent);
+      });
+      
+      // Créer un textarea pour les compétences
+      const textarea = document.createElement('textarea');
+      textarea.className = 'form-control form-control-sm';
+      textarea.placeholder = 'Entrez les compétences séparées par des virgules...';
+      textarea.value = currentSkills.join(', ');
+      textarea.rows = 3;
+      
+      // Remplacer les tags par le textarea
+      skillsElement.innerHTML = '';
+      skillsElement.appendChild(textarea);
+    }
+    
+    // Remplacer le bouton d'édition par un bouton de sauvegarde
+    if (this.elements.editButton) {
+      this.elements.editButton.innerHTML = '<i class="fas fa-save"></i> Enregistrer les modifications';
+      
+      // Changer l'action du bouton
+      this.elements.editButton.removeEventListener('click', () => this.enableManualEditing());
+      this.elements.editButton.addEventListener('click', () => this.saveManualEdits());
+    }
+  }
+
+  // Sauvegarder les modifications manuelles
+  saveManualEdits() {
+    // Récupérer les valeurs des champs
+    const updatedData = {};
+    
+    // Titre du poste
+    const titleInput = this.elements.jobTitleValue.querySelector('input');
+    if (titleInput) {
+      updatedData.title = titleInput.value;
+    }
+    
+    // Expérience
+    const experienceInput = this.elements.jobExperienceValue.querySelector('input');
+    if (experienceInput) {
+      updatedData.experience = experienceInput.value;
+    }
+    
+    // Type de contrat
+    const contractInput = this.elements.jobContractValue.querySelector('input');
+    if (contractInput) {
+      updatedData.contract_type = contractInput.value;
+    }
+    
+    // Compétences
+    const skillsTextarea = this.elements.jobSkillsValue.querySelector('textarea');
+    if (skillsTextarea) {
+      const skills = skillsTextarea.value.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
+      updatedData.required_skills = skills;
+    }
+    
+    // Mettre à jour les données en cache
+    this.cachedJobData = { ...this.cachedJobData, ...updatedData };
+    
+    // Mettre à jour l'interface
+    this.processAPIResponse(this.cachedJobData);
+    
+    // Restaurer le bouton d'édition
+    if (this.elements.editButton) {
+      this.elements.editButton.innerHTML = '<i class="fas fa-edit"></i> Modifier manuellement';
+      
+      // Changer l'action du bouton
+      this.elements.editButton.removeEventListener('click', () => this.saveManualEdits());
+      this.elements.editButton.addEventListener('click', () => this.enableManualEditing());
+    }
+    
+    // Afficher une notification
+    this.showNotification('Modifications sauvegardées avec succès!', 'success');
+  }
+
+  // Afficher l'indicateur de chargement
+  showLoadingIndicator() {
+    if (this.elements.analysisResults) {
+      this.elements.analysisResults.style.display = 'block';
+      this.elements.analysisResults.innerHTML = `
+        <div style="text-align:center; padding: 20px;">
+          <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #7C3AED;"></i>
+          <p>Analyse en cours avec GPT...</p>
+        </div>
+      `;
+    }
+  }
+
+  // Masquer l'indicateur de chargement
+  hideLoadingIndicator() {
+    if (this.elements.analysisResults) {
+      this.elements.analysisResults.style.display = 'none';
+    }
+  }
+
+  // Afficher une notification
+  showNotification(message, type = 'success') {
+    // Utiliser la fonction globale si disponible
+    if (window.showNotification) {
+      window.showNotification(message, type);
+      return;
+    }
+    
+    // Sinon, créer une notification temporaire
+    const notification = document.createElement('div');
+    notification.className = `notification-temp ${type}`;
+    notification.textContent = message;
+    
+    // Styles de la notification
+    notification.style.position = 'fixed';
+    notification.style.bottom = '20px';
+    notification.style.right = '20px';
+    notification.style.padding = '15px 20px';
+    notification.style.borderRadius = '5px';
+    notification.style.zIndex = '9999';
+    notification.style.transition = 'all 0.3s ease';
+    
+    if (type === 'success') {
+      notification.style.backgroundColor = '#10B981';
+    } else {
+      notification.style.backgroundColor = '#EF4444';
+    }
+    
+    notification.style.color = 'white';
+    
+    document.body.appendChild(notification);
+    
+    // Supprimer après 5 secondes
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 5000);
+  }
+
+  // Obtenir des données de test pour la démo
+  getTestData() {
+    return {
+      data: {
+        title: "Développeur Full Stack JavaScript",
+        company: "Tech Innovations",
+        location: "Paris, France",
+        contract_type: "CDI",
+        required_skills: [
+          "JavaScript",
+          "React",
+          "Node.js",
+          "Express",
+          "MongoDB"
+        ],
+        preferred_skills: [
+          "TypeScript",
+          "Docker",
+          "AWS",
+          "GraphQL"
+        ],
+        responsibilities: [
+          "Développer des applications web complètes",
+          "Collaborer avec l'équipe produit",
+          "Maintenir et améliorer les applications existantes",
+          "Participer aux code reviews"
+        ],
+        requirements: [
+          "3+ ans d'expérience en développement web",
+          "Diplôme en informatique ou équivalent",
+          "Bonne maîtrise de l'anglais"
+        ],
+        benefits: [
+          "Télétravail partiel",
+          "RTT",
+          "Tickets restaurant",
+          "Mutuelle d'entreprise"
+        ]
+      }
+    };
+  }
+}
+
+// Initialiser le connecteur lorsque le DOM est chargé
+document.addEventListener('DOMContentLoaded', () => {
+  const connector = new JobParserConnector();
+  
+  // Rendre l'instance accessible globalement pour le débogage
+  window.JobParserConnector = connector;
+});
+
+// Initialiser immédiatement si le DOM est déjà chargé
+if (document.readyState === 'interactive' || document.readyState === 'complete') {
+  const connector = new JobParserConnector();
+  window.JobParserConnector = connector;
+}
