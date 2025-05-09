@@ -13,9 +13,207 @@
 </head>
 <body>
     <!-- Contenu de la page -->
+    <div class="container">
+        <header class="header">
+            <h1>Questionnaire Client</h1>
+            <p class="subtitle">Aidez-nous à mieux comprendre vos besoins en recrutement</p>
+        </header>
+
+        <main>
+            <section class="job-parser-section">
+                <h2>Analysez votre fiche de poste</h2>
+                <p>Commencez par analyser votre fiche de poste pour en extraire les informations clés.</p>
+                
+                <div id="inline-job-parser" class="parser-container">
+                    <div class="parser-section">
+                        <div id="job-drop-zone" class="drop-zone">
+                            <span class="drop-zone-text">Glissez-déposez votre fiche de poste ici ou cliquez pour choisir un fichier</span>
+                            <input type="file" id="job-file-input" class="drop-zone-input" accept=".pdf,.doc,.docx,.txt">
+                        </div>
+                        
+                        <div class="parser-separator">
+                            <div class="line"></div>
+                            <div class="text">OU</div>
+                            <div class="line"></div>
+                        </div>
+                        
+                        <div class="text-input-container">
+                            <textarea id="job-description-text" class="job-description-textarea" placeholder="Collez le texte de votre fiche de poste ici..."></textarea>
+                            <button id="analyze-job-text" class="analyze-button">
+                                <i class="fas fa-search"></i> Analyser
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="inline-analysis-results" class="analysis-results" style="display: none;"></div>
+                </div>
+                
+                <div id="job-info-container" class="job-info-container" style="display: none;">
+                    <h3>Informations extraites</h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label>Titre du poste</label>
+                            <div id="job-title-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Type de contrat</label>
+                            <div id="job-contract-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Lieu</label>
+                            <div id="job-location-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Expérience requise</label>
+                            <div id="job-experience-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Formation</label>
+                            <div id="job-education-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Rémunération</label>
+                            <div id="job-salary-value" class="info-value">Non spécifié</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-group full-width">
+                        <label>Compétences requises</label>
+                        <div id="job-skills-value" class="info-value skills-container">Non spécifié</div>
+                    </div>
+                    
+                    <div class="info-group full-width">
+                        <label>Responsabilités / Missions</label>
+                        <div id="job-responsibilities-value" class="info-value">Non spécifié</div>
+                    </div>
+                    
+                    <div class="info-group full-width">
+                        <label>Avantages</label>
+                        <div id="job-benefits-value" class="info-value">Non spécifié</div>
+                    </div>
+                    
+                    <div class="job-actions">
+                        <button id="edit-parsed-info" class="action-button">
+                            <i class="fas fa-edit"></i> Modifier manuellement
+                        </button>
+                        
+                        <div class="job-export-buttons">
+                            <!-- Les boutons d'exportation et de prévisualisation seront ajoutés par le script -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="form-section">
+                <h2>Complétez votre demande</h2>
+                <form id="client-questionnaire-form">
+                    <div class="form-group">
+                        <label for="company-name">Nom de votre entreprise</label>
+                        <input type="text" id="company-name" name="company-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-name">Nom du contact</label>
+                        <input type="text" id="contact-name" name="contact-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-email">Email du contact</label>
+                        <input type="email" id="contact-email" name="contact-email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-phone">Téléphone du contact</label>
+                        <input type="tel" id="contact-phone" name="contact-phone">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hiring-urgency">Urgence du recrutement</label>
+                        <select id="hiring-urgency" name="hiring-urgency" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="immediate">Immédiate (< 1 mois)</option>
+                            <option value="short-term">Court terme (1-3 mois)</option>
+                            <option value="medium-term">Moyen terme (3-6 mois)</option>
+                            <option value="long-term">Long terme (> 6 mois)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="candidates-count">Nombre de candidats souhaité</label>
+                        <input type="number" id="candidates-count" name="candidates-count" min="1" value="3">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="company-culture">Culture d'entreprise (optionnel)</label>
+                        <textarea id="company-culture" name="company-culture" placeholder="Décrivez brièvement la culture de votre entreprise..."></textarea>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="additional-info">Informations complémentaires (optionnel)</label>
+                        <textarea id="additional-info" name="additional-info" placeholder="Ajoutez toute information qui pourrait nous aider à comprendre votre besoin..."></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="submit-button">
+                            <i class="fas fa-paper-plane"></i> Envoyer ma demande
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
     
     <!-- Scripts pour l'intégration du job parser -->
     <script src="../js/job-parser-connector.js"></script>
     <script src="../js/job-preview.js"></script>
+    
+    <!-- Script spécifique au formulaire client -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser le formulaire
+            const form = document.getElementById('client-questionnaire-form');
+            
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Ici, vous pourriez ajouter la logique pour envoyer les données du formulaire
+                    // ainsi que les données d'analyse de la fiche de poste à votre backend
+                    
+                    // Pour l'exemple, affichons un message de confirmation
+                    alert('Votre demande a été envoyée avec succès ! Nous vous contacterons rapidement.');
+                    
+                    // Vous pourriez ensuite rediriger l'utilisateur vers une page de confirmation
+                    // window.location.href = 'confirmation.html';
+                });
+            }
+            
+            // Fonction globale pour afficher des notifications
+            window.showNotification = function(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(function() {
+                    notification.classList.add('show');
+                }, 10);
+                
+                setTimeout(function() {
+                    notification.classList.remove('show');
+                    setTimeout(function() {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 5000);
+            };
+        });
+    </script>
 </body>
 </html>
