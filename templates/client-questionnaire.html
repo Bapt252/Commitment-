@@ -356,6 +356,61 @@
             background-color: #3a56d4;
         }
         
+        /* Éléments conditionnels */
+        .conditional-section {
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            background-color: #f8f9fa;
+            display: none;
+        }
+        
+        .conditional-section.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* Section de présentation générée */
+        .generated-content {
+            padding: 1rem;
+            margin-top: 0.5rem;
+            background-color: #eef2ff;
+            border-radius: 4px;
+            border-left: 3px solid #4361ee;
+            font-style: italic;
+            display: none;
+        }
+        
+        .generated-content.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* Bouton d'auto-génération */
+        .generate-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            color: #495057;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .generate-button:hover {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .generate-button i {
+            color: #4361ee;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .step-label {
@@ -407,10 +462,14 @@
                 </div>
                 <div class="step" data-step="3">
                     <div class="step-number">3</div>
-                    <div class="step-label">Contact</div>
+                    <div class="step-label">Poste</div>
                 </div>
                 <div class="step" data-step="4">
                     <div class="step-number">4</div>
+                    <div class="step-label">Contact</div>
+                </div>
+                <div class="step" data-step="5">
+                    <div class="step-number">5</div>
                     <div class="step-label">Confirmation</div>
                 </div>
             </div>
@@ -528,60 +587,57 @@
                     <p>Aidez-nous à mieux comprendre votre entreprise et sa culture.</p>
                     
                     <div class="form-group">
-                        <label for="company-name" class="required-field">Nom de votre entreprise</label>
+                        <label for="company-name" class="required-field">Nom de la structure</label>
                         <input type="text" id="company-name" name="company-name" required>
                     </div>
                     
-                    <div class="form-row">
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="company-size" class="required-field">Taille de l'entreprise</label>
-                                <select id="company-size" name="company-size" required>
-                                    <option value="">-- Sélectionner --</option>
-                                    <option value="1-10">1-10 employés</option>
-                                    <option value="11-50">11-50 employés</option>
-                                    <option value="51-200">51-200 employés</option>
-                                    <option value="201-500">201-500 employés</option>
-                                    <option value="501+">501+ employés</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="company-industry" class="required-field">Secteur d'activité</label>
-                                <select id="company-industry" name="company-industry" required>
-                                    <option value="">-- Sélectionner --</option>
-                                    <option value="tech">Technologies & IT</option>
-                                    <option value="finance">Finance & Banque</option>
-                                    <option value="health">Santé & Pharmaceutique</option>
-                                    <option value="education">Éducation & Formation</option>
-                                    <option value="retail">Commerce & Distribution</option>
-                                    <option value="manufacturing">Industrie & Production</option>
-                                    <option value="consulting">Conseil & Services</option>
-                                    <option value="other">Autre</option>
-                                </select>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label for="company-address" class="required-field">Adresse complète</label>
+                        <input type="text" id="company-address" name="company-address" required placeholder="Numéro, rue, code postal, ville">
                     </div>
                     
                     <div class="form-group">
-                        <label for="company-website">Site web de l'entreprise</label>
+                        <label for="company-website">Site internet</label>
                         <input type="url" id="company-website" name="company-website" placeholder="https://www.exemple.com">
                     </div>
                     
                     <div class="form-group full-width">
-                        <label for="company-culture">Culture d'entreprise
-                            <i class="fas fa-info-circle tooltip-icon" data-tooltip="Décrivez votre culture d'entreprise pour nous aider à trouver des candidats qui correspondent à vos valeurs."></i>
-                        </label>
-                        <textarea id="company-culture" name="company-culture" placeholder="Décrivez brièvement la culture de votre entreprise..."></textarea>
+                        <label for="company-presentation">Présentation rapide</label>
+                        <textarea id="company-presentation" name="company-presentation" placeholder="Décrivez brièvement votre entreprise..."></textarea>
+                        
+                        <button type="button" id="generate-presentation" class="generate-button mt-2">
+                            <i class="fas fa-magic"></i> Générer à partir du site web
+                        </button>
+                        
+                        <div id="generated-presentation" class="generated-content">
+                            <p>Présentation générée : Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
+                        </div>
                     </div>
                     
                     <div class="form-group">
-                        <label>Avantages proposés</label>
-                        <div class="tags-input">
-                            <input type="text" id="benefit-input" placeholder="Ajouter un avantage (ex: télétravail) et appuyer sur Entrée">
+                        <label for="company-size" class="required-field">Taille de la structure</label>
+                        <select id="company-size" name="company-size" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="tpe">TPE (< 10 employés)</option>
+                            <option value="pme">PME (10 à 250 employés)</option>
+                            <option value="eti">ETI (250 à 5000 employés)</option>
+                            <option value="group">Groupe (> 5000 employés)</option>
+                            <option value="startup">Startup</option>
+                            <option value="association">Association</option>
+                            <option value="public">Secteur public</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="has-job" class="required-field">Avez-vous un poste sur lequel vous souhaitez recruter ?</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="has-job" value="yes" checked> Oui
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="has-job" value="no"> Non
+                            </label>
                         </div>
-                        <div class="tags-container" id="benefits-container"></div>
                     </div>
                     
                     <div class="form-navigation">
@@ -594,10 +650,172 @@
                     </div>
                 </section>
                 
-                <!-- Étape 3: Informations de contact et recrutement -->
+                <!-- Étape 3: Informations sur le poste -->
                 <section class="form-section" data-step="3">
-                    <h2>Complétez votre demande</h2>
-                    <p>Précisez vos besoins en recrutement pour que nous puissions vous proposer les meilleurs candidats.</p>
+                    <h2>Informations sur le poste</h2>
+                    <p>Précisez les détails du poste pour lequel vous recrutez.</p>
+                    
+                    <div id="job-details-section" class="conditional-section visible">
+                        <div class="form-group">
+                            <label for="recruitment-deadline" class="required-field">Délai de recrutement</label>
+                            <select id="recruitment-deadline" name="recruitment-deadline" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="immediate">Immédiat</option>
+                                <option value="two-weeks">2 semaines</option>
+                                <option value="one-month">1 mois</option>
+                                <option value="two-months">2 mois</option>
+                                <option value="three-months">3 mois</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="can-handle-notice" class="required-field">Pouvez-vous gérer un préavis ?</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="can-handle-notice" value="yes" checked> Oui
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="can-handle-notice" value="no"> Non
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="notice-period-section" class="conditional-section visible">
+                            <div class="form-group">
+                                <label for="notice-period">Durée de préavis acceptable</label>
+                                <select id="notice-period" name="notice-period">
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="one-month">1 mois</option>
+                                    <option value="two-months">2 mois</option>
+                                    <option value="three-months">3 mois</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="recruitment-context" class="required-field">Contexte de recrutement</label>
+                            <select id="recruitment-context" name="recruitment-context" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="creation">Création de poste</option>
+                                <option value="replacement">Remplacement</option>
+                                <option value="growth">Accroissement d'activité / Renfort</option>
+                                <option value="confidential">Je ne souhaite pas communiquer</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="experience-required" class="required-field">Années d'expérience requises pour le poste</label>
+                            <select id="experience-required" name="experience-required" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="junior">Profil Junior</option>
+                                <option value="2-3">2 ans - 3 ans</option>
+                                <option value="5-10">5 ans - 10 ans</option>
+                                <option value="10+">10 ans et plus</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sector-knowledge" class="required-field">La connaissance de votre secteur est-elle obligatoire ?</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="sector-knowledge" value="yes"> Oui
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="sector-knowledge" value="no" checked> Non
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="sector-select-section" class="conditional-section">
+                            <div class="form-group">
+                                <label for="sector">Secteur d'activité</label>
+                                <select id="sector" name="sector">
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="tech">Technologies & IT</option>
+                                    <option value="finance">Finance & Banque</option>
+                                    <option value="health">Santé & Pharmaceutique</option>
+                                    <option value="education">Éducation & Formation</option>
+                                    <option value="retail">Commerce & Distribution</option>
+                                    <option value="manufacturing">Industrie & Production</option>
+                                    <option value="consulting">Conseil & Services</option>
+                                    <option value="media">Médias & Communication</option>
+                                    <option value="energy">Énergie & Environnement</option>
+                                    <option value="transport">Transport & Logistique</option>
+                                    <option value="construction">Construction & Immobilier</option>
+                                    <option value="tourism">Tourisme & Hôtellerie</option>
+                                    <option value="agriculture">Agriculture & Agroalimentaire</option>
+                                    <option value="luxury">Luxe & Mode</option>
+                                    <option value="public">Secteur public</option>
+                                    <option value="other">Autre</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="work-environment" class="required-field">Environnement de travail</label>
+                            <select id="work-environment" name="work-environment" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="open-space">Open space</option>
+                                <option value="office">Bureau individuel</option>
+                                <option value="mixed">Mixte</option>
+                                <option value="remote">Télétravail</option>
+                                <option value="hybrid">Hybride</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="team-composition">Composition de l'équipe et rattachement interne</label>
+                            <textarea id="team-composition" name="team-composition" placeholder="Ex: équipe de 5 personnes, rattaché à un responsable technique, etc."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="evolution-prospects">Perspectives d'évolution</label>
+                            <textarea id="evolution-prospects" name="evolution-prospects" placeholder="Mentionnez les possibilités d'évolution si il y en a..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="salary">Rémunération</label>
+                            <input type="text" id="salary" name="salary" placeholder="Ex: 45-55K€ selon expérience">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="benefits">Avantages</label>
+                            <div class="tags-input">
+                                <input type="text" id="benefit-input" placeholder="Ajouter un avantage (ex: télétravail) et appuyer sur Entrée">
+                            </div>
+                            <div class="tags-container" id="benefits-container"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="contract-type" class="required-field">Type de contrat</label>
+                            <select id="contract-type" name="contract-type" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="cdi-35">CDI - 35h</option>
+                                <option value="cdi-39">CDI - 39h</option>
+                                <option value="cdi-cadre">CDI - Cadre</option>
+                                <option value="cdd">CDD</option>
+                                <option value="interim">Intérim</option>
+                                <option value="freelance">Freelance</option>
+                                <option value="stage">Stage</option>
+                                <option value="alternance">Alternance</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="prev-step action-button" data-step="2">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </button>
+                        <button type="button" class="next-step action-button" data-step="4">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 4: Informations de contact -->
+                <section class="form-section" data-step="4">
+                    <h2>Informations de contact</h2>
+                    <p>Précisez vos coordonnées pour que nous puissions vous contacter.</p>
                     
                     <div class="form-row">
                         <div class="form-col">
@@ -629,27 +847,6 @@
                         </div>
                     </div>
                     
-                    <div class="form-row">
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="hiring-urgency" class="required-field">Urgence du recrutement</label>
-                                <select id="hiring-urgency" name="hiring-urgency" required>
-                                    <option value="">-- Sélectionner --</option>
-                                    <option value="immediate">Immédiate (< 1 mois)</option>
-                                    <option value="short-term">Court terme (1-3 mois)</option>
-                                    <option value="medium-term">Moyen terme (3-6 mois)</option>
-                                    <option value="long-term">Long terme (> 6 mois)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="candidates-count" class="required-field">Nombre de candidats souhaité</label>
-                                <input type="number" id="candidates-count" name="candidates-count" min="1" value="3" required>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <div class="form-group">
                         <label for="hiring-process">Processus de recrutement actuel
                             <i class="fas fa-info-circle tooltip-icon" data-tooltip="Décrivez brièvement les étapes de votre processus de recrutement actuel (nombre d'entretiens, tests, etc.)."></i>
@@ -663,7 +860,7 @@
                     </div>
                     
                     <div class="form-navigation">
-                        <button type="button" class="prev-step action-button" data-step="2">
+                        <button type="button" class="prev-step action-button" data-step="3">
                             <i class="fas fa-arrow-left"></i> Retour
                         </button>
                         <button type="submit" class="submit-button">
@@ -672,8 +869,8 @@
                     </div>
                 </section>
                 
-                <!-- Étape 4: Confirmation -->
-                <section class="form-section" data-step="4">
+                <!-- Étape 5: Confirmation -->
+                <section class="form-section" data-step="5">
                     <div class="confirmation-message">
                         <i class="fas fa-check-circle"></i>
                         <h2>Votre demande a été envoyée avec succès !</h2>
@@ -728,13 +925,34 @@
                     } else if (nextStep === 3) {
                         // Vérifier les champs obligatoires de l'étape 2
                         const companyName = document.getElementById('company-name');
+                        const companyAddress = document.getElementById('company-address');
                         const companySize = document.getElementById('company-size');
-                        const companyIndustry = document.getElementById('company-industry');
                         
-                        if (!companyName.value || !companySize.value || !companyIndustry.value) {
+                        if (!companyName.value || !companyAddress.value || !companySize.value) {
                             showNotification("Veuillez remplir tous les champs obligatoires", "error");
-                            highlightEmptyFields([companyName, companySize, companyIndustry]);
+                            highlightEmptyFields([companyName, companyAddress, companySize]);
                             return;
+                        }
+                    } else if (nextStep === 4) {
+                        // Si l'utilisateur a indiqué qu'il a un poste à pourvoir, vérifier les champs obligatoires
+                        const hasJob = document.querySelector('input[name="has-job"]:checked').value;
+                        
+                        if (hasJob === 'yes') {
+                            const requiredFields = [
+                                document.getElementById('recruitment-deadline'),
+                                document.getElementById('recruitment-context'),
+                                document.getElementById('experience-required'),
+                                document.getElementById('work-environment'),
+                                document.getElementById('contract-type')
+                            ];
+                            
+                            const emptyFields = requiredFields.filter(field => !field.value);
+                            
+                            if (emptyFields.length > 0) {
+                                showNotification("Veuillez remplir tous les champs obligatoires", "error");
+                                highlightEmptyFields(emptyFields);
+                                return;
+                            }
                         }
                     }
                     
@@ -870,7 +1088,7 @@
             const benefitsContainer = document.getElementById('benefits-container');
             
             // Exemples d'avantages par défaut
-            const defaultBenefits = ['Télétravail', 'Tickets restaurant', 'Horaires flexibles'];
+            const defaultBenefits = ['Télétravail', 'Tickets restaurant', 'RTT', '13e mois'];
             defaultBenefits.forEach(benefit => addBenefitTag(benefit));
             
             benefitInput.addEventListener('keypress', function(e) {
@@ -897,6 +1115,82 @@
                 benefitsContainer.appendChild(tag);
             }
             
+            // Gestion des sections conditionnelles
+            const hasJobRadios = document.querySelectorAll('input[name="has-job"]');
+            const jobDetailsSection = document.getElementById('job-details-section');
+            
+            hasJobRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'yes') {
+                        jobDetailsSection.classList.add('visible');
+                    } else {
+                        jobDetailsSection.classList.remove('visible');
+                    }
+                });
+            });
+            
+            const canHandleNoticeRadios = document.querySelectorAll('input[name="can-handle-notice"]');
+            const noticePeriodSection = document.getElementById('notice-period-section');
+            
+            canHandleNoticeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'yes') {
+                        noticePeriodSection.classList.add('visible');
+                    } else {
+                        noticePeriodSection.classList.remove('visible');
+                    }
+                });
+            });
+            
+            const sectorKnowledgeRadios = document.querySelectorAll('input[name="sector-knowledge"]');
+            const sectorSelectSection = document.getElementById('sector-select-section');
+            
+            sectorKnowledgeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'yes') {
+                        sectorSelectSection.classList.add('visible');
+                    } else {
+                        sectorSelectSection.classList.remove('visible');
+                    }
+                });
+            });
+            
+            // Génération de présentation à partir du site web
+            const generatePresentationButton = document.getElementById('generate-presentation');
+            const generatedPresentation = document.getElementById('generated-presentation');
+            const companyWebsite = document.getElementById('company-website');
+            const companyPresentation = document.getElementById('company-presentation');
+            
+            generatePresentationButton.addEventListener('click', function() {
+                if (!companyWebsite.value) {
+                    showNotification("Veuillez d'abord saisir l'URL de votre site web", "error");
+                    return;
+                }
+                
+                // Simuler le chargement
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
+                
+                // Simuler un délai d'API
+                setTimeout(() => {
+                    // Exemple de texte généré
+                    const exampleText = `${companyWebsite.value.replace('https://', '').replace('www.', '').split('/')[0]} est une entreprise innovante spécialisée dans [secteur]. Fondée en [année], l'entreprise s'est rapidement développée pour devenir un acteur majeur dans son domaine. Notre mission est de [mission] grâce à des solutions performantes et adaptées aux besoins de nos clients.`;
+                    
+                    // Mettre à jour le contenu généré
+                    generatedPresentation.innerHTML = `<p>${exampleText}</p>`;
+                    generatedPresentation.classList.add('visible');
+                    
+                    // Mettre également le texte dans le textarea
+                    companyPresentation.value = exampleText;
+                    
+                    // Réinitialiser le bouton
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-magic"></i> Générer à partir du site web';
+                    
+                    showNotification("Présentation générée avec succès !", "success");
+                }, 1500);
+            });
+            
             // Gestion du formulaire
             const form = document.getElementById('client-questionnaire-form');
             const confirmationEmail = document.getElementById('confirmation-email');
@@ -908,9 +1202,7 @@
                 // Validation basique des champs obligatoires
                 const requiredFields = [
                     document.getElementById('contact-name'),
-                    document.getElementById('contact-email'),
-                    document.getElementById('hiring-urgency'),
-                    document.getElementById('candidates-count')
+                    document.getElementById('contact-email')
                 ];
                 
                 const emptyFields = requiredFields.filter(field => !field.value);
@@ -925,7 +1217,7 @@
                 confirmationEmail.textContent = document.getElementById('contact-email').value;
                 
                 // Naviguer vers l'étape de confirmation
-                navigateToStep(4);
+                navigateToStep(5);
                 confirmationMessage.style.display = 'block';
             });
             
