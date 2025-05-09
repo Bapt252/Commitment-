@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexten - Confirmation de sélection</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/css/job-parser-styles.css">
+    <link rel="stylesheet" href="../static/css/client-questionnaire.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Styles pour la page de confirmation */
+        .confirmation-container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+        }
+        
+        .confirmation-title {
+            margin-bottom: 1.5rem;
+            color: #212529;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        
+        .job-summary {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e9ecef;
+        }
+        
+        .job-title {
+            color: #4361ee;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .job-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .job-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .job-description {
+            color: #212529;
+            margin-bottom: 1rem;
+        }
+        
+        .job-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .candidate-list {
+            margin-top: 2rem;
+        }
+        
+        .candidate-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e9ecef;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .candidate-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #eef2ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #4361ee;
+            font-weight: 600;
+        }
+        
+        .candidate-info {
+            flex: 1;
+        }
+        
+        .candidate-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #212529;
+        }
+        
+        .candidate-position {
+            color: #4361ee;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .candidate-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .candidate-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .candidate-match {
+            margin-left: auto;
+            background-color: #eef2ff;
+            color: #4361ee;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .candidate-match.good-match {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+        
+        .candidate-match.average-match {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        
+        .candidate-match.poor-match {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .candidate-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .candidate-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .action-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.85rem;
+            color: #4361ee;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .action-link:hover {
+            text-decoration: underline;
+        }
+        
+        .summary-section {
+            margin-top: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+        }
+        
+        .summary-title {
+            margin-bottom: 1rem;
+            color: #212529;
+            font-weight: 600;
+        }
+        
+        .summary-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .summary-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        
+        .summary-value {
+            font-weight: 600;
+            color: #212529;
+        }
+        
+        .submittion-form {
+            margin-top: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #212529;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Styles pour la page de succès */
+        .success-message {
+            text-align: center;
+            padding: 3rem 2rem;
+            display: none;
+        }
+        
+        .success-message i {
+            font-size: 4rem;
+            color: #10B981;
+            margin-bottom: 1.5rem;
+        }
+        
+        .success-message h2 {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            color: #212529;
+        }
+        
+        .success-message p {
+            font-size: 1.1rem;
+            color: #6c757d;
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
+        }
+        
+        /* Badge pour montrer le nombre de candidats */
+        .candidate-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #4361ee;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Contenu de la page -->
+    <div class="container">
+        <header class="header">
+            <h1>Confirmation de sélection</h1>
+            <p class="subtitle">Vérifiez votre demande de recrutement et les candidats sélectionnés</p>
+        </header>
+
+        <main>
+            <!-- Étapes de progression -->
+            <div class="progress-steps">
+                <div class="step completed" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Fiche de poste</div>
+                </div>
+                <div class="step completed" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Entreprise</div>
+                </div>
+                <div class="step completed" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Analyse CV</div>
+                </div>
+                <div class="step active" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Confirmation</div>
+                </div>
+            </div>
+            
+            <div id="confirmation-form-container">
+                <div class="confirmation-container">
+                    <h2 class="confirmation-title">Récapitulatif de votre demande</h2>
+                    
+                    <!-- Résumé de la fiche de poste -->
+                    <div class="job-summary">
+                        <div class="job-title">Développeur Full Stack JavaScript</div>
+                        <div class="job-details">
+                            <div class="job-detail">
+                                <i class="fas fa-briefcase"></i>
+                                CDI
+                            </div>
+                            <div class="job-detail">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Paris, France
+                            </div>
+                            <div class="job-detail">
+                                <i class="fas fa-user-graduate"></i>
+                                3+ ans d'expérience
+                            </div>
+                            <div class="job-detail">
+                                <i class="fas fa-graduation-cap"></i>
+                                Bac+5 en informatique
+                            </div>
+                        </div>
+                        <div class="job-description">
+                            Nous recherchons un développeur Full Stack JavaScript pour rejoindre notre équipe et participer au développement de nos applications web complètes.
+                        </div>
+                        <div class="job-skills">
+                            <span class="skill-tag">JavaScript</span>
+                            <span class="skill-tag">React</span>
+                            <span class="skill-tag">Node.js</span>
+                            <span class="skill-tag">Express</span>
+                            <span class="skill-tag">MongoDB</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Liste des candidats sélectionnés -->
+                    <div class="candidate-list">
+                        <h3 class="confirmation-title">Candidats sélectionnés <span class="candidate-count">3</span></h3>
+                        
+                        <!-- Candidat 1 -->
+                        <div class="candidate-card">
+                            <div class="candidate-avatar">
+                                <span>MD</span>
+                            </div>
+                            <div class="candidate-info">
+                                <div class="candidate-name">Marie Dubois</div>
+                                <div class="candidate-position">Développeuse Full Stack</div>
+                                <div class="candidate-details">
+                                    <div class="candidate-detail">
+                                        <i class="fas fa-briefcase"></i>
+                                        5 ans d'expérience
+                                    </div>
+                                    <div class="candidate-detail">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        Lyon, France
+                                    </div>
+                                    <div class="candidate-match good-match">
+                                        <i class="fas fa-check-circle"></i>
+                                        Correspondance: 85%
+                                    </div>
+                                </div>
+                                <div class="candidate-skills">
+                                    <span class="skill-tag matching-skill">JavaScript</span>
+                                    <span class="skill-tag matching-skill">React</span>
+                                    <span class="skill-tag matching-skill">Node.js</span>
+                                    <span class="skill-tag">TypeScript</span>
+                                    <span class="skill-tag">GraphQL</span>
+                                </div>
+                                <div class="candidate-actions">
+                                    <a href="cv-parser.html" class="action-link">
+                                        <i class="fas fa-eye"></i>
+                                        Voir le profil
+                                    </a>
+                                    <a href="#" class="action-link remove-candidate">
+                                        <i class="fas fa-times"></i>
+                                        Retirer
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Candidat 2 -->
+                        <div class="candidate-card">
+                            <div class="candidate-avatar">
+                                <span>TM</span>
+                            </div>
+                            <div class="candidate-info">
+                                <div class="candidate-name">Thomas Martin</div>
+                                <div class="candidate-position">Développeur JavaScript</div>
+                                <div class="candidate-details">
+                                    <div class="candidate-detail">
+                                        <i class="fas fa-briefcase"></i>
+                                        3 ans d'expérience
+                                    </div>
+                                    <div class="candidate-detail">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        Paris, France
+                                    </div>
+                                    <div class="candidate-match average-match">
+                                        <i class="fas fa-check-circle"></i>
+                                        Correspondance: 72%
+                                    </div>
+                                </div>
+                                <div class="candidate-skills">
+                                    <span class="skill-tag matching-skill">JavaScript</span>
+                                    <span class="skill-tag matching-skill">React</span>
+                                    <span class="skill-tag">Vue.js</span>
+                                    <span class="skill-tag">CSS</span>
+                                    <span class="skill-tag">GraphQL</span>
+                                </div>
+                                <div class="candidate-actions">
+                                    <a href="cv-parser.html" class="action-link">
+                                        <i class="fas fa-eye"></i>
+                                        Voir le profil
+                                    </a>
+                                    <a href="#" class="action-link remove-candidate">
+                                        <i class="fas fa-times"></i>
+                                        Retirer
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Candidat 3 -->
+                        <div class="candidate-card">
+                            <div class="candidate-avatar">
+                                <span>SL</span>
+                            </div>
+                            <div class="candidate-info">
+                                <div class="candidate-name">Sophie Legrand</div>
+                                <div class="candidate-position">Développeuse Back-end</div>
+                                <div class="candidate-details">
+                                    <div class="candidate-detail">
+                                        <i class="fas fa-briefcase"></i>
+                                        4 ans d'expérience
+                                    </div>
+                                    <div class="candidate-detail">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        Bordeaux, France
+                                    </div>
+                                    <div class="candidate-match average-match">
+                                        <i class="fas fa-check-circle"></i>
+                                        Correspondance: 68%
+                                    </div>
+                                </div>
+                                <div class="candidate-skills">
+                                    <span class="skill-tag matching-skill">Node.js</span>
+                                    <span class="skill-tag matching-skill">Express</span>
+                                    <span class="skill-tag matching-skill">MongoDB</span>
+                                    <span class="skill-tag">TypeScript</span>
+                                    <span class="skill-tag">PostgreSQL</span>
+                                </div>
+                                <div class="candidate-actions">
+                                    <a href="cv-parser.html" class="action-link">
+                                        <i class="fas fa-eye"></i>
+                                        Voir le profil
+                                    </a>
+                                    <a href="#" class="action-link remove-candidate">
+                                        <i class="fas fa-times"></i>
+                                        Retirer
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Résumé de la demande -->
+                    <div class="summary-section">
+                        <h3 class="summary-title">Informations du client</h3>
+                        <div class="summary-info">
+                            <div class="summary-item">
+                                <div class="summary-label">Entreprise</div>
+                                <div class="summary-value">Tech Innovations</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Contact</div>
+                                <div class="summary-value">Jean Dupont</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Email</div>
+                                <div class="summary-value">jean.dupont@example.com</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Téléphone</div>
+                                <div class="summary-value">01 23 45 67 89</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Urgence du recrutement</div>
+                                <div class="summary-value">Court terme (1-3 mois)</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Nombre de candidats</div>
+                                <div class="summary-value">3</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaires additionnels -->
+                    <div class="submittion-form">
+                        <h3 class="confirmation-title">Commentaires additionnels</h3>
+                        <div class="form-group">
+                            <label for="additional-comments" class="form-label">Ajoutez vos commentaires concernant cette demande de recrutement</label>
+                            <textarea id="additional-comments" class="form-control" placeholder="Vos commentaires..."></textarea>
+                        </div>
+                        
+                        <div class="form-navigation">
+                            <button type="button" class="prev-step action-button" onclick="window.location.href='cv-parser.html'">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </button>
+                            <button type="button" id="submit-button" class="submit-button">
+                                <i class="fas fa-paper-plane"></i> Finaliser ma demande
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Message de succès (initialement caché) -->
+            <div id="success-message" class="success-message">
+                <i class="fas fa-check-circle"></i>
+                <h2>Votre demande a été envoyée avec succès !</h2>
+                <p>Merci d'avoir complété notre processus de recrutement. Notre équipe analysera votre demande et vous contactera dans les plus brefs délais pour discuter des prochaines étapes.</p>
+                <p>Un email de confirmation a été envoyé à <strong id="confirmation-email">jean.dupont@example.com</strong></p>
+                <a href="../index.html" class="action-button">
+                    <i class="fas fa-home"></i> Retour à l'accueil
+                </a>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestion du bouton de suppression de candidat
+            const removeButtons = document.querySelectorAll('.remove-candidate');
+            removeButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const candidateCard = this.closest('.candidate-card');
+                    
+                    if (candidateCard) {
+                        // Animation de suppression
+                        candidateCard.style.opacity = '0';
+                        candidateCard.style.height = candidateCard.offsetHeight + 'px';
+                        candidateCard.style.transition = 'opacity 0.3s ease, height 0.5s ease 0.3s, margin 0.5s ease 0.3s, padding 0.5s ease 0.3s';
+                        
+                        setTimeout(() => {
+                            candidateCard.style.height = '0';
+                            candidateCard.style.margin = '0';
+                            candidateCard.style.padding = '0';
+                            candidateCard.style.overflow = 'hidden';
+                            
+                            // Mettre à jour le compteur de candidats
+                            updateCandidateCount();
+                            
+                            // Supprimer l'élément après l'animation
+                            setTimeout(() => {
+                                candidateCard.remove();
+                            }, 500);
+                        }, 300);
+                    }
+                });
+            });
+            
+            // Mettre à jour le compteur de candidats
+            function updateCandidateCount() {
+                const candidateCount = document.querySelector('.candidate-count');
+                const candidateCards = document.querySelectorAll('.candidate-card');
+                
+                if (candidateCount) {
+                    const visibleCards = Array.from(candidateCards).filter(card => {
+                        return window.getComputedStyle(card).opacity !== '0' && 
+                               window.getComputedStyle(card).height !== '0px';
+                    });
+                    
+                    candidateCount.textContent = visibleCards.length;
+                }
+            }
+            
+            // Gestion du bouton de soumission
+            const submitButton = document.getElementById('submit-button');
+            const confirmationForm = document.getElementById('confirmation-form-container');
+            const successMessage = document.getElementById('success-message');
+            
+            if (submitButton && confirmationForm && successMessage) {
+                submitButton.addEventListener('click', function() {
+                    // Simuler un chargement
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+                    
+                    // Simuler un délai d'API
+                    setTimeout(() => {
+                        confirmationForm.style.display = 'none';
+                        successMessage.style.display = 'block';
+                        
+                        // Scroll vers le haut
+                        window.scrollTo(0, 0);
+                    }, 1500);
+                });
+            }
+            
+            // Fonction globale pour afficher des notifications
+            window.showNotification = function(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                
+                let icon = '';
+                switch (type) {
+                    case 'success':
+                        icon = '<i class="fas fa-check-circle"></i>';
+                        break;
+                    case 'error':
+                        icon = '<i class="fas fa-exclamation-circle"></i>';
+                        break;
+                    case 'info':
+                        icon = '<i class="fas fa-info-circle"></i>';
+                        break;
+                }
+                
+                notification.innerHTML = `${icon}<div>${message}</div>`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 10);
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 5000);
+            };
+        });
+    </script>
+</body>
+</html>
