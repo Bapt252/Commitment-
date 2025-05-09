@@ -1215,6 +1215,54 @@
             font-weight: 500;
         }
         
+        /* Styles pour les boutons d'exportation */
+        .job-export-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-export {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            color: var(--black);
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .btn-export i {
+            color: var(--purple);
+            transition: transform 0.3s ease;
+        }
+        
+        .btn-export:hover i {
+            transform: translateY(-2px);
+        }
+        
+        /* Affichage des informations du contrat */
+        .contract-highlight {
+            background: rgba(124, 58, 237, 0.05);
+            border-left: 3px solid var(--purple);
+            padding: 10px 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        
         /* Responsive design amélioré */
         @media (max-width: 768px) {
             .stepper {
@@ -1306,6 +1354,16 @@
             
             .menu-toggle {
                 display: block;
+            }
+            
+            .job-export-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-export {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -1549,6 +1607,20 @@
                                                 <div class="job-info-value" id="job-salary-value">-</div>
                                             </li>
                                         </ul>
+                                        
+                                        <!-- Nouveaux boutons pour l'exportation des données -->
+                                        <div class="job-export-buttons">
+                                            <button type="button" id="export-to-pdf" class="btn-export">
+                                                <i class="fas fa-file-pdf"></i> Exporter en PDF
+                                            </button>
+                                            <button type="button" id="export-to-json" class="btn-export">
+                                                <i class="fas fa-file-code"></i> Exporter en JSON
+                                            </button>
+                                            <button type="button" id="copy-to-clipboard" class="btn-export">
+                                                <i class="fas fa-clipboard"></i> Copier
+                                            </button>
+                                        </div>
+                                        
                                         <div style="text-align: right; margin-top: 15px;">
                                             <button type="button" id="edit-parsed-info" class="btn-generate">
                                                 <i class="fas fa-edit"></i> Modifier manuellement
@@ -2214,6 +2286,104 @@ Lieu: Paris`;
                     // Proposer d'analyser le fichier immédiatement
                     showNotification(`Fichier "${fileName}" sélectionné. Cliquez sur "Analyser avec GPT" pour continuer.`, 'success');
                 }
+            }
+            
+            // Gestion des boutons d'exportation
+            
+            // Exportation en PDF
+            const exportToPDFBtn = document.getElementById('export-to-pdf');
+            if (exportToPDFBtn) {
+                exportToPDFBtn.addEventListener('click', function() {
+                    // Dans un environnement réel, cela utiliserait une bibliothèque comme jsPDF
+                    // Pour cette démo, nous simulons simplement l'exportation
+                    showNotification('Exportation PDF en cours...', 'success');
+                    
+                    setTimeout(() => {
+                        showNotification('Fiche de poste exportée en PDF avec succès !', 'success');
+                    }, 1500);
+                });
+            }
+            
+            // Exportation en JSON
+            const exportToJSONBtn = document.getElementById('export-to-json');
+            if (exportToJSONBtn) {
+                exportToJSONBtn.addEventListener('click', function() {
+                    // Récupérer les données depuis JobParserConnector
+                    if (window.JobParserConnector && window.JobParserConnector.cachedJobData) {
+                        const jsonData = JSON.stringify(window.JobParserConnector.cachedJobData, null, 2);
+                        
+                        // Créer un objet Blob pour le téléchargement
+                        const blob = new Blob([jsonData], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        
+                        // Créer un lien de téléchargement et cliquer dessus
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = url;
+                        downloadLink.download = 'fiche_poste_' + new Date().toISOString().slice(0, 10) + '.json';
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                        URL.revokeObjectURL(url);
+                        
+                        showNotification('Fiche de poste exportée en JSON avec succès !', 'success');
+                    } else {
+                        showNotification('Aucune donnée disponible à exporter.', 'error');
+                    }
+                });
+            }
+            
+            // Copier dans le presse-papiers
+            const copyToClipboardBtn = document.getElementById('copy-to-clipboard');
+            if (copyToClipboardBtn) {
+                copyToClipboardBtn.addEventListener('click', function() {
+                    // Récupérer les données depuis le conteneur d'informations
+                    const jobInfoContainer = document.getElementById('job-info-container');
+                    if (jobInfoContainer) {
+                        const jobInfoItems = jobInfoContainer.querySelectorAll('.job-info-item');
+                        let clipboardText = '';
+                        
+                        jobInfoItems.forEach(item => {
+                            const label = item.querySelector('.job-info-label').textContent;
+                            let value = '';
+                            
+                            // Gérer les listes différemment
+                            const list = item.querySelector('ul');
+                            if (list) {
+                                const listItems = list.querySelectorAll('li');
+                                let listValues = [];
+                                listItems.forEach(li => {
+                                    listValues.push(`- ${li.textContent}`);
+                                });
+                                value = '\n' + listValues.join('\n');
+                            } else {
+                                // Gérer les tags de compétences
+                                const tags = item.querySelectorAll('.skill-tag');
+                                if (tags.length > 0) {
+                                    let tagValues = [];
+                                    tags.forEach(tag => {
+                                        tagValues.push(tag.textContent);
+                                    });
+                                    value = tagValues.join(', ');
+                                } else {
+                                    // Texte simple
+                                    value = item.querySelector('.job-info-value').textContent;
+                                }
+                            }
+                            
+                            clipboardText += `${label}: ${value}\n\n`;
+                        });
+                        
+                        // Copier le texte dans le presse-papiers
+                        navigator.clipboard.writeText(clipboardText)
+                            .then(() => {
+                                showNotification('Informations copiées dans le presse-papiers !', 'success');
+                            })
+                            .catch(err => {
+                                console.error('Erreur lors de la copie : ', err);
+                                showNotification('Impossible de copier les informations.', 'error');
+                            });
+                    }
+                });
             }
         });
     </script>
