@@ -3,357 +3,615 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Nexten - Analysez et optimisez votre CV">
-    <title>Nexten - Analysez votre CV</title>
+    <title>Nexten - Analyseur de CV</title>
     
     <!-- CSS -->
-    <link rel="stylesheet" href="../static/styles/nexten-modern.css">
+    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/css/job-parser-styles.css">
+    <link rel="stylesheet" href="../static/css/client-questionnaire.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../static/styles/dashboard.css">
-    <link rel="stylesheet" href="../static/styles/dashboard-new.css">
-    <link rel="stylesheet" href="../static/styles/nav-improvement.css">
-    <link rel="stylesheet" href="../static/styles/cv-parser.css">
     
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon">
+    <!-- Styles spécifiques pour le CV Parser -->
+    <style>
+        /* Styles communs */
+        .parser-section h2 {
+            margin-bottom: 1rem;
+        }
+        
+        .parser-section p {
+            margin-bottom: 1.5rem;
+            color: #6c757d;
+        }
+        
+        /* Styles pour le résultat de l'analyse */
+        .cv-info-container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid #e9ecef;
+        }
+        
+        .cv-info-container h3 {
+            margin-bottom: 1.5rem;
+            color: #212529;
+            font-weight: 600;
+        }
+        
+        .cv-info-container .section-title {
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #4361ee;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-group {
+            margin-bottom: 1rem;
+        }
+        
+        .info-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            font-weight: 500;
+            color: #212529;
+            background-color: white;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            min-height: 40px;
+            word-break: break-word;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        /* Styles pour l'expérience */
+        .experience-section {
+            padding: 1rem;
+            background-color: #eef2ff;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #4361ee;
+        }
+        
+        .experience-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .experience-company {
+            font-style: italic;
+            color: #4361ee;
+            margin-bottom: 0.5rem;
+        }
+        
+        .experience-date {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        /* Styles pour les listes d'items */
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .item-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .item-list li:last-child {
+            border-bottom: none;
+        }
+        
+        /* Styles pour les tags de compétences */
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .skill-tag {
+            background-color: #eef2ff;
+            color: #4361ee;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+        
+        .matching-skill {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+        
+        .missing-skill {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        /* Styles pour les liens */
+        .candidate-link {
+            color: #4361ee;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 1rem;
+        }
+        
+        .candidate-link:hover {
+            text-decoration: underline;
+        }
+        
+        .link-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Styles pour le score de correspondance */
+        .match-score-container {
+            text-align: center;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .match-score-title {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+        
+        .match-score-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .good-match {
+            color: #059669;
+        }
+        
+        .average-match {
+            color: #d97706;
+        }
+        
+        .poor-match {
+            color: #dc2626;
+        }
+        
+        /* Actions */
+        .cv-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background-color: #eef2ff;
+            color: #4361ee;
+            border: 1px solid #4361ee;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .action-button:hover {
+            background-color: #4361ee;
+            color: white;
+        }
+        
+        /* Indicateur de chargement */
+        .loader-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #4361ee;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Visualisation du score */
+        .gauge-container {
+            width: 150px;
+            height: 150px;
+            position: relative;
+            margin: 0 auto;
+        }
+        
+        .gauge {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .gauge-background {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 10px solid #e9ecef;
+            box-sizing: border-box;
+        }
+        
+        .gauge-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            clip-path: polygon(50% 50%, 100% 50%, 100% 0, 50% 0);
+            transform-origin: center;
+            box-sizing: border-box;
+        }
+        
+        .gauge-cover {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: calc(100% - 20px);
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+    </style>
 </head>
 <body>
-    <!-- Notification bar -->
-    <div class="notification-bar">
-        <i class="fas fa-bell"></i> Votre recrutement change, votre approche aussi : découvrez notre approche TOP <span class="ten-badge">10</span>
+    <!-- Contenu de la page -->
+    <div class="container">
+        <header class="header">
+            <h1>Analyseur de CV</h1>
+            <p class="subtitle">Analysez les CV des candidats et évaluez leur adéquation avec vos besoins</p>
+        </header>
+
+        <main>
+            <!-- Étapes de progression -->
+            <div class="progress-steps">
+                <div class="step completed" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Fiche de poste</div>
+                </div>
+                <div class="step completed" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Entreprise</div>
+                </div>
+                <div class="step active" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Analyse CV</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Confirmation</div>
+                </div>
+            </div>
+            
+            <section class="parser-section">
+                <h2>Analysez les CV des candidats</h2>
+                <p>Importez un CV pour analyser automatiquement le profil du candidat et évaluer sa compatibilité avec votre fiche de poste.</p>
+                
+                <div id="cv-drop-zone" class="drop-zone">
+                    <span class="drop-zone-text">Glissez-déposez un CV ici ou cliquez pour choisir un fichier</span>
+                    <input type="file" id="cv-file-input" class="drop-zone-input" accept=".pdf,.doc,.docx">
+                    <!-- Badge de fichier sélectionné (initialement caché) -->
+                    <div id="file-badge" class="file-badge" style="display: none;">
+                        <i class="fas fa-file-alt"></i>
+                        <span id="file-name">nom-du-fichier.pdf</span>
+                        <i class="fas fa-times remove-file" id="remove-file"></i>
+                    </div>
+                </div>
+                
+                <button type="button" id="analyze-cv-button" class="analyze-button">
+                    <i class="fas fa-search"></i> Analyser le CV
+                </button>
+                
+                <!-- Indicateur de chargement -->
+                <div id="cv-analysis-loader" class="loader-container">
+                    <div class="loader"></div>
+                    <span>Analyse en cours...</span>
+                </div>
+                
+                <!-- Résultats de l'analyse (initialement cachés) -->
+                <div id="cv-info-container" class="cv-info-container" style="display: none;">
+                    <h3>Informations extraites du CV</h3>
+                    
+                    <!-- Score de correspondance avec la fiche de poste -->
+                    <div class="match-score-container">
+                        <div class="match-score-title">Compatibilité avec la fiche de poste</div>
+                        <div class="gauge-container">
+                            <div class="gauge">
+                                <div class="gauge-background"></div>
+                                <div class="gauge-fill" id="gauge-fill" style="border: 10px solid #10B981; transform: rotate(306deg);"></div>
+                                <div class="gauge-cover">
+                                    <span id="job-match-score-value" class="good-match">85%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Informations de base -->
+                    <div class="section-title">Informations personnelles</div>
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label>Nom</label>
+                            <div id="candidate-name-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Email</label>
+                            <div id="candidate-email-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Téléphone</label>
+                            <div id="candidate-phone-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Localisation</label>
+                            <div id="candidate-location-value" class="info-value">Non spécifié</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Compétences -->
+                    <div class="section-title">Compétences</div>
+                    <div class="info-grid">
+                        <div class="info-group full-width">
+                            <label>Compétences techniques</label>
+                            <div id="candidate-skills-value" class="info-value skills-container">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Langues</label>
+                            <div id="candidate-languages-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Années d'expérience</label>
+                            <div id="candidate-experience-value" class="info-value">Non spécifié</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Expérience professionnelle -->
+                    <div class="section-title">Expérience professionnelle</div>
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label>Postes occupés</label>
+                            <div id="candidate-job-titles-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Entreprises</label>
+                            <div id="candidate-companies-value" class="info-value">Non spécifié</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formation et certifications -->
+                    <div class="section-title">Formation et certifications</div>
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label>Formation</label>
+                            <div id="candidate-education-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Certifications</label>
+                            <div id="candidate-certifications-value" class="info-value">Non spécifié</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Informations supplémentaires -->
+                    <div class="section-title">Informations supplémentaires</div>
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label>Liens</label>
+                            <div id="candidate-links-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Objectif professionnel</label>
+                            <div id="candidate-objective-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group full-width">
+                            <label>Résumé du profil</label>
+                            <div id="candidate-resume-value" class="info-value">Non spécifié</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Adéquation avec la fiche de poste -->
+                    <div class="section-title">Adéquation avec la fiche de poste</div>
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label>Compétences correspondantes</label>
+                            <div id="matching-skills-value" class="info-value skills-container">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label>Compétences manquantes</label>
+                            <div id="missing-skills-value" class="info-value skills-container">Non spécifié</div>
+                        </div>
+                    </div>
+                    
+                    <div class="cv-actions">
+                        <button type="button" id="edit-cv-info" class="action-button">
+                            <i class="fas fa-edit"></i> Modifier manuellement
+                        </button>
+                        
+                        <button type="button" id="export-cv-info" class="action-button">
+                            <i class="fas fa-file-export"></i> Exporter le rapport
+                        </button>
+                        
+                        <button type="button" id="send-to-candidate" class="action-button">
+                            <i class="fas fa-user-check"></i> Ajouter aux candidats sélectionnés
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <div class="form-navigation">
+                <button type="button" class="prev-step action-button" onclick="window.location.href='client-questionnaire.html'">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </button>
+                <button type="button" class="next-step action-button" onclick="window.location.href='confirm-selection.html'">
+                    Continuer <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </main>
     </div>
-
-    <!-- Lien d'accessibilité pour sauter au contenu principal -->
-    <a href="#main-content" class="skip-to-content">Aller au contenu principal</a>
-
-    <header>
-        <div class="container">
-            <div class="logo">
-                nex<span>ten</span><div class="logo-badge">10</div>
-            </div>
+    
+    <!-- Scripts -->
+    <script src="../js/job-parser-connector.js"></script>
+    <script src="../js/cv-parser-connector.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestion du bouton de suppression de fichier
+            const removeFile = document.getElementById('remove-file');
+            const fileBadge = document.getElementById('file-badge');
+            const fileInput = document.getElementById('cv-file-input');
             
-            <button class="menu-toggle" aria-label="Menu principal">
-                <i class="fas fa-bars"></i>
-            </button>
+            if (removeFile && fileBadge && fileInput) {
+                removeFile.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    fileInput.value = '';
+                    fileBadge.style.display = 'none';
+                    // Réinitialiser le texte de la zone de drop
+                    const dropZoneText = document.querySelector('.drop-zone-text');
+                    if (dropZoneText) {
+                        dropZoneText.textContent = 'Glissez-déposez un CV ici ou cliquez pour choisir un fichier';
+                    }
+                });
+            }
             
-            <nav>
-                <ul>
-                    <li><a href="index.html">Accueil</a></li>
-                    <li><a href="candidate-dashboard-new.html" class="active">Espace candidat</a></li>
-                    <li><a href="company-login.html">Espace entreprise</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <div class="container main-container" id="main-content">
-        <!-- Breadcrumb -->
-        <div class="breadcrumb fade-in">
-            <a href="candidate-dashboard-new.html"><i class="fas fa-home"></i> Tableau de bord</a> &gt; 
-            <span>Analysez votre CV</span>
-        </div>
-        
-        <!-- Section Travailler mon CV -->
-        <div class="candidate-dashboard-section fade-in">
-            <h2 class="section-heading">Analysez et optimisez votre CV</h2>
-            
-            <!-- Progress Indicators -->
-            <div class="progress-indicators">
-                <div class="progress-step active">
-                    <div class="step-circle">1</div>
-                    <div class="step-label">Importation</div>
-                </div>
-                <div class="step-connector"></div>
-                <div class="progress-step">
-                    <div class="step-circle">2</div>
-                    <div class="step-label">Vérification</div>
-                </div>
-                <div class="step-connector"></div>
-                <div class="progress-step">
-                    <div class="step-circle">3</div>
-                    <div class="step-label">Optimisation</div>
-                </div>
-                <div class="step-connector"></div>
-                <div class="progress-step">
-                    <div class="step-circle">4</div>
-                    <div class="step-label">Finalisation</div>
-                </div>
-            </div>
-            
-            <!-- Step 1: Import CV -->
-            <div class="cv-parser-container">
-                <!-- CV Upload Section -->
-                <div class="cv-upload-section">
-                    <h3 class="cv-form-title">Importez votre CV</h3>
-                    
-                    <div class="file-upload-zone" id="dropZone">
-                        <div class="file-upload-icon">
-                            <i class="fas fa-file-upload"></i>
-                        </div>
-                        <div class="file-upload-text">
-                            <h3>Déposez votre fichier ici</h3>
-                            <p>ou cliquez pour sélectionner un fichier</p>
-                            <button class="file-upload-btn">Parcourir les fichiers</button>
-                            <input type="file" id="cvFileUpload" style="display: none;">
-                        </div>
-                    </div>
-                    
-                    <div class="upload-requirements">
-                        <p><strong>Formats acceptés :</strong></p>
-                        <ul>
-                            <li>PDF (.pdf)</li>
-                            <li>Word (.doc, .docx)</li>
-                            <li>Text (.txt)</li>
-                        </ul>
-                        <p><strong>Taille maximale :</strong> 5 Mo</p>
-                    </div>
-                    
-                    <div style="margin-top: auto; padding-top: 2rem;">
-                        <h4>Pourquoi analyser votre CV ?</h4>
-                        <p>Notre système d'intelligence artificielle analyse votre CV pour identifier les points forts et les opportunités d'amélioration. Vous recevrez des suggestions personnalisées pour optimiser votre CV et augmenter vos chances auprès des recruteurs.</p>
-                    </div>
-                </div>
+            // Animation de la jauge pour le score de correspondance
+            function updateGauge(score) {
+                const gaugeFill = document.getElementById('gauge-fill');
+                const scoreValue = document.getElementById('job-match-score-value');
                 
-                <!-- Form Initial Section -->
-                <div class="cv-form-section">
-                    <h3 class="cv-form-title">Informations sur votre profil</h3>
-                    
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <div class="form-section-icon">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <h4 class="form-section-title">Informations personnelles</h4>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="jobTitle" class="form-label">Titre du poste recherché</label>
-                            <div class="tooltip" style="margin-left: 0.5rem;">
-                                <i class="fas fa-question-circle"></i>
-                                <span class="tooltiptext">Le titre du poste que vous recherchez actuellement</span>
-                            </div>
-                            <input type="text" id="jobTitle" class="form-control" placeholder="Ex: Développeur Frontend, Chef de Projet Marketing...">
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="experience" class="form-label">Niveau d'expérience</label>
-                                <select id="experience" class="form-control">
-                                    <option value="">Sélectionnez votre niveau</option>
-                                    <option value="junior">Junior (0-2 ans)</option>
-                                    <option value="intermediaire">Intermédiaire (3-5 ans)</option>
-                                    <option value="senior">Senior (6-9 ans)</option>
-                                    <option value="expert">Expert (10+ ans)</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="industry" class="form-label">Secteur d'activité</label>
-                                <select id="industry" class="form-control">
-                                    <option value="">Sélectionnez votre secteur</option>
-                                    <option value="tech">Technologie & Informatique</option>
-                                    <option value="finance">Finance & Banque</option>
-                                    <option value="marketing">Marketing & Communication</option>
-                                    <option value="healthcare">Santé</option>
-                                    <option value="education">Éducation</option>
-                                    <option value="retail">Commerce & Distribution</option>
-                                    <option value="manufacturing">Industrie & Production</option>
-                                    <option value="other">Autre</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <div class="form-section-icon">
-                                <i class="fas fa-briefcase"></i>
-                            </div>
-                            <h4 class="form-section-title">Expérience récente</h4>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="lastPosition" class="form-label">Dernier poste occupé</label>
-                            <input type="text" id="lastPosition" class="form-control" placeholder="Ex: Développeur Full Stack">
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="company" class="form-label">Entreprise</label>
-                                <input type="text" id="company" class="form-control" placeholder="Nom de l'entreprise">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="duration" class="form-label">Durée</label>
-                                <input type="text" id="duration" class="form-control" placeholder="Ex: 2 ans et 3 mois">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="jobDescription" class="form-label">Description du poste</label>
-                            <textarea id="jobDescription" class="form-control" rows="4" placeholder="Décrivez brièvement vos responsabilités et réalisations"></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <div class="form-section-icon">
-                                <i class="fas fa-graduation-cap"></i>
-                            </div>
-                            <h4 class="form-section-title">Formation</h4>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="highestDegree" class="form-label">Diplôme le plus élevé</label>
-                            <input type="text" id="highestDegree" class="form-control" placeholder="Ex: Master en Informatique">
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="school" class="form-label">Établissement</label>
-                                <input type="text" id="school" class="form-control" placeholder="Nom de l'école ou université">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="graduationYear" class="form-label">Année d'obtention</label>
-                                <input type="text" id="graduationYear" class="form-control" placeholder="Ex: 2020">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <div class="form-section-icon">
-                                <i class="fas fa-language"></i>
-                            </div>
-                            <h4 class="form-section-title">Langues</h4>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Français</label>
-                                <select class="form-control">
-                                    <option value="native">Langue maternelle</option>
-                                    <option value="fluent">Courant</option>
-                                    <option value="intermediate">Intermédiaire</option>
-                                    <option value="basic">Notions</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Anglais</label>
-                                <select class="form-control">
-                                    <option value="native">Langue maternelle</option>
-                                    <option value="fluent">Courant</option>
-                                    <option value="intermediate">Intermédiaire</option>
-                                    <option value="basic">Notions</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <button class="btn btn-outline" style="margin-top: 1rem;">
-                                <i class="fas fa-plus"></i> Ajouter une langue
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <div class="form-section-icon">
-                                <i class="fas fa-cogs"></i>
-                            </div>
-                            <h4 class="form-section-title">Compétences clés</h4>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="skills" class="form-label">Compétences techniques</label>
-                            <input type="text" id="skills" class="form-control" placeholder="Ex: JavaScript, React, Node.js">
-                            <div class="form-help-text">Séparez les compétences par des virgules</div>
-                        </div>
-                        
-                        <div class="skill-badges">
-                            <span class="badge badge-primary">JavaScript</span>
-                            <span class="badge badge-primary">React</span>
-                            <span class="badge badge-primary">Node.js</span>
-                            <span class="badge badge-primary">Express</span>
-                            <span class="badge badge-primary">MongoDB</span>
-                        </div>
-                        
-                        <div class="form-group" style="margin-top: 1rem;">
-                            <label for="softSkills" class="form-label">Compétences transverses</label>
-                            <input type="text" id="softSkills" class="form-control" placeholder="Ex: Gestion de projet, Communication, Travail d'équipe">
-                            <div class="form-help-text">Séparez les compétences par des virgules</div>
-                        </div>
-                        
-                        <div class="skill-badges">
-                            <span class="badge badge-info">Gestion de projet</span>
-                            <span class="badge badge-info">Communication</span>
-                            <span class="badge badge-info">Travail d'équipe</span>
-                            <span class="badge badge-info">Résolution de problèmes</span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button class="form-btn btn-prev">Annuler</button>
-                        <button class="form-btn btn-next">Continuer <i class="fas fa-arrow-right"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <footer id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div>
-                    <h4 class="footer-heading">Nexten</h4>
-                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
-                    <div class="footer-social">
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    </div>
-                </div>
+                if (!gaugeFill || !scoreValue) return;
                 
-                <div>
-                    <h4 class="footer-heading">Navigation</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
-                        <li><a href="candidate-dashboard-new.html"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
-                        <li><a href="company-login.html"><i class="fas fa-chevron-right"></i> Espace entreprise</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> À propos</a></li>
-                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
-                    </ul>
-                </div>
+                // Convertir le score en angle de rotation pour la jauge
+                // 0% = -90 degrés, 100% = 270 degrés
+                const degrees = (score / 100) * 360 - 90;
+                gaugeFill.style.transform = `rotate(${degrees}deg)`;
                 
-                <div>
-                    <h4 class="footer-heading">Contact</h4>
-                    <div class="footer-contact">
-                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
-                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
-                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
-                    </div>
-                </div>
-            </div>
+                // Définir la couleur en fonction du score
+                let color = '#dc2626'; // Rouge pour les scores faibles
+                if (score >= 80) {
+                    color = '#10B981'; // Vert pour les scores élevés
+                } else if (score >= 50) {
+                    color = '#d97706'; // Orange pour les scores moyens
+                }
+                
+                gaugeFill.style.borderColor = color;
+                scoreValue.textContent = `${score}%`;
+                
+                // Définir la classe CSS correspondante
+                scoreValue.className = '';
+                if (score >= 80) {
+                    scoreValue.classList.add('good-match');
+                } else if (score >= 50) {
+                    scoreValue.classList.add('average-match');
+                } else {
+                    scoreValue.classList.add('poor-match');
+                }
+            }
             
-            <div class="footer-bottom">
-                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="#">Politique de confidentialité</a> | <a href="#">Conditions d'utilisation</a></p>
-            </div>
-        </div>
-        
-        <!-- Bouton de retour en haut -->
-        <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
-            <i class="fas fa-arrow-up"></i>
-        </button>
-    </footer>
-
-    <!-- JavaScript -->
-    <script src="../static/js/cv-parser.js"></script>
-    <!-- Script d'amélioration de la navigation -->
-    <script src="../static/services/nav-enhancement.js"></script>
+            // Simuler un score pour la démo
+            setTimeout(() => {
+                const demoScore = 85;
+                updateGauge(demoScore);
+            }, 500);
+            
+            // Fonction globale pour afficher des notifications
+            window.showNotification = function(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                
+                let icon = '';
+                switch (type) {
+                    case 'success':
+                        icon = '<i class="fas fa-check-circle"></i>';
+                        break;
+                    case 'error':
+                        icon = '<i class="fas fa-exclamation-circle"></i>';
+                        break;
+                    case 'info':
+                        icon = '<i class="fas fa-info-circle"></i>';
+                        break;
+                }
+                
+                notification.innerHTML = `${icon}<div>${message}</div>`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 10);
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 5000);
+            };
+            
+            // Gérer le bouton d'exportation
+            const exportButton = document.getElementById('export-cv-info');
+            if (exportButton) {
+                exportButton.addEventListener('click', function() {
+                    showNotification('Rapport exporté avec succès!', 'success');
+                });
+            }
+            
+            // Gérer le bouton d'ajout aux candidats sélectionnés
+            const addCandidateButton = document.getElementById('send-to-candidate');
+            if (addCandidateButton) {
+                addCandidateButton.addEventListener('click', function() {
+                    showNotification('Candidat ajouté à la sélection avec succès!', 'success');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
