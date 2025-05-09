@@ -11,6 +11,317 @@
     <link rel="stylesheet" href="../static/css/client-questionnaire.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Style supplémentaire pour les améliorations -->
+    <style>
+        /* Styles pour les étapes */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #e9ecef;
+            z-index: 1;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-number {
+            background-color: #4361ee;
+            border-color: #4361ee;
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background-color: #43aa8b;
+            border-color: #43aa8b;
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .step.active .step-label {
+            color: #4361ee;
+            font-weight: 500;
+        }
+        
+        .step.completed .step-label {
+            color: #43aa8b;
+        }
+        
+        /* Styles pour les sections du formulaire */
+        .form-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .form-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Amélioration pour la zone de dépôt */
+        #job-drop-zone.drag-active {
+            border-color: #4361ee;
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        /* Badge pour fichier sélectionné */
+        .file-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: #eef2ff;
+            border: 1px solid #4361ee;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .file-badge i {
+            margin-right: 8px;
+            color: #4361ee;
+        }
+        
+        .file-badge .remove-file {
+            margin-left: 8px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+        
+        .file-badge .remove-file:hover {
+            color: #dc3545;
+        }
+        
+        /* Amélioration des notifications */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            border-radius: 4px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification.success {
+            border-left: 4px solid #43aa8b;
+        }
+        
+        .notification.success i {
+            color: #43aa8b;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #e63946;
+        }
+        
+        .notification.error i {
+            color: #e63946;
+        }
+        
+        .notification.info {
+            border-left: 4px solid #4361ee;
+        }
+        
+        .notification.info i {
+            color: #4361ee;
+        }
+        
+        /* Tag input pour les compétences */
+        .tags-input {
+            margin-top: 12px;
+        }
+        
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            background-color: #eef2ff;
+            color: #4361ee;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 0.9rem;
+        }
+        
+        .tag i {
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .tag i:hover {
+            color: #e63946;
+        }
+        
+        /* Amélioration des boutons de navigation */
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        /* Loader */
+        .loader-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #4361ee;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Message de confirmation */
+        .confirmation-message {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+        
+        .confirmation-message i {
+            font-size: 60px;
+            color: #43aa8b;
+            margin-bottom: 20px;
+        }
+        
+        .confirmation-message h2 {
+            margin-bottom: 16px;
+            color: #212529;
+        }
+        
+        .confirmation-message p {
+            color: #6c757d;
+            max-width: 600px;
+            margin: 0 auto 24px;
+        }
+        
+        /* Tooltips */
+        .tooltip-icon {
+            display: inline-block;
+            margin-left: 4px;
+            color: #6c757d;
+            cursor: help;
+            position: relative;
+        }
+        
+        .tooltip-icon:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #343a40;
+            color: white;
+            font-size: 0.8rem;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        /* Mise en évidence des champs obligatoires */
+        .required-field::after {
+            content: ' *';
+            color: #e63946;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .step-label {
+                display: none;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-navigation {
+                flex-direction: column-reverse;
+                gap: 10px;
+            }
+            
+            .form-navigation button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Contenu de la page -->
@@ -21,138 +332,266 @@
         </header>
 
         <main>
-            <section class="job-parser-section">
-                <h2>Analysez votre fiche de poste</h2>
-                <p>Commencez par analyser votre fiche de poste pour en extraire les informations clés.</p>
-                
-                <div id="inline-job-parser" class="parser-container">
-                    <div class="parser-section">
-                        <div id="job-drop-zone" class="drop-zone">
-                            <span class="drop-zone-text">Glissez-déposez votre fiche de poste ici ou cliquez pour choisir un fichier</span>
-                            <input type="file" id="job-file-input" class="drop-zone-input" accept=".pdf,.doc,.docx,.txt">
+            <!-- Étapes de progression -->
+            <div class="progress-steps">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Fiche de poste</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Entreprise</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Contact</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Confirmation</div>
+                </div>
+            </div>
+            
+            <form id="client-questionnaire-form">
+                <!-- Étape 1: Analyse de la fiche de poste -->
+                <section class="form-section active" data-step="1">
+                    <h2>Analysez votre fiche de poste</h2>
+                    <p>Commencez par analyser votre fiche de poste pour en extraire les informations clés.</p>
+                    
+                    <div id="inline-job-parser" class="parser-container">
+                        <div class="parser-section">
+                            <div id="job-drop-zone" class="drop-zone">
+                                <span class="drop-zone-text">Glissez-déposez votre fiche de poste ici ou cliquez pour choisir un fichier</span>
+                                <input type="file" id="job-file-input" class="drop-zone-input" accept=".pdf,.doc,.docx,.txt">
+                                <!-- Badge de fichier sélectionné (initialement caché) -->
+                                <div id="file-badge" class="file-badge" style="display: none;">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span id="file-name">nom-du-fichier.pdf</span>
+                                    <i class="fas fa-times remove-file" id="remove-file"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="parser-separator">
+                                <div class="line"></div>
+                                <div class="text">OU</div>
+                                <div class="line"></div>
+                            </div>
+                            
+                            <div class="text-input-container">
+                                <textarea id="job-description-text" class="job-description-textarea" placeholder="Collez le texte de votre fiche de poste ici..."></textarea>
+                                <button type="button" id="analyze-job-text" class="analyze-button">
+                                    <i class="fas fa-search"></i> Analyser
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="parser-separator">
-                            <div class="line"></div>
-                            <div class="text">OU</div>
-                            <div class="line"></div>
+                        <!-- Indicateur de chargement -->
+                        <div id="analysis-loader" class="loader-container">
+                            <div class="loader"></div>
+                            <span>Analyse en cours...</span>
                         </div>
                         
-                        <div class="text-input-container">
-                            <textarea id="job-description-text" class="job-description-textarea" placeholder="Collez le texte de votre fiche de poste ici..."></textarea>
-                            <button id="analyze-job-text" class="analyze-button">
-                                <i class="fas fa-search"></i> Analyser
+                        <div id="inline-analysis-results" class="analysis-results" style="display: none;"></div>
+                    </div>
+                    
+                    <div id="job-info-container" class="job-info-container" style="display: none;">
+                        <h3>Informations extraites</h3>
+                        
+                        <div class="info-grid">
+                            <div class="info-group">
+                                <label>Titre du poste</label>
+                                <div id="job-title-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label>Type de contrat</label>
+                                <div id="job-contract-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label>Lieu</label>
+                                <div id="job-location-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label>Expérience requise</label>
+                                <div id="job-experience-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label>Formation</label>
+                                <div id="job-education-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label>Rémunération</label>
+                                <div id="job-salary-value" class="info-value">Non spécifié</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-group full-width">
+                            <label>Compétences requises</label>
+                            <div id="job-skills-value" class="info-value skills-container">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group full-width">
+                            <label>Responsabilités / Missions</label>
+                            <div id="job-responsibilities-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group full-width">
+                            <label>Avantages</label>
+                            <div id="job-benefits-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="job-actions">
+                            <button type="button" id="edit-parsed-info" class="action-button">
+                                <i class="fas fa-edit"></i> Modifier manuellement
                             </button>
                         </div>
                     </div>
                     
-                    <div id="inline-analysis-results" class="analysis-results" style="display: none;"></div>
-                </div>
-                
-                <div id="job-info-container" class="job-info-container" style="display: none;">
-                    <h3>Informations extraites</h3>
-                    
-                    <div class="info-grid">
-                        <div class="info-group">
-                            <label>Titre du poste</label>
-                            <div id="job-title-value" class="info-value">Non spécifié</div>
-                        </div>
-                        
-                        <div class="info-group">
-                            <label>Type de contrat</label>
-                            <div id="job-contract-value" class="info-value">Non spécifié</div>
-                        </div>
-                        
-                        <div class="info-group">
-                            <label>Lieu</label>
-                            <div id="job-location-value" class="info-value">Non spécifié</div>
-                        </div>
-                        
-                        <div class="info-group">
-                            <label>Expérience requise</label>
-                            <div id="job-experience-value" class="info-value">Non spécifié</div>
-                        </div>
-                        
-                        <div class="info-group">
-                            <label>Formation</label>
-                            <div id="job-education-value" class="info-value">Non spécifié</div>
-                        </div>
-                        
-                        <div class="info-group">
-                            <label>Rémunération</label>
-                            <div id="job-salary-value" class="info-value">Non spécifié</div>
-                        </div>
-                    </div>
-                    
-                    <div class="info-group full-width">
-                        <label>Compétences requises</label>
-                        <div id="job-skills-value" class="info-value skills-container">Non spécifié</div>
-                    </div>
-                    
-                    <div class="info-group full-width">
-                        <label>Responsabilités / Missions</label>
-                        <div id="job-responsibilities-value" class="info-value">Non spécifié</div>
-                    </div>
-                    
-                    <div class="info-group full-width">
-                        <label>Avantages</label>
-                        <div id="job-benefits-value" class="info-value">Non spécifié</div>
-                    </div>
-                    
-                    <div class="job-actions">
-                        <button id="edit-parsed-info" class="action-button">
-                            <i class="fas fa-edit"></i> Modifier manuellement
+                    <div class="form-navigation">
+                        <div></div> <!-- Div vide pour l'alignement flex -->
+                        <button type="button" class="next-step action-button" data-step="2">
+                            Continuer <i class="fas fa-arrow-right"></i>
                         </button>
-                        
-                        <div class="job-export-buttons">
-                            <!-- Les boutons d'exportation et de prévisualisation seront ajoutés par le script -->
-                        </div>
                     </div>
-                </div>
-            </section>
-            
-            <section class="form-section">
-                <h2>Complétez votre demande</h2>
-                <form id="client-questionnaire-form">
+                </section>
+                
+                <!-- Étape 2: Informations sur l'entreprise -->
+                <section class="form-section" data-step="2">
+                    <h2>Informations sur l'entreprise</h2>
+                    <p>Aidez-nous à mieux comprendre votre entreprise et sa culture.</p>
+                    
                     <div class="form-group">
-                        <label for="company-name">Nom de votre entreprise</label>
+                        <label for="company-name" class="required-field">Nom de votre entreprise</label>
                         <input type="text" id="company-name" name="company-name" required>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="contact-name">Nom du contact</label>
-                        <input type="text" id="contact-name" name="contact-name" required>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="company-size" class="required-field">Taille de l'entreprise</label>
+                                <select id="company-size" name="company-size" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="1-10">1-10 employés</option>
+                                    <option value="11-50">11-50 employés</option>
+                                    <option value="51-200">51-200 employés</option>
+                                    <option value="201-500">201-500 employés</option>
+                                    <option value="501+">501+ employés</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="company-industry" class="required-field">Secteur d'activité</label>
+                                <select id="company-industry" name="company-industry" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="tech">Technologies & IT</option>
+                                    <option value="finance">Finance & Banque</option>
+                                    <option value="health">Santé & Pharmaceutique</option>
+                                    <option value="education">Éducation & Formation</option>
+                                    <option value="retail">Commerce & Distribution</option>
+                                    <option value="manufacturing">Industrie & Production</option>
+                                    <option value="consulting">Conseil & Services</option>
+                                    <option value="other">Autre</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="contact-email">Email du contact</label>
-                        <input type="email" id="contact-email" name="contact-email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="contact-phone">Téléphone du contact</label>
-                        <input type="tel" id="contact-phone" name="contact-phone">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="hiring-urgency">Urgence du recrutement</label>
-                        <select id="hiring-urgency" name="hiring-urgency" required>
-                            <option value="">-- Sélectionner --</option>
-                            <option value="immediate">Immédiate (< 1 mois)</option>
-                            <option value="short-term">Court terme (1-3 mois)</option>
-                            <option value="medium-term">Moyen terme (3-6 mois)</option>
-                            <option value="long-term">Long terme (> 6 mois)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="candidates-count">Nombre de candidats souhaité</label>
-                        <input type="number" id="candidates-count" name="candidates-count" min="1" value="3">
+                        <label for="company-website">Site web de l'entreprise</label>
+                        <input type="url" id="company-website" name="company-website" placeholder="https://www.exemple.com">
                     </div>
                     
                     <div class="form-group full-width">
-                        <label for="company-culture">Culture d'entreprise (optionnel)</label>
+                        <label for="company-culture">Culture d'entreprise
+                            <i class="fas fa-info-circle tooltip-icon" data-tooltip="Décrivez votre culture d'entreprise pour nous aider à trouver des candidats qui correspondent à vos valeurs."></i>
+                        </label>
                         <textarea id="company-culture" name="company-culture" placeholder="Décrivez brièvement la culture de votre entreprise..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Avantages proposés</label>
+                        <div class="tags-input">
+                            <input type="text" id="benefit-input" placeholder="Ajouter un avantage (ex: télétravail) et appuyer sur Entrée">
+                        </div>
+                        <div class="tags-container" id="benefits-container"></div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="prev-step action-button" data-step="1">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </button>
+                        <button type="button" class="next-step action-button" data-step="3">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 3: Informations de contact et recrutement -->
+                <section class="form-section" data-step="3">
+                    <h2>Complétez votre demande</h2>
+                    <p>Précisez vos besoins en recrutement pour que nous puissions vous proposer les meilleurs candidats.</p>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="contact-name" class="required-field">Nom du contact</label>
+                                <input type="text" id="contact-name" name="contact-name" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="contact-email" class="required-field">Email du contact</label>
+                                <input type="email" id="contact-email" name="contact-email" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="contact-phone">Téléphone du contact</label>
+                                <input type="tel" id="contact-phone" name="contact-phone">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="contact-position">Fonction dans l'entreprise</label>
+                                <input type="text" id="contact-position" name="contact-position">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="hiring-urgency" class="required-field">Urgence du recrutement</label>
+                                <select id="hiring-urgency" name="hiring-urgency" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="immediate">Immédiate (< 1 mois)</option>
+                                    <option value="short-term">Court terme (1-3 mois)</option>
+                                    <option value="medium-term">Moyen terme (3-6 mois)</option>
+                                    <option value="long-term">Long terme (> 6 mois)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="candidates-count" class="required-field">Nombre de candidats souhaité</label>
+                                <input type="number" id="candidates-count" name="candidates-count" min="1" value="3" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hiring-process">Processus de recrutement actuel
+                            <i class="fas fa-info-circle tooltip-icon" data-tooltip="Décrivez brièvement les étapes de votre processus de recrutement actuel (nombre d'entretiens, tests, etc.)."></i>
+                        </label>
+                        <textarea id="hiring-process" name="hiring-process" placeholder="Décrivez votre processus de recrutement actuel..."></textarea>
                     </div>
                     
                     <div class="form-group full-width">
@@ -160,13 +599,29 @@
                         <textarea id="additional-info" name="additional-info" placeholder="Ajoutez toute information qui pourrait nous aider à comprendre votre besoin..."></textarea>
                     </div>
                     
-                    <div class="form-actions">
+                    <div class="form-navigation">
+                        <button type="button" class="prev-step action-button" data-step="2">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </button>
                         <button type="submit" class="submit-button">
                             <i class="fas fa-paper-plane"></i> Envoyer ma demande
                         </button>
                     </div>
-                </form>
-            </section>
+                </section>
+                
+                <!-- Étape 4: Confirmation -->
+                <section class="form-section" data-step="4">
+                    <div class="confirmation-message">
+                        <i class="fas fa-check-circle"></i>
+                        <h2>Votre demande a été envoyée avec succès !</h2>
+                        <p>Merci d'avoir complété notre questionnaire. Notre équipe analysera votre demande et vous contactera dans les meilleurs délais pour discuter de vos besoins en recrutement.</p>
+                        <p>Un email de confirmation a été envoyé à <span id="confirmation-email">email@exemple.com</span></p>
+                        <a href="../index.html" class="action-button">
+                            <i class="fas fa-home"></i> Retour à l'accueil
+                        </a>
+                    </div>
+                </section>
+            </form>
         </main>
     </div>
     
@@ -177,41 +632,253 @@
     <!-- Script spécifique au formulaire client -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialiser le formulaire
-            const form = document.getElementById('client-questionnaire-form');
+            // Gestion des étapes du formulaire
+            const steps = document.querySelectorAll('.step');
+            const formSections = document.querySelectorAll('.form-section');
             
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
+            // Boutons de navigation
+            const nextButtons = document.querySelectorAll('.next-step');
+            const prevButtons = document.querySelectorAll('.prev-step');
+            
+            // Navigation vers l'étape suivante
+            nextButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const nextStep = parseInt(this.getAttribute('data-step'));
                     
-                    // Ici, vous pourriez ajouter la logique pour envoyer les données du formulaire
-                    // ainsi que les données d'analyse de la fiche de poste à votre backend
+                    // Vérification basique avant de passer à l'étape suivante
+                    if (nextStep === 2) {
+                        // Pour l'exemple, on permet de continuer même sans analyse
+                        // En production, on pourrait vérifier si l'analyse a été faite
+                    } else if (nextStep === 3) {
+                        // Vérifier les champs obligatoires de l'étape 2
+                        const companyName = document.getElementById('company-name');
+                        const companySize = document.getElementById('company-size');
+                        const companyIndustry = document.getElementById('company-industry');
+                        
+                        if (!companyName.value || !companySize.value || !companyIndustry.value) {
+                            showNotification("Veuillez remplir tous les champs obligatoires", "error");
+                            highlightEmptyFields([companyName, companySize, companyIndustry]);
+                            return;
+                        }
+                    }
                     
-                    // Pour l'exemple, affichons un message de confirmation
-                    alert('Votre demande a été envoyée avec succès ! Nous vous contacterons rapidement.');
+                    navigateToStep(nextStep);
+                });
+            });
+            
+            // Navigation vers l'étape précédente
+            prevButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const prevStep = parseInt(this.getAttribute('data-step'));
+                    navigateToStep(prevStep);
+                });
+            });
+            
+            // Fonction de navigation entre les étapes
+            function navigateToStep(stepNumber) {
+                // Mettre à jour les indicateurs d'étape
+                steps.forEach(step => {
+                    const stepNum = parseInt(step.getAttribute('data-step'));
+                    step.classList.remove('active', 'completed');
                     
-                    // Vous pourriez ensuite rediriger l'utilisateur vers une page de confirmation
-                    // window.location.href = 'confirmation.html';
+                    if (stepNum === stepNumber) {
+                        step.classList.add('active');
+                    } else if (stepNum < stepNumber) {
+                        step.classList.add('completed');
+                    }
+                });
+                
+                // Afficher la section correspondante
+                formSections.forEach(section => {
+                    section.classList.remove('active');
+                    if (parseInt(section.getAttribute('data-step')) === stepNumber) {
+                        section.classList.add('active');
+                    }
+                });
+                
+                // Scroll vers le haut
+                window.scrollTo(0, 0);
+            }
+            
+            // Fonction pour mettre en évidence les champs vides
+            function highlightEmptyFields(fields) {
+                fields.forEach(field => {
+                    if (!field.value) {
+                        field.style.borderColor = '#e63946';
+                        
+                        field.addEventListener('input', function() {
+                            this.style.borderColor = '';
+                        }, { once: true });
+                    }
                 });
             }
             
-            // Fonction globale pour afficher des notifications
+            // Gestion de la zone de dépôt de fichiers
+            const dropZone = document.getElementById('job-drop-zone');
+            const fileInput = document.getElementById('job-file-input');
+            const fileBadge = document.getElementById('file-badge');
+            const fileName = document.getElementById('file-name');
+            const removeFile = document.getElementById('remove-file');
+            
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('drag-active');
+            });
+            
+            dropZone.addEventListener('dragleave', function() {
+                this.classList.remove('drag-active');
+            });
+            
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-active');
+                
+                if (e.dataTransfer.files.length) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+            
+            dropZone.addEventListener('click', function(e) {
+                // Ne pas déclencher si on clique sur le badge de fichier ou le bouton de suppression
+                if (!e.target.closest('#file-badge')) {
+                    fileInput.click();
+                }
+            });
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files.length) {
+                    handleFile(this.files[0]);
+                }
+            });
+            
+            removeFile.addEventListener('click', function(e) {
+                e.stopPropagation();
+                fileInput.value = '';
+                fileBadge.style.display = 'none';
+            });
+            
+            function handleFile(file) {
+                fileName.textContent = file.name;
+                fileBadge.style.display = 'inline-flex';
+            }
+            
+            // Analyse de la fiche de poste
+            const analyzeButton = document.getElementById('analyze-job-text');
+            const jobDescriptionText = document.getElementById('job-description-text');
+            const analysisLoader = document.getElementById('analysis-loader');
+            const jobInfoContainer = document.getElementById('job-info-container');
+            
+            analyzeButton.addEventListener('click', function() {
+                if (!jobDescriptionText.value && !fileInput.files.length) {
+                    showNotification("Veuillez d'abord saisir ou importer une fiche de poste", "error");
+                    return;
+                }
+                
+                // Simuler le chargement
+                this.disabled = true;
+                analyzeButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
+                analysisLoader.style.display = 'flex';
+                
+                // Simuler un délai d'API
+                setTimeout(() => {
+                    analysisLoader.style.display = 'none';
+                    jobInfoContainer.style.display = 'block';
+                    analyzeButton.innerHTML = '<i class="fas fa-search"></i> Analyser';
+                    this.disabled = false;
+                    showNotification("L'analyse de la fiche de poste a été complétée avec succès !", "success");
+                }, 1500);
+            });
+            
+            // Gestion des tags pour les avantages
+            const benefitInput = document.getElementById('benefit-input');
+            const benefitsContainer = document.getElementById('benefits-container');
+            
+            // Exemples d'avantages par défaut
+            const defaultBenefits = ['Télétravail', 'Tickets restaurant', 'Horaires flexibles'];
+            defaultBenefits.forEach(benefit => addBenefitTag(benefit));
+            
+            benefitInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const benefit = this.value.trim();
+                    
+                    if (benefit) {
+                        addBenefitTag(benefit);
+                        this.value = '';
+                    }
+                }
+            });
+            
+            function addBenefitTag(text) {
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.innerHTML = `${text} <i class="fas fa-times"></i>`;
+                
+                tag.querySelector('i').addEventListener('click', function() {
+                    benefitsContainer.removeChild(tag);
+                });
+                
+                benefitsContainer.appendChild(tag);
+            }
+            
+            // Gestion du formulaire
+            const form = document.getElementById('client-questionnaire-form');
+            const confirmationEmail = document.getElementById('confirmation-email');
+            const confirmationMessage = document.querySelector('.confirmation-message');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validation basique des champs obligatoires
+                const requiredFields = [
+                    document.getElementById('contact-name'),
+                    document.getElementById('contact-email'),
+                    document.getElementById('hiring-urgency'),
+                    document.getElementById('candidates-count')
+                ];
+                
+                const emptyFields = requiredFields.filter(field => !field.value);
+                
+                if (emptyFields.length > 0) {
+                    showNotification("Veuillez remplir tous les champs obligatoires", "error");
+                    highlightEmptyFields(emptyFields);
+                    return;
+                }
+                
+                // Afficher le message de confirmation avec l'email
+                confirmationEmail.textContent = document.getElementById('contact-email').value;
+                
+                // Naviguer vers l'étape de confirmation
+                navigateToStep(4);
+                confirmationMessage.style.display = 'block';
+            });
+            
+            // Fonction pour afficher des notifications
             window.showNotification = function(message, type = 'success') {
                 const notification = document.createElement('div');
                 notification.className = `notification ${type}`;
-                notification.textContent = message;
                 
+                let icon = '';
+                switch (type) {
+                    case 'success':
+                        icon = '<i class="fas fa-check-circle"></i>';
+                        break;
+                    case 'error':
+                        icon = '<i class="fas fa-exclamation-circle"></i>';
+                        break;
+                    case 'info':
+                        icon = '<i class="fas fa-info-circle"></i>';
+                        break;
+                }
+                
+                notification.innerHTML = `${icon}<div>${message}</div>`;
                 document.body.appendChild(notification);
                 
-                setTimeout(function() {
-                    notification.classList.add('show');
-                }, 10);
+                setTimeout(() => notification.classList.add('show'), 10);
                 
-                setTimeout(function() {
+                setTimeout(() => {
                     notification.classList.remove('show');
-                    setTimeout(function() {
-                        document.body.removeChild(notification);
-                    }, 300);
+                    setTimeout(() => document.body.removeChild(notification), 300);
                 }, 5000);
             };
         });
