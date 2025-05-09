@@ -302,6 +302,60 @@
             color: #e63946;
         }
         
+        /* Prochaines étapes */
+        .next-steps-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #eef2ff;
+            border-radius: 8px;
+            border-left: 4px solid #4361ee;
+        }
+        
+        .next-steps-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #212529;
+        }
+        
+        .next-steps-description {
+            margin-bottom: 1.5rem;
+            color: #6c757d;
+        }
+        
+        .next-steps-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .next-step-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background-color: white;
+            border: 1px solid #4361ee;
+            color: #4361ee;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        
+        .next-step-button:hover {
+            background-color: #4361ee;
+            color: white;
+        }
+        
+        .next-step-button.primary {
+            background-color: #4361ee;
+            color: white;
+        }
+        
+        .next-step-button.primary:hover {
+            background-color: #3a56d4;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .step-label {
@@ -319,6 +373,15 @@
             
             .form-navigation button {
                 width: 100%;
+            }
+            
+            .next-steps-actions {
+                flex-direction: column;
+            }
+            
+            .next-step-button {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -616,9 +679,22 @@
                         <h2>Votre demande a été envoyée avec succès !</h2>
                         <p>Merci d'avoir complété notre questionnaire. Notre équipe analysera votre demande et vous contactera dans les meilleurs délais pour discuter de vos besoins en recrutement.</p>
                         <p>Un email de confirmation a été envoyé à <span id="confirmation-email">email@exemple.com</span></p>
-                        <a href="../index.html" class="action-button">
-                            <i class="fas fa-home"></i> Retour à l'accueil
-                        </a>
+                        
+                        <!-- Section des prochaines étapes -->
+                        <div class="next-steps-section">
+                            <h3 class="next-steps-title">Prochaines étapes</h3>
+                            <p class="next-steps-description">
+                                Vous pouvez maintenant analyser les CV de vos candidats potentiels et évaluer leur adéquation avec votre fiche de poste.
+                            </p>
+                            <div class="next-steps-actions">
+                                <a href="cv-parser.html" class="next-step-button primary">
+                                    <i class="fas fa-search"></i> Analyser les CV des candidats
+                                </a>
+                                <a href="../index.html" class="next-step-button">
+                                    <i class="fas fa-home"></i> Retour à l'accueil
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </form>
