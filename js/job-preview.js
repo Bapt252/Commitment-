@@ -7,6 +7,7 @@ class JobPreview {
     constructor() {
         this.initElements();
         this.addEventListeners();
+        console.log('JobPreview initialisé');
     }
 
     // Initialisation des éléments du DOM
@@ -292,17 +293,24 @@ class JobPreview {
         // Ajouter le bouton d'aperçu s'il n'existe pas déjà
         const jobInfoContainer = document.getElementById('job-info-container');
         if (jobInfoContainer) {
-            const exportButtonsContainer = jobInfoContainer.querySelector('.job-export-buttons');
-            if (exportButtonsContainer) {
-                // Vérifier si le bouton existe déjà
-                if (!document.getElementById('preview-job-info')) {
-                    const previewButton = document.createElement('button');
-                    previewButton.id = 'preview-job-info';
-                    previewButton.className = 'btn-export';
-                    previewButton.innerHTML = '<i class="fas fa-eye"></i> Aperçu';
-                    
-                    // Ajouter avant le premier enfant
-                    exportButtonsContainer.insertBefore(previewButton, exportButtonsContainer.firstChild);
+            const jobActions = jobInfoContainer.querySelector('.job-actions');
+            if (jobActions) {
+                const exportButtonsContainer = jobActions.querySelector('.job-export-buttons');
+                if (exportButtonsContainer) {
+                    // Vérifier si le bouton existe déjà
+                    if (!document.getElementById('preview-job-info')) {
+                        const previewButton = document.createElement('button');
+                        previewButton.id = 'preview-job-info';
+                        previewButton.className = 'btn btn-outline';
+                        previewButton.innerHTML = '<i class="fas fa-eye"></i> Aperçu';
+                        
+                        // Ajouter en première position
+                        if (exportButtonsContainer.firstChild) {
+                            exportButtonsContainer.insertBefore(previewButton, exportButtonsContainer.firstChild);
+                        } else {
+                            exportButtonsContainer.appendChild(previewButton);
+                        }
+                    }
                 }
             }
         }
@@ -345,7 +353,10 @@ class JobPreview {
 
     // Afficher la prévisualisation
     showPreview() {
+        console.log('Tentative d\'affichage de la prévisualisation');
+        
         if (!window.JobParserConnector || !window.JobParserConnector.cachedJobData) {
+            console.log('Aucune donnée disponible pour la prévisualisation');
             if (window.showNotification) {
                 window.showNotification('Aucune donnée de poste disponible pour la prévisualisation.', 'error');
             }
@@ -371,6 +382,8 @@ class JobPreview {
         // Récupérer les données du poste
         const jobData = window.JobParserConnector ? 
                         (window.JobParserConnector.cachedJobData.data || window.JobParserConnector.cachedJobData) : null;
+        
+        console.log('Données du poste pour prévisualisation:', jobData);
 
         if (!jobData) {
             this.modalContent.innerHTML = '<p>Aucune donnée disponible</p>';
@@ -488,6 +501,9 @@ class JobPreview {
         return null;
     }
 }
+
+// Rendre la classe accessible globalement
+window.JobPreview = JobPreview;
 
 // Initialiser la prévisualisation lorsque le DOM est chargé
 document.addEventListener('DOMContentLoaded', () => {
