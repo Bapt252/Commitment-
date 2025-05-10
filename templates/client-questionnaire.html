@@ -978,7 +978,7 @@
                     
                     <div class="upload-container" id="job-drop-zone">
                         <i class="fas fa-file-upload upload-icon"></i>
-                        <h3 class="upload-text">Glissez-déposez votre fiche de poste ici</h3>
+                        <h3 class="upload-text drop-zone-text">Glissez-déposez votre fiche de poste ici</h3>
                         <p class="upload-hint">Formats acceptés: PDF, DOCX, TXT (max 5MB)</p>
                         <input type="file" id="job-file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
                         
@@ -1002,6 +1002,9 @@
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
+                    
+                    <!-- Section pour les résultats d'analyse inline -->
+                    <div id="inline-analysis-results" style="display: none;"></div>
                     
                     <!-- Indicateur de chargement amélioré -->
                     <div id="analysis-loader" class="loader-container">
@@ -1061,9 +1064,14 @@
                         </div>
                         
                         <div class="job-actions">
-                            <button type="button" id="edit-parsed-info" class="btn btn-outline">
-                                <i class="fas fa-edit"></i> Modifier manuellement
-                            </button>
+                            <div class="job-export-buttons">
+                                <button type="button" id="preview-job-info" class="btn btn-outline">
+                                    <i class="fas fa-eye"></i> Aperçu
+                                </button>
+                                <button type="button" id="edit-parsed-info" class="btn btn-outline">
+                                    <i class="fas fa-edit"></i> Modifier manuellement
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -1967,6 +1975,9 @@
                     }, 300);
                 }
             }
+            
+            // Exposer la fonction showNotification globalement pour le connecteur de JOB Parser
+            window.showNotification = showNotification;
             
             // Initialiser la barre de progression
             updateProgress(currentStep);
