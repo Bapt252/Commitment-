@@ -4,7 +4,9 @@
  */
 
 // Configuration
-const API_BASE_URL = 'http://localhost:5054'; // URL de base de l'API job-parser-service
+// En mode production, utiliser l'URL de production ou utiliser directement des données de test
+const USE_TEST_DATA = true; // Toujours utiliser les données de test (pour la démo)
+const API_BASE_URL = 'https://api.commitment-app.com'; // URL de base de l'API job-parser-service
 const API_ENDPOINT = '/api/parse-job'; // Point d'entrée de l'API
 
 // Sélecteurs DOM
@@ -20,6 +22,8 @@ const SELECTORS = {
   jobExperienceValue: '#job-experience-value',
   jobContractValue: '#job-contract-value',
   editButton: '#edit-parsed-info',
+  previewButton: '#preview-job-info',
+  loadingIndicator: '#analysis-loader',
   // Nouveaux sélecteurs pour les champs additionnels
   jobLocationValue: '#job-location-value',
   jobResponsibilitiesValue: '#job-responsibilities-value',
@@ -34,6 +38,7 @@ class JobParserConnector {
     this.initElements();
     this.setupEventListeners();
     this.cachedJobData = null;
+    console.log('JobParserConnector initialisé');
   }
 
   // Initialiser les références aux éléments du DOM
@@ -44,7 +49,7 @@ class JobParserConnector {
       this.elements[key] = document.querySelector(selector);
       
       // Journaliser les éléments manquants pour débogage
-      if (!this.elements[key] && selector !== '#edit-parsed-info') {
+      if (!this.elements[key] && selector !== '#edit-parsed-info' && selector !== '#preview-job-info') {
         console.warn(`Élément non trouvé: ${selector}`);
       }
     }
@@ -65,6 +70,18 @@ class JobParserConnector {
     // Pour le bouton d'édition manuelle (si présent)
     if (this.elements.editButton) {
       this.elements.editButton.addEventListener('click', () => this.enableManualEditing());
+    }
+    
+    // Pour le bouton de prévisualisation (si présent)
+    if (this.elements.previewButton) {
+      this.elements.previewButton.addEventListener('click', () => {
+        if (window.JobPreview) {
+          const preview = new window.JobPreview();
+          preview.showPreview();
+        } else {
+          console.warn('JobPreview n\'est pas disponible');
+        }
+      });
     }
   }
 
@@ -136,7 +153,23 @@ class JobParserConnector {
     }
 
     // Afficher l'indicateur de chargement
+    if (this.elements.loadingIndicator) {
+      this.elements.loadingIndicator.style.display = 'flex';
+    }
+    
     this.showLoadingIndicator();
+
+    // Si on doit toujours utiliser les données de test, on court-circuite l'appel API
+    if (USE_TEST_DATA) {
+      setTimeout(() => {
+        this.hideLoadingIndicator();
+        if (this.elements.loadingIndicator) {
+          this.elements.loadingIndicator.style.display = 'none';
+        }
+        this.processAPIResponse(this.getTestData());
+      }, 1500); // Simuler un délai d'API
+      return;
+    }
 
     if (hasFile) {
       // Analyser le fichier
@@ -172,6 +205,9 @@ class JobParserConnector {
     .then(data => {
       console.log('Données extraites reçues:', data);
       this.hideLoadingIndicator();
+      if (this.elements.loadingIndicator) {
+        this.elements.loadingIndicator.style.display = 'none';
+      }
       
       // Traiter la réponse de l'API et mettre à jour l'interface
       this.processAPIResponse(data);
@@ -179,6 +215,9 @@ class JobParserConnector {
     .catch(error => {
       console.error('Erreur lors de l\'appel à l\'API:', error);
       this.hideLoadingIndicator();
+      if (this.elements.loadingIndicator) {
+        this.elements.loadingIndicator.style.display = 'none';
+      }
       this.showNotification(`Erreur lors de l'analyse: ${error.message}`, 'error');
       
       // En cas d'erreur, utiliser des données de test pour la démo
@@ -230,14 +269,17 @@ class JobParserConnector {
         }
         
         if (skills.length > 0) {
-          // Créer des tags pour chaque compétence
+          // Créer une liste pour les compétences
           this.elements.jobSkillsValue.innerHTML = '';
+          const ul = document.createElement('ul');
+          
           skills.forEach(skill => {
-            const tag = document.createElement('span');
-            tag.className = 'skill-tag';
-            tag.textContent = skill;
-            this.elements.jobSkillsValue.appendChild(tag);
+            const li = document.createElement('li');
+            li.textContent = skill;
+            ul.appendChild(li);
           });
+          
+          this.elements.jobSkillsValue.appendChild(ul);
         } else {
           this.elements.jobSkillsValue.textContent = 'Non spécifié';
         }
@@ -391,22 +433,22 @@ class JobParserConnector {
       }
     });
     
-    // Cas spécial pour les compétences (tags)
+    // Cas spécial pour les compétences (liste)
     if (this.elements.jobSkillsValue) {
       const skillsElement = this.elements.jobSkillsValue;
       const currentSkills = [];
       
       // Collecter les compétences actuelles
-      const skillTags = skillsElement.querySelectorAll('.skill-tag');
-      skillTags.forEach(tag => {
-        currentSkills.push(tag.textContent);
+      const listItems = skillsElement.querySelectorAll('li');
+      listItems.forEach(item => {
+        currentSkills.push(item.textContent);
       });
       
       // Créer un textarea pour les compétences
       const textarea = document.createElement('textarea');
       textarea.className = 'form-control form-control-sm';
-      textarea.placeholder = 'Entrez les compétences séparées par des virgules...';
-      textarea.value = currentSkills.join(', ');
+      textarea.placeholder = 'Entrez les compétences, une par ligne...';
+      textarea.value = currentSkills.join('\n');
       textarea.rows = 3;
       
       // Remplacer les tags par le textarea
@@ -514,7 +556,7 @@ class JobParserConnector {
     // Compétences
     const skillsTextarea = this.elements.jobSkillsValue.querySelector('textarea');
     if (skillsTextarea) {
-      const skills = skillsTextarea.value.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
+      const skills = skillsTextarea.value.split('\n').map(skill => skill.trim()).filter(skill => skill !== '');
       updatedData.required_skills = skills;
     }
     
@@ -618,7 +660,7 @@ class JobParserConnector {
       data: {
         title: "Développeur Full Stack JavaScript",
         company: "Tech Innovations",
-        location: "Paris, France",
+        location: "Paris, France (Hybride)",
         contract_type: "CDI",
         salary: "45K€ - 55K€ selon expérience",
         required_skills: [
