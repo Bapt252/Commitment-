@@ -289,31 +289,6 @@ class JobPreview {
 
         document.head.appendChild(style);
         document.body.appendChild(modal);
-
-        // Ajouter le bouton d'aperçu s'il n'existe pas déjà
-        const jobInfoContainer = document.getElementById('job-info-container');
-        if (jobInfoContainer) {
-            const jobActions = jobInfoContainer.querySelector('.job-actions');
-            if (jobActions) {
-                const exportButtonsContainer = jobActions.querySelector('.job-export-buttons');
-                if (exportButtonsContainer) {
-                    // Vérifier si le bouton existe déjà
-                    if (!document.getElementById('preview-job-info')) {
-                        const previewButton = document.createElement('button');
-                        previewButton.id = 'preview-job-info';
-                        previewButton.className = 'btn btn-outline';
-                        previewButton.innerHTML = '<i class="fas fa-eye"></i> Aperçu';
-                        
-                        // Ajouter en première position
-                        if (exportButtonsContainer.firstChild) {
-                            exportButtonsContainer.insertBefore(previewButton, exportButtonsContainer.firstChild);
-                        } else {
-                            exportButtonsContainer.appendChild(previewButton);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // Ajout des écouteurs d'événements
@@ -355,10 +330,25 @@ class JobPreview {
     showPreview() {
         console.log('Tentative d\'affichage de la prévisualisation');
         
+        // Vérifier d'abord si nous avons des données stockées dans JobParserConnector
         if (!window.JobParserConnector || !window.JobParserConnector.cachedJobData) {
-            console.log('Aucune donnée disponible pour la prévisualisation');
+            console.warn('Aucune donnée de poste disponible');
+            
+            // Essayer une extraction directe depuis les éléments HTML
+            const jobDataFromPage = this.extractDataFromPage();
+            
+            if (jobDataFromPage) {
+                this.generatePreviewContent(jobDataFromPage);
+                this.modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                return;
+            }
+            
+            // Si aucune donnée n'est disponible, afficher un message
             if (window.showNotification) {
                 window.showNotification('Aucune donnée de poste disponible pour la prévisualisation.', 'error');
+            } else {
+                alert('Aucune donnée de poste disponible pour la prévisualisation.');
             }
             return;
         }
@@ -376,12 +366,58 @@ class JobPreview {
         this.modal.classList.remove('show');
         document.body.style.overflow = ''; // Restaurer le scroll
     }
+    
+    // Extraire les données directement des éléments HTML
+    extractDataFromPage() {
+        const jobData = {
+            title: document.getElementById('job-title-value')?.textContent || 'Poste non spécifié',
+            location: document.getElementById('job-location-value')?.textContent || 'Lieu non spécifié',
+            contract_type: document.getElementById('job-contract-value')?.textContent || 'Type de contrat non spécifié',
+            salary: document.getElementById('job-salary-value')?.textContent || 'Salaire non spécifié'
+        };
+        
+        // Extraire les compétences
+        const skillsElement = document.getElementById('job-skills-value');
+        if (skillsElement && skillsElement.tagName !== 'UL') {
+            const skills = [];
+            const skillItems = skillsElement.querySelectorAll('li');
+            skillItems.forEach(item => skills.push(item.textContent));
+            jobData.required_skills = skills;
+        }
+        
+        // Extraire les responsabilités
+        const responsibilitiesElement = document.getElementById('job-responsibilities-value');
+        if (responsibilitiesElement && responsibilitiesElement.tagName !== 'UL') {
+            const responsibilities = [];
+            const respItems = responsibilitiesElement.querySelectorAll('li');
+            respItems.forEach(item => responsibilities.push(item.textContent));
+            jobData.responsibilities = responsibilities;
+        }
+        
+        // Extraire les avantages
+        const benefitsElement = document.getElementById('job-benefits-value');
+        if (benefitsElement && benefitsElement.tagName !== 'UL') {
+            const benefits = [];
+            const benefitItems = benefitsElement.querySelectorAll('li');
+            benefitItems.forEach(item => benefits.push(item.textContent));
+            jobData.benefits = benefits;
+        }
+        
+        // Si au moins le titre du poste est défini (et pas "Non spécifié"), considérer que nous avons des données
+        return jobData.title !== 'Non spécifié' ? jobData : null;
+    }
 
     // Générer le contenu de la prévisualisation
-    generatePreviewContent() {
-        // Récupérer les données du poste
-        const jobData = window.JobParserConnector ? 
-                        (window.JobParserConnector.cachedJobData.data || window.JobParserConnector.cachedJobData) : null;
+    generatePreviewContent(customData = null) {
+        // Récupérer les données du poste - soit depuis l'argument, soit depuis le cache global
+        let jobData;
+        
+        if (customData) {
+            jobData = customData;
+        } else {
+            jobData = window.JobParserConnector ? 
+                    (window.JobParserConnector.cachedJobData.data || window.JobParserConnector.cachedJobData) : null;
+        }
         
         console.log('Données du poste pour prévisualisation:', jobData);
 
