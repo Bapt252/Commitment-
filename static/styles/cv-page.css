@@ -1,0 +1,1149 @@
+/* Styles spécifiques à la page CV - améliorations UI/UX */
+:root {
+    --yellow-light: #FFF8D6;
+    --success-color: #10B981;
+    --warning-color: #F59E0B;
+    --danger-color: #EF4444;
+    --progress-bg: #E5E7EB;
+    --transition-default: all 0.3s ease;
+    --border-radius-sm: 6px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --box-shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --box-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    --box-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+}
+
+body {
+    background-color: var(--cream);
+    scroll-behavior: smooth;
+}
+
+/* Fix pour le header fixe */
+.main-container {
+    padding-top: 80px; /* Ajustement pour le header fixe */
+}
+
+/* Amélioration des conteneurs */
+.cv-form-container {
+    background-color: transparent;
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 30px;
+}
+
+.cv-section {
+    background-color: var(--white);
+    border-radius: var(--border-radius-md);
+    margin-bottom: 24px;
+    padding: 30px;
+    border: none;
+    box-shadow: var(--box-shadow-sm);
+    transition: var(--transition-default);
+    position: relative;
+    overflow: hidden;
+}
+
+.cv-section:hover {
+    box-shadow: var(--box-shadow-md);
+}
+
+/* Indicateurs visuels pour l'état de complétion des sections */
+.cv-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background-color: var(--cream-dark);
+}
+
+.cv-section.complete::before {
+    background-color: var(--success-color);
+}
+
+.cv-section.incomplete::before {
+    background-color: var(--warning-color);
+}
+
+.cv-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--cream-dark);
+}
+
+.cv-section-header h3 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cv-section-header h3 i {
+    color: var(--purple);
+}
+
+/* Menu de navigation par ancre */
+.cv-nav {
+    position: sticky;
+    top: 80px;
+    background-color: var(--white);
+    border-radius: var(--border-radius-md);
+    padding: 16px;
+    margin-bottom: 24px;
+    z-index: 10;
+    box-shadow: var(--box-shadow-sm);
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cv-nav-link {
+    padding: 8px 16px;
+    border-radius: 30px;
+    background-color: var(--cream);
+    color: var(--black);
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition-default);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cv-nav-link:hover,
+.cv-nav-link.active {
+    background-color: var(--purple);
+    color: var(--white);
+}
+
+.cv-nav-link i {
+    font-size: 12px;
+}
+
+/* Grilles et formulaires améliorés */
+.cv-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--black);
+    font-size: 0.95rem;
+    transition: var(--transition-default);
+}
+
+.form-control {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--cream-dark);
+    border-radius: var(--border-radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    transition: var(--transition-default);
+    background-color: var(--white);
+}
+
+.form-control:focus {
+    border-color: var(--purple);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.form-control:focus + .form-helper-text {
+    opacity: 1;
+}
+
+.form-helper-text {
+    position: absolute;
+    right: 0;
+    top: 8px;
+    font-size: 12px;
+    color: var(--gray);
+    opacity: 0;
+    transition: var(--transition-default);
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Animation de focus des champs */
+.form-control-animated {
+    position: relative;
+}
+
+.form-control-animated input,
+.form-control-animated textarea {
+    padding: 16px;
+    background: transparent;
+    border: 1px solid var(--cream-dark);
+    border-radius: var(--border-radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    width: 100%;
+    transition: var(--transition-default);
+}
+
+.form-control-animated label {
+    position: absolute;
+    left: 16px;
+    top: 16px;
+    color: var(--gray);
+    pointer-events: none;
+    transition: var(--transition-default);
+}
+
+.form-control-animated input:focus ~ label,
+.form-control-animated textarea:focus ~ label,
+.form-control-animated input:not(:placeholder-shown) ~ label,
+.form-control-animated textarea:not(:placeholder-shown) ~ label {
+    top: -10px;
+    left: 10px;
+    font-size: 12px;
+    background-color: var(--white);
+    padding: 0 5px;
+    color: var(--purple);
+}
+
+.form-control-animated input:focus,
+.form-control-animated textarea:focus {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* Amélioration des checkboxes et radios */
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 30px;
+    cursor: pointer;
+}
+
+.custom-checkbox input {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 20px;
+    width: 20px;
+    background-color: var(--cream);
+    border: 1px solid var(--cream-dark);
+    border-radius: 4px;
+    transition: var(--transition-default);
+}
+
+.custom-checkbox:hover input ~ .checkmark {
+    background-color: var(--cream-dark);
+}
+
+.custom-checkbox input:checked ~ .checkmark {
+    background-color: var(--purple);
+    border-color: var(--purple);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.custom-checkbox .checkmark:after {
+    left: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.radio-options {
+    display: flex;
+    gap: 20px;
+}
+
+/* Bouton d'ajout amélioré */
+.add-experience-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 16px;
+    border: 2px dashed var(--cream-dark);
+    border-radius: var(--border-radius-md);
+    background: var(--cream);
+    color: var(--purple);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-default);
+}
+
+.add-experience-btn:hover {
+    background-color: var(--white);
+    border-color: var(--purple-light);
+    transform: translateY(-2px);
+}
+
+.add-experience-btn i {
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+/* Cartes d'expérience améliorées */
+.experience-card {
+    border: 1px solid var(--cream-dark);
+    border-radius: var(--border-radius-md);
+    padding: 24px;
+    margin-bottom: 24px;
+    position: relative;
+    transition: var(--transition-default);
+    background-color: var(--white);
+}
+
+.experience-card:hover {
+    box-shadow: var(--box-shadow-md);
+    border-color: var(--purple-light);
+    transform: translateY(-3px);
+}
+
+.experience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--cream-dark);
+}
+
+.experience-header h4 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--black);
+}
+
+.experience-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    color: var(--gray);
+    cursor: pointer;
+    transition: var(--transition-default);
+}
+
+.btn-icon:hover {
+    background-color: var(--cream);
+    transform: scale(1.1);
+}
+
+.btn-icon.edit:hover {
+    color: var(--purple);
+    border-color: var(--purple);
+}
+
+.btn-icon.delete:hover {
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+/* Suggestions IA améliorées */
+.ai-suggestions {
+    background-color: var(--cream);
+    border-left: 4px solid var(--purple);
+    padding: 20px;
+    margin-top: 24px;
+    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+    box-shadow: var(--box-shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-suggestions::after {
+    content: "\f074";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    right: -15px;
+    bottom: -15px;
+    font-size: 100px;
+    color: rgba(124, 58, 237, 0.05);
+}
+
+.ai-suggestions h4 {
+    color: var(--purple);
+    margin-top: 0;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+}
+
+.ai-suggestions h4 i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+.ai-suggestions ul {
+    padding-left: 25px;
+    margin-bottom: 16px;
+}
+
+.ai-suggestions li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+    position: relative;
+}
+
+.ai-suggestions li::before {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background-color: var(--purple);
+    border-radius: 50%;
+    left: -15px;
+    top: 8px;
+}
+
+.ai-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    gap: 12px;
+}
+
+/* Améliorations des petits boutons */
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: var(--border-radius-sm);
+}
+
+/* Barre de progression améliorée */
+.progress-bar-container {
+    height: 10px;
+    background-color: var(--progress-bg);
+    border-radius: 20px;
+    margin: 15px 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple-light), var(--purple));
+    border-radius: 20px;
+    transition: width 0.8s ease-in-out;
+    position: relative;
+}
+
+.progress-bar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.2) 75%,
+        transparent 75%
+    );
+    background-size: 20px 20px;
+    animation: move-stripes 2s linear infinite;
+    border-radius: 20px;
+}
+
+@keyframes move-stripes {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 20px 0;
+    }
+}
+
+/* Status du CV amélioré */
+.cv-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.status-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: var(--success-color);
+    position: relative;
+}
+
+.status-indicator::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: var(--success-color);
+    opacity: 0.4;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+.status-indicator.pending {
+    background-color: var(--warning-color);
+}
+
+.status-indicator.pending::after {
+    background-color: var(--warning-color);
+}
+
+.status-text {
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.completion-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.percentage {
+    font-weight: 600;
+    color: var(--purple);
+    font-size: 1rem;
+}
+
+/* Tags de compétences améliorés */
+.skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.skill-tag {
+    background-color: var(--cream);
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    transition: var(--transition-default);
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.skill-tag:hover {
+    background-color: var(--cream-dark);
+    border-color: var(--purple-light);
+    transform: translateY(-2px);
+}
+
+.skill-tag i {
+    margin-left: 8px;
+    cursor: pointer;
+    color: var(--gray);
+    transition: var(--transition-default);
+}
+
+.skill-tag i:hover {
+    color: var(--danger-color);
+    transform: scale(1.2);
+}
+
+.add-skill {
+    display: flex;
+    margin-top: 20px;
+    gap: 12px;
+    position: relative;
+}
+
+.add-skill input {
+    flex: 1;
+    padding-right: 40px;
+}
+
+.skill-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--white);
+    border: 1px solid var(--cream-dark);
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--box-shadow-md);
+    z-index: 10;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+}
+
+.skill-suggestions.active {
+    display: block;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.skill-suggestion-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: var(--transition-default);
+}
+
+.skill-suggestion-item:hover {
+    background-color: var(--cream);
+}
+
+/* Tracker de progression amélioré */
+.progress-tracker-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    overflow-x: auto;
+    padding: 20px 10px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    background-color: var(--white);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--box-shadow-sm);
+    position: relative;
+}
+
+.progress-tracker-container::-webkit-scrollbar {
+    display: none;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    min-width: 120px;
+    z-index: 1;
+}
+
+.progress-connection {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--cream-dark);
+    z-index: 0;
+}
+
+.progress-connection-active {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    height: 3px;
+    background-color: var(--purple-light);
+    z-index: 0;
+    transition: width 0.5s ease-in-out;
+}
+
+.step-number {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: var(--cream-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+    transition: var(--transition-default);
+}
+
+.progress-step.active .step-number {
+    background-color: var(--purple);
+    color: var(--white);
+    box-shadow: 0 0 0 5px rgba(124, 58, 237, 0.2);
+}
+
+.progress-step.completed .step-number {
+    background-color: var(--purple-light);
+    color: var(--white);
+}
+
+.step-label {
+    font-size: 0.85rem;
+    text-align: center;
+    color: var(--gray);
+    transition: var(--transition-default);
+    max-width: 100px;
+    line-height: 1.3;
+}
+
+.progress-step.active .step-label {
+    color: var(--black);
+    font-weight: 500;
+}
+
+/* En-têtes de section améliorés */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--cream-dark);
+}
+
+.section-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.dashboard-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Style des points forts/faibles */
+.feature-list h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.feature-list ul {
+    padding-left: 36px;
+    list-style-type: none;
+}
+
+.feature-list li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+    position: relative;
+}
+
+.feature-list li::before {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    left: -16px;
+    top: 8px;
+}
+
+.feature-list.strengths li::before {
+    background-color: var(--success-color);
+}
+
+.feature-list.weaknesses li::before {
+    background-color: var(--warning-color);
+}
+
+/* Améliorations responsives */
+@media (max-width: 768px) {
+    .cv-form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .experience-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .experience-actions {
+        align-self: flex-end;
+    }
+    
+    .progress-tracker-container {
+        padding-bottom: 10px;
+    }
+    
+    .progress-step {
+        min-width: 100px;
+    }
+    
+    .step-label {
+        font-size: 0.75rem;
+    }
+    
+    .cv-section {
+        padding: 20px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .add-skill {
+        flex-direction: column;
+    }
+    
+    .cv-nav {
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 12px;
+    }
+    
+    .cv-nav-link {
+        padding: 6px 12px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+}
+
+/* Animations améliorées */
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Animation d'échelle */
+.scale-in {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.scale-in.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Animation de glissement */
+.slide-in-left {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.slide-in-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.slide-in-right {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.slide-in-right.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Amélioration de l'accessibilité */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Indicateurs de niveau de langue améliorés */
+.language-level-indicator {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.level-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--cream-dark);
+    transition: var(--transition-default);
+}
+
+.level-dot.active {
+    background-color: var(--purple);
+}
+
+/* Style des recommandations */
+.recommendation-container {
+    margin-top: 16px;
+    background-color: var(--yellow-light);
+    border-radius: var(--border-radius-sm);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.recommendation-container::after {
+    content: "\f0eb";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    right: -15px;
+    bottom: -20px;
+    font-size: 80px;
+    color: rgba(0, 0, 0, 0.05);
+}
+
+.recommendation-title {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+/* Tooltips */
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: var(--black);
+    color: var(--white);
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Notification de sauvegarde */
+.save-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--success-color);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--box-shadow-md);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    z-index: 1000;
+}
+
+.save-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Ajout du résumé des sections en haut de page */
+.cv-sections-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.cv-summary-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius-md);
+    padding: 16px;
+    box-shadow: var(--box-shadow-sm);
+    transition: var(--transition-default);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+}
+
+.cv-summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-md);
+}
+
+.cv-summary-card.incomplete {
+    border-left: 3px solid var(--warning-color);
+}
+
+.cv-summary-card.complete {
+    border-left: 3px solid var(--success-color);
+}
+
+.summary-icon {
+    width: 50px;
+    height: 50px;
+    background-color: var(--cream);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    color: var(--purple);
+    transition: var(--transition-default);
+}
+
+.cv-summary-card:hover .summary-icon {
+    background-color: var(--purple);
+    color: var(--white);
+    transform: scale(1.1);
+}
+
+.summary-title {
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.summary-completion {
+    font-size: 12px;
+    color: var(--gray);
+}
+
+/* Bouton de retour en haut */
+.back-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background-color: var(--purple);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--box-shadow-md);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-default);
+    z-index: 99;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Effet de survol pour les cartes */
+.effect-hover {
+    position: relative;
+    overflow: hidden;
+}
+
+.effect-hover::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent 95%, var(--purple) 95%);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.effect-hover:hover::after {
+    opacity: 1;
+}
