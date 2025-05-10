@@ -1444,7 +1444,7 @@
     </div>
     
     <!-- Scripts pour l'intégration du job parser -->
-    <script src="../js/job-parser-connector.js"></script>
+    <script src="../js/simple-job-parser.js"></script>
     <script src="../js/job-preview.js"></script>
     
     <!-- Script amélioré pour le formulaire client -->
@@ -1738,68 +1738,6 @@
                 fileBadge.style.display = 'inline-flex';
                 showNotification('Fichier sélectionné avec succès', 'success');
             }
-            
-            // Analyse de la fiche de poste
-            const analyzeButton = document.getElementById('analyze-job-text');
-            const jobDescriptionText = document.getElementById('job-description-text');
-            const analysisLoader = document.getElementById('analysis-loader');
-            const jobInfoContainer = document.getElementById('job-info-container');
-            
-            analyzeButton.addEventListener('click', function() {
-                if (!jobDescriptionText.value.trim() && !fileInput.files.length) {
-                    showNotification("Veuillez d'abord saisir ou importer une fiche de poste", "error");
-                    return;
-                }
-                
-                // Simuler le chargement
-                this.disabled = true;
-                analysisLoader.style.display = 'flex';
-                
-                // Simuler un délai d'API
-                setTimeout(() => {
-                    analysisLoader.style.display = 'none';
-                    jobInfoContainer.style.display = 'block';
-                    this.disabled = false;
-                    
-                    // Remplir avec des données fictives pour la démonstration
-                    document.getElementById('job-title-value').textContent = 'Développeur Full Stack JavaScript';
-                    document.getElementById('job-contract-value').textContent = 'CDI';
-                    document.getElementById('job-location-value').textContent = 'Paris (75) - Possibilité de télétravail';
-                    document.getElementById('job-experience-value').textContent = '3 à 5 ans';
-                    document.getElementById('job-education-value').textContent = 'Bac+5 en informatique ou équivalent';
-                    document.getElementById('job-salary-value').textContent = '45K€ - 55K€ selon expérience';
-                    
-                    document.getElementById('job-skills-value').innerHTML = `
-                        <ul>
-                            <li>JavaScript / TypeScript</li>
-                            <li>React.js / Vue.js</li>
-                            <li>Node.js / Express</li>
-                            <li>MongoDB / SQL</li>
-                            <li>Git / GitHub</li>
-                        </ul>
-                    `;
-                    
-                    document.getElementById('job-responsibilities-value').innerHTML = `
-                        <ul>
-                            <li>Développer et maintenir des applications web performantes</li>
-                            <li>Collaborer avec les designers et les product owners</li>
-                            <li>Participer aux revues de code et assurer la qualité du code</li>
-                            <li>Optimiser les applications pour une performance maximale</li>
-                        </ul>
-                    `;
-                    
-                    document.getElementById('job-benefits-value').innerHTML = `
-                        <ul>
-                            <li>Télétravail partiel</li>
-                            <li>Tickets restaurant</li>
-                            <li>Mutuelle d'entreprise</li>
-                            <li>Formation continue</li>
-                        </ul>
-                    `;
-                    
-                    showNotification("L'analyse de la fiche de poste a été complétée avec succès !", "success");
-                }, 1500);
-            });
             
             // Gestion des tags pour les avantages
             const benefitInput = document.getElementById('benefit-input');
