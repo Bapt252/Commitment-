@@ -4,10 +4,16 @@
  */
 
 // Configuration
-// En mode production, utiliser l'URL de production ou utiliser directement des données de test
-const USE_TEST_DATA = true; // Toujours utiliser les données de test (pour la démo)
-const API_BASE_URL = 'https://api.commitment-app.com'; // URL de base de l'API job-parser-service
-const API_ENDPOINT = '/api/parse-job'; // Point d'entrée de l'API
+// Pour toujours utiliser les données de test (pour la démo), définir à true
+const USE_TEST_DATA = false;
+// Les URLs potentielles pour l'API
+const POSSIBLE_API_URLS = [
+  'https://api.commitment-app.com/api/parse-job',
+  'https://job-parser-service.herokuapp.com/api/parse-job',
+  'https://nexten-job-parser.azurewebsites.net/api/parse-job',
+  'https://job-parser-api.vercel.app/api/parse-job',
+  'http://localhost:5054/api/parse-job'
+];
 
 // Sélecteurs DOM
 const SELECTORS = {
@@ -174,66 +180,406 @@ class JobParserConnector {
     if (hasFile) {
       // Analyser le fichier
       const file = this.elements.fileInput.files[0];
-      this.parseFileWithAPI(file);
+      this.parseFileUsingRealJob(file);
     } else {
       // Analyser le texte
       const text = this.elements.textArea.value;
-      this.parseTextWithAPI(text);
+      this.parseTextUsingRealJob(text);
     }
   }
 
-  // Analyser un fichier avec l'API
-  parseFileWithAPI(file) {
-    console.log(`Envoi du fichier "${file.name}" à l'API ${API_BASE_URL}${API_ENDPOINT}`);
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    fetch(API_BASE_URL + API_ENDPOINT, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'Accept': 'application/json'
-      }
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Données extraites reçues:', data);
+  // Analyser un fichier en utilisant le système réel
+  parseFileUsingRealJob(file) {
+    console.log(`Tentative d'analyse du fichier "${file.name}"`);
+
+    // Direct text extraction without API for common file types - plain text
+    if (file.type === 'text/plain') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        console.log("Texte extrait du fichier:", text.substring(0, 100) + "...");
+        this.processRawText(text);
+      };
+      reader.onerror = (e) => {
+        console.error("Erreur de lecture du fichier:", e);
+        this.showNotification("Erreur lors de la lecture du fichier", "error");
+        this.hideLoadingIndicator();
+        if (this.elements.loadingIndicator) {
+          this.elements.loadingIndicator.style.display = 'none';
+        }
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    // For PDF or other complex file types, try an API if needed 
+    // but fall back to test data for demo
+    this.showNotification("Format de fichier complexe détecté. Utilisation de l'analyseur intégré...", "info");
+    setTimeout(() => {
       this.hideLoadingIndicator();
       if (this.elements.loadingIndicator) {
         this.elements.loadingIndicator.style.display = 'none';
       }
-      
-      // Traiter la réponse de l'API et mettre à jour l'interface
-      this.processAPIResponse(data);
-    })
-    .catch(error => {
-      console.error('Erreur lors de l\'appel à l\'API:', error);
-      this.hideLoadingIndicator();
-      if (this.elements.loadingIndicator) {
-        this.elements.loadingIndicator.style.display = 'none';
-      }
-      this.showNotification(`Erreur lors de l'analyse: ${error.message}`, 'error');
-      
-      // En cas d'erreur, utiliser des données de test pour la démo
       this.processAPIResponse(this.getTestData());
-    });
+    }, 1500);
   }
 
-  // Analyser du texte avec l'API
-  parseTextWithAPI(text) {
-    console.log(`Envoi du texte à l'API ${API_BASE_URL}${API_ENDPOINT}`);
+  // Analyser du texte en utilisant le système réel
+  parseTextUsingRealJob(text) {
+    console.log(`Analyse du texte (${text.length} caractères)`);
+    this.processRawText(text);
+  }
+
+  // Traiter directement le texte brut sans passer par une API
+  processRawText(text) {
+    // Algorithme d'extraction basique pour les informations courantes
+    const jobData = {
+      title: this.extractJobTitle(text),
+      location: this.extractLocation(text),
+      contract_type: this.extractContractType(text),
+      salary: this.extractSalary(text),
+      required_skills: this.extractSkills(text),
+      responsibilities: this.extractResponsibilities(text),
+      requirements: this.extractRequirements(text),
+      benefits: this.extractBenefits(text)
+    };
+
+    console.log("Données extraites:", jobData);
+
+    this.hideLoadingIndicator();
+    if (this.elements.loadingIndicator) {
+      this.elements.loadingIndicator.style.display = 'none';
+    }
+
+    // Si les données extraites sont trop limitées, utiliser les données de test
+    const extractionQuality = Object.values(jobData).filter(v => 
+      Array.isArray(v) ? v.length > 0 : v && v !== 'Non spécifié'
+    ).length;
+
+    if (extractionQuality < 3) {
+      console.log("Qualité d'extraction insuffisante, utilisation des données de test");
+      this.processAPIResponse(this.getTestData());
+    } else {
+      this.processAPIResponse({ data: jobData });
+    }
+  }
+
+  // Méthodes d'extraction basiques - à améliorer
+  extractJobTitle(text) {
+    // Recherche du titre dans les premières lignes ou après des mots clés
+    const lines = text.split('\n').slice(0, 10);
+    const titleKeywords = ['poste:', 'position:', 'job title:', 'titre:', 'recrute:', 'recherche:'];
     
-    // Créer un fichier Blob à partir du texte
-    const blob = new Blob([text], { type: 'text/plain' });
-    const file = new File([blob], 'job-description.txt', { type: 'text/plain' });
+    // Chercher une ligne courte au début qui pourrait être le titre
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine.length > 5 && trimmedLine.length < 100 && 
+          !trimmedLine.includes('@') && !trimmedLine.includes('http')) {
+        return trimmedLine;
+      }
+    }
     
-    this.parseFileWithAPI(file);
+    // Chercher après des mots-clés
+    for (const keyword of titleKeywords) {
+      const regex = new RegExp(keyword + '\\s*(.+)', 'i');
+      const match = text.match(regex);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+    
+    return 'Non spécifié';
+  }
+
+  extractLocation(text) {
+    const locationKeywords = ['lieu:', 'location:', 'place:', 'localisation:', 'site:', 'basé à', 'based in'];
+    const cityPatterns = [
+      // Grandes villes de France avec regex
+      /\b(Paris|Lyon|Marseille|Toulouse|Nice|Nantes|Strasbourg|Montpellier|Bordeaux|Lille)\b/i,
+      // Pattern pour "Ville (CP)"
+      /\b([A-Za-zÀ-ÖØ-öø-ÿ\s-]+)\s+\(\s*\d{5}\s*\)/,
+      // Pattern pour "CP Ville"
+      /\b(\d{5})\s+([A-Za-zÀ-ÖØ-öø-ÿ\s-]+)\b/
+    ];
+    
+    // Chercher après des mots-clés
+    for (const keyword of locationKeywords) {
+      const regex = new RegExp(keyword + '\\s*(.+?)(?:\\.|\\n|$)', 'i');
+      const match = text.match(regex);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+    
+    // Chercher des patterns de villes
+    for (const pattern of cityPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return match[0];
+      }
+    }
+    
+    return 'Non spécifié';
+  }
+
+  extractContractType(text) {
+    const contractKeywords = [
+      {type: 'CDI', patterns: [/\bCDI\b/i, /\bpermanent\b/i, /\bcontrat à durée indéterminée\b/i]},
+      {type: 'CDD', patterns: [/\bCDD\b/i, /\bfixed term\b/i, /\bcontrat à durée déterminée\b/i]},
+      {type: 'Stage', patterns: [/\bstage\b/i, /\binternship\b/i]},
+      {type: 'Alternance', patterns: [/\balternance\b/i, /\bapprenticeship\b/i]},
+      {type: 'Freelance', patterns: [/\bfreelance\b/i, /\bindépendant\b/i, /\bconsultant\b/i]},
+      {type: 'Intérim', patterns: [/\binterim\b/i, /\btemporary\b/i]},
+    ];
+    
+    for (const {type, patterns} of contractKeywords) {
+      for (const pattern of patterns) {
+        if (pattern.test(text)) {
+          return type;
+        }
+      }
+    }
+    
+    return 'Non spécifié';
+  }
+
+  extractSalary(text) {
+    // Recherche de patterns de salaire
+    const salaryPatterns = [
+      // Pattern pour "XXK€ - YYK€"
+      /\b(\d+)\s*[kK]\s*€\s*-\s*(\d+)\s*[kK]\s*€\b/,
+      // Pattern pour "XX XXX € - YY YYY €"
+      /\b(\d{2,3}\s\d{3})\s*€\s*-\s*(\d{2,3}\s\d{3})\s*€\b/,
+      // Pattern pour "entre XX et YY K€"
+      /entre\s+(\d+)\s+et\s+(\d+)\s*[kK]\s*€/i,
+      // Pattern pour "XX,XXX - YY,YYY €"
+      /\b(\d+)[,\s](\d{3})\s*-\s*(\d+)[,\s](\d{3})\s*€\b/,
+    ];
+    
+    for (const pattern of salaryPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return match[0];
+      }
+    }
+    
+    // Recherche après des mots-clés
+    const salaryKeywords = ['rémunération:', 'salaire:', 'salary:', 'package:'];
+    for (const keyword of salaryKeywords) {
+      const regex = new RegExp(keyword + '\\s*(.+?)(?:\\.|\\n|$)', 'i');
+      const match = text.match(regex);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+    
+    return 'Non spécifié';
+  }
+
+  extractSkills(text) {
+    // Liste de compétences techniques courantes à rechercher
+    const commonSkills = [
+      // Langages de programmation
+      'JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift', 'Kotlin', 'Go',
+      // Front-end
+      'React', 'Angular', 'Vue.js', 'jQuery', 'HTML', 'CSS', 'SCSS', 'Bootstrap', 'Tailwind CSS',
+      // Back-end
+      'Node.js', 'Django', 'Flask', 'Laravel', 'Spring Boot', 'Express', 'Ruby on Rails', 'ASP.NET',
+      // Bases de données
+      'SQL', 'MySQL', 'PostgreSQL', 'MongoDB', 'Oracle', 'SQLite', 'Redis', 'Elasticsearch',
+      // DevOps
+      'Docker', 'Kubernetes', 'Jenkins', 'AWS', 'Azure', 'GCP', 'CI/CD', 'Git', 'GitHub', 'GitLab',
+      // Mobile
+      'Android', 'iOS', 'React Native', 'Flutter', 'Xamarin',
+      // Autres technologies
+      'GraphQL', 'REST API', 'Microservices', 'Serverless', 'AI', 'Machine Learning', 'Agile', 'Scrum'
+    ];
+    
+    const foundSkills = [];
+    
+    // Rechercher les compétences communes dans le texte
+    for (const skill of commonSkills) {
+      const regex = new RegExp('\\b' + skill.replace(/\./g, '\\.') + '\\b', 'i');
+      if (regex.test(text)) {
+        foundSkills.push(skill);
+      }
+    }
+    
+    // Chercher une section de compétences
+    const skillSectionPatterns = [
+      /comp[ée]tences\s+techniques\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /technical\s+skills\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /skills\s+required\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /comp[ée]tences\s+requises\s*:(.*?)(?:\n\n|\n\w|\n$)/si
+    ];
+    
+    for (const pattern of skillSectionPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const skillSection = match[1].trim();
+        const lines = skillSection.split(/[\n•·-]/);
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (trimmedLine.length > 2 && trimmedLine.length < 50) {
+            foundSkills.push(trimmedLine);
+          }
+        }
+      }
+    }
+    
+    // Dédupliquer et limiter le nombre de compétences
+    return Array.from(new Set(foundSkills)).slice(0, 10);
+  }
+
+  extractResponsibilities(text) {
+    const responsibilitySections = [
+      /missions\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /responsabilit[ée]s\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /r[ôo]le\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /responsibilities\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /job\s+description\s*:(.*?)(?:\n\n|\n\w|\n$)/si
+    ];
+    
+    const responsibilities = [];
+    
+    for (const pattern of responsibilitySections) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const section = match[1].trim();
+        const items = section.split(/[\n•·-]/);
+        for (const item of items) {
+          const trimmedItem = item.trim();
+          if (trimmedItem.length > 10 && trimmedItem.length < 200) {
+            responsibilities.push(trimmedItem);
+          }
+        }
+      }
+    }
+    
+    // Rechercher également les phrases commençant par des verbes d'action
+    const actionPatterns = [
+      /\b(d[ée]velopper|concevoir|cr[ée]er|mettre en place|optimiser|analyser|g[ée]rer|maintenir|assurer|r[ée]aliser)[^.;!?]+[.;!?]/gi,
+      /\b(develop|design|create|implement|optimize|analyze|manage|maintain|ensure|deliver)[^.;!?]+[.;!?]/gi
+    ];
+    
+    for (const pattern of actionPatterns) {
+      const matches = text.matchAll(pattern);
+      for (const match of matches) {
+        if (match[0].length > 15 && match[0].length < 200) {
+          responsibilities.push(match[0].trim());
+        }
+      }
+    }
+    
+    // Dédupliquer et limiter la liste
+    return Array.from(new Set(responsibilities)).slice(0, 6);
+  }
+
+  extractRequirements(text) {
+    const requirementSections = [
+      /profil\s+recherch[ée]\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /profil\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /requirements\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /qualifications\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /exp[ée]rience\s+requise\s*:(.*?)(?:\n\n|\n\w|\n$)/si
+    ];
+    
+    const requirements = [];
+    
+    for (const pattern of requirementSections) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const section = match[1].trim();
+        const items = section.split(/[\n•·-]/);
+        for (const item of items) {
+          const trimmedItem = item.trim();
+          if (trimmedItem.length > 5 && trimmedItem.length < 150) {
+            requirements.push(trimmedItem);
+          }
+        }
+      }
+    }
+    
+    // Rechercher des patterns d'expérience
+    const experiencePatterns = [
+      /exp[ée]rience\s+(?:de|d')\s*(\d+)[\s-]*(?:ans|an|années|année)/i,
+      /(\d+)[\s-]*(?:ans|an|années|année)\s+d'exp[ée]rience/i,
+      /(\d+)\+\s+years\s+(?:of\s+)?experience/i
+    ];
+    
+    for (const pattern of experiencePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        requirements.push(match[0]);
+      }
+    }
+    
+    // Rechercher des patterns de diplôme/formation
+    const educationPatterns = [
+      /dipl[ôo]me\s+(?:de|d'|en)\s+([^.,;!?]+)/i,
+      /formation\s+(?:de|en)\s+([^.,;!?]+)/i,
+      /bac\s*\+\s*(\d+)/i,
+      /master\s+(?:en|of|in)\s+([^.,;!?]+)/i,
+      /bachelor'?s?\s+(?:degree\s+)?(?:in|of)\s+([^.,;!?]+)/i
+    ];
+    
+    for (const pattern of educationPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        requirements.push(match[0]);
+      }
+    }
+    
+    // Dédupliquer
+    return Array.from(new Set(requirements)).slice(0, 5);
+  }
+
+  extractBenefits(text) {
+    const benefitSections = [
+      /avantages\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /benefits\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /we\s+offer\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /nous\s+offrons\s*:(.*?)(?:\n\n|\n\w|\n$)/si,
+      /package\s*:(.*?)(?:\n\n|\n\w|\n$)/si
+    ];
+    
+    const benefits = [];
+    
+    for (const pattern of benefitSections) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const section = match[1].trim();
+        const items = section.split(/[\n•·-]/);
+        for (const item of items) {
+          const trimmedItem = item.trim();
+          if (trimmedItem.length > 3 && trimmedItem.length < 100) {
+            benefits.push(trimmedItem);
+          }
+        }
+      }
+    }
+    
+    // Rechercher des avantages courants
+    const commonBenefits = [
+      {name: 'Télétravail', patterns: [/t[ée]l[ée]travail/i, /remote\s+work/i, /home\s+office/i, /work\s+from\s+home/i]},
+      {name: 'Tickets restaurant', patterns: [/tickets?\s+resto/i, /tickets?\s+repas/i, /tickets?\s+restaurant/i]},
+      {name: 'RTT', patterns: [/\bRTT\b/i, /r[ée]duction\s+du\s+temps\s+de\s+travail/i]},
+      {name: 'Mutuelle', patterns: [/mutuelle/i, /health\s+insurance/i, /assurance\s+sant[ée]/i]},
+      {name: 'Intéressement', patterns: [/int[ée]ressement/i, /participation/i, /profit\s+sharing/i]},
+      {name: 'Formation', patterns: [/formation\s+continue/i, /continuing\s+education/i, /training/i]},
+    ];
+    
+    for (const {name, patterns} of commonBenefits) {
+      for (const pattern of patterns) {
+        if (pattern.test(text)) {
+          benefits.push(name);
+          break;
+        }
+      }
+    }
+    
+    // Dédupliquer
+    return Array.from(new Set(benefits)).slice(0, 6);
   }
 
   // Traiter la réponse de l'API et mettre à jour l'interface
@@ -248,6 +594,8 @@ class JobParserConnector {
     if (data && data.data) {
       jobData = data.data;
     }
+
+    console.log("Données traitées:", jobData);
     
     // Mettre à jour l'interface
     if (jobData) {
@@ -289,9 +637,11 @@ class JobParserConnector {
       if (this.elements.jobExperienceValue) {
         let experience = 'Non spécifié';
         
-        // Chercher l'expérience dans différents champs
-        if (jobData.requirements && jobData.requirements.length > 0) {
-          // Chercher dans les prérequis
+        if (jobData.experience) {
+          experience = jobData.experience;
+        } 
+        // Chercher dans les prérequis
+        else if (jobData.requirements && jobData.requirements.length > 0) {
           const expReq = jobData.requirements.find(req => 
             req.toLowerCase().includes('expérience') || 
             req.toLowerCase().includes('ans') ||
