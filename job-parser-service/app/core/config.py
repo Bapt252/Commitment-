@@ -6,8 +6,22 @@ import logging
 from typing import Any, Dict, Optional
 
 # Utilisation du module de compatibilité pour Pydantic v1 et v2
-from pydantic_compat import BaseSettings
-from pydantic import validator
+try:
+    # Essayer avec la version locale
+    from app.core.pydantic_compat import BaseSettings
+    from pydantic import validator
+except ImportError:
+    try:
+        # Essayer avec le module à la racine
+        from pydantic_compat import BaseSettings
+        from pydantic import validator
+    except ImportError:
+        # Fallback direct pour les versions plus anciennes
+        try:
+            from pydantic_settings import BaseSettings
+            from pydantic import validator
+        except ImportError:
+            from pydantic import BaseSettings, validator
 
 class Settings(BaseSettings):
     """Paramètres de configuration du service"""
