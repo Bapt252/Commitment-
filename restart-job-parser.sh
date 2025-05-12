@@ -1,101 +1,15 @@
 #!/bin/bash
 
-echo "Redémarrage du service de parsing de fiches de poste"
+# Script pour redémarrer le service job-parser après les modifications
 
-# Couleurs pour une meilleure lisibilité
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
-
-# Fonction pour afficher un message formaté
-print_status() {
-    echo -e "${YELLOW}[INFO]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[SUCCÈS]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERREUR]${NC} $1"
-}
-
-# Vérification que Docker est disponible
-if ! command -v docker &> /dev/null; then
-    print_error "Docker n'est pas installé ou n'est pas dans le PATH"
-    exit 1
-fi
-
-# Vérification que docker-compose est disponible
-if ! command -v docker-compose &> /dev/null; then
-    print_error "Docker Compose n'est pas installé ou n'est pas dans le PATH"
-    exit 1
-fi
-
-# Vérification des arguments
-fix_dockerfile=false
-if [ "$1" == "--fix" ]; then
-    print_status "Utilisation du Dockerfile corrigé pour contourner le problème de circuit_breaker"
-    fix_dockerfile=true
-fi
-
-# Arrêt des services liés au job parser
-print_status "Arrêt des services de parsing de fiches de poste..."
+echo "Arrêt du service job-parser..."
 docker-compose stop job-parser job-parser-worker
 
-# Vérifier si on doit nettoyer les conteneurs
-if [ "$1" == "--clean" ] || [ "$2" == "--clean" ]; then
-    print_status "Nettoyage des conteneurs job-parser..."
-    docker-compose rm -f job-parser job-parser-worker
-fi
+echo "Reconstruction du service job-parser..."
+docker-compose build job-parser job-parser-worker
 
-# Reconstruction des images
-if $fix_dockerfile; then
-    print_status "Construction des images avec le Dockerfile corrigé..."
-    docker build -t nexten-job-parser -f job-parser-service/Dockerfile.fix job-parser-service/
-    docker build -t nexten-job-parser-worker -f job-parser-service/Dockerfile.fix job-parser-service/
-elif [ "$1" == "--rebuild" ] || [ "$1" == "--clean" ] || [ "$2" == "--rebuild" ]; then
-    print_status "Reconstruction des images job-parser..."
-    docker-compose build job-parser job-parser-worker
-fi
-
-# Démarrage des services
-print_status "Démarrage des services de parsing de fiches de poste..."
+echo "Démarrage du service job-parser..."
 docker-compose up -d job-parser job-parser-worker
 
-# Vérification que les services sont bien démarrés
-print_status "Vérification de l'état des services..."
-sleep 5 # Attendre que les services démarrent
-
-# Vérifier l'état des services
-job_parser_status=$(docker-compose ps | grep job-parser | grep -v worker | grep -c "Up" || echo "0")
-job_parser_worker_status=$(docker-compose ps | grep job-parser-worker | grep -c "Up" || echo "0")
-
-if [ "$job_parser_status" -gt 0 ] && [ "$job_parser_worker_status" -gt 0 ]; then
-    print_success "Les services de parsing de fiches de poste sont démarrés et fonctionnels."
-    
-    # Récupérer le port exposé
-    port=$(docker-compose port job-parser 5000 | cut -d ':' -f 2 || echo "5053")
-    print_success "Le service job-parser est accessible sur http://localhost:${port}"
-    
-    # Tester l'API
-    print_status "Test de l'API de santé..."
-    health_response=$(curl -s "http://localhost:${port}/health")
-    
-    if [[ "$health_response" == *"healthy"* ]]; then
-        print_success "L'API de santé répond correctement."
-        echo -e "${GREEN}==========================================${NC}"
-        echo "Pour tester le parsing d'une fiche de poste, utilisez:"
-        echo "  ./curl-test-job-parser.sh chemin/vers/fiche.pdf"
-        echo -e "${GREEN}==========================================${NC}"
-    else
-        print_error "L'API de santé ne répond pas correctement."
-        print_status "Réponse: $health_response"
-    fi
-else
-    print_error "Problème lors du démarrage des services de parsing de fiches de poste."
-    echo "Vérifiez les logs pour plus d'informations:"
-    echo "  docker-compose logs job-parser"
-    echo "  docker-compose logs job-parser-worker"
-fi
+echo "Affichage des logs (Ctrl+C pour sortir)..."
+docker-compose logs -f job-parser
