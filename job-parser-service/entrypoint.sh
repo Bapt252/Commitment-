@@ -1,9 +1,7 @@
 #!/bin/bash
 set -e
 
-# Script de démarrage pour le service job-parser
-
-# Fonction pour l'affichage des logs
+# Fonction pour afficher des messages
 log_message() {
   echo "[ENTRYPOINT] $1"
 }
