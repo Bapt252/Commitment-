@@ -2,10 +2,12 @@ import os
 import json
 import time
 import uuid
+import io
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import openai
 from dotenv import load_dotenv
+import PyPDF2
 
 # Charger les variables d'environnement depuis .env
 load_dotenv()
@@ -38,7 +40,29 @@ def queue_job():
         # Vérifier si un fichier a été envoyé
         if 'file' in request.files:
             file = request.files['file']
-            content = file.read().decode('utf-8', errors='ignore')
+            file_content = file.read()
+            
+            # Détecter le type de fichier
+            if file.filename.lower().endswith('.pdf'):
+                # Traitement spécifique pour les PDF
+                try:
+                    pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+                    content = ""
+                    for page in pdf_reader.pages:
+                        page_text = page.extract_text()
+                        if page_text:
+                            content += page_text + "\n"
+                    
+                    if not content.strip():
+                        # Si le PDF ne contient pas de texte extractible (image ou scanné)
+                        return jsonify({"error": "Le PDF ne semble pas contenir de texte extractible. Veuillez utiliser un PDF avec du texte ou copier le contenu manuellement."}), 400
+                except Exception as pdf_error:
+                    print(f"Erreur lors de l'extraction du PDF: {str(pdf_error)}")
+                    return jsonify({"error": f"Impossible de lire le PDF: {str(pdf_error)}"}), 400
+            else:
+                # Pour les autres formats (txt, docx, etc.)
+                content = file_content.decode('utf-8', errors='ignore')
+                
         # Sinon, vérifier si le texte a été envoyé
         elif request.form.get('text'):
             content = request.form.get('text')
@@ -65,6 +89,7 @@ def queue_job():
         return jsonify({"job_id": job_id, "status": "pending"})
     
     except Exception as e:
+        print(f"Erreur lors de la soumission du job: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/job-parser/result/<job_id>', methods=['GET'])
@@ -129,6 +154,7 @@ def process_job(job_id):
         job.pop("content", None)
     
     except Exception as e:
+        print(f"Erreur lors du traitement du job {job_id}: {str(e)}")
         # En cas d'erreur, mettre à jour le statut et stocker l'erreur
         job["status"] = "failed"
         job["error"] = str(e)
@@ -143,6 +169,10 @@ def extract_job_info_with_gpt(content):
     """
     if not API_KEY:
         raise Exception("Clé API OpenAI non configurée")
+    
+    # Limiter la taille du contenu pour éviter les problèmes avec l'API
+    if len(content) > 15000:
+        content = content[:15000] + "...[contenu tronqué pour respecter la limite de l'API]"
     
     # Préparer le prompt pour GPT
     prompt = f"""
