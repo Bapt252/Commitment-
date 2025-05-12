@@ -1,3 +1,813 @@
-<!-- Ajouter ces lignes à la fin de votre fichier HTML, avant </body> -->
-<script src="../js/gpt-parser-client.js"></script>
-<script src="../js/gpt-integration.js"></script>
+<!-- Scripts -->
+<script src="../assets/js/parser.js"></script>
+<script src="../js/pdf-cleaner.js"></script>
+<script src="../js/job-parser-api.js"></script>
+<script src="../scripts/gpt-autoloader.js"></script>
+<script src="../scripts/debug-gpt.js"></script>
+<script>
+    // Fonction pour afficher un message de debug
+    function showDebugMessage(message) {
+        const debugSection = document.getElementById('debug-section');
+        const debugContent = document.getElementById('debug-content');
+        debugSection.style.display = 'block';
+        
+        // Ajouter le nouveau message
+        const msgElement = document.createElement('p');
+        msgElement.textContent = message;
+        debugContent.appendChild(msgElement);
+    }
+    
+    // Fonction pour activer le mode debug
+    function activateDebugMode() {
+        const debugSection = document.getElementById('debug-section');
+        debugSection.style.display = 'block';
+        showDebugMessage('Mode debug activé');
+        
+        // Afficher le contenu de sessionStorage
+        const parsedJobData = sessionStorage.getItem('parsedJobData');
+        if (parsedJobData) {
+            showDebugMessage('Données trouvées dans sessionStorage: ' + parsedJobData);
+        } else {
+            showDebugMessage('Aucune donnée trouvée dans sessionStorage');
+        }
+    }
+
+    // Vérifier si un paramètre debug est présent dans l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('debug')) {
+        activateDebugMode();
+        // Ajouter un message supplémentaire pour indiquer l'URL de l'API
+        showDebugMessage('URL de l\'API configurée: ' + (urlParams.get('apiUrl') || 'http://localhost:5055'));
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialiser l'API JOB PARSER
+        const jobParserAPI = new JobParserAPI({
+            debug: urlParams.has('debug'),
+            enablePDFCleaning: true  // Activer le nettoyage PDF
+        });
+        
+        function initializeForm() {
+            // Variables pour les étapes et la navigation
+            const progressFill = document.getElementById('progress-fill');
+            const steps = document.querySelectorAll('.step');
+            const formSections = document.querySelectorAll('.form-section');
+            const totalSteps = steps.length;
+            let currentStep = 1;
+            
+            // Mise à jour de la barre de progression
+            function updateProgress(step) {
+                const progressPercentage = ((step - 1) / (totalSteps - 1)) * 100;
+                progressFill.style.width = `${progressPercentage}%`;
+            }
+            
+            // Navigation vers une étape spécifique
+            function navigateToStep(stepNumber) {
+                // Validation basique avant de passer à l'étape suivante
+                if (stepNumber > currentStep) {
+                    if (!validateCurrentStep()) {
+                        return false;
+                    }
+                }
+                
+                // Mettre à jour les indicateurs d'étape
+                steps.forEach(step => {
+                    const stepNum = parseInt(step.getAttribute('data-step'));
+                    step.classList.remove('active', 'completed');
+                    
+                    if (stepNum === stepNumber) {
+                        step.classList.add('active');
+                    } else if (stepNum < stepNumber) {
+                        step.classList.add('completed');
+                    }
+                });
+                
+                // Afficher la section correspondante
+                formSections.forEach(section => {
+                    section.classList.remove('active');
+                    if (parseInt(section.getAttribute('data-step')) === stepNumber) {
+                        section.classList.add('active');
+                    }
+                });
+                
+                // Mettre à jour la barre de progression
+                updateProgress(stepNumber);
+                
+                // Mettre à jour l'étape actuelle
+                currentStep = stepNumber;
+                
+                // Scroll vers le haut avec une animation fluide
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+                
+                return true;
+            }
+            
+            // Validation de l'étape actuelle
+            function validateCurrentStep() {
+                let isValid = true;
+                const currentSection = document.querySelector(`.form-section[data-step="${currentStep}"]`);
+                
+                // Logique de validation spécifique à chaque étape
+                if (currentStep === 1) {
+                    // Étape 1 : Optionnelle, permettre de continuer sans fichier
+                    return true;
+                } else if (currentStep === 2) {
+                    // Étape 2 : Vérifier les champs obligatoires
+                    const requiredFields = [
+                        { field: document.getElementById('company-name'), label: 'Nom de la structure' },
+                        { field: document.getElementById('company-address'), label: 'Adresse complète' },
+                        { field: document.getElementById('company-size'), label: 'Taille de la structure' }
+                    ];
+                    
+                    isValid = validateRequiredFields(requiredFields);
+                } else if (currentStep === 3) {
+                    // Étape 3 : Vérifier si l'utilisateur a un poste à pourvoir
+                    const hasJob = document.querySelector('input[name="has-job"]:checked').value;
+                    
+                    if (hasJob === 'yes') {
+                        const requiredFields = [
+                            { field: document.getElementById('recruitment-deadline'), label: 'Délai de recrutement' },
+                            { field: document.getElementById('recruitment-context'), label: 'Contexte de recrutement' },
+                            { field: document.getElementById('experience-required'), label: 'Années d\'expérience requises' },
+                            { field: document.getElementById('work-environment'), label: 'Environnement de travail' },
+                            { field: document.getElementById('contract-type'), label: 'Type de contrat' }
+                        ];
+                        
+                        isValid = validateRequiredFields(requiredFields);
+                    }
+                } else if (currentStep === 4) {
+                    // Étape 4 : Vérifier les informations de contact
+                    const requiredFields = [
+                        { field: document.getElementById('contact-name'), label: 'Nom du contact' },
+                        { field: document.getElementById('contact-email'), label: 'Email du contact' }
+                    ];
+                    
+                    isValid = validateRequiredFields(requiredFields);
+                    
+                    // Validation supplémentaire pour l'email
+                    if (isValid) {
+                        const emailField = document.getElementById('contact-email');
+                        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        
+                        if (!emailPattern.test(emailField.value)) {
+                            showNotification('Veuillez entrer une adresse email valide', 'error');
+                            highlightInvalidField(emailField);
+                            isValid = false;
+                        }
+                    }
+                }
+                
+                return isValid;
+            }
+            
+            // Validation des champs obligatoires
+            function validateRequiredFields(fields) {
+                let isValid = true;
+                const invalidFields = [];
+                
+                fields.forEach(item => {
+                    if (!item.field.value.trim()) {
+                        invalidFields.push(item);
+                        highlightInvalidField(item.field);
+                        isValid = false;
+                    }
+                });
+                
+                if (!isValid) {
+                    const fieldNames = invalidFields.map(item => item.label).join(', ');
+                    showNotification(`Veuillez remplir les champs obligatoires : ${fieldNames}`, 'error');
+                }
+                
+                return isValid;
+            }
+            
+            // Mise en évidence des champs invalides
+            function highlightInvalidField(field) {
+                field.classList.add('shake');
+                field.style.borderColor = 'var(--error)';
+                
+                field.addEventListener('input', function() {
+                    this.style.borderColor = '';
+                }, { once: true });
+                
+                // Supprimer la classe d'animation après qu'elle soit terminée
+                setTimeout(() => {
+                    field.classList.remove('shake');
+                }, 500);
+            }
+            
+            // Navigation par les boutons
+            document.querySelectorAll('.next-step, .prev-step').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetStep = parseInt(this.getAttribute('data-step'));
+                    navigateToStep(targetStep);
+                });
+            });
+            
+            // Navigation par les indicateurs d'étape
+            steps.forEach(step => {
+                step.addEventListener('click', function() {
+                    const clickedStep = parseInt(this.getAttribute('data-step'));
+                    
+                    // Permettre uniquement de cliquer sur les étapes déjà complétées ou l'étape suivante
+                    if (clickedStep <= currentStep || clickedStep === currentStep + 1) {
+                        navigateToStep(clickedStep);
+                    }
+                });
+                
+                // Support du clavier pour l'accessibilité
+                step.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const clickedStep = parseInt(this.getAttribute('data-step'));
+                        
+                        if (clickedStep <= currentStep || clickedStep === currentStep + 1) {
+                            navigateToStep(clickedStep);
+                        }
+                    }
+                });
+            });
+            
+            // Gestion du formulaire
+            const form = document.getElementById('client-questionnaire-form');
+            const confirmationEmail = document.getElementById('confirmation-email');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Dernière validation des champs obligatoires
+                if (!validateCurrentStep()) {
+                    return;
+                }
+                
+                // Simuler l'envoi du formulaire
+                const submitButton = document.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+                
+                // Simuler un délai d'envoi
+                setTimeout(() => {
+                    // Afficher la confirmation avec l'email
+                    confirmationEmail.textContent = document.getElementById('contact-email').value;
+                    
+                    // Naviguer vers l'étape de confirmation
+                    navigateToStep(5);
+                }, 1500);
+            });
+            
+            // Gestion de la zone de drop pour les fichiers
+            const dropZone = document.getElementById('job-drop-zone');
+            const fileInput = document.getElementById('job-file-input');
+            const fileBadge = document.getElementById('file-badge');
+            const fileName = document.getElementById('file-name');
+            const removeFile = document.getElementById('remove-file');
+            
+            // Prévenir le comportement par défaut pour permettre le drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            
+            // Ajouter/supprimer la classe active pendant le drag
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, function() {
+                    this.classList.add('drag-active');
+                });
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, function() {
+                    this.classList.remove('drag-active');
+                });
+            });
+            
+            // Gérer le drop de fichier
+            dropZone.addEventListener('drop', function(e) {
+                if (e.dataTransfer.files.length) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // Gérer la sélection de fichier par le bouton
+            fileInput.addEventListener('change', function() {
+                if (this.files.length) {
+                    handleFile(this.files[0]);
+                }
+            });
+            
+            // Gérer la suppression du fichier
+            removeFile.addEventListener('click', function(e) {
+                e.stopPropagation();
+                fileInput.value = '';
+                fileBadge.style.display = 'none';
+                showNotification('Fichier supprimé', 'info');
+            });
+            
+            // Fonction pour gérer le fichier sélectionné
+            function handleFile(file) {
+                // Vérifier la taille du fichier (max 5MB)
+                const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+                
+                if (file.size > maxSizeInBytes) {
+                    showNotification('Le fichier est trop volumineux. La taille maximale est de 5MB.', 'error');
+                    return;
+                }
+                
+                // Vérifier le type de fichier
+                const acceptedTypes = [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'text/plain'
+                ];
+                
+                if (!acceptedTypes.includes(file.type)) {
+                    showNotification('Format de fichier non supporté. Veuillez utiliser PDF, DOC, DOCX ou TXT.', 'error');
+                    return;
+                }
+                
+                // Afficher le badge de fichier
+                fileName.textContent = file.name;
+                fileBadge.style.display = 'inline-flex';
+                showNotification('Fichier sélectionné avec succès', 'success');
+                
+                // Analyser automatiquement le fichier avec l'API JOB PARSER
+                analyzeJobFile(file);
+            }
+            
+            // Fonction pour analyser un fichier avec l'API JOB PARSER
+            async function analyzeJobFile(file) {
+                // Afficher le loader
+                document.getElementById('analysis-loader').style.display = 'flex';
+                
+                try {
+                    // Utiliser l'API JOB PARSER pour analyser le fichier
+                    const result = await jobParserAPI.parseJobFile(file);
+                    
+                    // Sauvegarder les résultats dans sessionStorage
+                    sessionStorage.setItem('parsedJobData', JSON.stringify(result));
+                    
+                    // Afficher les résultats
+                    showJobResults(result);
+                    
+                    showNotification('Fiche de poste analysée avec succès !', 'success');
+                } catch (error) {
+                    console.error('Erreur lors de l\'analyse du fichier:', error);
+                    
+                    // Fallback : Essayer de lire le fichier et l'analyser localement
+                    try {
+                        const fileText = await readFileAsText(file);
+                        const localResult = jobParserAPI.analyzeJobLocally(fileText);
+                        
+                        // Sauvegarder les résultats dans sessionStorage
+                        sessionStorage.setItem('parsedJobData', JSON.stringify(localResult));
+                        
+                        // Afficher les résultats
+                        showJobResults(localResult);
+                        
+                        showNotification('Fiche de poste analysée localement avec succès', 'info');
+                    } catch (localError) {
+                        console.error('Erreur lors de l\'analyse locale:', localError);
+                        showNotification('Erreur lors de l\'analyse de la fiche de poste', 'error');
+                    }
+                } finally {
+                    // Masquer le loader
+                    document.getElementById('analysis-loader').style.display = 'none';
+                }
+            }
+            
+            // Fonction pour lire un fichier comme texte
+            function readFileAsText(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = e => reject(e);
+                    reader.readAsText(file);
+                });
+            }
+            
+            // Gestion des tags pour les avantages
+            const benefitInput = document.getElementById('benefit-input');
+            const benefitsContainer = document.getElementById('benefits-container');
+            const addTagBtn = document.querySelector('.add-tag-btn');
+            
+            // Ajouter un tag par appui sur Entrée
+            benefitInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addBenefitFromInput();
+                }
+            });
+            
+            // Ajouter un tag par clic sur le bouton
+            addTagBtn.addEventListener('click', function() {
+                addBenefitFromInput();
+            });
+            
+            function addBenefitFromInput() {
+                const benefit = benefitInput.value.trim();
+                
+                if (benefit) {
+                    addBenefitTag(benefit);
+                    benefitInput.value = '';
+                    benefitInput.focus();
+                }
+            }
+            
+            function addBenefitTag(text) {
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.innerHTML = `${text} <i class="fas fa-times"></i>`;
+                
+                tag.querySelector('i').addEventListener('click', function() {
+                    benefitsContainer.removeChild(tag);
+                });
+                
+                benefitsContainer.appendChild(tag);
+            }
+            
+            // Exposer la fonction globalement pour permettre son utilisation par l'auto-chargeur GPT
+            window.addBenefitTag = addBenefitTag;
+            
+            // Gestion des sections conditionnelles
+            const hasJobRadios = document.querySelectorAll('input[name="has-job"]');
+            const jobDetailsSection = document.getElementById('job-details-section');
+            
+            hasJobRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'yes') {
+                        jobDetailsSection.classList.add('visible');
+                    } else {
+                        jobDetailsSection.classList.remove('visible');
+                    }
+                });
+            });
+            
+            const canHandleNoticeRadios = document.querySelectorAll('input[name="can-handle-notice"]');
+            const noticePeriodSection = document.getElementById('notice-period-section');
+            
+            canHandleNoticeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'yes') {
+                        noticePeriodSection.classList.add('visible');
+                    } else {
+                        noticePeriodSection.classList.remove('visible');
+                    }
+                });
+            });
+            
+            const sectorKnowledgeRadios = document.querySelectorAll('input[name="sector-knowledge"]');
+            const sectorSelectSection = document.getElementById('sector-select-section');
+            
+            sectorKnowledgeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'yes') {
+                        sectorSelectSection.classList.add('visible');
+                    } else {
+                        sectorSelectSection.classList.remove('visible');
+                    }
+                });
+            });
+            
+            // Génération de présentation à partir du site web
+            const generatePresentationButton = document.getElementById('generate-presentation');
+            const generatedPresentation = document.getElementById('generated-presentation');
+            const companyWebsite = document.getElementById('company-website');
+            const companyPresentation = document.getElementById('company-presentation');
+            
+            generatePresentationButton.addEventListener('click', function() {
+                if (!companyWebsite.value) {
+                    showNotification("Veuillez d'abord saisir l'URL de votre site web", "error");
+                    return;
+                }
+                
+                // Simuler le chargement
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
+                
+                // Simuler un délai d'API
+                setTimeout(() => {
+                    // Texte généré basé sur l'URL fournie
+                    const domain = companyWebsite.value.replace('https://', '').replace('www.', '').split('/')[0];
+                    
+                    const exampleText = `${domain} est une entreprise innovante spécialisée dans le développement de solutions digitales. Fondée en 2015, l'entreprise s'est rapidement développée pour devenir un acteur majeur dans son domaine. Notre mission est de fournir des solutions technologiques performantes et adaptées aux besoins spécifiques de nos clients, en mettant l'accent sur l'innovation et l'excellence technique.`;
+                    
+                    // Mettre à jour le contenu généré
+                    generatedPresentation.innerHTML = `<p>${exampleText}</p>`;
+                    generatedPresentation.classList.add('visible');
+                    
+                    // Mettre également le texte dans le textarea
+                    companyPresentation.value = exampleText;
+                    
+                    // Réinitialiser le bouton
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-magic"></i> Générer à partir du site web';
+                    
+                    showNotification("Présentation générée avec succès !", "success");
+                }, 1500);
+            });
+            
+            // Chargement des données parsées depuis sessionStorage
+            function loadParsedJobData() {
+                try {
+                    // Essayer d'abord sessionStorage (recommended)
+                    let parsedJobData = sessionStorage.getItem('parsedJobData');
+                    
+                    // Si rien dans sessionStorage, essayer localStorage (fallback)
+                    if (!parsedJobData) {
+                        parsedJobData = localStorage.getItem('parsedJobData');
+                        if (parsedJobData) {
+                            showDebugMessage('Données trouvées dans localStorage, mais pas dans sessionStorage');
+                        }
+                    }
+                    
+                    if (parsedJobData) {
+                        showDebugMessage('Parsing des données...');
+                        const jobData = JSON.parse(parsedJobData);
+                        
+                        // Afficher les résultats
+                        showJobResults(jobData);
+                        
+                        showDebugMessage('Affichage des résultats terminé');
+                    } else {
+                        showDebugMessage('Aucune donnée trouvée dans le sessionStorage ou localStorage');
+                    }
+                } catch (error) {
+                    showDebugMessage('Erreur lors du chargement des données: ' + error.message);
+                }
+            }
+            
+            // Fonction pour afficher les résultats d'analyse
+            function showJobResults(jobData) {
+                // Remplir les informations de l'étape 1
+                if (jobData.title && jobData.title !== 'Unknown Position') {
+                    document.getElementById('job-title-value').textContent = jobData.title;
+                    showDebugMessage('Titre défini: ' + jobData.title);
+                }
+                
+                if (jobData.company && jobData.company !== 'Unknown Company') {
+                    document.getElementById('job-contract-value').textContent = 'À déterminer';
+                    // Pré-remplir le nom de l'entreprise dans l'étape 2
+                    document.getElementById('company-name').value = jobData.company;
+                    showDebugMessage('Entreprise définie: ' + jobData.company);
+                }
+                
+                if (jobData.location && jobData.location !== 'Unknown Location') {
+                    document.getElementById('job-location-value').textContent = jobData.location;
+                    showDebugMessage('Lieu défini: ' + jobData.location);
+                }
+                
+                if (jobData.experience && jobData.experience !== 'Not specified') {
+                    document.getElementById('job-experience-value').textContent = jobData.experience;
+                    showDebugMessage('Expérience définie: ' + jobData.experience);
+                    
+                    // Pré-sélectionner l'expérience dans l'étape 3
+                    const experienceSelect = document.getElementById('experience-required');
+                    if (experienceSelect) {
+                        if (jobData.experience.includes('Entry')) {
+                            experienceSelect.value = 'junior';
+                        } else if (jobData.experience.includes('2') || jobData.experience.includes('3')) {
+                            experienceSelect.value = '2-3';
+                        } else if (jobData.experience.includes('5') || 
+                                jobData.experience.includes('6') || 
+                                jobData.experience.includes('7') || 
+                                jobData.experience.includes('8') || 
+                                jobData.experience.includes('9')) {
+                            experienceSelect.value = '5-10';
+                        } else if (jobData.experience.includes('10') || 
+                                jobData.experience.includes('Senior')) {
+                            experienceSelect.value = '10+';
+                        }
+                    }
+                }
+                
+                const educationElement = document.getElementById('job-education-value');
+                if (educationElement) {
+                    educationElement.textContent = 'À déterminer';
+                }
+                
+                if (jobData.salary && jobData.salary !== 'Not specified') {
+                    const salaryElement = document.getElementById('job-salary-value');
+                    if (salaryElement) {
+                        salaryElement.textContent = jobData.salary;
+                    }
+                    
+                    // Pré-remplir le salaire dans l'étape 3
+                    const salaryInput = document.getElementById('salary');
+                    if (salaryInput) {
+                        salaryInput.value = jobData.salary;
+                    }
+                    showDebugMessage('Salaire défini: ' + jobData.salary);
+                }
+                
+                if (jobData.skills && Array.isArray(jobData.skills) && jobData.skills.length > 0 && jobData.skills[0] !== 'Not specified') {
+                    const skillsElement = document.getElementById('job-skills-value');
+                    if (skillsElement) {
+                        skillsElement.innerHTML = jobData.skills.map(skill => 
+                            `<span class="tag">${skill}</span>`
+                        ).join('');
+                    }
+                    showDebugMessage('Compétences définies: ' + jobData.skills.join(', '));
+                }
+                
+                if (jobData.responsibilities && Array.isArray(jobData.responsibilities) && jobData.responsibilities.length > 0 && jobData.responsibilities[0] !== 'Not specified') {
+                    const responsibilitiesElement = document.getElementById('job-responsibilities-value');
+                    if (responsibilitiesElement) {
+                        responsibilitiesElement.innerHTML = '<ul>' + 
+                            jobData.responsibilities.map(resp => `<li>${resp}</li>`).join('') + 
+                            '</ul>';
+                    }
+                    showDebugMessage('Responsabilités définies: ' + jobData.responsibilities.length + ' éléments');
+                }
+                
+                if (jobData.benefits && Array.isArray(jobData.benefits) && jobData.benefits.length > 0 && jobData.benefits[0] !== 'Not specified') {
+                    const benefitsElement = document.getElementById('job-benefits-value');
+                    if (benefitsElement) {
+                        benefitsElement.innerHTML = '<ul>' + 
+                            jobData.benefits.map(benefit => `<li>${benefit}</li>`).join('') + 
+                            '</ul>';
+                    }
+                    
+                    // Ajouter les avantages dans l'étape 3
+                    if (typeof addBenefitTag === 'function') {
+                        jobData.benefits.forEach(benefit => {
+                            addBenefitTag(benefit);
+                        });
+                    }
+                    showDebugMessage('Avantages définis: ' + jobData.benefits.join(', '));
+                }
+                
+                // Support des champs potentiellement nommés avec titre au lieu de title
+                if (jobData.titre && !jobData.title) {
+                    const titleElement = document.getElementById('job-title-value');
+                    if (titleElement) {
+                        titleElement.textContent = jobData.titre;
+                    }
+                    showDebugMessage('Titre défini (depuis titre): ' + jobData.titre);
+                }
+                
+                if (jobData.type_contrat && !jobData.contract_type) {
+                    const contractElement = document.getElementById('job-contract-value');
+                    if (contractElement) {
+                        contractElement.textContent = jobData.type_contrat;
+                    }
+                    showDebugMessage('Type de contrat défini: ' + jobData.type_contrat);
+                }
+                
+                if (jobData.localisation && !jobData.location) {
+                    const locationElement = document.getElementById('job-location-value');
+                    if (locationElement) {
+                        locationElement.textContent = jobData.localisation;
+                    }
+                    showDebugMessage('Lieu défini (depuis localisation): ' + jobData.localisation);
+                }
+                
+                if (jobData.competences && !jobData.skills) {
+                    const skillsElement = document.getElementById('job-skills-value');
+                    if (skillsElement) {
+                        if (typeof jobData.competences === 'string') {
+                            // Si c'est une chaîne de caractères, la diviser
+                            const competences = jobData.competences.split(',').map(s => s.trim());
+                            skillsElement.innerHTML = competences.map(skill => 
+                                `<span class="tag">${skill}</span>`
+                            ).join('');
+                        } else if (Array.isArray(jobData.competences)) {
+                            skillsElement.innerHTML = jobData.competences.map(skill => 
+                                `<span class="tag">${skill}</span>`
+                            ).join('');
+                        }
+                    }
+                    showDebugMessage('Compétences définies (depuis compétences): ' + 
+                        (typeof jobData.competences === 'string' ? jobData.competences : jobData.competences.join(', ')));
+                }
+                
+                // Afficher le conteneur des informations extraites
+                const jobInfoContainer = document.getElementById('job-info-container');
+                if (jobInfoContainer) {
+                    jobInfoContainer.style.display = 'block';
+                }
+            }
+            
+            // Affichage des notifications
+            function showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                const notificationIcon = notification.querySelector('.notification-icon i');
+                const notificationTitle = notification.querySelector('.notification-title');
+                const notificationMessage = notification.querySelector('.notification-message');
+                
+                // Définir le type de notification
+                notification.className = 'notification';
+                notification.classList.add(type);
+                
+                // Définir l'icône en fonction du type
+                notificationIcon.className = '';
+                if (type === 'success') {
+                    notificationIcon.className = 'fas fa-check-circle';
+                    notificationTitle.textContent = 'Succès';
+                } else if (type === 'error') {
+                    notificationIcon.className = 'fas fa-exclamation-circle';
+                    notificationTitle.textContent = 'Erreur';
+                } else if (type === 'info') {
+                    notificationIcon.className = 'fas fa-info-circle';
+                    notificationTitle.textContent = 'Information';
+                }
+                
+                // Définir le message
+                notificationMessage.textContent = message;
+                
+                // Afficher la notification
+                notification.style.display = 'flex';
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 10);
+                
+                // Masquer la notification après un délai
+                const timeout = setTimeout(() => {
+                    hideNotification();
+                }, 5000);
+                
+                // Permettre de fermer la notification manuellement
+                const closeButton = notification.querySelector('.notification-close');
+                closeButton.addEventListener('click', () => {
+                    clearTimeout(timeout);
+                    hideNotification();
+                });
+                
+                function hideNotification() {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        notification.style.display = 'none';
+                    }, 300);
+                }
+            }
+            
+            // Exposer la fonction showNotification globalement
+            window.showNotification = showNotification;
+            
+            // Initialiser la barre de progression
+            updateProgress(currentStep);
+            
+            // Ajouter un bouton pour analyser le texte
+            const analyzeButton = document.getElementById('analyze-job-text');
+            const jobDescriptionText = document.getElementById('job-description-text');
+            
+            analyzeButton.addEventListener('click', async function() {
+                const text = jobDescriptionText.value.trim();
+                
+                if (!text) {
+                    showNotification("Veuillez entrer une fiche de poste à analyser", "error");
+                    return;
+                }
+                
+                // Afficher le loader
+                document.getElementById('analysis-loader').style.display = 'flex';
+                
+                try {
+                    // Essayer d'abord d'utiliser l'API JOB PARSER
+                    try {
+                        const result = await jobParserAPI.parseJobText(text);
+                        
+                        // Sauvegarder les résultats
+                        sessionStorage.setItem('parsedJobData', JSON.stringify(result));
+                        
+                        // Afficher les résultats
+                        showJobResults(result);
+                        
+                        showNotification("Fiche de poste analysée avec succès !", "success");
+                    } catch (apiError) {
+                        console.warn('Erreur API, fallback sur l\'analyse locale:', apiError);
+                        
+                        // Fallback sur l'analyse locale
+                        const localResult = jobParserAPI.analyzeJobLocally(text);
+                        
+                        // Sauvegarder les résultats
+                        sessionStorage.setItem('parsedJobData', JSON.stringify(localResult));
+                        
+                        // Afficher les résultats
+                        showJobResults(localResult);
+                        
+                        showNotification("Fiche de poste analysée localement", "info");
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de l'analyse:", error);
+                    showDebugMessage("Erreur lors de l'analyse: " + error.message);
+                    showNotification("Erreur lors de l'analyse de la fiche de poste.", "error");
+                } finally {
+                    // Masquer le loader
+                    document.getElementById('analysis-loader').style.display = 'none';
+                }
+            });
+            
+            // Charger les données parsées au démarrage
+            loadParsedJobData();
+        }
+        
+        // Initialiser le formulaire
+        initializeForm();
+    });
+</script>
