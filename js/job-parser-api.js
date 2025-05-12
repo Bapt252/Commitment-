@@ -1,15 +1,23 @@
 /**
  * API d'intégration pour le service JOB PARSER
  * Ce fichier permet de connecter l'interface utilisateur frontend au service JOB PARSER backend.
+ * Version améliorée avec détection automatique du serveur et meilleure résilience.
  */
 
 // Configuration par défaut
 const JOB_PARSER_CONFIG = {
-    // URL de base de l'API - Choisir l'URL appropriée selon l'environnement
-    // Utiliser l'URL relative pour la production, et l'URL complète pour le développement local
-    apiBaseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://localhost:7000/api/job-parser'  // Développement local sur port 7000
-        : '/api/job-parser',  // Production (URL relative)
+    // URLs de base de l'API - Avec détection automatique du serveur
+    apiBaseUrls: [
+        // Priorité 1: URL relative (production)
+        '/api/job-parser',
+        // Priorité 2: Port standard (5053)
+        'http://localhost:5053/api/parse-job',
+        // Priorité 3: Port alternatif (7000)
+        'http://localhost:7000/api/job-parser'
+    ],
+    
+    // URL active (sera déterminée automatiquement)
+    activeApiUrl: null,
     
     // Timeout des requêtes en millisecondes
     requestTimeout: 120000,
@@ -28,13 +36,74 @@ const JOB_PARSER_CONFIG = {
 class JobParserAPI {
     constructor(config = {}) {
         this.config = { ...JOB_PARSER_CONFIG, ...config };
+        this.serverDetected = false;
+        
         this.log('JobParserAPI initialized with config:', this.config);
         
         // Afficher un message pour aider au débogage
         if (this.config.debug) {
             console.log('%cJobParserAPI Debug Mode activé', 'background: #7c3aed; color: white; padding: 5px; border-radius: 5px;');
-            console.log(`API URL: ${this.config.apiBaseUrl}`);
         }
+        
+        // Détecter automatiquement le serveur d'API disponible
+        this._detectApiServer();
+    }
+
+    /**
+     * Détecte automatiquement le serveur d'API disponible
+     * @private
+     */
+    async _detectApiServer() {
+        if (this.config.apiBaseUrl) {
+            // Si une URL a été spécifiée explicitement dans la config, l'utiliser
+            this.config.activeApiUrl = this.config.apiBaseUrl;
+            this.log('Using explicitly configured API URL:', this.config.activeApiUrl);
+            this.serverDetected = true;
+            return;
+        }
+        
+        // Sinon, tester les URLs par ordre de priorité
+        this.log('Detecting available API server...');
+        
+        for (const url of this.config.apiBaseUrls) {
+            try {
+                const healthEndpoint = url.endsWith('/') ? url + 'health' : url + '/health';
+                
+                const response = await fetch(healthEndpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    // Timeout court pour la détection
+                    signal: AbortSignal.timeout(3000)
+                });
+                
+                if (response.ok) {
+                    this.config.activeApiUrl = url;
+                    this.log('API server detected at:', url);
+                    this.serverDetected = true;
+                    
+                    // Déclencher un événement personnalisé pour informer l'application
+                    const event = new CustomEvent('jobParserApiReady', { detail: { url } });
+                    window.dispatchEvent(event);
+                    
+                    return;
+                }
+            } catch (error) {
+                // Continuer avec l'URL suivante
+                console.warn(`API server not available at ${url}:`, error.message);
+            }
+        }
+        
+        // Si aucun serveur n'a été détecté, utiliser l'URL par défaut
+        this.config.activeApiUrl = this.config.apiBaseUrls[0];
+        this.log('No API server detected, using default URL:', this.config.activeApiUrl);
+        
+        // Déclencher un événement d'erreur
+        const event = new CustomEvent('jobParserApiError', { 
+            detail: { error: 'No API server detected' } 
+        });
+        window.dispatchEvent(event);
     }
 
     /**
@@ -62,9 +131,17 @@ class JobParserAPI {
                 throw new Error("Format de fichier non pris en charge. Utilisez PDF, DOC, DOCX ou TXT.");
             }
             
+            // Attendre que la détection du serveur soit terminée
+            if (!this.serverDetected) {
+                await this._waitForServerDetection();
+            }
+            
             // Création du FormData avec le fichier
             const formData = new FormData();
             formData.append('file', file);
+            
+            // Ajout de l'option force_refresh
+            formData.append('force_refresh', options.forceRefresh || false);
             
             // Ajout des options supplémentaires si nécessaire
             if (options.priority) {
@@ -76,18 +153,38 @@ class JobParserAPI {
                 this.log('File is a PDF, ensuring proper handling');
             }
             
-            // Appel à l'API pour mettre le job dans la file d'attente
-            const queueResponse = await this._sendRequest('/queue', {
-                method: 'POST',
-                body: formData
-            });
-            
-            this.log('Job queued:', queueResponse);
-            
-            // Vérification périodique du statut du job
-            return await this._pollJobStatus(queueResponse.job_id, options);
+            // Déterminer si l'API utilise un système de file d'attente ou une API directe
+            if (this.config.activeApiUrl.includes('/job-parser')) {
+                // Système de file d'attente
+                const queueResponse = await this._sendRequest('/queue', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                this.log('Job queued:', queueResponse);
+                
+                // Vérification périodique du statut du job
+                return await this._pollJobStatus(queueResponse.job_id, options);
+            } else {
+                // API directe
+                const parseResponse = await this._sendDirectRequest('', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                this.log('Direct parsing completed');
+                return parseResponse;
+            }
         } catch (error) {
             this.logError('Error parsing job file:', error);
+            
+            // En cas d'erreur, utiliser l'analyse locale comme fallback
+            if (options.useFallback !== false) {
+                this.log('Using local fallback analysis');
+                const text = await this._readFileAsText(file);
+                return this.analyzeJobLocally(text);
+            }
+            
             throw error;
         }
     }
@@ -107,22 +204,49 @@ class JobParserAPI {
                 throw new Error("Le texte est vide");
             }
             
+            // Attendre que la détection du serveur soit terminée
+            if (!this.serverDetected) {
+                await this._waitForServerDetection();
+            }
+            
             // Créer un formData avec le texte
             const formData = new FormData();
             formData.append('text', text);
             
-            // Appel à l'API pour mettre le job dans la file d'attente
-            const queueResponse = await this._sendRequest('/queue', {
-                method: 'POST',
-                body: formData
-            });
+            // Ajout de l'option force_refresh
+            formData.append('force_refresh', options.forceRefresh || false);
             
-            this.log('Job queued:', queueResponse);
-            
-            // Vérification périodique du statut du job
-            return await this._pollJobStatus(queueResponse.job_id, options);
+            // Déterminer si l'API utilise un système de file d'attente ou une API directe
+            if (this.config.activeApiUrl.includes('/job-parser')) {
+                // Système de file d'attente
+                const queueResponse = await this._sendRequest('/queue', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                this.log('Job queued:', queueResponse);
+                
+                // Vérification périodique du statut du job
+                return await this._pollJobStatus(queueResponse.job_id, options);
+            } else {
+                // API directe
+                const parseResponse = await this._sendDirectRequest('/text', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                this.log('Direct parsing completed');
+                return parseResponse;
+            }
         } catch (error) {
             this.logError('Error parsing job text:', error);
+            
+            // En cas d'erreur, utiliser l'analyse locale comme fallback
+            if (options.useFallback !== false) {
+                this.log('Using local fallback analysis');
+                return this.analyzeJobLocally(text);
+            }
+            
             throw error;
         }
     }
@@ -186,36 +310,345 @@ class JobParserAPI {
             return window.JobParser.parseJobDescription(text);
         } else {
             // Analyse simplifiée si le parser n'est pas disponible
-            this.log('Local JobParser not available, using simplified extraction');
+            this.log('Local JobParser not available, using enhanced extraction');
             
             // Extraire le titre du poste (première ligne non vide)
-            const title = text.split('\n').find(line => line.trim())?.trim() || "Non spécifié";
+            const lines = text.split('\n').filter(line => line.trim());
+            const title = lines.length > 0 ? lines[0].trim() : "Non spécifié";
+            
+            // Extraire l'entreprise (recherche de mots clés)
+            let company = "Non spécifié";
+            const companyKeywords = ["entreprise:", "société:", "company:", "chez ", "at "];
+            for (const line of lines) {
+                for (const keyword of companyKeywords) {
+                    if (line.toLowerCase().includes(keyword)) {
+                        company = line.split(keyword)[1]?.trim() || company;
+                        break;
+                    }
+                }
+            }
+            
+            // Extraire le lieu (recherche de mots clés)
+            let location = "Non spécifié";
+            const locationKeywords = ["lieu:", "location:", "à ", "in ", "ville:", "site:"];
+            for (const line of lines) {
+                for (const keyword of locationKeywords) {
+                    if (line.toLowerCase().includes(keyword)) {
+                        location = line.split(keyword)[1]?.trim() || location;
+                        break;
+                    }
+                }
+            }
+            
+            // Extraire les compétences (recherche de mots clés)
+            const skills = [];
+            const skillsKeywords = ["compétences", "skills", "requises", "required", "maîtrise", "connaissance"];
+            let skillsFound = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].toLowerCase();
+                
+                if (!skillsFound && skillsKeywords.some(keyword => line.includes(keyword))) {
+                    skillsFound = true;
+                    continue;
+                }
+                
+                if (skillsFound) {
+                    if (line.match(/^\s*[-•*]\s+/) || line.trim().length < 50) {
+                        const skill = line.replace(/^\s*[-•*]\s+/, '').trim();
+                        if (skill && !skill.includes(":") && skill.length > 3 && skill.length < 50) {
+                            skills.push(skill);
+                        }
+                    }
+                    
+                    // Arrêter après un certain nombre de compétences ou une ligne vide
+                    if (skills.length >= 5 || line.trim() === "") {
+                        break;
+                    }
+                }
+            }
             
             return {
-                title: title !== "Non spécifié" ? title : "%PDF-1.7", // Valeur par défaut reconnue
-                company: "Non spécifié",
-                location: "Non spécifié",
-                skills: ["Non spécifié"],
-                experience: "Non spécifié",
-                responsibilities: ["Non spécifié"],
-                requirements: ["Non spécifié"],
-                salary: "Non spécifié",
-                benefits: ["Non spécifié"]
+                title: title,
+                company: company,
+                location: location,
+                contract_type: this._extractContractType(text),
+                required_skills: skills.length > 0 ? skills : ["Non spécifié"],
+                preferred_skills: [],
+                responsibilities: this._extractResponsibilities(text),
+                requirements: [],
+                benefits: this._extractBenefits(text),
+                salary_range: this._extractSalary(text),
+                remote_policy: this._extractRemotePolicy(text)
             };
         }
+    }
+
+    // Méthodes d'extraction améliorées
+    
+    /**
+     * Extrait le type de contrat du texte
+     * @param {string} text - Texte à analyser
+     * @returns {string} - Type de contrat
+     * @private
+     */
+    _extractContractType(text) {
+        const contractTypes = {
+            "cdi": "CDI",
+            "contrat à durée indéterminée": "CDI",
+            "cdd": "CDD",
+            "contrat à durée déterminée": "CDD",
+            "stage": "Stage",
+            "internship": "Stage",
+            "freelance": "Freelance",
+            "indépendant": "Freelance",
+            "alternance": "Alternance",
+            "apprentissage": "Alternance",
+            "temps partiel": "Temps partiel",
+            "part-time": "Temps partiel",
+            "temps plein": "Temps plein",
+            "full-time": "Temps plein"
+        };
+        
+        const textLower = text.toLowerCase();
+        
+        for (const [keyword, contractType] of Object.entries(contractTypes)) {
+            if (textLower.includes(keyword)) {
+                return contractType;
+            }
+        }
+        
+        return "Non spécifié";
+    }
+    
+    /**
+     * Extrait les responsabilités du texte
+     * @param {string} text - Texte à analyser
+     * @returns {Array<string>} - Liste des responsabilités
+     * @private
+     */
+    _extractResponsibilities(text) {
+        const lines = text.split('\n');
+        const responsibilities = [];
+        
+        // Chercher les sections de responsabilités/missions
+        const keywords = ["responsabilités", "missions", "tâches", "rôle", "vous serez chargé"];
+        let inResponsibilitiesSection = false;
+        let sectionEndCounter = 0;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].toLowerCase();
+            
+            // Détecter le début d'une section de responsabilités
+            if (!inResponsibilitiesSection) {
+                if (keywords.some(keyword => line.includes(keyword))) {
+                    inResponsibilitiesSection = true;
+                    continue;
+                }
+            } else {
+                // Dans une section de responsabilités
+                const trimmedLine = lines[i].trim();
+                
+                // Détecter les points de liste
+                if (trimmedLine.match(/^\s*[-•*]\s+/) || trimmedLine.match(/^\s*\d+\.\s+/)) {
+                    const responsibility = trimmedLine.replace(/^\s*[-•*\d\.]\s+/, '').trim();
+                    
+                    if (responsibility && responsibility.length > 10) {
+                        responsibilities.push(responsibility);
+                        sectionEndCounter = 0;
+                    }
+                } else if (trimmedLine === "") {
+                    // Compter les lignes vides pour détecter la fin de la section
+                    sectionEndCounter++;
+                    
+                    if (sectionEndCounter >= 2) {
+                        inResponsibilitiesSection = false;
+                    }
+                } else if (trimmedLine.length > 10 && !trimmedLine.includes(":")) {
+                    // Ligne de texte qui pourrait être une responsabilité
+                    responsibilities.push(trimmedLine);
+                    sectionEndCounter = 0;
+                }
+                
+                // Détecter une nouvelle section
+                if (line.match(/^[a-z\s]{2,25}:\s*$/) || line.match(/^[A-Z\s]{2,25}$/) || line.match(/^[A-Z][a-z\s]{2,25}:/)) {
+                    inResponsibilitiesSection = false;
+                }
+                
+                // Limiter le nombre de responsabilités
+                if (responsibilities.length >= 5) {
+                    break;
+                }
+            }
+        }
+        
+        return responsibilities.length > 0 ? responsibilities : ["Non spécifié"];
+    }
+    
+    /**
+     * Extrait les avantages du texte
+     * @param {string} text - Texte à analyser
+     * @returns {Array<string>} - Liste des avantages
+     * @private
+     */
+    _extractBenefits(text) {
+        const lines = text.split('\n');
+        const benefits = [];
+        
+        // Chercher les sections d'avantages
+        const keywords = ["avantages", "benefits", "nous offrons", "we offer", "package"];
+        let inBenefitsSection = false;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].toLowerCase();
+            
+            // Détecter le début d'une section d'avantages
+            if (!inBenefitsSection) {
+                if (keywords.some(keyword => line.includes(keyword))) {
+                    inBenefitsSection = true;
+                    continue;
+                }
+            } else {
+                // Dans une section d'avantages
+                const trimmedLine = lines[i].trim();
+                
+                // Détecter les points de liste
+                if (trimmedLine.match(/^\s*[-•*]\s+/) || trimmedLine.match(/^\s*\d+\.\s+/)) {
+                    const benefit = trimmedLine.replace(/^\s*[-•*\d\.]\s+/, '').trim();
+                    
+                    if (benefit && benefit.length > 5 && benefit.length < 100) {
+                        benefits.push(benefit);
+                    }
+                } else if (trimmedLine === "") {
+                    // Une ligne vide peut indiquer la fin de la section
+                    inBenefitsSection = false;
+                }
+                
+                // Détecter une nouvelle section
+                if (line.match(/^[a-z\s]{2,25}:\s*$/) || line.match(/^[A-Z\s]{2,25}$/)) {
+                    inBenefitsSection = false;
+                }
+                
+                // Limiter le nombre d'avantages
+                if (benefits.length >= 5) {
+                    break;
+                }
+            }
+        }
+        
+        return benefits.length > 0 ? benefits : ["Non spécifié"];
+    }
+    
+    /**
+     * Extrait le salaire du texte
+     * @param {string} text - Texte à analyser
+     * @returns {string} - Salaire
+     * @private
+     */
+    _extractSalary(text) {
+        const textLower = text.toLowerCase();
+        
+        // Chercher des motifs de salaire courants
+        const salaryRegexes = [
+            /salaire\s*:\s*([^\.]+)/i,
+            /rémunération\s*:\s*([^\.]+)/i,
+            /package\s*:\s*([^\.]+)/i,
+            /[\d]{2,3}[\s]*[kK€]\s*[\-à]\s*[\d]{2,3}[\s]*[kK€]/,
+            /[\d]{2,3}[\s]*000[\s]*€\s*[\-à]\s*[\d]{2,3}[\s]*000[\s]*€/,
+            /entre\s+[\d]+[\s]*[kK€][\s]*et[\s]*[\d]+[\s]*[kK€]/i
+        ];
+        
+        for (const regex of salaryRegexes) {
+            const match = textLower.match(regex);
+            if (match) {
+                return match[0].trim();
+            }
+        }
+        
+        return "Non spécifié";
+    }
+    
+    /**
+     * Extrait la politique de télétravail du texte
+     * @param {string} text - Texte à analyser
+     * @returns {string} - Politique de télétravail
+     * @private
+     */
+    _extractRemotePolicy(text) {
+        const textLower = text.toLowerCase();
+        
+        if (textLower.includes("100% télétravail") || textLower.includes("full remote")) {
+            return "100% télétravail";
+        } else if (textLower.includes("télétravail partiel") || textLower.includes("partial remote")) {
+            return "Télétravail partiel";
+        } else if (textLower.match(/télétravail[\s:]+(\d+)[\s]*jour/)) {
+            const match = textLower.match(/télétravail[\s:]+(\d+)[\s]*jour/);
+            return `Télétravail ${match[1]} jours par semaine`;
+        } else if (textLower.includes("télétravail") || textLower.includes("remote")) {
+            return "Télétravail possible";
+        } else if (textLower.includes("sur site") || textLower.includes("présentiel")) {
+            return "Travail sur site";
+        }
+        
+        return "Non spécifié";
     }
 
     // Méthodes privées
     
     /**
-     * Envoie une requête à l'API
+     * Attend que la détection du serveur soit terminée
+     * @returns {Promise<void>}
+     * @private
+     */
+    _waitForServerDetection() {
+        return new Promise((resolve) => {
+            if (this.serverDetected) {
+                resolve();
+                return;
+            }
+            
+            const checkInterval = setInterval(() => {
+                if (this.serverDetected) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
+            
+            // Timeout après 5 secondes
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                this.log('Server detection timed out, using default URL');
+                this.config.activeApiUrl = this.config.apiBaseUrls[0];
+                this.serverDetected = true;
+                resolve();
+            }, 5000);
+        });
+    }
+
+    /**
+     * Lit un fichier sous forme de texte
+     * @param {File} file - Fichier à lire
+     * @returns {Promise<string>} - Contenu du fichier
+     * @private
+     */
+    _readFileAsText(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('Erreur lors de la lecture du fichier'));
+            reader.readAsText(file);
+        });
+    }
+
+    /**
+     * Envoie une requête à l'API (avec gestion de file d'attente)
      * @param {string} endpoint - Point d'entrée de l'API
      * @param {Object} options - Options de la requête
      * @returns {Promise<Object>} - Réponse de l'API
      * @private
      */
     async _sendRequest(endpoint, options = {}) {
-        const url = this.config.apiBaseUrl + endpoint;
+        const url = this.config.activeApiUrl + endpoint;
         
         // Création du contrôleur d'abandon pour le timeout
         const controller = new AbortController();
@@ -223,6 +656,44 @@ class JobParserAPI {
         
         try {
             this.log(`Sending request to ${url}`, options);
+            
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error ${response.status}: ${errorText}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                throw new Error(`Request timeout after ${this.config.requestTimeout}ms`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Envoie une requête directe à l'API (sans file d'attente)
+     * @param {string} endpoint - Point d'entrée de l'API
+     * @param {Object} options - Options de la requête
+     * @returns {Promise<Object>} - Réponse de l'API
+     * @private
+     */
+    async _sendDirectRequest(endpoint, options = {}) {
+        const url = this.config.activeApiUrl + endpoint;
+        
+        // Création du contrôleur d'abandon pour le timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.requestTimeout);
+        
+        try {
+            this.log(`Sending direct request to ${url}`, options);
             
             const response = await fetch(url, {
                 ...options,
