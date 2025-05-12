@@ -164,6 +164,53 @@
     100% { transform: rotate(360deg); }
 }
 
+/* Styles spécifiques pour le bouton d'analyse GPT */
+.gpt-analyze-btn-container {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    justify-content: center;
+}
+
+#analyze-with-gpt, #analyze-with-gpt-alt {
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+#analyze-with-gpt:hover, #analyze-with-gpt-alt:hover {
+    background-color: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+}
+
+#analyze-with-gpt:disabled, #analyze-with-gpt-alt:disabled {
+    background-color: #d1d5db;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+#analyze-with-gpt i, #analyze-with-gpt-alt i {
+    margin-right: 8px;
+}
+
+#gpt-analyze-status {
+    margin-left: 12px;
+    font-style: italic;
+    color: #6b7280;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .job-parser-container {
@@ -180,5 +227,15 @@
     
     .parser-button {
         width: 100%;
+    }
+    
+    .gpt-analyze-btn-container {
+        flex-direction: column;
+    }
+    
+    #gpt-analyze-status {
+        margin-left: 0;
+        margin-top: 8px;
+        text-align: center;
     }
 }
