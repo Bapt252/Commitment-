@@ -8,6 +8,10 @@ log_message() {
 
 log_message "Démarrage du service job-parser..."
 
+# Créer le répertoire de logs
+mkdir -p /app/logs
+chmod 777 /app/logs
+
 # Créer le fichier pydantic_compat.py si nécessaire
 mkdir -p /app/app/core
 COMPAT_FILE="/app/app/core/pydantic_compat.py"
@@ -113,6 +117,11 @@ class Settings(BaseSettings):
     MAX_CONTENT_LENGTH: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_EXTENSIONS: set = {'pdf', 'doc', 'docx', 'txt', 'rtf'}
     
+    # Configuration de journalisation
+    LOG_DIR: str = os.environ.get('LOG_DIR') or 'logs'
+    LOG_LEVEL: str = os.environ.get('LOG_LEVEL') or 'INFO'
+    LOG_FORMAT: str = os.environ.get('LOG_FORMAT') or 'text'  # 'text' ou 'json'
+    
     # Mode de simulation/test
     USE_MOCK_PARSER: bool = os.environ.get('USE_MOCK_PARSER', '').lower() == 'true'
     
@@ -148,6 +157,13 @@ if [ -f "/app/fix-indentation.sh" ]; then
   log_message "Exécution du script de correction d'indentation..."
   chmod +x /app/fix-indentation.sh
   /app/fix-indentation.sh
+fi
+
+# Exécuter le script de correction de configuration de journalisation
+if [ -f "/app/fix-logging-config.sh" ]; then
+  log_message "Exécution du script de correction de configuration de journalisation..."
+  chmod +x /app/fix-logging-config.sh
+  /app/fix-logging-config.sh
 fi
 
 # Activer le mode mock si pas de clé OpenAI
