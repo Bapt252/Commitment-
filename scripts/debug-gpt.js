@@ -1,178 +1,197 @@
 /**
- * Module d'initialisation du backend GPT Parse Job Posting
- * Ce fichier assure la connexion entre le frontend et l'API de parsing GPT
+ * debug-gpt.js
+ * Script auxiliaire pour le débogage du système de parsing GPT
  */
 
-// Fonction d'initialisation exécutée quand le DOM est chargé
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('[DEBUG-GPT] Initialisation du module de parsing GPT');
-    
-    // Récupération de l'URL de l'API à partir des paramètres d'URL
-    const urlParams = new URLSearchParams(window.location.search);
-    let apiUrl = urlParams.get('apiUrl') || 'http://localhost:5055';
-    const debugMode = urlParams.has('debug');
-    
-    // Logs de débogage si le mode debug est activé
-    if (debugMode) {
-        console.log('[DEBUG-GPT] Mode debug activé');
-        console.log('[DEBUG-GPT] API URL:', apiUrl);
-    }
-    
-    // S'assurer que l'API URL est bien formatée
-    if (!apiUrl.startsWith('http')) {
-        apiUrl = 'http://' + apiUrl;
-    }
-    
-    // Stocker l'URL de l'API pour qu'elle soit accessible globalement
-    window.gptApiUrl = apiUrl;
-    
-    // Enregistrement de l'événement de chargement de page
-    logEvent('page_loaded', { page: window.location.pathname });
-    
-    // Vérification du statut de l'API
-    checkApiStatus();
-});
+// Configuration de débogage
+const DEBUG_GPT_CONFIG = {
+    enabled: false,
+    logLevel: 'info' // 'error', 'info', 'debug'
+};
 
-/**
- * Vérifie si l'API est accessible
- */
-async function checkApiStatus() {
-    try {
-        const apiUrl = window.gptApiUrl;
-        const healthEndpoint = `${apiUrl}/api/health`;
-        
-        console.log('[DEBUG-GPT] Vérification du statut de l\'API:', healthEndpoint);
-        
-        const response = await fetch(healthEndpoint, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            },
-            signal: AbortSignal.timeout(3000) // Timeout de 3 secondes
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('[DEBUG-GPT] API accessible:', data);
-            
-            // Déclencher un événement personnalisé pour informer l'application
-            const event = new CustomEvent('gptApiReady', { 
-                detail: { 
-                    url: window.gptApiUrl,
-                    status: data
-                } 
-            });
-            window.dispatchEvent(event);
-            
-            // Afficher un badge de connexion si en mode debug
-            if (new URLSearchParams(window.location.search).has('debug')) {
-                showApiStatusBadge(true, 'Connexion à l\'API GPT établie');
-            }
-        } else {
-            console.warn('[DEBUG-GPT] API non accessible, statut:', response.status);
-            showApiStatusBadge(false, 'API GPT non accessible');
-        }
-    } catch (error) {
-        console.error('[DEBUG-GPT] Erreur lors de la vérification de l\'API:', error);
-        showApiStatusBadge(false, `API GPT non accessible: ${error.message}`);
-    }
-}
-
-/**
- * Affiche un badge de statut de l'API
- * @param {boolean} success - État de la connexion
- * @param {string} message - Message à afficher
- */
-function showApiStatusBadge(success, message) {
-    // Vérifier si la section de debug existe
+// Fonction pour activer le débogage
+function enableGptDebugMode() {
+    DEBUG_GPT_CONFIG.enabled = true;
+    
+    // Créer ou obtenir la section de débogage
     let debugSection = document.getElementById('debug-section');
+    
+    // Si la section n'existe pas, la créer
     if (!debugSection) {
         debugSection = document.createElement('div');
         debugSection.id = 'debug-section';
         debugSection.className = 'debug-section';
-        debugSection.style.display = 'block';
         
-        // Créer le contenu debug s'il n'existe pas
-        let debugContent = document.createElement('div');
-        debugContent.id = 'debug-content';
-        debugSection.appendChild(debugContent);
+        const heading = document.createElement('h3');
+        heading.textContent = 'Informations de débogage GPT';
         
-        // Insérer la section avant le main ou en haut de page
-        const mainElement = document.querySelector('main');
-        if (mainElement) {
-            mainElement.parentNode.insertBefore(debugSection, mainElement);
+        const content = document.createElement('div');
+        content.id = 'debug-content';
+        
+        debugSection.appendChild(heading);
+        debugSection.appendChild(content);
+        
+        // Insérer la section après le header s'il existe, sinon au début du document
+        const header = document.querySelector('header');
+        if (header && header.parentNode) {
+            header.parentNode.insertBefore(debugSection, header.nextSibling);
         } else {
             document.body.insertBefore(debugSection, document.body.firstChild);
         }
     }
     
-    // Créer et ajouter le badge
-    const badge = document.createElement('div');
-    badge.className = `api-status-badge ${success ? 'success' : 'error'}`;
-    badge.innerHTML = `
-        <i class="fas ${success ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-        <span>${message}</span>
-    `;
+    // Afficher la section
+    debugSection.style.display = 'block';
     
-    // Ajouter le badge à la section debug
-    const debugContent = document.getElementById('debug-content');
-    if (debugContent) {
-        debugContent.appendChild(badge);
-    }
+    // Ajouter un premier message
+    logDebugMessage('Mode débogage GPT activé');
     
-    // Ajouter du style au badge
-    const style = document.createElement('style');
-    style.textContent = `
-        .api-status-badge {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        .api-status-badge.success {
-            background-color: #d1fae5;
-            color: #065f46;
-            border-left: 4px solid #10b981;
-        }
-        .api-status-badge.error {
-            background-color: #fee2e2;
-            color: #991b1b;
-            border-left: 4px solid #ef4444;
-        }
-        .api-status-badge i {
-            margin-right: 8px;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-/**
- * Enregistre un événement pour le suivi d'utilisation
- * @param {string} eventName - Nom de l'événement
- * @param {Object} eventData - Données associées à l'événement
- */
-function logEvent(eventName, eventData = {}) {
-    const event = {
-        event: eventName,
-        timestamp: new Date().toISOString(),
-        url: window.location.href,
-        ...eventData
+    // Rediriger les erreurs console vers la section de débogage
+    const originalConsoleError = console.error;
+    console.error = function() {
+        originalConsoleError.apply(console, arguments);
+        const errorMessage = Array.from(arguments).join(' ');
+        logDebugMessage(`ERREUR: ${errorMessage}`, 'error');
     };
     
-    console.log('[DEBUG-GPT] Event:', event);
+    // Rediriger les logs console vers la section de débogage si niveau debug
+    if (DEBUG_GPT_CONFIG.logLevel === 'debug') {
+        const originalConsoleLog = console.log;
+        console.log = function() {
+            originalConsoleLog.apply(console, arguments);
+            const logMessage = Array.from(arguments).join(' ');
+            logDebugMessage(`LOG: ${logMessage}`, 'debug');
+        };
+    }
     
-    // Si l'API est définie, on peut envoyer l'événement
-    if (window.gptApiUrl) {
-        fetch(`${window.gptApiUrl}/api/log-event`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(event),
-            // Ne pas attendre la réponse pour ne pas bloquer
-            keepalive: true
-        }).catch(err => console.warn('[DEBUG-GPT] Erreur lors de l\'envoi de l\'événement:', err));
+    return true;
+}
+
+// Fonction pour désactiver le débogage
+function disableGptDebugMode() {
+    DEBUG_GPT_CONFIG.enabled = false;
+    
+    // Masquer la section de débogage
+    const debugSection = document.getElementById('debug-section');
+    if (debugSection) {
+        debugSection.style.display = 'none';
+    }
+    
+    return true;
+}
+
+// Fonction pour journaliser un message de débogage
+function logDebugMessage(message, level = 'info') {
+    // Vérifier si le débogage est activé
+    if (!DEBUG_GPT_CONFIG.enabled) return;
+    
+    // Vérifier si le niveau de log est suffisant
+    const levels = { 'error': 3, 'info': 2, 'debug': 1 };
+    const configLevel = levels[DEBUG_GPT_CONFIG.logLevel] || 2;
+    const messageLevel = levels[level] || 2;
+    
+    if (messageLevel < configLevel) return;
+    
+    // Obtenir le conteneur de débogage
+    const debugContent = document.getElementById('debug-content');
+    if (!debugContent) return;
+    
+    // Créer l'élément de message
+    const messageElement = document.createElement('p');
+    messageElement.className = `debug-message debug-${level}`;
+    
+    // Ajouter un timestamp
+    const now = new Date();
+    const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+    
+    // Formater le message
+    messageElement.innerHTML = `<span class="debug-timestamp">[${timestamp}]</span> ${message}`;
+    
+    // Ajouter une classe de couleur selon le niveau
+    if (level === 'error') {
+        messageElement.style.color = '#e74c3c';
+    } else if (level === 'debug') {
+        messageElement.style.color = '#7f8c8d';
+    }
+    
+    // Ajouter le message au conteneur
+    debugContent.appendChild(messageElement);
+    
+    // Faire défiler vers le bas
+    debugContent.scrollTop = debugContent.scrollHeight;
+}
+
+// Fonction pour effacer les messages de débogage
+function clearGptDebugMessages() {
+    const debugContent = document.getElementById('debug-content');
+    if (debugContent) {
+        debugContent.innerHTML = '';
     }
 }
+
+// Fonction pour journaliser des informations sur l'API
+function logApiCall(url, data, response) {
+    if (!DEBUG_GPT_CONFIG.enabled) return;
+    
+    logDebugMessage(`API Call: ${url}`, 'info');
+    
+    if (data) {
+        if (typeof data === 'object') {
+            logDebugMessage(`Request Data: ${JSON.stringify(data)}`, 'debug');
+        } else {
+            logDebugMessage(`Request Data: ${data}`, 'debug');
+        }
+    }
+    
+    if (response) {
+        if (typeof response === 'object') {
+            try {
+                logDebugMessage(`Response: ${JSON.stringify(response)}`, 'debug');
+            } catch (e) {
+                logDebugMessage(`Response: [Object cannot be stringified]`, 'debug');
+            }
+        } else {
+            logDebugMessage(`Response: ${response}`, 'debug');
+        }
+    }
+}
+
+// Vérifier automatiquement les paramètres d'URL au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Activer le débogage si le paramètre est présent
+    if (urlParams.has('debug')) {
+        enableGptDebugMode();
+        
+        // Configurer le niveau de log
+        if (urlParams.has('logLevel')) {
+            const level = urlParams.get('logLevel');
+            if (['error', 'info', 'debug'].includes(level)) {
+                DEBUG_GPT_CONFIG.logLevel = level;
+                logDebugMessage(`Niveau de log défini sur: ${level}`);
+            }
+        }
+        
+        // Ajouter quelques informations utiles
+        const apiUrl = urlParams.get('apiUrl') || 'Default API URL';
+        logDebugMessage(`URL de l'API GPT configurée: ${apiUrl}`);
+        
+        // Vérifier si sessionStorage contient des données de parsing
+        const parsedJobData = sessionStorage.getItem('parsedJobData');
+        if (parsedJobData) {
+            logDebugMessage('Données de parsing trouvées dans sessionStorage');
+        } else {
+            logDebugMessage('Aucune donnée de parsing trouvée dans sessionStorage');
+        }
+    }
+    
+    // Exposer les fonctions de débogage globalement
+    window.gptDebug = {
+        enable: enableGptDebugMode,
+        disable: disableGptDebugMode,
+        log: logDebugMessage,
+        clear: clearGptDebugMessages,
+        logApi: logApiCall
+    };
+});
