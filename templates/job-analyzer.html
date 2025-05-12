@@ -100,6 +100,46 @@
             cursor: not-allowed;
             transform: none;
         }
+        
+        /* Animation de pulsation pour les boutons */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1s ease infinite;
+        }
+        
+        /* Debug section */
+        .debug-section {
+            background-color: #F0FFF4;
+            border: 1px solid #43AA8B;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Status message floating */
+        .floating-status {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            z-index: 1000;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -236,11 +276,18 @@
         </div>
     </div>
     
+    <!-- Floating status message -->
+    <div id="floating-status" class="floating-status">
+        API en cours de connexion...
+    </div>
+    
     <!-- Scripts -->
     <script src="../assets/js/parser.js"></script>
     <script src="../js/pdf-cleaner.js"></script>
     <script src="../js/job-parser-api.js"></script>
+    <!-- Ordre des scripts important: d'abord autoloader puis fix-loader -->
     <script src="../scripts/gpt-autoloader.js"></script>
+    <script src="../scripts/gpt-fix-loader.js"></script>
     
     <script>
         // Fonction pour afficher les notifications
@@ -298,6 +345,53 @@
         
         // Exposer la fonction showNotification globalement
         window.showNotification = showNotification;
+
+        // Fonction pour afficher un message de débogage
+        function showDebugMessage(message) {
+            const debugSection = document.getElementById('debug-section');
+            const debugContent = document.getElementById('debug-content');
+            
+            if (!debugSection || !debugContent) return;
+            
+            debugSection.style.display = 'block';
+            
+            // Ajouter le nouveau message
+            const msgElement = document.createElement('p');
+            msgElement.textContent = message;
+            debugContent.appendChild(msgElement);
+            
+            // Scroll vers le bas
+            debugContent.scrollTop = debugContent.scrollHeight;
+        }
+        
+        // Exposer la fonction de débogage globalement
+        window.showDebugMessage = showDebugMessage;
+        
+        // Vérifier si le mode debug est activé
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('debug')) {
+            // Activer le mode debug explicitement
+            const debugSection = document.getElementById('debug-section');
+            if (debugSection) {
+                debugSection.style.display = 'block';
+            }
+            
+            // Ajouter un message de débogage initial
+            showDebugMessage('Mode debug activé');
+            showDebugMessage('URL de l\'API configurée: ' + (urlParams.get('apiUrl') || 'Détection automatique'));
+            
+            // Message flottant
+            const floatingStatus = document.getElementById('floating-status');
+            if (floatingStatus) {
+                floatingStatus.style.display = 'block';
+                floatingStatus.innerText = 'Chargement des modules...';
+                
+                // Masquer après 5 secondes
+                setTimeout(() => {
+                    floatingStatus.style.display = 'none';
+                }, 5000);
+            }
+        }
         
         // Gestion de la zone de drop pour les fichiers
         const dropZone = document.getElementById('job-drop-zone');
@@ -395,6 +489,57 @@
                 }, 1000);
             }
         }
+        
+        // Ajouter un gestionnaire pour le bouton d'analyse standard
+        const analyzeButton = document.getElementById('analyze-job-text');
+        if (analyzeButton) {
+            analyzeButton.addEventListener('click', function() {
+                const textArea = document.getElementById('job-description-text');
+                if (textArea && textArea.value.trim()) {
+                    // Détecter si handleGptAnalysis est disponible
+                    if (typeof window.handleGptAnalysis === 'function') {
+                        window.handleGptAnalysis();
+                    } else {
+                        // Fallback
+                        showNotification("Le service d'analyse n'est pas encore disponible. Veuillez attendre quelques secondes ou recharger la page.", "error");
+                    }
+                } else {
+                    showNotification("Veuillez entrer une fiche de poste à analyser", "error");
+                }
+            });
+        }
+        
+        // Au chargement complet
+        window.addEventListener('load', function() {
+            // Afficher un message de statut pour le debug
+            if (urlParams.has('debug')) {
+                showDebugMessage('Page entièrement chargée, modules initialisés');
+                
+                const floatingStatus = document.getElementById('floating-status');
+                if (floatingStatus) {
+                    floatingStatus.innerText = 'Prêt à analyser';
+                    setTimeout(() => {
+                        floatingStatus.style.display = 'none';
+                    }, 2000);
+                }
+            }
+            
+            // Vérifier si le bouton principal existe
+            const mainButton = document.getElementById('analyze-with-gpt-main');
+            if (mainButton) {
+                // S'assurer qu'il a un gestionnaire d'événements
+                if (!mainButton.getAttribute('data-handler-attached')) {
+                    mainButton.addEventListener('click', function() {
+                        if (typeof window.handleGptAnalysis === 'function') {
+                            window.handleGptAnalysis();
+                        } else {
+                            showNotification("Le service d'analyse n'est pas encore disponible. Veuillez attendre quelques secondes ou recharger la page.", "error");
+                        }
+                    });
+                    mainButton.setAttribute('data-handler-attached', 'true');
+                }
+            }
+        });
     </script>
 </body>
 </html>
