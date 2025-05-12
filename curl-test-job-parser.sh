@@ -19,7 +19,7 @@ echo "Test du service de parsing de fiches de poste"
 
 # Vérifier si le service est en cours d'exécution
 echo "Vérification de la santé du service..."
-HEALTH_CHECK=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5053/health)
+HEALTH_CHECK=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5053/health || echo "000")
 
 if [ "$HEALTH_CHECK" != "200" ]; then
   echo "Erreur: Le service ne répond pas (code HTTP: $HEALTH_CHECK)."
