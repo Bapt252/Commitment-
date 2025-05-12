@@ -3,82 +3,2366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexten - Questionnaire Client</title>
+    <title>Nexten - Questionnaire Recrutement</title>
     
     <!-- CSS -->
     <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/css/job-parser-styles.css">
+    <link rel="stylesheet" href="../static/css/client-questionnaire.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Inclure votre CSS existant ici... -->
+    <!-- Style supplémentaire pour les améliorations -->
+    <style>
+        /* Debug section */
+        .debug-section {
+            background-color: #F0FFF4;
+            border: 1px solid #43AA8B;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Mise à jour du header */
+        .header {
+            position: relative;
+            padding: 2.5rem 0;
+            margin-bottom: 3rem;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(124, 58, 237, 0.1));
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+
+        .header h1 {
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+        }
+
+        .header .subtitle {
+            max-width: 700px;
+            font-size: 1.1rem;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* Améliorations du stepper */
+        .progress-container {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .progress-bar {
+            background-color: var(--gray-lightest);
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .step-bubble {
+            width: 36px;
+            height: 36px;
+            background-color: white;
+            border: 2px solid var(--gray-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+            max-width: 120px;
+        }
+
+        .step.active .step-bubble, 
+        .step.completed .step-bubble {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 3px 10px rgba(124, 58, 237, 0.3);
+        }
+
+        .step.active .step-label, 
+        .step.completed .step-label {
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .step.completed .step-bubble::after {
+            content: '✓';
+            font-size: 1rem;
+        }
+
+        /* Ajouter une ligne de connexion entre les étapes */
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--gray-light);
+            z-index: 1;
+        }
+
+        /* Animations pour les étapes au survol */
+        .step:hover .step-bubble:not(.active) {
+            transform: scale(1.1);
+            border-color: var(--primary-light);
+        }
+
+        /* Section de formulaire */
+        .form-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border-top: 5px solid transparent;
+            border-image: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-image-slice: 1;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-section h2 {
+            position: relative;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+
+        .form-section h2::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -8px;
+            width: 50px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 1.5px;
+        }
+
+        /* Upload container */
+        .upload-container {
+            border: 2px dashed var(--gray-light);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            background-color: var(--gray-lightest);
+            transition: var(--transition);
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .upload-container:hover,
+        .upload-container.drag-active {
+            border-color: var(--primary);
+            background-color: rgba(124, 58, 237, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-container:hover .upload-icon {
+            transform: translateY(-5px);
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--gray-dark);
+        }
+
+        .upload-hint {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Séparateur OU */
+        .separator {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: var(--gray);
+        }
+
+        .separator .line {
+            flex-grow: 1;
+            height: 1px;
+            background-color: var(--gray-light);
+        }
+
+        .separator .text {
+            padding: 0 1rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* Textarea container */
+        .textarea-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .textarea-container .form-control {
+            padding-right: 50px;
+        }
+
+        .analyze-button {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 3px 8px rgba(124, 58, 237, 0.3);
+        }
+
+        .analyze-button:hover {
+            background-color: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        /* Loader */
+        .loader-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .loader {
+            border: 3px solid var(--gray-lightest);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1.5s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        /* Résultats d'analyse */
+        .job-info-container {
+            background-color: var(--gray-lightest);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border-left: 4px solid var(--primary);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .job-info-container h3 {
+            color: var(--gray-dark);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .job-info-container h3 i {
+            color: var(--success);
+            margin-right: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+
+        .info-value {
+            background-color: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--gray-light);
+            font-size: 0.95rem;
+            min-height: 2.5rem;
+            position: relative;
+        }
+
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .skills-container .tag {
+            margin: 0;
+        }
+
+        /* Actions pour les résultats d'analyse */
+        .job-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        .job-export-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Amélioration des champs radio et checkbox */
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-left: 28px;
+            font-weight: 400;
+        }
+
+        .radio-label input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .radio-label::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gray-light);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .radio-label::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            transition: var(--transition);
+            transform: scale(0);
+        }
+
+        .radio-label:hover::before {
+            border-color: var(--primary-light);
+        }
+
+        .radio-label input:checked ~ ::before {
+            border-color: var(--primary);
+        }
+
+        .radio-label input:checked ~ ::after {
+            transform: scale(1);
+        }
+
+        /* Mise en forme des sélecteurs */
+        select.form-control {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236C757D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+        }
+
+        select.form-control:focus {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237C3AED' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        }
+
+        /* Styles pour l'input de tags/bénéfices */
+        .tags-input {
+            display: flex;
+            position: relative;
+        }
+
+        .add-tag-btn {
+            position: absolute;
+            right: 1px;
+            top: 1px;
+            bottom: 1px;
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--gray-lightest);
+            border: none;
+            border-left: 1px solid var(--gray-light);
+            border-radius: 0 7px 7px 0;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .add-tag-btn:hover {
+            background-color: var(--primary-glass);
+            color: var(--primary);
+        }
+
+        /* Amélioration du badge de fichier */
+        .file-badge {
+            display: none;
+            align-items: center;
+            background-color: white;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 1rem;
+            animation: fadeIn 0.3s ease;
+            border: 1px solid var(--gray-light);
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .file-badge i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+
+        .file-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--gray-dark);
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .remove-button {
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .remove-button:hover {
+            color: var(--error);
+            transform: scale(1.1);
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip-text {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            width: 250px;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            transform-origin: top center;
+            transform: translateX(-50%) translateY(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+        }
+
+        .tooltip:hover .tooltip-text {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Notification toast */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: none;
+            align-items: center;
+            background-color: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            padding: 1rem;
+            z-index: 1000;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+        }
+
+        .notification.success::before {
+            background-color: var(--success);
+        }
+
+        .notification.error::before {
+            background-color: var(--error);
+        }
+
+        .notification.info::before {
+            background-color: var(--primary);
+        }
+
+        .notification-icon {
+            margin-right: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .notification.success .notification-icon {
+            color: var(--success);
+        }
+
+        .notification.error .notification-icon {
+            color: var(--error);
+        }
+
+        .notification.info .notification-icon {
+            color: var(--primary);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-message {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+
+        .notification-close {
+            margin-left: 1rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: var(--transition);
+        }
+
+        .notification-close:hover {
+            color: var(--gray-dark);
+            transform: scale(1.1);
+        }
+
+        /* Section conditionnelle */
+        .conditional-section {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.5s ease, opacity 0.5s ease, margin 0.5s ease;
+            margin: 0;
+        }
+
+        .conditional-section.visible {
+            max-height: 500px;
+            opacity: 1;
+            margin: 1.5rem 0;
+        }
+
+        /* Toast de texte généré */
+        .generated-toast {
+            display: none;
+            background-color: var(--gray-lightest);
+            border-left: 3px solid var(--primary);
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 6px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .generated-toast.visible {
+            display: block;
+        }
+
+        /* Étape de confirmation */
+        .confirmation-section {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .confirmation-icon {
+            font-size: 4rem;
+            color: var(--success);
+            margin-bottom: 1.5rem;
+            animation: scaleIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confirmation-title {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            color: var(--gray-dark);
+            font-weight: 600;
+        }
+
+        .confirmation-email {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .next-steps {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        .next-steps-title {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--gray-dark);
+            font-weight: 600;
+        }
+
+        .next-steps-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        /* Responsive pour mobile */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 1.5rem 1rem;
+                margin-bottom: 2rem;
+            }
+            
+            .form-section {
+                padding: 1.5rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .step-label {
+                font-size: 0.75rem;
+            }
+            
+            .form-navigation {
+                flex-direction: column-reverse;
+                gap: 1rem;
+            }
+            
+            .form-navigation .btn {
+                width: 100%;
+            }
+            
+            .next-steps-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .next-steps-actions .btn {
+                width: 100%;
+            }
+            
+            .notification {
+                left: 20px;
+                right: 20px;
+                max-width: calc(100% - 40px);
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Contenu existant du site... -->
-    
-    <!-- Notification bar -->
-    <div class="notification-bar">
-        Votre recrutement change, votre approche aussi : complétez votre questionnaire pour trouver les meilleurs talents
+    <!-- Contenu de la page -->
+    <div class="container">
+        <header class="header">
+            <h1>Questionnaire Client</h1>
+            <p class="subtitle">Aidez-nous à mieux comprendre vos besoins en recrutement pour trouver les meilleurs candidats</p>
+        </header>
+
+        <!-- Section de debug -->
+        <div id="debug-section" class="debug-section">
+            <h3>Informations de débogage</h3>
+            <div id="debug-content"></div>
+        </div>
+
+        <main>
+            <!-- Étapes de progression améliorées -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="progress-steps">
+                    <div class="step active" data-step="1" tabindex="0">
+                        <div class="step-bubble"><span>1</span></div>
+                        <div class="step-label">Fiche de poste</div>
+                    </div>
+                    <div class="step" data-step="2" tabindex="0">
+                        <div class="step-bubble"><span>2</span></div>
+                        <div class="step-label">Entreprise</div>
+                    </div>
+                    <div class="step" data-step="3" tabindex="0">
+                        <div class="step-bubble"><span>3</span></div>
+                        <div class="step-label">Poste</div>
+                    </div>
+                    <div class="step" data-step="4" tabindex="0">
+                        <div class="step-bubble"><span>4</span></div>
+                        <div class="step-label">Contact</div>
+                    </div>
+                    <div class="step" data-step="5" tabindex="0">
+                        <div class="step-bubble"><span>5</span></div>
+                        <div class="step-label">Confirmation</div>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="client-questionnaire-form">
+                <!-- Étape 1: Analyse de la fiche de poste -->
+                <section class="form-section active" data-step="1">
+                    <h2>Analysez votre fiche de poste</h2>
+                    <p>Commencez par analyser votre fiche de poste pour en extraire automatiquement les informations clés.</p>
+                    
+                    <div class="upload-container" id="job-drop-zone">
+                        <i class="fas fa-file-upload upload-icon"></i>
+                        <h3 class="upload-text drop-zone-text">Glissez-déposez votre fiche de poste ici</h3>
+                        <p class="upload-hint">Formats acceptés: PDF, DOCX, TXT (max 5MB)</p>
+                        <input type="file" id="job-file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
+                        
+                        <!-- Badge de fichier sélectionné (initialement caché) -->
+                        <div id="file-badge" class="file-badge">
+                            <i class="fas fa-file-alt"></i>
+                            <span id="file-name" class="file-name">nom-du-fichier.pdf</span>
+                            <i class="fas fa-times remove-button" id="remove-file"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="separator">
+                        <div class="line"></div>
+                        <div class="text">OU</div>
+                        <div class="line"></div>
+                    </div>
+                    
+                    <div class="textarea-container">
+                        <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse automatique..."></textarea>
+                        <button type="button" id="analyze-job-text" class="analyze-button" title="Analyser">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Section pour les résultats d'analyse inline -->
+                    <div id="inline-analysis-results" style="display: none;"></div>
+                    
+                    <!-- Indicateur de chargement amélioré -->
+                    <div id="analysis-loader" class="loader-container">
+                        <div class="loader"></div>
+                        <span class="loader-text">Analyse en cours...</span>
+                    </div>
+                    
+                    <!-- Résultats d'analyse améliorés -->
+                    <div id="job-info-container" class="job-info-container" style="display: none;">
+                        <h3><i class="fas fa-check-circle"></i> Informations extraites</h3>
+                        
+                        <div class="info-grid">
+                            <div class="info-group">
+                                <label class="info-label">Titre du poste</label>
+                                <div id="job-title-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label class="info-label">Type de contrat</label>
+                                <div id="job-contract-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label class="info-label">Lieu</label>
+                                <div id="job-location-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label class="info-label">Expérience requise</label>
+                                <div id="job-experience-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label class="info-label">Formation</label>
+                                <div id="job-education-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <label class="info-label">Rémunération</label>
+                                <div id="job-salary-value" class="info-value">Non spécifié</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-group full-width">
+                            <label class="info-label">Compétences requises</label>
+                            <div id="job-skills-value" class="info-value skills-container">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group full-width">
+                            <label class="info-label">Responsabilités / Missions</label>
+                            <div id="job-responsibilities-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="info-group full-width">
+                            <label class="info-label">Avantages</label>
+                            <div id="job-benefits-value" class="info-value">Non spécifié</div>
+                        </div>
+                        
+                        <div class="job-actions">
+                            <div class="job-export-buttons">
+                                <button type="button" id="preview-job-info" class="btn btn-outline">
+                                    <i class="fas fa-eye"></i> Aperçu
+                                </button>
+                                <button type="button" id="edit-parsed-info" class="btn btn-outline">
+                                    <i class="fas fa-edit"></i> Modifier manuellement
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <div></div> <!-- Div vide pour l'alignement flex -->
+                        <button type="button" class="btn btn-primary next-step" data-step="2">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 2: Informations sur l'entreprise -->
+                <section class="form-section" data-step="2">
+                    <h2>Informations sur l'entreprise</h2>
+                    <p>Aidez-nous à mieux comprendre votre entreprise et sa culture.</p>
+                    
+                    <div class="form-group">
+                        <label for="company-name" class="form-label required">Nom de la structure</label>
+                        <input type="text" id="company-name" name="company-name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-address" class="form-label required">Adresse complète</label>
+                        <input type="text" id="company-address" name="company-address" class="form-control" required placeholder="Numéro, rue, code postal, ville">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-website" class="form-label">Site internet</label>
+                        <input type="url" id="company-website" name="company-website" class="form-control" placeholder="https://www.exemple.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-presentation" class="form-label">Présentation rapide</label>
+                        <textarea id="company-presentation" name="company-presentation" class="form-control" placeholder="Décrivez brièvement votre entreprise..."></textarea>
+                        
+                        <div class="mt-3">
+                            <button type="button" id="generate-presentation" class="btn btn-outline">
+                                <i class="fas fa-magic"></i> Générer à partir du site web
+                            </button>
+                        </div>
+                        
+                        <div id="generated-presentation" class="generated-toast">
+                            <p>Présentation générée : Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-size" class="form-label required">Taille de la structure</label>
+                        <select id="company-size" name="company-size" class="form-control" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="tpe">TPE (< 10 employés)</option>
+                            <option value="pme">PME (10 à 250 employés)</option>
+                            <option value="eti">ETI (250 à 5000 employés)</option>
+                            <option value="group">Groupe (> 5000 employés)</option>
+                            <option value="startup">Startup</option>
+                            <option value="association">Association</option>
+                            <option value="public">Secteur public</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label required">Avez-vous un poste sur lequel vous souhaitez recruter ?</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="has-job" value="yes" checked> Oui
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="has-job" value="no"> Non
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="1">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="3">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 3: Informations sur le poste -->
+                <section class="form-section" data-step="3">
+                    <h2>Informations sur le poste</h2>
+                    <p>Précisez les détails du poste pour lequel vous recrutez.</p>
+                    
+                    <div id="job-details-section" class="conditional-section visible">
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="recruitment-deadline" class="form-label required">Délai de recrutement</label>
+                                    <select id="recruitment-deadline" name="recruitment-deadline" class="form-control" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="immediate">Immédiat</option>
+                                        <option value="two-weeks">2 semaines</option>
+                                        <option value="one-month">1 mois</option>
+                                        <option value="two-months">2 mois</option>
+                                        <option value="three-months">3 mois</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label required">Pouvez-vous gérer un préavis ?</label>
+                                    <div class="radio-group">
+                                        <label class="radio-label">
+                                            <input type="radio" name="can-handle-notice" value="yes" checked> Oui
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="can-handle-notice" value="no"> Non
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="notice-period-section" class="conditional-section visible">
+                            <div class="form-group">
+                                <label for="notice-period" class="form-label">Durée de préavis acceptable</label>
+                                <select id="notice-period" name="notice-period" class="form-control">
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="one-month">1 mois</option>
+                                    <option value="two-months">2 mois</option>
+                                    <option value="three-months">3 mois</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="recruitment-context" class="form-label required">Contexte de recrutement</label>
+                                    <select id="recruitment-context" name="recruitment-context" class="form-control" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="creation">Création de poste</option>
+                                        <option value="replacement">Remplacement</option>
+                                        <option value="growth">Accroissement d'activité / Renfort</option>
+                                        <option value="confidential">Je ne souhaite pas communiquer</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="experience-required" class="form-label required">Années d'expérience requises</label>
+                                    <select id="experience-required" name="experience-required" class="form-control" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="junior">Profil Junior</option>
+                                        <option value="2-3">2 ans - 3 ans</option>
+                                        <option value="5-10">5 ans - 10 ans</option>
+                                        <option value="10+">10 ans et plus</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label required">La connaissance de votre secteur est-elle obligatoire ?</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="sector-knowledge" value="yes"> Oui
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="sector-knowledge" value="no" checked> Non
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="sector-select-section" class="conditional-section">
+                            <div class="form-group">
+                                <label for="sector" class="form-label">Secteur d'activité</label>
+                                <select id="sector" name="sector" class="form-control">
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="tech">Technologies & IT</option>
+                                    <option value="finance">Finance & Banque</option>
+                                    <option value="health">Santé & Pharmaceutique</option>
+                                    <option value="education">Éducation & Formation</option>
+                                    <option value="retail">Commerce & Distribution</option>
+                                    <option value="manufacturing">Industrie & Production</option>
+                                    <option value="consulting">Conseil & Services</option>
+                                    <option value="media">Médias & Communication</option>
+                                    <option value="energy">Énergie & Environnement</option>
+                                    <option value="transport">Transport & Logistique</option>
+                                    <option value="construction">Construction & Immobilier</option>
+                                    <option value="tourism">Tourisme & Hôtellerie</option>
+                                    <option value="agriculture">Agriculture & Agroalimentaire</option>
+                                    <option value="luxury">Luxe & Mode</option>
+                                    <option value="public">Secteur public</option>
+                                    <option value="other">Autre</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="work-environment" class="form-label required">Environnement de travail</label>
+                                    <select id="work-environment" name="work-environment" class="form-control" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="open-space">Open space</option>
+                                        <option value="office">Bureau individuel</option>
+                                        <option value="mixed">Mixte</option>
+                                        <option value="remote">Télétravail</option>
+                                        <option value="hybrid">Hybride</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="contract-type" class="form-label required">Type de contrat</label>
+                                    <select id="contract-type" name="contract-type" class="form-control" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="cdi-35">CDI - 35h</option>
+                                        <option value="cdi-39">CDI - 39h</option>
+                                        <option value="cdi-cadre">CDI - Cadre</option>
+                                        <option value="cdd">CDD</option>
+                                        <option value="interim">Intérim</option>
+                                        <option value="freelance">Freelance</option>
+                                        <option value="stage">Stage</option>
+                                        <option value="alternance">Alternance</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="team-composition" class="form-label">Composition de l'équipe et rattachement</label>
+                            <textarea id="team-composition" name="team-composition" class="form-control" placeholder="Ex: équipe de 5 personnes, rattaché à un responsable technique, etc."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="evolution-prospects" class="form-label">Perspectives d'évolution</label>
+                            <textarea id="evolution-prospects" name="evolution-prospects" class="form-control" placeholder="Mentionnez les possibilités d'évolution si il y en a..."></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="salary" class="form-label">Rémunération</label>
+                                    <input type="text" id="salary" name="salary" class="form-control" placeholder="Ex: 45-55K€ selon expérience">
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="benefit-input" class="form-label">Avantages</label>
+                                    <div class="tags-input">
+                                        <input type="text" id="benefit-input" class="form-control" placeholder="Ajouter un avantage et appuyer sur Entrée">
+                                        <button type="button" class="add-tag-btn">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div class="tags-container" id="benefits-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="2">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="4">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 4: Informations de contact -->
+                <section class="form-section" data-step="4">
+                    <h2>Informations de contact</h2>
+                    <p>Précisez vos coordonnées pour que nous puissions vous contacter.</p>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="contact-name" class="form-label required">Nom du contact</label>
+                                <input type="text" id="contact-name" name="contact-name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="contact-email" class="form-label required">Email du contact</label>
+                                <input type="email" id="contact-email" name="contact-email" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="contact-phone" class="form-label">Téléphone du contact</label>
+                                <input type="tel" id="contact-phone" name="contact-phone" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="contact-position" class="form-label">Fonction dans l'entreprise</label>
+                                <input type="text" id="contact-position" name="contact-position" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hiring-process" class="form-label">
+                            Processus de recrutement actuel
+                            <span class="tooltip">
+                                <i class="fas fa-info-circle"></i>
+                                <span class="tooltip-text">Décrivez brièvement les étapes de votre processus de recrutement actuel (nombre d'entretiens, tests, etc.).</span>
+                            </span>
+                        </label>
+                        <textarea id="hiring-process" name="hiring-process" class="form-control" placeholder="Décrivez votre processus de recrutement actuel..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="additional-info" class="form-label">Informations complémentaires (optionnel)</label>
+                        <textarea id="additional-info" name="additional-info" class="form-control" placeholder="Ajoutez toute information qui pourrait nous aider à comprendre votre besoin..."></textarea>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="3">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Envoyer ma demande
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 5: Confirmation -->
+                <section class="form-section" data-step="5">
+                    <div class="confirmation-section">
+                        <i class="fas fa-check-circle confirmation-icon"></i>
+                        <h2 class="confirmation-title">Votre demande a été envoyée avec succès !</h2>
+                        <p class="confirmation-message">Merci d'avoir complété notre questionnaire. Notre équipe analysera votre demande et vous contactera dans les meilleurs délais pour discuter de vos besoins en recrutement.</p>
+                        <p class="confirmation-message">Un email de confirmation a été envoyé à <span id="confirmation-email" class="confirmation-email">email@exemple.com</span></p>
+                        
+                        <!-- Section des prochaines étapes -->
+                        <div class="next-steps">
+                            <h3 class="next-steps-title">Prochaines étapes</h3>
+                            <p class="confirmation-message">
+                                Vous pouvez maintenant analyser les CV de vos candidats potentiels et évaluer leur adéquation avec votre fiche de poste.
+                            </p>
+                            <div class="next-steps-actions">
+                                <a href="cv-parser.html" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Analyser les CV des candidats
+                                </a>
+                                <a href="../index.html" class="btn btn-outline">
+                                    <i class="fas fa-home"></i> Retour à l'accueil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </form>
+        </main>
     </div>
-
-    <!-- Header -->
-    <header>
-        <div class="container">
-            <div class="logo">
-                nex<span>ten</span><div class="logo-badge">10</div>
-            </div>
-            
-            <button class="menu-toggle" aria-label="Menu principal">
-                <i class="fas fa-bars"></i>
-            </button>
-            
-            <nav>
-                <ul>
-                    <li><a href="index.html">Accueil</a></li>
-                    <li><a href="candidate-login.html">Espace candidat</a></li>
-                    <li><a href="company-login.html" class="active">Espace entreprise</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <!-- Contenu du questionnaire... -->
-    <section class="hero" style="min-height: 35vh; padding-bottom: var(--spacing-xl);">
-        <div class="hero-particles">
-            <!-- Les particules seront ajoutées dynamiquement via JavaScript -->
-        </div>
-        
-        <div class="container">
-            <div class="hero-content">
-                <h1>Questionnaire Client</h1>
-                <p class="hero-subtitle">
-                    Créez votre profil entreprise et précisez vos besoins en recrutement pour accéder à notre solution de recrutement 
-                    <span class="ten-accent">10</span> connexions stratégiques.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="container">
-            <div class="form-container">
-                <!-- Stepper et contenus du formulaire... -->
-                <!-- Ajoutez votre code existant ici -->
-            </div>
-        </div>
-    </section>
     
-    <!-- Footer et autres éléments... -->
-
-    <!-- Scripts existants du site -->
+    <!-- Notification template (initialement caché) -->
+    <div class="notification" id="notification" style="display: none;">
+        <div class="notification-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">Succès</div>
+            <div class="notification-message">Opération réussie</div>
+        </div>
+        <div class="notification-close">
+            <i class="fas fa-times"></i>
+        </div>
+    </div>
+    
+    <!-- Intégrer directement le script parser.js -->
     <script>
-        // Votre script existant ici
+        /**
+         * Job Description Parser
+         * Extracts key information from job descriptions
+         */
+
+        // Définir l'objet JobParser directement
+        window.JobParser = {
+            parseJobDescription: function(text) {
+                if (!text || typeof text !== 'string') {
+                    return {
+                        error: 'Invalid job description'
+                    };
+                }
+
+                return {
+                    title: this.extractJobTitle(text),
+                    company: this.extractCompanyName(text),
+                    location: this.extractLocation(text),
+                    skills: this.extractSkills(text),
+                    experience: this.extractExperience(text),
+                    responsibilities: this.extractResponsibilities(text),
+                    requirements: this.extractRequirements(text),
+                    salary: this.extractSalary(text),
+                    benefits: this.extractBenefits(text),
+                    applicationProcess: this.extractApplicationProcess(text)
+                };
+            },
+
+            extractJobTitle: function(text) {
+                // Common patterns for job titles
+                const titlePatterns = [
+                    /job title:?\\s*([^,\\n.]+)/i,
+                    /position:?\\s*([^,\\n.]+)/i,
+                    /role:?\\s*([^,\\n.]+)/i,
+                    /poste:?\\s*([^,\\n.]+)/i,
+                    /intitulé:?\\s*([^,\\n.]+)/i,
+                    /job title:?\s*([^,\n.]+)/i,
+                    /position:?\s*([^,\n.]+)/i,
+                    /role:?\s*([^,\n.]+)/i,
+                    /poste:?\s*([^,\n.]+)/i,
+                    /intitulé:?\s*([^,\n.]+)/i
+                ];
+
+                // Try each pattern
+                for (const pattern of titlePatterns) {
+                    const match = text.match(pattern);
+                    if (match && match[1]) {
+                        return match[1].trim();
+                    }
+                }
+
+                // Fallback: Look for the first line that might be a title
+                const lines = text.split('\n');
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (trimmed && trimmed.length < 100 && !trimmed.includes(':')) {
+                        return trimmed;
+                    }
+                }
+
+                return 'Unknown Position';
+            },
+
+            extractCompanyName: function(text) {
+                const companyPatterns = [
+                    /company:?\s*([^,\n.]+)/i,
+                    /at\s+([^,\n.]+)/i,
+                    /with\s+([^,\n.]+)/i,
+                    /entreprise:?\s*([^,\n.]+)/i,
+                    /société:?\s*([^,\n.]+)/i,
+                    /chez\s+([^,\n.]+)/i
+                ];
+
+                for (const pattern of companyPatterns) {
+                    const match = text.match(pattern);
+                    if (match && match[1]) {
+                        return match[1].trim();
+                    }
+                }
+
+                return 'Unknown Company';
+            },
+
+            extractLocation: function(text) {
+                const locationPatterns = [
+                    /location:?\s*([^,\n.]+)/i,
+                    /based in:?\s*([^,\n.]+)/i,
+                    /lieu:?\s*([^,\n.]+)/i,
+                    /localisation:?\s*([^,\n.]+)/i,
+                    /basé à:?\s*([^,\n.]+)/i,
+                    /remote|work from home|wfh|on-site|hybrid|télétravail|présentiel|hybride/i
+                ];
+
+                for (const pattern of locationPatterns) {
+                    const match = text.match(pattern);
+                    if (match) {
+                        if (match[1]) {
+                            return match[1].trim();
+                        } else if (match[0]) {
+                            return match[0].trim();
+                        }
+                    }
+                }
+
+                return 'Unknown Location';
+            },
+
+            extractSection: function(text, startPattern, endPattern) {
+                const startMatch = text.match(startPattern);
+                if (!startMatch) return null;
+                
+                const startIndex = startMatch.index + startMatch[0].length;
+                
+                const endMatch = text.substr(startIndex).match(endPattern);
+                const endIndex = endMatch ? startIndex + endMatch.index : text.length;
+                
+                return text.substring(startIndex, endIndex).trim();
+            },
+
+            extractSkills: function(text) {
+                const skillsSection = this.extractSection(text, 
+                    /(skills|technologies|technical requirements|qualifications|requirements|what you'll need|compétences|technologies requises|qualifications|prérequis)/i, 
+                    /(responsibilities|about the role|benefits|about the company|what you'll do|responsabilités|missions|avantages|à propos)/i
+                );
+
+                if (skillsSection) {
+                    // Extract skills using bullet points or commas
+                    const skillsList = [];
+                    const bulletItems = skillsSection.match(/[•\-*]\s*([^\n]+)/g);
+                    
+                    if (bulletItems) {
+                        bulletItems.forEach(item => {
+                            const skill = item.replace(/[•\-*]\s*/, '').trim();
+                            if (skill) skillsList.push(skill);
+                        });
+                    }
+                    
+                    // If no bullet points, try splitting by commas or semicolons
+                    if (skillsList.length === 0) {
+                        const skills = skillsSection.split(/[,;]/).map(s => s.trim()).filter(s => s.length > 0);
+                        skillsList.push(...skills);
+                    }
+                    
+                    return skillsList.length > 0 ? skillsList : ['Not specified'];
+                }
+                
+                return ['Not specified'];
+            },
+
+            extractExperience: function(text) {
+                const experiencePatterns = [
+                    /(\d+)\+?\s*years? experience/i,
+                    /experience:?\s*(\d+)\+?\s*years?/i,
+                    /minimum of\s*(\d+)\+?\s*years?/i,
+                    /(\d+)\s*\+\s*years/i,
+                    /(\d+)\+?\s*ans? d'expérience/i,
+                    /expérience:?\s*(\d+)\+?\s*ans?/i,
+                    /minimum de\s*(\d+)\+?\s*ans?/i,
+                    /(\d+)\s*\+\s*ans/i
+                ];
+
+                for (const pattern of experiencePatterns) {
+                    const match = text.match(pattern);
+                    if (match && match[1]) {
+                        return `${match[1]} years`;
+                    }
+                }
+
+                if (text.match(/entry level|junior|no experience required|beginner|débutant|aucune expérience requise/i)) {
+                    return 'Entry Level';
+                }
+
+                if (text.match(/mid level|intermediate|confirmé|intermédiaire/i)) {
+                    return 'Mid Level';
+                }
+
+                if (text.match(/senior|expert|lead|principal|chevronné/i)) {
+                    return 'Senior Level';
+                }
+
+                return 'Not specified';
+            },
+
+            extractResponsibilities: function(text) {
+                const responsibilitiesSection = this.extractSection(text, 
+                    /(responsibilities|duties|what you'll do|the role|job description|about the role|responsabilités|missions|tâches|description du poste)/i, 
+                    /(requirements|qualifications|skills|about the company|about us|benefits|perks|prérequis|compétences|à propos|avantages)/i
+                );
+
+                if (responsibilitiesSection) {
+                    const responsibilities = [];
+                    const bulletItems = responsibilitiesSection.match(/[•\-*]\s*([^\n]+)/g);
+                    
+                    if (bulletItems) {
+                        bulletItems.forEach(item => {
+                            const responsibility = item.replace(/[•\-*]\s*/, '').trim();
+                            if (responsibility) responsibilities.push(responsibility);
+                        });
+                    }
+                    
+                    // If no bullet points found, use sentences
+                    if (responsibilities.length === 0) {
+                        const sentences = responsibilitiesSection.match(/[^.!?]+[.!?]+/g);
+                        if (sentences) {
+                            sentences.forEach(sentence => {
+                                const trimmed = sentence.trim();
+                                if (trimmed && !trimmed.match(/^(responsibilities|duties|what you'll do|the role|responsabilités|missions):/i)) {
+                                    responsibilities.push(trimmed);
+                                }
+                            });
+                        }
+                    }
+                    
+                    return responsibilities.length > 0 ? responsibilities : ['Not specified'];
+                }
+                
+                return ['Not specified'];
+            },
+
+            extractRequirements: function(text) {
+                const requirementsSection = this.extractSection(text, 
+                    /(requirements|qualifications|what you'll need|what we're looking for|who you are|prérequis|qualifications|profil recherché|qui vous êtes)/i, 
+                    /(benefits|perks|what we offer|about the company|about us|application|salary|avantages|ce que nous offrons|à propos|candidature|salaire)/i
+                );
+
+                if (requirementsSection) {
+                    const requirements = [];
+                    const bulletItems = requirementsSection.match(/[•\-*]\s*([^\n]+)/g);
+                    
+                    if (bulletItems) {
+                        bulletItems.forEach(item => {
+                            const requirement = item.replace(/[•\-*]\s*/, '').trim();
+                            if (requirement) requirements.push(requirement);
+                        });
+                    }
+                    
+                    // If no bullet points found, use sentences
+                    if (requirements.length === 0) {
+                        const sentences = requirementsSection.match(/[^.!?]+[.!?]+/g);
+                        if (sentences) {
+                            sentences.forEach(sentence => {
+                                const trimmed = sentence.trim();
+                                if (trimmed && !trimmed.match(/^(requirements|qualifications|what you'll need|prérequis):/i)) {
+                                    requirements.push(trimmed);
+                                }
+                            });
+                        }
+                    }
+                    
+                    return requirements.length > 0 ? requirements : ['Not specified'];
+                }
+                
+                return ['Not specified'];
+            },
+
+            extractSalary: function(text) {
+                const salaryPatterns = [
+                    /salary:?\s*([^,\n.]+)/i,
+                    /compensation:?\s*([^,\n.]+)/i,
+                    /\$(\d+,?\d*)\s*-\s*\$?(\d+,?\d*)/i,
+                    /(\d+,?\d*)\s*-\s*(\d+,?\d*)\s*\$/i,
+                    /\$(\d+,?\d*)/i,
+                    /salaire:?\s*([^,\n.]+)/i,
+                    /rémunération:?\s*([^,\n.]+)/i,
+                    /(\d+,?\d*)\s*-\s*(\d+,?\d*)\s*€/i,
+                    /(\d+,?\d*)\s*€/i
+                ];
+
+                for (const pattern of salaryPatterns) {
+                    const match = text.match(pattern);
+                    if (match) {
+                        if (match[1] && match[2]) {
+                            // Check if currency symbol was included
+                            if (text.includes('€')) {
+                                return `${match[1]} - ${match[2]} €`;
+                            } else {
+                                return `$${match[1]} - $${match[2]}`;
+                            }
+                        } else if (match[1]) {
+                            if (match[1].includes('$')) {
+                                return match[1].trim();
+                            } else if (text.includes('€')) {
+                                return `${match[1].trim()} €`;
+                            } else {
+                                return `$${match[1].trim()}`;
+                            }
+                        }
+                    }
+                }
+
+                return 'Not specified';
+            },
+
+            extractBenefits: function(text) {
+                const benefitsSection = this.extractSection(text, 
+                    /(benefits|perks|what we offer|why join us|avantages|ce que nous offrons|pourquoi nous rejoindre)/i, 
+                    /(application|apply|how to apply|contact|candidature|postuler|comment postuler|contact)/i
+                );
+
+                if (benefitsSection) {
+                    const benefits = [];
+                    const bulletItems = benefitsSection.match(/[•\-*]\s*([^\n]+)/g);
+                    
+                    if (bulletItems) {
+                        bulletItems.forEach(item => {
+                            const benefit = item.replace(/[•\-*]\s*/, '').trim();
+                            if (benefit) benefits.push(benefit);
+                        });
+                    }
+                    
+                    // If no bullet points found, use sentences
+                    if (benefits.length === 0) {
+                        const sentences = benefitsSection.match(/[^.!?]+[.!?]+/g);
+                        if (sentences) {
+                            sentences.forEach(sentence => {
+                                const trimmed = sentence.trim();
+                                if (trimmed && !trimmed.match(/^(benefits|perks|what we offer|avantages):/i)) {
+                                    benefits.push(trimmed);
+                                }
+                            });
+                        }
+                    }
+                    
+                    return benefits.length > 0 ? benefits : ['Not specified'];
+                }
+                
+                return ['Not specified'];
+            },
+
+            extractApplicationProcess: function(text) {
+                const applicationSection = this.extractSection(text, 
+                    /(how to apply|application process|application|apply|to apply|comment postuler|processus de candidature|candidature|postuler|pour postuler)/i, 
+                    /(about us|company|à propos|entreprise|$)/i
+                );
+
+                if (applicationSection) {
+                    // Look for email address
+                    const emailMatch = applicationSection.match(/[\w.-]+@[\w.-]+\.\w+/);
+                    if (emailMatch) {
+                        return `Apply by sending your application to ${emailMatch[0]}`;
+                    }
+                    
+                    // Look for URL
+                    const urlMatch = applicationSection.match(/https?:\/\/\S+/);
+                    if (urlMatch) {
+                        return `Apply online at ${urlMatch[0]}`;
+                    }
+                    
+                    // Return the section as is
+                    return applicationSection.trim();
+                }
+                
+                return 'Not specified';
+            }
+        };
+
+        // Fonction pour afficher un message de debug
+        function showDebugMessage(message) {
+            const debugSection = document.getElementById('debug-section');
+            const debugContent = document.getElementById('debug-content');
+            debugSection.style.display = 'block';
+            
+            // Ajouter le nouveau message
+            const msgElement = document.createElement('p');
+            msgElement.textContent = message;
+            debugContent.appendChild(msgElement);
+        }
+        
+        // Fonction pour activer le mode debug
+        function activateDebugMode() {
+            const debugSection = document.getElementById('debug-section');
+            debugSection.style.display = 'block';
+            showDebugMessage('Mode debug activé');
+            
+            // Afficher le contenu de sessionStorage
+            const parsedJobData = sessionStorage.getItem('parsedJobData');
+            if (parsedJobData) {
+                showDebugMessage('Données trouvées dans sessionStorage: ' + parsedJobData);
+            } else {
+                showDebugMessage('Aucune donnée trouvée dans sessionStorage');
+            }
+        }
+
+        // Vérifier si un paramètre debug est présent dans l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('debug')) {
+            activateDebugMode();
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Code existant...
+            // Initialisation du formulaire immédiatement
+            showDebugMessage('Parser intégré, initialisation du formulaire');
+            initializeForm();
+            
+            function initializeForm() {
+                // Variables pour les étapes et la navigation
+                const progressFill = document.getElementById('progress-fill');
+                const steps = document.querySelectorAll('.step');
+                const formSections = document.querySelectorAll('.form-section');
+                const totalSteps = steps.length;
+                let currentStep = 1;
+                
+                // Mise à jour de la barre de progression
+                function updateProgress(step) {
+                    const progressPercentage = ((step - 1) / (totalSteps - 1)) * 100;
+                    progressFill.style.width = `${progressPercentage}%`;
+                }
+                
+                // Navigation vers une étape spécifique
+                function navigateToStep(stepNumber) {
+                    // Validation basique avant de passer à l'étape suivante
+                    if (stepNumber > currentStep) {
+                        if (!validateCurrentStep()) {
+                            return false;
+                        }
+                    }
+                    
+                    // Mettre à jour les indicateurs d'étape
+                    steps.forEach(step => {
+                        const stepNum = parseInt(step.getAttribute('data-step'));
+                        step.classList.remove('active', 'completed');
+                        
+                        if (stepNum === stepNumber) {
+                            step.classList.add('active');
+                        } else if (stepNum < stepNumber) {
+                            step.classList.add('completed');
+                        }
+                    });
+                    
+                    // Afficher la section correspondante
+                    formSections.forEach(section => {
+                        section.classList.remove('active');
+                        if (parseInt(section.getAttribute('data-step')) === stepNumber) {
+                            section.classList.add('active');
+                        }
+                    });
+                    
+                    // Mettre à jour la barre de progression
+                    updateProgress(stepNumber);
+                    
+                    // Mettre à jour l'étape actuelle
+                    currentStep = stepNumber;
+                    
+                    // Scroll vers le haut avec une animation fluide
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                    
+                    return true;
+                }
+                
+                // Validation de l'étape actuelle
+                function validateCurrentStep() {
+                    let isValid = true;
+                    const currentSection = document.querySelector(`.form-section[data-step="${currentStep}"]`);
+                    
+                    // Logique de validation spécifique à chaque étape
+                    if (currentStep === 1) {
+                        // Étape 1 : Optionnelle, permettre de continuer sans fichier
+                        return true;
+                    } else if (currentStep === 2) {
+                        // Étape 2 : Vérifier les champs obligatoires
+                        const requiredFields = [
+                            { field: document.getElementById('company-name'), label: 'Nom de la structure' },
+                            { field: document.getElementById('company-address'), label: 'Adresse complète' },
+                            { field: document.getElementById('company-size'), label: 'Taille de la structure' }
+                        ];
+                        
+                        isValid = validateRequiredFields(requiredFields);
+                    } else if (currentStep === 3) {
+                        // Étape 3 : Vérifier si l'utilisateur a un poste à pourvoir
+                        const hasJob = document.querySelector('input[name="has-job"]:checked').value;
+                        
+                        if (hasJob === 'yes') {
+                            const requiredFields = [
+                                { field: document.getElementById('recruitment-deadline'), label: 'Délai de recrutement' },
+                                { field: document.getElementById('recruitment-context'), label: 'Contexte de recrutement' },
+                                { field: document.getElementById('experience-required'), label: 'Années d\'expérience requises' },
+                                { field: document.getElementById('work-environment'), label: 'Environnement de travail' },
+                                { field: document.getElementById('contract-type'), label: 'Type de contrat' }
+                            ];
+                            
+                            isValid = validateRequiredFields(requiredFields);
+                        }
+                    } else if (currentStep === 4) {
+                        // Étape 4 : Vérifier les informations de contact
+                        const requiredFields = [
+                            { field: document.getElementById('contact-name'), label: 'Nom du contact' },
+                            { field: document.getElementById('contact-email'), label: 'Email du contact' }
+                        ];
+                        
+                        isValid = validateRequiredFields(requiredFields);
+                        
+                        // Validation supplémentaire pour l'email
+                        if (isValid) {
+                            const emailField = document.getElementById('contact-email');
+                            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                            
+                            if (!emailPattern.test(emailField.value)) {
+                                showNotification('Veuillez entrer une adresse email valide', 'error');
+                                highlightInvalidField(emailField);
+                                isValid = false;
+                            }
+                        }
+                    }
+                    
+                    return isValid;
+                }
+                
+                // Validation des champs obligatoires
+                function validateRequiredFields(fields) {
+                    let isValid = true;
+                    const invalidFields = [];
+                    
+                    fields.forEach(item => {
+                        if (!item.field.value.trim()) {
+                            invalidFields.push(item);
+                            highlightInvalidField(item.field);
+                            isValid = false;
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        const fieldNames = invalidFields.map(item => item.label).join(', ');
+                        showNotification(`Veuillez remplir les champs obligatoires : ${fieldNames}`, 'error');
+                    }
+                    
+                    return isValid;
+                }
+                
+                // Mise en évidence des champs invalides
+                function highlightInvalidField(field) {
+                    field.classList.add('shake');
+                    field.style.borderColor = 'var(--error)';
+                    
+                    field.addEventListener('input', function() {
+                        this.style.borderColor = '';
+                    }, { once: true });
+                    
+                    // Supprimer la classe d'animation après qu'elle soit terminée
+                    setTimeout(() => {
+                        field.classList.remove('shake');
+                    }, 500);
+                }
+                
+                // Navigation par les boutons
+                document.querySelectorAll('.next-step, .prev-step').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const targetStep = parseInt(this.getAttribute('data-step'));
+                        navigateToStep(targetStep);
+                    });
+                });
+                
+                // Navigation par les indicateurs d'étape
+                steps.forEach(step => {
+                    step.addEventListener('click', function() {
+                        const clickedStep = parseInt(this.getAttribute('data-step'));
+                        
+                        // Permettre uniquement de cliquer sur les étapes déjà complétées ou l'étape suivante
+                        if (clickedStep <= currentStep || clickedStep === currentStep + 1) {
+                            navigateToStep(clickedStep);
+                        }
+                    });
+                    
+                    // Support du clavier pour l'accessibilité
+                    step.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const clickedStep = parseInt(this.getAttribute('data-step'));
+                            
+                            if (clickedStep <= currentStep || clickedStep === currentStep + 1) {
+                                navigateToStep(clickedStep);
+                            }
+                        }
+                    });
+                });
+                
+                // Gestion du formulaire
+                const form = document.getElementById('client-questionnaire-form');
+                const confirmationEmail = document.getElementById('confirmation-email');
+                
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Dernière validation des champs obligatoires
+                    if (!validateCurrentStep()) {
+                        return;
+                    }
+                    
+                    // Simuler l'envoi du formulaire
+                    const submitButton = document.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+                    
+                    // Simuler un délai d'envoi
+                    setTimeout(() => {
+                        // Afficher la confirmation avec l'email
+                        confirmationEmail.textContent = document.getElementById('contact-email').value;
+                        
+                        // Naviguer vers l'étape de confirmation
+                        navigateToStep(5);
+                    }, 1500);
+                });
+                
+                // Gestion de la zone de drop pour les fichiers
+                const dropZone = document.getElementById('job-drop-zone');
+                const fileInput = document.getElementById('job-file-input');
+                const fileBadge = document.getElementById('file-badge');
+                const fileName = document.getElementById('file-name');
+                const removeFile = document.getElementById('remove-file');
+                
+                // Prévenir le comportement par défaut pour permettre le drop
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+                });
+                
+                // Ajouter/supprimer la classe active pendant le drag
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, function() {
+                        this.classList.add('drag-active');
+                    });
+                });
+                
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, function() {
+                        this.classList.remove('drag-active');
+                    });
+                });
+                
+                // Gérer le drop de fichier
+                dropZone.addEventListener('drop', function(e) {
+                    if (e.dataTransfer.files.length) {
+                        handleFile(e.dataTransfer.files[0]);
+                    }
+                });
+                
+                // Gérer la sélection de fichier par le bouton
+                fileInput.addEventListener('change', function() {
+                    if (this.files.length) {
+                        handleFile(this.files[0]);
+                    }
+                });
+                
+                // Gérer la suppression du fichier
+                removeFile.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    fileInput.value = '';
+                    fileBadge.style.display = 'none';
+                    showNotification('Fichier supprimé', 'info');
+                });
+                
+                // Fonction pour gérer le fichier sélectionné
+                function handleFile(file) {
+                    // Vérifier la taille du fichier (max 5MB)
+                    const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+                    
+                    if (file.size > maxSizeInBytes) {
+                        showNotification('Le fichier est trop volumineux. La taille maximale est de 5MB.', 'error');
+                        return;
+                    }
+                    
+                    // Vérifier le type de fichier
+                    const acceptedTypes = [
+                        'application/pdf',
+                        'application/msword',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'text/plain'
+                    ];
+                    
+                    if (!acceptedTypes.includes(file.type)) {
+                        showNotification('Format de fichier non supporté. Veuillez utiliser PDF, DOC, DOCX ou TXT.', 'error');
+                        return;
+                    }
+                    
+                    // Afficher le badge de fichier
+                    fileName.textContent = file.name;
+                    fileBadge.style.display = 'inline-flex';
+                    showNotification('Fichier sélectionné avec succès', 'success');
+                }
+                
+                // Gestion des tags pour les avantages
+                const benefitInput = document.getElementById('benefit-input');
+                const benefitsContainer = document.getElementById('benefits-container');
+                const addTagBtn = document.querySelector('.add-tag-btn');
+                
+                // Ajouter un tag par appui sur Entrée
+                benefitInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addBenefitFromInput();
+                    }
+                });
+                
+                // Ajouter un tag par clic sur le bouton
+                addTagBtn.addEventListener('click', function() {
+                    addBenefitFromInput();
+                });
+                
+                function addBenefitFromInput() {
+                    const benefit = benefitInput.value.trim();
+                    
+                    if (benefit) {
+                        addBenefitTag(benefit);
+                        benefitInput.value = '';
+                        benefitInput.focus();
+                    }
+                }
+                
+                function addBenefitTag(text) {
+                    const tag = document.createElement('div');
+                    tag.className = 'tag';
+                    tag.innerHTML = `${text} <i class="fas fa-times"></i>`;
+                    
+                    tag.querySelector('i').addEventListener('click', function() {
+                        benefitsContainer.removeChild(tag);
+                    });
+                    
+                    benefitsContainer.appendChild(tag);
+                }
+                
+                // Gestion des sections conditionnelles
+                const hasJobRadios = document.querySelectorAll('input[name="has-job"]');
+                const jobDetailsSection = document.getElementById('job-details-section');
+                
+                hasJobRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.value === 'yes') {
+                            jobDetailsSection.classList.add('visible');
+                        } else {
+                            jobDetailsSection.classList.remove('visible');
+                        }
+                    });
+                });
+                
+                const canHandleNoticeRadios = document.querySelectorAll('input[name="can-handle-notice"]');
+                const noticePeriodSection = document.getElementById('notice-period-section');
+                
+                canHandleNoticeRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.value === 'yes') {
+                            noticePeriodSection.classList.add('visible');
+                        } else {
+                            noticePeriodSection.classList.remove('visible');
+                        }
+                    });
+                });
+                
+                const sectorKnowledgeRadios = document.querySelectorAll('input[name="sector-knowledge"]');
+                const sectorSelectSection = document.getElementById('sector-select-section');
+                
+                sectorKnowledgeRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.value === 'yes') {
+                            sectorSelectSection.classList.add('visible');
+                        } else {
+                            sectorSelectSection.classList.remove('visible');
+                        }
+                    });
+                });
+                
+                // Génération de présentation à partir du site web
+                const generatePresentationButton = document.getElementById('generate-presentation');
+                const generatedPresentation = document.getElementById('generated-presentation');
+                const companyWebsite = document.getElementById('company-website');
+                const companyPresentation = document.getElementById('company-presentation');
+                
+                generatePresentationButton.addEventListener('click', function() {
+                    if (!companyWebsite.value) {
+                        showNotification("Veuillez d'abord saisir l'URL de votre site web", "error");
+                        return;
+                    }
+                    
+                    // Simuler le chargement
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
+                    
+                    // Simuler un délai d'API
+                    setTimeout(() => {
+                        // Texte généré basé sur l'URL fournie
+                        const domain = companyWebsite.value.replace('https://', '').replace('www.', '').split('/')[0];
+                        
+                        const exampleText = `${domain} est une entreprise innovante spécialisée dans le développement de solutions digitales. Fondée en 2015, l'entreprise s'est rapidement développée pour devenir un acteur majeur dans son domaine. Notre mission est de fournir des solutions technologiques performantes et adaptées aux besoins spécifiques de nos clients, en mettant l'accent sur l'innovation et l'excellence technique.`;
+                        
+                        // Mettre à jour le contenu généré
+                        generatedPresentation.innerHTML = `<p>${exampleText}</p>`;
+                        generatedPresentation.classList.add('visible');
+                        
+                        // Mettre également le texte dans le textarea
+                        companyPresentation.value = exampleText;
+                        
+                        // Réinitialiser le bouton
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-magic"></i> Générer à partir du site web';
+                        
+                        showNotification("Présentation générée avec succès !", "success");
+                    }, 1500);
+                });
+                
+                // Chargement des données parsées depuis la page job-form.html
+                function loadParsedJobData() {
+                    try {
+                        // Essayer d'abord sessionStorage (recommended)
+                        let parsedJobData = sessionStorage.getItem('parsedJobData');
+                        
+                        // Si rien dans sessionStorage, essayer localStorage (fallback)
+                        if (!parsedJobData) {
+                            parsedJobData = localStorage.getItem('parsedJobData');
+                            if (parsedJobData) {
+                                showDebugMessage('Données trouvées dans localStorage, mais pas dans sessionStorage');
+                            }
+                        }
+                        
+                        if (parsedJobData) {
+                            showDebugMessage('Parsing des données...');
+                            const jobData = JSON.parse(parsedJobData);
+                            
+                            // Remplir les informations de l'étape 1
+                            if (jobData.title && jobData.title !== 'Unknown Position') {
+                                document.getElementById('job-title-value').textContent = jobData.title;
+                                showDebugMessage('Titre défini: ' + jobData.title);
+                            }
+                            
+                            if (jobData.company && jobData.company !== 'Unknown Company') {
+                                document.getElementById('job-contract-value').textContent = 'À déterminer';
+                                // Pré-remplir le nom de l'entreprise dans l'étape 2
+                                document.getElementById('company-name').value = jobData.company;
+                                showDebugMessage('Entreprise définie: ' + jobData.company);
+                            }
+                            
+                            if (jobData.location && jobData.location !== 'Unknown Location') {
+                                document.getElementById('job-location-value').textContent = jobData.location;
+                                showDebugMessage('Lieu défini: ' + jobData.location);
+                            }
+                            
+                            if (jobData.experience && jobData.experience !== 'Not specified') {
+                                document.getElementById('job-experience-value').textContent = jobData.experience;
+                                showDebugMessage('Expérience définie: ' + jobData.experience);
+                                
+                                // Pré-sélectionner l'expérience dans l'étape 3
+                                const experienceSelect = document.getElementById('experience-required');
+                                if (jobData.experience.includes('Entry')) {
+                                    experienceSelect.value = 'junior';
+                                } else if (jobData.experience.includes('2') || jobData.experience.includes('3')) {
+                                    experienceSelect.value = '2-3';
+                                } else if (jobData.experience.includes('5') || 
+                                        jobData.experience.includes('6') || 
+                                        jobData.experience.includes('7') || 
+                                        jobData.experience.includes('8') || 
+                                        jobData.experience.includes('9')) {
+                                    experienceSelect.value = '5-10';
+                                } else if (jobData.experience.includes('10') || 
+                                        jobData.experience.includes('Senior')) {
+                                    experienceSelect.value = '10+';
+                                }
+                            }
+                            
+                            document.getElementById('job-education-value').textContent = 'À déterminer';
+                            
+                            if (jobData.salary && jobData.salary !== 'Not specified') {
+                                document.getElementById('job-salary-value').textContent = jobData.salary;
+                                // Pré-remplir le salaire dans l'étape 3
+                                document.getElementById('salary').value = jobData.salary;
+                                showDebugMessage('Salaire défini: ' + jobData.salary);
+                            }
+                            
+                            if (jobData.skills && Array.isArray(jobData.skills) && jobData.skills.length > 0 && jobData.skills[0] !== 'Not specified') {
+                                document.getElementById('job-skills-value').innerHTML = jobData.skills.map(skill => 
+                                    `<span class="tag">${skill}</span>`
+                                ).join('');
+                                showDebugMessage('Compétences définies: ' + jobData.skills.join(', '));
+                            }
+                            
+                            if (jobData.responsibilities && Array.isArray(jobData.responsibilities) && jobData.responsibilities.length > 0 && jobData.responsibilities[0] !== 'Not specified') {
+                                document.getElementById('job-responsibilities-value').innerHTML = '<ul>' + 
+                                    jobData.responsibilities.map(resp => `<li>${resp}</li>`).join('') + 
+                                    '</ul>';
+                                showDebugMessage('Responsabilités définies: ' + jobData.responsibilities.length + ' éléments');
+                            }
+                            
+                            if (jobData.benefits && Array.isArray(jobData.benefits) && jobData.benefits.length > 0 && jobData.benefits[0] !== 'Not specified') {
+                                document.getElementById('job-benefits-value').innerHTML = '<ul>' + 
+                                    jobData.benefits.map(benefit => `<li>${benefit}</li>`).join('') + 
+                                    '</ul>';
+                                
+                                // Ajouter les avantages dans l'étape 3
+                                jobData.benefits.forEach(benefit => {
+                                    addBenefitTag(benefit);
+                                });
+                                showDebugMessage('Avantages définis: ' + jobData.benefits.join(', '));
+                            }
+                            
+                            // Afficher le conteneur des informations extraites
+                            document.getElementById('job-info-container').style.display = 'block';
+                            showDebugMessage('Affichage du conteneur d\'informations');
+                        } else {
+                            showDebugMessage('Aucune donnée trouvée dans le sessionStorage ou localStorage');
+                        }
+                    } catch (error) {
+                        showDebugMessage('Erreur lors du chargement des données: ' + error.message);
+                    }
+                }
+                
+                // Appeler la fonction pour charger les données
+                loadParsedJobData();
+                
+                // Affichage des notifications
+                function showNotification(message, type = 'success') {
+                    const notification = document.getElementById('notification');
+                    const notificationIcon = notification.querySelector('.notification-icon i');
+                    const notificationTitle = notification.querySelector('.notification-title');
+                    const notificationMessage = notification.querySelector('.notification-message');
+                    
+                    // Définir le type de notification
+                    notification.className = 'notification';
+                    notification.classList.add(type);
+                    
+                    // Définir l'icône en fonction du type
+                    notificationIcon.className = '';
+                    if (type === 'success') {
+                        notificationIcon.className = 'fas fa-check-circle';
+                        notificationTitle.textContent = 'Succès';
+                    } else if (type === 'error') {
+                        notificationIcon.className = 'fas fa-exclamation-circle';
+                        notificationTitle.textContent = 'Erreur';
+                    } else if (type === 'info') {
+                        notificationIcon.className = 'fas fa-info-circle';
+                        notificationTitle.textContent = 'Information';
+                    }
+                    
+                    // Définir le message
+                    notificationMessage.textContent = message;
+                    
+                    // Afficher la notification
+                    notification.style.display = 'flex';
+                    setTimeout(() => {
+                        notification.classList.add('show');
+                    }, 10);
+                    
+                    // Masquer la notification après un délai
+                    const timeout = setTimeout(() => {
+                        hideNotification();
+                    }, 5000);
+                    
+                    // Permettre de fermer la notification manuellement
+                    const closeButton = notification.querySelector('.notification-close');
+                    closeButton.addEventListener('click', () => {
+                        clearTimeout(timeout);
+                        hideNotification();
+                    });
+                    
+                    function hideNotification() {
+                        notification.classList.remove('show');
+                        setTimeout(() => {
+                            notification.style.display = 'none';
+                        }, 300);
+                    }
+                }
+                
+                // Exposer la fonction showNotification globalement
+                window.showNotification = showNotification;
+                
+                // Initialiser la barre de progression
+                updateProgress(currentStep);
+                
+                // Ajouter un bouton pour analyser le texte
+                const analyzeButton = document.getElementById('analyze-job-text');
+                const jobDescriptionText = document.getElementById('job-description-text');
+                
+                analyzeButton.addEventListener('click', function() {
+                    const text = jobDescriptionText.value.trim();
+                    
+                    if (!text) {
+                        showNotification("Veuillez entrer une fiche de poste à analyser", "error");
+                        return;
+                    }
+                    
+                    try {
+                        // Afficher le loader pendant l'analyse
+                        document.getElementById('analysis-loader').style.display = 'flex';
+                        
+                        // Simuler un léger délai pour l'analyse
+                        setTimeout(() => {
+                            try {
+                                // Analyser le texte
+                                const parsedData = window.JobParser.parseJobDescription(text);
+                                
+                                // Masquer le loader
+                                document.getElementById('analysis-loader').style.display = 'none';
+                                
+                                // Sauvegarder dans sessionStorage
+                                sessionStorage.setItem('parsedJobData', JSON.stringify(parsedData));
+                                
+                                // Recharger les données
+                                loadParsedJobData();
+                                
+                                showNotification("Fiche de poste analysée avec succès !", "success");
+                            } catch (error) {
+                                // Masquer le loader en cas d'erreur
+                                document.getElementById('analysis-loader').style.display = 'none';
+                                showDebugMessage("Erreur lors de l'analyse: " + error.message);
+                                showNotification("Erreur lors de l'analyse de la fiche de poste.", "error");
+                            }
+                        }, 800);
+                    } catch (error) {
+                        // Masquer le loader en cas d'erreur
+                        document.getElementById('analysis-loader').style.display = 'none';
+                        showDebugMessage("Erreur lors de l'analyse: " + error.message);
+                        showNotification("Erreur lors de l'analyse de la fiche de poste.", "error");
+                    }
+                });
+                
+                // Activer le mode debug pour la version test
+                activateDebugMode();
+            }
         });
     </script>
-    
-    <!-- IMPORTANT: Inclusion du script d'intégration du parsing de fiche de poste -->
-    <script src="../static/scripts/job-parser-integration.js"></script>
 </body>
 </html>
