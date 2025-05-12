@@ -7,7 +7,9 @@
 // Configuration de base 
 const GPT_ANALYZE_CONFIG = {
     // URL de l'API de parsing, à adapter selon l'environnement
-    apiUrl: 'http://localhost:5055/api/parse-job', // URL par défaut, sera remplacée si configurée ailleurs
+    apiUrl: 'https://api.openai.com/v1/chat/completions',
+    apiKey: '', // Laissé vide intentionnellement, sera fourni via paramètre URL ou config
+    model: 'gpt-3.5-turbo', // Modèle GPT à utiliser
     debug: false,
     useLocalFallback: true
 };
@@ -167,13 +169,130 @@ function readFileAsText(file) {
 
 // Fonction pour envoyer la fiche de poste à l'API de parsing GPT
 async function parseJobPostingWithGpt(jobText, file = null) {
-    // Vérifier si nous avons le code GPT CLI directement intégré
-    if (typeof parseJobWithGptLocally === 'function') {
-        // Utiliser la fonction locale si elle existe
-        return parseJobWithGptLocally(jobText);
+    // Création d'un prompt pour analyser la fiche de poste
+    const prompt = `Extrais les informations clés de cette fiche de poste pour un parser automatique. 
+    Pour chaque champ, cherche les informations pertinentes et les retourne au format précis.
+    
+    Voici la fiche de poste à analyser:
+    ${jobText}
+    
+    Retourne les informations au format JSON suivant:
+    {
+        "title": "Titre du poste",
+        "company": "Nom de l'entreprise",
+        "location": "Localisation du poste",
+        "contract_type": "Type de contrat (CDI, CDD, etc.)",
+        "skills": ["Compétence 1", "Compétence 2", ...],
+        "experience": "Niveau d'expérience requis",
+        "education": "Formation requise",
+        "salary": "Salaire proposé",
+        "responsibilities": ["Responsabilité 1", "Responsabilité 2", ...],
+        "benefits": ["Avantage 1", "Avantage 2", ...]
     }
     
-    // Sinon, faire un appel API 
+    Si certaines informations ne sont pas trouvées, utilise une valeur par défaut comme une chaîne vide ou un tableau vide.
+    Réponds uniquement avec le JSON, sans aucun texte supplémentaire.`;
+    
+    try {
+        // Vérifier si nous utilisons l'API OpenAI directement ou un backend personnalisé
+        const apiKey = getApiKey();
+        if (!apiKey && !isUsingCustomBackend()) {
+            throw new Error("Clé API non configurée. Veuillez fournir une clé API via les paramètres d'URL (apiKey=...)");
+        }
+        
+        // Déterminer l'URL de l'API à utiliser
+        const apiUrl = determineApiUrl();
+        
+        // Log de debug
+        if (GPT_ANALYZE_CONFIG.debug) {
+            console.log('Calling API:', apiUrl);
+            console.log('Model:', GPT_ANALYZE_CONFIG.model);
+        }
+        
+        // Si nous utilisons un backend personnalisé, envoyer une requête différente
+        if (isUsingCustomBackend()) {
+            return await callCustomBackend(apiUrl, jobText, file);
+        }
+        
+        // Construction de la requête pour l'API OpenAI
+        const requestBody = {
+            model: GPT_ANALYZE_CONFIG.model,
+            messages: [
+                { role: "system", content: "Tu es un assistant spécialisé dans l'analyse de fiches de poste. Tu réponds uniquement au format JSON." },
+                { role: "user", content: prompt }
+            ],
+            temperature: 0.2 // Réduire la créativité pour des résultats plus précis
+        };
+        
+        // Options de la requête
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(requestBody)
+        };
+        
+        // Appel à l'API OpenAI
+        const response = await fetch(apiUrl, requestOptions);
+        
+        // Vérifier la réponse
+        if (!response.ok) {
+            const errorResponse = await response.json();
+            throw new Error(`Erreur API (${response.status}): ${errorResponse.error?.message || 'Erreur inconnue'}`);
+        }
+        
+        // Récupérer la réponse
+        const responseData = await response.json();
+        
+        // Extraire le contenu JSON de la réponse
+        let parsedResult;
+        try {
+            // Vérifier si la réponse de l'API est déjà au format JSON
+            if (responseData.choices && responseData.choices.length > 0) {
+                const contentText = responseData.choices[0].message.content;
+                
+                // Tenter d'extraire un JSON valide du texte
+                const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    parsedResult = JSON.parse(jsonMatch[0]);
+                } else {
+                    parsedResult = JSON.parse(contentText); // Essayer de parser tout le contenu
+                }
+            } else if (responseData.result) {
+                // Format d'API personnalisée qui renvoie directement un résultat
+                parsedResult = responseData.result;
+            } else {
+                // En dernier recours, supposer que la réponse entière est le JSON
+                parsedResult = responseData;
+            }
+        } catch (error) {
+            console.error('Erreur lors du parsing du JSON:', error);
+            throw new Error('Le résultat de l\'analyse GPT n\'est pas au format JSON attendu');
+        }
+        
+        if (GPT_ANALYZE_CONFIG.debug) {
+            console.log('Parsed result:', parsedResult);
+        }
+        
+        return parsedResult;
+    } catch (error) {
+        console.error('Erreur lors de l\'analyse avec GPT:', error);
+        throw error;
+    }
+}
+
+// Fonction pour déterminer si on utilise un backend personnalisé
+function isUsingCustomBackend() {
+    // Vérifier si l'URL contient un chemin d'API personnalisé
+    const apiUrl = determineApiUrl();
+    return !apiUrl.includes('api.openai.com');
+}
+
+// Fonction pour appeler un backend personnalisé
+async function callCustomBackend(apiUrl, jobText, file) {
+    // Créer un objet FormData pour l'envoi de données
     const formData = new FormData();
     
     if (file) {
@@ -182,36 +301,40 @@ async function parseJobPostingWithGpt(jobText, file = null) {
         formData.append('text', jobText);
     }
     
-    // Déterminer l'URL de l'API
-    const apiUrl = determineApiUrl();
+    // Options de la requête
+    const requestOptions = {
+        method: 'POST',
+        body: formData
+    };
     
     // Log de debug
     if (GPT_ANALYZE_CONFIG.debug) {
-        console.log('Calling API:', apiUrl);
-        console.log('With data:', file ? 'File: ' + file.name : 'Text length: ' + jobText.length);
+        console.log('Calling custom backend:', apiUrl);
     }
     
-    // Appel à l'API de parsing
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        body: formData,
-    });
+    // Appel au backend
+    const response = await fetch(apiUrl, requestOptions);
     
     // Vérifier la réponse
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Erreur ${response.status}: ${errorText}`);
+        throw new Error(`Erreur backend (${response.status}): ${errorText}`);
     }
     
-    // Analyser la réponse JSON
-    const result = await response.json();
-    
-    // Log de debug
-    if (GPT_ANALYZE_CONFIG.debug) {
-        console.log('API Response:', result);
+    // Récupérer la réponse
+    return await response.json();
+}
+
+// Fonction pour récupérer la clé API à partir des paramètres ou de la configuration
+function getApiKey() {
+    // Vérifier d'abord dans les paramètres d'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('apiKey')) {
+        return urlParams.get('apiKey');
     }
     
-    return result;
+    // Sinon, utiliser la clé configurée
+    return GPT_ANALYZE_CONFIG.apiKey;
 }
 
 // Fonction pour déterminer l'URL de l'API
@@ -219,7 +342,12 @@ function determineApiUrl() {
     // Vérifier si l'URL est définie dans l'URL de la page
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('apiUrl')) {
-        return urlParams.get('apiUrl') + '/api/parse-job';
+        // Si c'est une URL complète, l'utiliser directement
+        const apiUrlParam = urlParams.get('apiUrl');
+        if (apiUrlParam.startsWith('http')) {
+            return apiUrlParam.endsWith('/api/parse-job') ? apiUrlParam : `${apiUrlParam}/api/parse-job`;
+        }
+        return `http://${apiUrlParam}/api/parse-job`;
     }
     
     // Sinon, utiliser la configuration par défaut
@@ -249,7 +377,7 @@ function saveParsingResults(result) {
 // Fonction pour formater les résultats du parsing au format attendu par l'interface
 function formatParsingResult(result) {
     // Si le résultat est déjà au bon format, le retourner directement
-    if (result.job_info || result.title || result.skills) {
+    if (result.title || result.skills) {
         return result;
     }
     
@@ -258,7 +386,7 @@ function formatParsingResult(result) {
     if (result.job_info) {
         const jobInfo = result.job_info;
         return {
-            title: jobInfo.titre_poste || '',
+            title: jobInfo.titre_poste || jobInfo.titre || '',
             company: jobInfo.entreprise || '',
             location: jobInfo.localisation || '',
             contract_type: jobInfo.type_contrat || '',
@@ -277,17 +405,17 @@ function formatParsingResult(result) {
     
     // Adapter d'autres formats si nécessaire
     return {
-        title: result.title || result.titre_poste || '',
+        title: result.title || result.titre_poste || result.titre || '',
         company: result.company || result.entreprise || '',
         location: result.location || result.localisation || '',
         contract_type: result.contract_type || result.type_contrat || '',
-        skills: result.skills || result.competences || [],
+        skills: (result.skills || result.competences || []).filter(Boolean),
         experience: result.experience || '',
         education: result.education || result.formation || '',
         salary: result.salary || result.salaire || '',
         description: result.description || '',
-        responsibilities: result.responsibilities || [],
-        benefits: result.benefits || []
+        responsibilities: (result.responsibilities || []).filter(Boolean),
+        benefits: (result.benefits || []).filter(Boolean)
     };
 }
 
@@ -357,14 +485,6 @@ function displayParsingResults(result) {
     }
 }
 
-// Fonction locale pour analyser une fiche de poste avec GPT (si l'API n'est pas disponible)
-function parseJobWithGptLocally(jobText) {
-    // Cette fonction est intentionnellement laissée vide, elle sera remplacée par l'implémentation du client
-    // Si vous souhaitez implémenter une analyse locale avec JavaScript pur, faites-le ici
-    console.warn('Local GPT analysis not implemented');
-    throw new Error('Local GPT analysis not implemented');
-}
-
 // Initialiser l'analyse GPT lorsque la page est chargée
 document.addEventListener('DOMContentLoaded', function() {
     // Initialiser le bouton d'analyse GPT
@@ -381,8 +501,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Configurer l'URL de l'API si fournie
     if (urlParams.has('apiUrl')) {
-        GPT_ANALYZE_CONFIG.apiUrl = urlParams.get('apiUrl');
-        console.log('GPT Analyze API URL set to:', GPT_ANALYZE_CONFIG.apiUrl);
+        // Ne pas modifier l'URL directement ici, utiliser determineApiUrl() pour l'obtenir
+        console.log('GPT Analyze API URL set from URL parameters');
+    }
+    
+    // Configurer la clé API si fournie
+    if (urlParams.has('apiKey')) {
+        GPT_ANALYZE_CONFIG.apiKey = urlParams.get('apiKey');
+        console.log('GPT Analyze API Key set from URL parameters');
+    }
+    
+    // Configurer le modèle si fourni
+    if (urlParams.has('model')) {
+        GPT_ANALYZE_CONFIG.model = urlParams.get('model');
+        console.log('GPT Analyze Model set to:', GPT_ANALYZE_CONFIG.model);
     }
     
     console.log('GPT Analyze initialized');
