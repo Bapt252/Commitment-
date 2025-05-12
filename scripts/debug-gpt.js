@@ -1,193 +1,178 @@
-// Script de débogage pour le bouton Analyser avec GPT
-console.log("Script de débogage chargé");
+/**
+ * Module d'initialisation du backend GPT Parse Job Posting
+ * Ce fichier assure la connexion entre le frontend et l'API de parsing GPT
+ */
 
-// Fonction pour ajouter manuellement le bouton GPT
-function addGptButton() {
-    console.log("Tentative d'ajout du bouton GPT");
+// Fonction d'initialisation exécutée quand le DOM est chargé
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('[DEBUG-GPT] Initialisation du module de parsing GPT');
     
-    // Trouver le champ de téléchargement de fichier
-    const fileInput = document.querySelector('input[type="file"]');
-    console.log("Champ de fichier trouvé:", fileInput);
-    
-    if (fileInput) {
-        // Créer le conteneur pour le bouton
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'gpt-analyze-btn-container';
-        buttonContainer.style.marginTop = '10px';
-        
-        // Créer le bouton
-        const analyzeButton = document.createElement('button');
-        analyzeButton.type = 'button';
-        analyzeButton.id = 'analyze-with-gpt';
-        analyzeButton.className = 'btn btn-primary';
-        analyzeButton.innerText = 'Analyser avec GPT';
-        analyzeButton.style.marginRight = '10px';
-        analyzeButton.style.padding = '8px 16px';
-        analyzeButton.style.backgroundColor = '#4CAF50';
-        analyzeButton.style.color = 'white';
-        analyzeButton.style.border = 'none';
-        analyzeButton.style.borderRadius = '4px';
-        analyzeButton.style.cursor = 'pointer';
-        
-        // Ajouter le bouton au conteneur
-        buttonContainer.appendChild(analyzeButton);
-        
-        // Créer un élément pour afficher le statut du traitement
-        const statusElement = document.createElement('span');
-        statusElement.id = 'gpt-analyze-status';
-        statusElement.style.marginLeft = '10px';
-        statusElement.style.fontStyle = 'italic';
-        buttonContainer.appendChild(statusElement);
-        
-        // Insérer le conteneur après le champ de fichier
-        const uploadContainer = document.querySelector('.upload-container');
-        if (uploadContainer) {
-            uploadContainer.appendChild(buttonContainer);
-            console.log("Bouton GPT ajouté avec succès");
-        } else {
-            console.error("Container d'upload non trouvé");
-            // Alternative: insérer après le champ de fichier
-            fileInput.parentNode.insertBefore(buttonContainer, fileInput.nextSibling);
-        }
-        
-        // Ajouter l'écouteur d'événement au bouton
-        analyzeButton.addEventListener('click', function() {
-            console.log("Bouton Analyser avec GPT cliqué");
-            handleGptAnalysis();
-        });
-    } else {
-        console.error("Champ de fichier non trouvé");
-    }
-}
-
-// Fonction pour gérer l'analyse GPT
-async function handleGptAnalysis() {
-    console.log("Début de l'analyse GPT");
-    const fileInput = document.querySelector('input[type="file"]');
-    const statusElement = document.getElementById('gpt-analyze-status');
-    
-    if (statusElement) {
-        statusElement.textContent = 'Analyse en cours...';
-        statusElement.style.color = 'blue';
-    }
-    
-    // Vérifier si un fichier a été sélectionné
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert('Veuillez d\'abord sélectionner un fichier de fiche de poste.');
-        console.error("Aucun fichier sélectionné");
-        if (statusElement) {
-            statusElement.textContent = 'Erreur: Aucun fichier sélectionné';
-            statusElement.style.color = 'red';
-        }
-        return;
-    }
-    
-    const file = fileInput.files[0];
-    console.log("Fichier sélectionné:", file.name, file.type, file.size);
-    
-    // Préparation des données pour l'envoi
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    // Récupérer l'URL de l'API
+    // Récupération de l'URL de l'API à partir des paramètres d'URL
     const urlParams = new URLSearchParams(window.location.search);
     let apiUrl = urlParams.get('apiUrl') || 'http://localhost:5055';
-    apiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    const debugMode = urlParams.has('debug');
     
-    console.log("URL de l'API:", apiUrl);
+    // Logs de débogage si le mode debug est activé
+    if (debugMode) {
+        console.log('[DEBUG-GPT] Mode debug activé');
+        console.log('[DEBUG-GPT] API URL:', apiUrl);
+    }
     
+    // S'assurer que l'API URL est bien formatée
+    if (!apiUrl.startsWith('http')) {
+        apiUrl = 'http://' + apiUrl;
+    }
+    
+    // Stocker l'URL de l'API pour qu'elle soit accessible globalement
+    window.gptApiUrl = apiUrl;
+    
+    // Enregistrement de l'événement de chargement de page
+    logEvent('page_loaded', { page: window.location.pathname });
+    
+    // Vérification du statut de l'API
+    checkApiStatus();
+});
+
+/**
+ * Vérifie si l'API est accessible
+ */
+async function checkApiStatus() {
     try {
-        console.log("Envoi de la requête à", `${apiUrl}/api/parse-job-posting`);
+        const apiUrl = window.gptApiUrl;
+        const healthEndpoint = `${apiUrl}/api/health`;
         
-        // Appeler l'API de parsing
-        const response = await fetch(`${apiUrl}/api/parse-job-posting`, {
-            method: 'POST',
-            body: formData,
-            // Ajout des en-têtes CORS explicites
-            mode: 'cors',
-            credentials: 'include'
+        console.log('[DEBUG-GPT] Vérification du statut de l\'API:', healthEndpoint);
+        
+        const response = await fetch(healthEndpoint, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            },
+            signal: AbortSignal.timeout(3000) // Timeout de 3 secondes
         });
         
-        console.log("Réponse reçue:", response.status, response.statusText);
-        
-        // Vérifier si la requête a réussi
-        if (!response.ok) {
-            let errorMessage = 'Erreur lors de l\'analyse du document';
-            try {
-                const errorData = await response.json();
-                console.error("Détails de l'erreur:", errorData);
-                errorMessage = errorData.detail || errorMessage;
-            } catch (e) {
-                console.error("Impossible de parser l'erreur JSON:", e);
-            }
-            throw new Error(errorMessage);
-        }
-        
-        // Récupérer les données
-        const result = await response.json();
-        console.log("Résultat de l'analyse:", result);
-        
-        if (result.success && result.data) {
-            console.log("Données extraites avec succès:", result.data);
+        if (response.ok) {
+            const data = await response.json();
+            console.log('[DEBUG-GPT] API accessible:', data);
             
-            // Afficher les données dans l'interface
-            document.getElementById('job-title-value').textContent = result.data.titre || 'Non spécifié';
-            document.getElementById('job-contract-value').textContent = result.data.type_contrat || 'Non spécifié';
-            document.getElementById('job-location-value').textContent = result.data.localisation || 'Non spécifié';
-            document.getElementById('job-experience-value').textContent = result.data.experience || 'Non spécifié';
-            document.getElementById('job-education-value').textContent = result.data.formation || 'À déterminer';
-            document.getElementById('job-salary-value').textContent = result.data.salaire || 'Non spécifié';
+            // Déclencher un événement personnalisé pour informer l'application
+            const event = new CustomEvent('gptApiReady', { 
+                detail: { 
+                    url: window.gptApiUrl,
+                    status: data
+                } 
+            });
+            window.dispatchEvent(event);
             
-            // Afficher les compétences
-            if (result.data.competences) {
-                if (typeof result.data.competences === 'string') {
-                    // Si c'est une chaîne de caractères, la diviser
-                    const competences = result.data.competences.split(',').map(s => s.trim());
-                    document.getElementById('job-skills-value').innerHTML = competences.map(skill => 
-                        `<span class="tag">${skill}</span>`
-                    ).join('');
-                } else if (Array.isArray(result.data.competences)) {
-                    document.getElementById('job-skills-value').innerHTML = result.data.competences.map(skill => 
-                        `<span class="tag">${skill}</span>`
-                    ).join('');
-                }
-            }
-            
-            // Afficher le conteneur des informations extraites
-            document.getElementById('job-info-container').style.display = 'block';
-            
-            if (statusElement) {
-                statusElement.textContent = 'Analyse réussie !';
-                statusElement.style.color = 'green';
+            // Afficher un badge de connexion si en mode debug
+            if (new URLSearchParams(window.location.search).has('debug')) {
+                showApiStatusBadge(true, 'Connexion à l\'API GPT établie');
             }
         } else {
-            console.error("Données invalides reçues:", result);
-            throw new Error('Données invalides reçues du serveur');
+            console.warn('[DEBUG-GPT] API non accessible, statut:', response.status);
+            showApiStatusBadge(false, 'API GPT non accessible');
         }
     } catch (error) {
-        console.error('Erreur:', error.message);
-        if (statusElement) {
-            statusElement.textContent = `Erreur: ${error.message}`;
-            statusElement.style.color = 'red';
-        }
-        
-        // Message d'erreur détaillé
-        alert(`Erreur lors de l'analyse: ${error.message}\nVérifiez que le serveur FastAPI est bien démarré sur ${apiUrl}`);
+        console.error('[DEBUG-GPT] Erreur lors de la vérification de l\'API:', error);
+        showApiStatusBadge(false, `API GPT non accessible: ${error.message}`);
     }
 }
 
-// Attendre que la page soit complètement chargée
-window.addEventListener('load', function() {
-    console.log("Page chargée, ajout du bouton GPT dans 1 seconde...");
-    
-    // Attendre un court délai pour s'assurer que tous les éléments sont chargés
-    setTimeout(function() {
-        addGptButton();
+/**
+ * Affiche un badge de statut de l'API
+ * @param {boolean} success - État de la connexion
+ * @param {string} message - Message à afficher
+ */
+function showApiStatusBadge(success, message) {
+    // Vérifier si la section de debug existe
+    let debugSection = document.getElementById('debug-section');
+    if (!debugSection) {
+        debugSection = document.createElement('div');
+        debugSection.id = 'debug-section';
+        debugSection.className = 'debug-section';
+        debugSection.style.display = 'block';
         
-        // Vérifier si le bouton existe déjà (ajouté par gpt-analyze.js)
-        const existingButton = document.getElementById('analyze-with-gpt');
-        if (existingButton) {
-            console.log("Le bouton GPT existe déjà, pas besoin de l'ajouter manuellement");
+        // Créer le contenu debug s'il n'existe pas
+        let debugContent = document.createElement('div');
+        debugContent.id = 'debug-content';
+        debugSection.appendChild(debugContent);
+        
+        // Insérer la section avant le main ou en haut de page
+        const mainElement = document.querySelector('main');
+        if (mainElement) {
+            mainElement.parentNode.insertBefore(debugSection, mainElement);
+        } else {
+            document.body.insertBefore(debugSection, document.body.firstChild);
         }
-    }, 1000);
-});
+    }
+    
+    // Créer et ajouter le badge
+    const badge = document.createElement('div');
+    badge.className = `api-status-badge ${success ? 'success' : 'error'}`;
+    badge.innerHTML = `
+        <i class="fas ${success ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Ajouter le badge à la section debug
+    const debugContent = document.getElementById('debug-content');
+    if (debugContent) {
+        debugContent.appendChild(badge);
+    }
+    
+    // Ajouter du style au badge
+    const style = document.createElement('style');
+    style.textContent = `
+        .api-status-badge {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .api-status-badge.success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        .api-status-badge.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .api-status-badge i {
+            margin-right: 8px;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+/**
+ * Enregistre un événement pour le suivi d'utilisation
+ * @param {string} eventName - Nom de l'événement
+ * @param {Object} eventData - Données associées à l'événement
+ */
+function logEvent(eventName, eventData = {}) {
+    const event = {
+        event: eventName,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        ...eventData
+    };
+    
+    console.log('[DEBUG-GPT] Event:', event);
+    
+    // Si l'API est définie, on peut envoyer l'événement
+    if (window.gptApiUrl) {
+        fetch(`${window.gptApiUrl}/api/log-event`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(event),
+            // Ne pas attendre la réponse pour ne pas bloquer
+            keepalive: true
+        }).catch(err => console.warn('[DEBUG-GPT] Erreur lors de l\'envoi de l\'événement:', err));
+    }
+}
