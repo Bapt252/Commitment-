@@ -271,6 +271,16 @@
                 padding: 1.5rem;
             }
         }
+        
+        /* Message de debug */
+        .debug-message {
+            background-color: #F0FFF4;
+            border: 1px solid #43AA8B;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -347,6 +357,8 @@
                     </div>
                 </div>
                 
+                <div id="debug-message" class="debug-message"></div>
+                
                 <div class="form-actions">
                     <button type="reset" class="btn btn-outline">
                         <i class="fas fa-redo"></i> Réinitialiser
@@ -359,9 +371,30 @@
         </div>
     </div>
     
-    <script src="../assets/js/parser.js"></script>
     <script>
+        // Fonction pour afficher un message de debug
+        function showDebugMessage(message) {
+            const debugElement = document.getElementById('debug-message');
+            debugElement.style.display = 'block';
+            debugElement.textContent = message;
+        }
+        
+        // Vérifier si le script parser.js est chargé correctement
         document.addEventListener('DOMContentLoaded', function() {
+            // Essayons de charger le script dynamiquement
+            const parserScript = document.createElement('script');
+            parserScript.src = '../assets/js/parser.js';
+            parserScript.onload = function() {
+                showDebugMessage('Parser script loaded successfully!');
+                initializeForm();
+            };
+            parserScript.onerror = function() {
+                showDebugMessage('Error loading parser script. Please check the path.');
+            };
+            document.body.appendChild(parserScript);
+        });
+        
+        function initializeForm() {
             // Gestion des exemples
             const toggleExamples = document.getElementById('toggle-examples');
             const examplesContent = document.getElementById('examples-content');
@@ -390,6 +423,12 @@
                 });
             });
             
+            // Vérifier si le parser est disponible
+            if (typeof window.JobParser === 'undefined') {
+                showDebugMessage('Error: JobParser object is not available. Please check the parser.js file.');
+                return;
+            }
+            
             // Gestion du formulaire
             const jobForm = document.getElementById('job-form');
             const jobDescriptionInput = document.getElementById('job-description');
@@ -404,16 +443,21 @@
                     return;
                 }
                 
-                // Analyser la fiche de poste avec notre parser
-                const parsedJob = window.JobParser.parseJobDescription(jobDescription);
-                
-                // Enregistrer les données analysées dans localStorage
-                localStorage.setItem('parsedJobData', JSON.stringify(parsedJob));
-                
-                // Rediriger vers la page du questionnaire client
-                window.location.href = 'client-questionnaire.html';
+                try {
+                    // Analyser la fiche de poste avec notre parser
+                    const parsedJob = window.JobParser.parseJobDescription(jobDescription);
+                    showDebugMessage('Job parsed successfully: ' + JSON.stringify(parsedJob));
+                    
+                    // Enregistrer les données analysées en sessionStorage (plus fiable que localStorage)
+                    sessionStorage.setItem('parsedJobData', JSON.stringify(parsedJob));
+                    
+                    // Rediriger vers la page du questionnaire client
+                    window.location.href = 'client-questionnaire.html';
+                } catch (error) {
+                    showDebugMessage('Error parsing job: ' + error.message);
+                }
             });
-        });
+        }
     </script>
 </body>
 </html>
