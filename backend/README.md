@@ -1,159 +1,95 @@
-# Configuration du Backend Job Parser avec GPT
+# Backend Commitment
 
-Ce dossier contient le serveur backend pour le Job Parser qui permet d'analyser les fiches de poste grâce à GPT.
+Backend pour le projet Commitment, incluant l'analyse de CV et de fiches de poste avec GPT.
 
-## Prérequis
+## Nouvelles fonctionnalités
 
-- Python 3.7+ installé sur votre machine
-- Pip (gestionnaire de paquets Python)
-- Une clé API OpenAI
+### Job Parser avec GPT
 
-## Installation
+Le service d'analyse de fiches de poste a été ajouté ! Il permet d'extraire automatiquement les informations clés des fiches de poste à l'aide de GPT.
 
-1. Installez les dépendances requises :
+#### Configuration
 
-```bash
-pip install flask flask-cors openai
-```
+1. Assurez-vous d'avoir une clé API OpenAI valide
+2. Copiez le fichier `.env.example` vers `.env` et configurez votre clé API :
+   ```
+   cp .env.example .env
+   ```
+3. Modifiez le fichier `.env` pour ajouter votre clé API OpenAI :
+   ```
+   OPENAI_API_KEY=sk-votre-clé-api
+   ```
 
-2. Configurez la clé API OpenAI en tant que variable d'environnement :
-
-Sous Linux/Mac :
-```bash
-export OPENAI_API_KEY="votre-clé-api-openai"
-```
-
-Sous Windows (CMD) :
-```batch
-set OPENAI_API_KEY=votre-clé-api-openai
-```
-
-Sous Windows (PowerShell) :
-```powershell
-$env:OPENAI_API_KEY="votre-clé-api-openai"
-```
-
-## Démarrage du serveur
-
-1. Naviguez dans le dossier `backend` :
+#### Installation des dépendances
 
 ```bash
-cd backend
+pip install -r requirements.txt
 ```
 
-2. Démarrez le serveur Flask :
+#### Démarrage du service
 
 ```bash
-python api.py
+python run.py
 ```
 
-Le serveur démarrera sur le port 5000 par défaut. Vous pouvez modifier le port en définissant la variable d'environnement `PORT`.
+#### Utilisation de l'API Job Parser
 
-## Connexion avec le frontend
+Le service expose plusieurs endpoints :
 
-Le frontend est déjà configuré pour se connecter à `/api/job-parser`. Vous devez donc vous assurer que le serveur est accessible à cette URL.
+- `POST /api/job-parser/queue` : Soumettre un job d'analyse (fichier PDF ou texte)
+- `GET /api/job-parser/result/<job_id>` : Récupérer le résultat d'un job
+- `GET /api/job-parser/health` : Vérifier l'état du service
 
-### Méthode 1 : Configuration avec un serveur proxy inverse (recommandé pour la production)
-
-Configurez un serveur proxy comme Nginx pour rediriger les requêtes `/api/job-parser` vers le serveur backend.
-
-Exemple de configuration Nginx :
-```nginx
-server {
-    listen 80;
-    server_name votre-domaine.com;
-    
-    location / {
-        root /chemin/vers/Commitment-;
-        index index.html;
-    }
-    
-    location /api/job-parser {
-        proxy_pass http://localhost:5000/api/job-parser;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-### Méthode 2 : Modification temporaire pour le développement
-
-Pour le développement, vous pouvez modifier temporairement le fichier `js/job-parser-api.js` pour pointer directement vers le serveur backend :
-
-```javascript
-const JOB_PARSER_CONFIG = {
-    // URL de base de l'API (à modifier selon l'environnement)
-    apiBaseUrl: 'http://localhost:5000/api/job-parser',
-    
-    // Autres options...
-};
-```
-
-## Tester le backend
-
-Vous pouvez tester le backend avec curl :
+Exemple d'utilisation avec cURL :
 
 ```bash
-# Test de soumission d'un job d'analyse
-curl -X POST http://localhost:5000/api/job-parser/queue -F "text=Développeur Web Senior. Entreprise: TechCorp. Expérience: 5+ ans. Compétences: JavaScript, React, Node.js."
+# Soumettre un fichier PDF
+curl -X POST -F "file=@fiche_de_poste.pdf" http://localhost:5000/api/job-parser/queue
 
-# Obtention du résultat (remplacez JOB_ID par l'ID obtenu)
-curl http://localhost:5000/api/job-parser/result/JOB_ID
+# Soumettre du texte
+curl -X POST -F "text=Développeur Web Senior. Entreprise: TechCorp. Expérience: 5+ ans." http://localhost:5000/api/job-parser/queue
+
+# Récupérer le résultat
+curl http://localhost:5000/api/job-parser/result/12345-uuid-67890
 ```
 
-## Structure des réponses API
+## Architecture
 
-### Soumission d'un job
+Le backend est organisé comme suit :
 
-**Endpoint:** `POST /api/job-parser/queue`
+- `app/` : Application principale
+  - `routes/` : Définition des routes de l'API
+  - `models/` : Modèles de données
+  - `services/` : Services métier
+- `job_parser_service.py` : Service d'analyse des fiches de poste
+- `parsing_service.py` : Service d'analyse des CV
+- `app.py` : Point d'entrée de l'application
+- `run.py` : Script de démarrage
 
-**Corps de la requête:**
-- `file`: Fichier contenant la fiche de poste (PDF, DOCX, TXT)
-- OU
-- `text`: Texte de la fiche de poste
+## Intégration avec le frontend
 
-**Réponse:**
-```json
-{
-    "job_id": "uuid-du-job",
-    "status": "pending"
-}
-```
+Le frontend peut se connecter au backend via l'API. Pour activer le mode debug, ajoutez `?debug=true` à l'URL du frontend.
 
-### Récupération du résultat
+## Troubleshooting
 
-**Endpoint:** `GET /api/job-parser/result/{job_id}`
+Si vous rencontrez des problèmes, vérifiez les points suivants :
 
-**Réponse (en cours):**
-```json
-{
-    "status": "pending|processing",
-    "message": "Job en cours de traitement"
-}
-```
+1. La clé API OpenAI est correctement configurée
+2. Les dépendances sont correctement installées
+3. Le port 5000 est disponible
+4. Les logs dans la console pour identifier les erreurs
 
-**Réponse (terminé avec succès):**
-```json
-{
-    "status": "done",
-    "result": {
-        "title": "Titre du poste",
-        "company": "Nom de l'entreprise",
-        "location": "Lieu",
-        "skills": ["Compétence 1", "Compétence 2", ...],
-        "experience": "Niveau d'expérience requis",
-        "responsibilities": ["Responsabilité 1", "Responsabilité 2", ...],
-        "requirements": ["Prérequis 1", "Prérequis 2", ...],
-        "salary": "Fourchette de salaire",
-        "benefits": ["Avantage 1", "Avantage 2", ...]
-    }
-}
-```
+## Développement
 
-**Réponse (échec):**
-```json
-{
-    "status": "failed",
-    "error": "Description de l'erreur"
-}
+Pour les développeurs, voici quelques commandes utiles :
+
+```bash
+# Lancer les tests
+pytest
+
+# Vérifier la qualité du code
+flake8
+
+# Formater le code
+black .
 ```
