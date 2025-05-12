@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     # Mode de simulation/test
     USE_MOCK_PARSER: bool = os.environ.get('USE_MOCK_PARSER', '').lower() == 'true'
     
+    # Configuration de journalisation
+    LOG_DIR: str = os.environ.get('LOG_DIR') or 'logs'
+    LOG_LEVEL: str = os.environ.get('LOG_LEVEL') or 'INFO'
+    LOG_FORMAT: str = os.environ.get('LOG_FORMAT') or 'text'  # 'text' ou 'json'
+    
     # Validation des paramètres
     @validator('OPENAI_API_KEY')
     def validate_openai_api_key(cls, v, values, **kwargs):
