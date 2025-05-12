@@ -1,402 +1,389 @@
 /**
- * Script pour l'analyse de fiches de poste avec GPT
- * Version améliorée avec meilleure intégration dans l'interface
+ * gpt-analyze.js
+ * Script pour connecter le frontend de client-questionnaire.html avec le système de parsing GPT
+ * Ce script ajoute une fonctionnalité d'analyse de fiches de poste en utilisant le modèle GPT
  */
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[GPT-Analyze] Initializing...');
-    
-    // Ajouter le bouton d'analyse GPT dans la section appropriée
-    const jobInfoContainer = document.getElementById('job-info-container');
-    const fileDropZone = document.getElementById('job-drop-zone');
-    
-    if (jobInfoContainer && fileDropZone) {
-        // Créer le conteneur pour le bouton GPT
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'gpt-analyze-btn-container';
-        buttonContainer.style.marginTop = '20px';
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.justifyContent = 'center';
-        
-        // Créer le bouton
-        const analyzeButton = document.createElement('button');
-        analyzeButton.type = 'button';
-        analyzeButton.id = 'analyze-with-gpt';
-        analyzeButton.className = 'btn btn-primary';
-        analyzeButton.innerHTML = '<i class="fas fa-robot"></i> Analyser avec GPT';
-        analyzeButton.style.marginRight = '10px';
-        
-        // Ajouter le bouton au conteneur
-        buttonContainer.appendChild(analyzeButton);
-        
-        // Créer un élément pour afficher le statut du traitement
-        const statusElement = document.createElement('span');
-        statusElement.id = 'gpt-analyze-status';
-        statusElement.style.marginLeft = '10px';
-        statusElement.style.alignSelf = 'center';
-        buttonContainer.appendChild(statusElement);
-        
-        // Insérer le conteneur avant les boutons d'action dans la section de résultats
-        const jobActions = jobInfoContainer.querySelector('.job-actions');
-        if (jobActions) {
-            jobInfoContainer.insertBefore(buttonContainer, jobActions);
-        } else {
-            // Fallback: ajouter à la fin du conteneur
-            jobInfoContainer.appendChild(buttonContainer);
-        }
-        
-        // Également ajouter le bouton après la zone de dépôt de fichier comme alternative
-        const fileBadge = document.getElementById('file-badge');
-        if (fileBadge) {
-            const altButtonContainer = buttonContainer.cloneNode(true);
-            const altAnalyzeButton = altButtonContainer.querySelector('#analyze-with-gpt');
-            if (altAnalyzeButton) {
-                altAnalyzeButton.id = 'analyze-with-gpt-alt';
-            }
-            fileDropZone.appendChild(altButtonContainer);
-        }
-        
-        // Ajouter l'écouteur d'événement aux boutons
-        document.querySelectorAll('#analyze-with-gpt, #analyze-with-gpt-alt').forEach(button => {
-            button.addEventListener('click', handleGptAnalysis);
-        });
-        
-        console.log('[GPT-Analyze] Buttons added successfully');
-    } else {
-        console.warn('[GPT-Analyze] Required containers not found');
-    }
-});
 
-// Fonction pour gérer l'analyse GPT lorsque le bouton est cliqué
-async function handleGptAnalysis() {
-    console.log('[GPT-Analyze] Button clicked');
-    
-    // Trouver le fichier soit depuis l'input de fichier, soit depuis le texte
+// Configuration de base 
+const GPT_ANALYZE_CONFIG = {
+    // URL de l'API de parsing, à adapter selon l'environnement
+    apiUrl: 'http://localhost:5055/api/parse-job', // URL par défaut, sera remplacée si configurée ailleurs
+    debug: false,
+    useLocalFallback: true
+};
+
+// Créer un bouton "Analyser avec GPT" dans la page
+function initializeGptAnalyzeButton() {
+    // Vérifier si les éléments nécessaires existent dans la page
+    const jobInfoContainer = document.getElementById('job-info-container');
+    const textarea = document.getElementById('job-description-text');
     const fileInput = document.getElementById('job-file-input');
-    const textArea = document.getElementById('job-description-text');
-    const statusElements = document.querySelectorAll('#gpt-analyze-status');
     
-    // Mettre à jour tous les éléments de statut
-    const updateStatus = (message, color) => {
-        statusElements.forEach(element => {
-            if (element) {
-                element.textContent = message;
-                element.style.color = color;
-            }
-        });
-    };
-    
-    // Désactiver tous les boutons d'analyse
-    const analyzeButtons = document.querySelectorAll('#analyze-with-gpt, #analyze-with-gpt-alt');
-    analyzeButtons.forEach(button => {
-        if (button) button.disabled = true;
-    });
-    
-    try {
-        // Récupérer l'URL de l'API à partir des paramètres d'URL ou utiliser la valeur par défaut
-        const urlParams = new URLSearchParams(window.location.search);
-        let apiUrl = urlParams.get('apiUrl') || 'http://localhost:5055';
-        
-        // S'assurer que l'URL ne se termine pas par un slash
-        apiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
-        
-        // Cas 1: Fichier sélectionné
-        if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            
-            // Vérifier le type de fichier
-            const allowedExtensions = ['.pdf', '.docx', '.doc', '.txt'];
-            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-            
-            if (!allowedExtensions.includes(fileExtension)) {
-                throw new Error(`Format de fichier non supporté. Formats acceptés: ${allowedExtensions.join(', ')}`);
-            }
-            
-            updateStatus('Analyse du fichier en cours...', 'blue');
-            
-            // Préparer les données pour l'envoi
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            // Appeler l'API de parsing
-            const response = await fetch(`${apiUrl}/api/parse-job-posting`, {
-                method: 'POST',
-                body: formData,
-            });
-            
-            handleApiResponse(response, updateStatus);
-        }
-        // Cas 2: Texte saisi
-        else if (textArea && textArea.value.trim()) {
-            updateStatus('Analyse du texte en cours...', 'blue');
-            
-            // Préparer les données pour l'envoi
-            const formData = new FormData();
-            formData.append('text', textArea.value.trim());
-            
-            // Appeler l'API de parsing
-            const response = await fetch(`${apiUrl}/api/parse-job-posting`, {
-                method: 'POST',
-                body: formData,
-            });
-            
-            handleApiResponse(response, updateStatus);
-        }
-        // Aucune donnée à analyser
-        else {
-            throw new Error('Veuillez d\'abord sélectionner un fichier ou saisir le texte de la fiche de poste.');
-        }
-    } catch (error) {
-        console.error('[GPT-Analyze] Error:', error);
-        updateStatus(`Erreur: ${error.message}`, 'red');
-        
-        // Afficher une notification d'erreur si la fonction existe
-        if (typeof window.showNotification === 'function') {
-            window.showNotification(error.message, 'error');
-        } else {
-            alert(`Erreur: ${error.message}`);
-        }
-    } finally {
-        // Réactiver les boutons après le traitement
-        analyzeButtons.forEach(button => {
-            if (button) button.disabled = false;
-        });
-    }
-}
-
-// Fonction pour gérer la réponse de l'API
-async function handleApiResponse(response, updateStatus) {
-    // Vérifier si la requête a réussi
-    if (!response.ok) {
-        let errorMessage = 'Erreur lors de l\'analyse du document';
-        try {
-            const errorData = await response.json();
-            errorMessage = errorData.detail || errorMessage;
-        } catch (e) {
-            // Ignorer les erreurs de parsing JSON
-        }
-        throw new Error(errorMessage);
-    }
-    
-    // Récupérer les données
-    const result = await response.json();
-    
-    if (result.success && result.data) {
-        // Remplir le formulaire avec les données extraites
-        fillFormWithJobData(result.data);
-        
-        // Mettre à jour le statut
-        updateStatus('Analyse réussie !', 'green');
-        
-        // Afficher une notification de succès si la fonction existe
-        if (typeof window.showNotification === 'function') {
-            window.showNotification('Fiche de poste analysée avec succès par GPT !', 'success');
-        }
-    } else {
-        throw new Error(result.error || 'Données invalides reçues du serveur');
-    }
-}
-
-// Fonction pour remplir le formulaire avec les données extraites
-function fillFormWithJobData(jobData) {
-    console.log('[GPT-Analyze] Filling form with data:', jobData);
-    
-    // Remplir les champs d'informations extraites dans l'UI
-    const fieldMapping = {
-        'title': { 
-            selector: '#job-title-value', 
-            fallbackSelectors: ['#titre', 'input[name="titre"]']
-        },
-        'titre': { 
-            selector: '#job-title-value', 
-            fallbackSelectors: ['#titre', 'input[name="titre"]']
-        },
-        'company': { 
-            selector: '#company-name', 
-            fallbackSelectors: ['input[name="company-name"]', '#entreprise', 'input[name="entreprise"]']
-        },
-        'entreprise': { 
-            selector: '#company-name', 
-            fallbackSelectors: ['input[name="company-name"]', '#entreprise', 'input[name="entreprise"]']
-        },
-        'location': { 
-            selector: '#job-location-value', 
-            fallbackSelectors: ['#localisation', 'input[name="localisation"]']
-        },
-        'localisation': { 
-            selector: '#job-location-value', 
-            fallbackSelectors: ['#localisation', 'input[name="localisation"]']
-        },
-        'contract_type': { 
-            selector: '#job-contract-value', 
-            fallbackSelectors: ['#contract-type', '#type_contrat', 'select[name="contract-type"]']
-        },
-        'type_contrat': { 
-            selector: '#job-contract-value', 
-            fallbackSelectors: ['#contract-type', '#type_contrat', 'select[name="contract-type"]']
-        },
-        'experience': { 
-            selector: '#job-experience-value', 
-            fallbackSelectors: ['#experience', 'input[name="experience"]', 'select[name="experience-required"]']
-        },
-        'skills': { 
-            selector: '#job-skills-value', 
-            type: 'skills',
-            fallbackSelectors: ['#competences', 'textarea[name="competences"]']
-        },
-        'competences': { 
-            selector: '#job-skills-value', 
-            type: 'skills',
-            fallbackSelectors: ['#competences', 'textarea[name="competences"]']
-        },
-        'responsibilities': { 
-            selector: '#job-responsibilities-value', 
-            type: 'list',
-            fallbackSelectors: ['#responsibilities', 'textarea[name="responsibilities"]']
-        },
-        'missions': { 
-            selector: '#job-responsibilities-value', 
-            type: 'list',
-            fallbackSelectors: ['#responsibilities', 'textarea[name="responsibilities"]']
-        },
-        'benefits': { 
-            selector: '#job-benefits-value', 
-            type: 'list',
-            fallbackSelectors: ['#benefits', 'textarea[name="benefits"]']
-        },
-        'avantages': { 
-            selector: '#job-benefits-value', 
-            type: 'list',
-            fallbackSelectors: ['#benefits', 'textarea[name="benefits"]']
-        },
-        'salary': { 
-            selector: '#job-salary-value', 
-            fallbackSelectors: ['#salary', 'input[name="salary"]', '#salaire', 'input[name="salaire"]']
-        },
-        'salaire': { 
-            selector: '#job-salary-value', 
-            fallbackSelectors: ['#salary', 'input[name="salary"]', '#salaire', 'input[name="salaire"]']
-        },
-        'education': { 
-            selector: '#job-education-value', 
-            fallbackSelectors: ['#education', 'input[name="education"]', '#formation', 'input[name="formation"]']
-        },
-        'formation': { 
-            selector: '#job-education-value', 
-            fallbackSelectors: ['#education', 'input[name="education"]', '#formation', 'input[name="formation"]']
-        }
-    };
-    
-    // Pour chaque champ dans le mapping
-    for (const [dataKey, fieldInfo] of Object.entries(fieldMapping)) {
-        if (jobData[dataKey]) {
-            const value = jobData[dataKey];
-            
-            // Chercher le champ principal dans le document
-            const element = document.querySelector(fieldInfo.selector);
-            
-            if (element) {
-                fillElement(element, value, fieldInfo.type);
-                console.log(`[GPT-Analyze] Filled ${dataKey} into ${fieldInfo.selector}`);
-            } else {
-                // Essayer les sélecteurs de fallback
-                for (const fallbackSelector of fieldInfo.fallbackSelectors || []) {
-                    const fallbackElement = document.querySelector(fallbackSelector);
-                    if (fallbackElement) {
-                        fillElement(fallbackElement, value, fieldInfo.type);
-                        console.log(`[GPT-Analyze] Filled ${dataKey} into fallback ${fallbackSelector}`);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    
-    // Rendre le conteneur de résultats visible
-    const jobInfoContainer = document.getElementById('job-info-container');
-    if (jobInfoContainer) {
-        jobInfoContainer.style.display = 'block';
-    }
-    
-    // Si nous avons la fonction d'ajout de tags pour les avantages, l'utiliser
-    if (typeof window.addBenefitTag === 'function' && Array.isArray(jobData.benefits)) {
-        jobData.benefits.forEach(benefit => {
-            window.addBenefitTag(benefit);
-        });
-    } else if (typeof window.addBenefitTag === 'function' && Array.isArray(jobData.avantages)) {
-        jobData.avantages.forEach(avantage => {
-            window.addBenefitTag(avantage);
-        });
-    }
-}
-
-// Fonction pour remplir un élément selon son type
-function fillElement(element, value, type) {
-    // Vérifier si la valeur est définie
-    if (!value || (Array.isArray(value) && value.length === 0)) {
+    if (!jobInfoContainer || !textarea) {
+        console.error('Éléments requis non trouvés dans la page');
         return;
     }
     
-    // Traiter selon le type d'élément
-    if (element.tagName === 'SELECT') {
-        setSelectOption(element, value);
-    } else if (element.tagName === 'INPUT') {
-        if (element.type === 'checkbox' || element.type === 'radio') {
-            element.checked = true;
-        } else {
-            element.value = Array.isArray(value) ? value.join(', ') : value;
-        }
-    } else if (element.tagName === 'TEXTAREA') {
-        element.value = Array.isArray(value) ? value.join('\n') : value;
+    // Créer le conteneur pour le bouton et le statut
+    const container = document.createElement('div');
+    container.className = 'gpt-analyze-btn-container';
+    
+    // Créer le bouton "Analyser avec GPT"
+    const button = document.createElement('button');
+    button.id = 'analyze-with-gpt';
+    button.textContent = 'Analyser avec GPT';
+    button.disabled = !(textarea.value.trim() || (fileInput && fileInput.files.length > 0));
+    
+    // Créer l'élément pour afficher le statut
+    const status = document.createElement('span');
+    status.id = 'gpt-analyze-status';
+    status.textContent = '';
+    
+    // Ajouter les éléments au conteneur
+    container.appendChild(button);
+    container.appendChild(status);
+    
+    // Insérer le conteneur après le champ de texte de la fiche de poste
+    if (textarea.parentNode) {
+        textarea.parentNode.insertAdjacentElement('afterend', container);
     } else {
-        // Pour les éléments div, span, etc.
-        if (type === 'skills' && Array.isArray(value)) {
-            element.innerHTML = value.map(skill => 
-                `<span class="tag">${skill}</span>`
-            ).join('');
-        } else if (type === 'list' && Array.isArray(value)) {
-            element.innerHTML = '<ul>' + 
-                value.map(item => `<li>${item}</li>`).join('') + 
-                '</ul>';
-        } else {
-            element.textContent = Array.isArray(value) ? value.join(', ') : value;
-        }
+        jobInfoContainer.insertAdjacentElement('beforebegin', container);
     }
     
-    // Déclencher un événement de changement pour activer d'éventuels écouteurs
-    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)) {
-        const event = new Event('change', { bubbles: true });
-        element.dispatchEvent(event);
+    // Activer/désactiver le bouton en fonction du contenu du textarea
+    textarea.addEventListener('input', () => {
+        button.disabled = !textarea.value.trim();
+    });
+    
+    // Si un fileInput existe, surveiller les changements
+    if (fileInput) {
+        fileInput.addEventListener('change', () => {
+            button.disabled = !(textarea.value.trim() || fileInput.files.length > 0);
+        });
+    }
+    
+    // Gérer le clic sur le bouton
+    button.addEventListener('click', handleGptAnalysis);
+}
+
+// Fonction pour analyser la fiche de poste avec GPT
+async function handleGptAnalysis() {
+    const textarea = document.getElementById('job-description-text');
+    const fileInput = document.getElementById('job-file-input');
+    const button = document.getElementById('analyze-with-gpt');
+    const status = document.getElementById('gpt-analyze-status');
+    
+    // Vérifier que nous avons du contenu à analyser
+    if (!(textarea.value.trim() || (fileInput && fileInput.files.length > 0))) {
+        showNotification ? 
+            showNotification("Veuillez d'abord entrer ou télécharger une fiche de poste", "error") : 
+            alert("Veuillez d'abord entrer ou télécharger une fiche de poste");
+        return;
+    }
+    
+    // Désactiver le bouton et afficher le statut
+    button.disabled = true;
+    status.textContent = 'Analyse en cours...';
+    
+    try {
+        let jobText = '';
+        let file = null;
+        
+        // Obtenir le texte de la fiche de poste
+        if (textarea.value.trim()) {
+            jobText = textarea.value.trim();
+        } else if (fileInput && fileInput.files.length > 0) {
+            file = fileInput.files[0];
+            // Lire le fichier si nécessaire
+            jobText = await readFileAsText(file);
+        }
+        
+        // Afficher le loader si disponible
+        const loader = document.getElementById('analysis-loader');
+        if (loader) loader.style.display = 'flex';
+        
+        // Appel de l'API GPT pour analyser la fiche de poste
+        const result = await parseJobPostingWithGpt(jobText, file);
+        
+        // Sauvegarder les résultats
+        saveParsingResults(result);
+        
+        // Afficher les résultats
+        displayParsingResults(result);
+        
+        // Notification de succès
+        status.textContent = 'Analyse réussie!';
+        showNotification ? 
+            showNotification("Fiche de poste analysée avec succès par GPT!", "success") : 
+            alert("Fiche de poste analysée avec succès!");
+        
+    } catch (error) {
+        console.error('Erreur lors de l\'analyse GPT:', error);
+        status.textContent = 'Échec de l\'analyse';
+        showNotification ? 
+            showNotification("Erreur lors de l'analyse par GPT: " + error.message, "error") : 
+            alert("Erreur lors de l'analyse: " + error.message);
+        
+        // Utiliser l'analyse locale si configurée
+        if (GPT_ANALYZE_CONFIG.useLocalFallback) {
+            try {
+                // Utiliser JobParserAPI si disponible
+                if (window.jobParserAPI) {
+                    const localResult = window.jobParserAPI.analyzeJobLocally(jobText);
+                    saveParsingResults(localResult);
+                    displayParsingResults(localResult);
+                    status.textContent = 'Analyse locale utilisée';
+                }
+            } catch (fallbackError) {
+                console.error('Échec de l\'analyse de secours:', fallbackError);
+            }
+        }
+    } finally {
+        // Réactiver le bouton
+        button.disabled = false;
+        
+        // Masquer le loader
+        const loader = document.getElementById('analysis-loader');
+        if (loader) loader.style.display = 'none';
+        
+        // Changer le texte du statut après 3 secondes
+        setTimeout(() => {
+            if (status.textContent !== 'Échec de l\'analyse') {
+                status.textContent = '';
+            }
+        }, 3000);
     }
 }
 
-// Fonction pour définir la valeur d'un élément select
-function setSelectOption(selectElement, value) {
-    // Si la valeur est un tableau, prendre la première
-    const valueToMatch = Array.isArray(value) ? value[0] : value;
+// Fonction pour lire un fichier et le convertir en texte
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = event => resolve(event.target.result);
+        reader.onerror = error => reject(error);
+        reader.readAsText(file);
+    });
+}
+
+// Fonction pour envoyer la fiche de poste à l'API de parsing GPT
+async function parseJobPostingWithGpt(jobText, file = null) {
+    // Vérifier si nous avons le code GPT CLI directement intégré
+    if (typeof parseJobWithGptLocally === 'function') {
+        // Utiliser la fonction locale si elle existe
+        return parseJobWithGptLocally(jobText);
+    }
     
-    // Normalisation de la valeur pour la comparaison
-    const normalizedValue = String(valueToMatch).toLowerCase().trim();
+    // Sinon, faire un appel API 
+    const formData = new FormData();
     
-    // Parcourir toutes les options
-    for (const option of selectElement.options) {
-        const optionText = option.text.toLowerCase().trim();
-        const optionValue = option.value.toLowerCase().trim();
+    if (file) {
+        formData.append('file', file);
+    } else {
+        formData.append('text', jobText);
+    }
+    
+    // Déterminer l'URL de l'API
+    const apiUrl = determineApiUrl();
+    
+    // Log de debug
+    if (GPT_ANALYZE_CONFIG.debug) {
+        console.log('Calling API:', apiUrl);
+        console.log('With data:', file ? 'File: ' + file.name : 'Text length: ' + jobText.length);
+    }
+    
+    // Appel à l'API de parsing
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        body: formData,
+    });
+    
+    // Vérifier la réponse
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
+    }
+    
+    // Analyser la réponse JSON
+    const result = await response.json();
+    
+    // Log de debug
+    if (GPT_ANALYZE_CONFIG.debug) {
+        console.log('API Response:', result);
+    }
+    
+    return result;
+}
+
+// Fonction pour déterminer l'URL de l'API
+function determineApiUrl() {
+    // Vérifier si l'URL est définie dans l'URL de la page
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('apiUrl')) {
+        return urlParams.get('apiUrl') + '/api/parse-job';
+    }
+    
+    // Sinon, utiliser la configuration par défaut
+    return GPT_ANALYZE_CONFIG.apiUrl;
+}
+
+// Fonction pour sauvegarder les résultats du parsing
+function saveParsingResults(result) {
+    try {
+        // Convertir le résultat en format compatible
+        const formattedResult = formatParsingResult(result);
         
-        // Vérifier si l'option correspond à la valeur
-        if (optionText.includes(normalizedValue) || normalizedValue.includes(optionText) || 
-            optionValue.includes(normalizedValue) || normalizedValue.includes(optionValue)) {
-            option.selected = true;
+        // Sauvegarder dans sessionStorage
+        sessionStorage.setItem('parsedJobData', JSON.stringify(formattedResult));
+        
+        // Backup dans localStorage si nécessaire
+        localStorage.setItem('parsedJobData', JSON.stringify(formattedResult));
+        
+        if (GPT_ANALYZE_CONFIG.debug) {
+            console.log('Saved parsing results:', formattedResult);
+        }
+    } catch (error) {
+        console.error('Error saving parsing results:', error);
+    }
+}
+
+// Fonction pour formater les résultats du parsing au format attendu par l'interface
+function formatParsingResult(result) {
+    // Si le résultat est déjà au bon format, le retourner directement
+    if (result.job_info || result.title || result.skills) {
+        return result;
+    }
+    
+    // Si nous avons un format différent, adapter le résultat
+    // Exemple: adaptateur pour job_parser_gpt_cli.py
+    if (result.job_info) {
+        const jobInfo = result.job_info;
+        return {
+            title: jobInfo.titre_poste || '',
+            company: jobInfo.entreprise || '',
+            location: jobInfo.localisation || '',
+            contract_type: jobInfo.type_contrat || '',
+            skills: Array.isArray(jobInfo.competences) ? jobInfo.competences : [jobInfo.competences].filter(Boolean),
+            experience: jobInfo.experience || '',
+            education: jobInfo.formation || '',
+            salary: jobInfo.salaire || '',
+            description: jobInfo.description || '',
+            published_date: jobInfo.date_publication || '',
             
-            // Déclencher un événement de changement
-            const event = new Event('change', { bubbles: true });
-            selectElement.dispatchEvent(event);
-            
-            return;
+            // Ajouter des champs supplémentaires pour la compatibilité avec l'interface
+            responsibilities: jobInfo.description ? [jobInfo.description] : [],
+            benefits: []
+        };
+    }
+    
+    // Adapter d'autres formats si nécessaire
+    return {
+        title: result.title || result.titre_poste || '',
+        company: result.company || result.entreprise || '',
+        location: result.location || result.localisation || '',
+        contract_type: result.contract_type || result.type_contrat || '',
+        skills: result.skills || result.competences || [],
+        experience: result.experience || '',
+        education: result.education || result.formation || '',
+        salary: result.salary || result.salaire || '',
+        description: result.description || '',
+        responsibilities: result.responsibilities || [],
+        benefits: result.benefits || []
+    };
+}
+
+// Fonction pour afficher les résultats du parsing
+function displayParsingResults(result) {
+    // Si showJobResults existe, l'utiliser
+    if (typeof showJobResults === 'function') {
+        showJobResults(formatParsingResult(result));
+        return;
+    }
+    
+    // Sinon, implémentation basique
+    const formattedResult = formatParsingResult(result);
+    
+    // Afficher les résultats dans les éléments existants
+    const elements = {
+        'job-title-value': formattedResult.title,
+        'job-contract-value': formattedResult.contract_type,
+        'job-location-value': formattedResult.location,
+        'job-experience-value': formattedResult.experience,
+        'job-education-value': formattedResult.education || 'À déterminer',
+        'job-salary-value': formattedResult.salary
+    };
+    
+    // Mettre à jour les valeurs
+    for (const [id, value] of Object.entries(elements)) {
+        const element = document.getElementById(id);
+        if (element && value) {
+            element.textContent = value;
         }
     }
     
-    // Si aucune correspondance n'est trouvée, sélectionner la première option
-    if (selectElement.options.length > 0) {
-        selectElement.options[0].selected = true;
+    // Gestion des compétences (si c'est un tableau)
+    if (formattedResult.skills && formattedResult.skills.length > 0) {
+        const skillsElement = document.getElementById('job-skills-value');
+        if (skillsElement) {
+            skillsElement.innerHTML = formattedResult.skills.map(skill => 
+                `<span class="tag">${skill}</span>`
+            ).join('');
+        }
+    }
+    
+    // Gestion des responsabilités
+    if (formattedResult.responsibilities && formattedResult.responsibilities.length > 0) {
+        const respElement = document.getElementById('job-responsibilities-value');
+        if (respElement) {
+            respElement.innerHTML = '<ul>' + 
+                formattedResult.responsibilities.map(resp => `<li>${resp}</li>`).join('') + 
+                '</ul>';
+        }
+    }
+    
+    // Gestion des avantages
+    if (formattedResult.benefits && formattedResult.benefits.length > 0) {
+        const benefitsElement = document.getElementById('job-benefits-value');
+        if (benefitsElement) {
+            benefitsElement.innerHTML = '<ul>' + 
+                formattedResult.benefits.map(benefit => `<li>${benefit}</li>`).join('') + 
+                '</ul>';
+        }
+    }
+    
+    // Afficher le conteneur
+    const container = document.getElementById('job-info-container');
+    if (container) {
+        container.style.display = 'block';
     }
 }
+
+// Fonction locale pour analyser une fiche de poste avec GPT (si l'API n'est pas disponible)
+function parseJobWithGptLocally(jobText) {
+    // Cette fonction est intentionnellement laissée vide, elle sera remplacée par l'implémentation du client
+    // Si vous souhaitez implémenter une analyse locale avec JavaScript pur, faites-le ici
+    console.warn('Local GPT analysis not implemented');
+    throw new Error('Local GPT analysis not implemented');
+}
+
+// Initialiser l'analyse GPT lorsque la page est chargée
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser le bouton d'analyse GPT
+    initializeGptAnalyzeButton();
+    
+    // Vérifier les paramètres d'URL pour la configuration
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Configurer le mode debug si nécessaire
+    if (urlParams.has('debug')) {
+        GPT_ANALYZE_CONFIG.debug = true;
+        console.log('GPT Analyze Debug Mode Enabled');
+    }
+    
+    // Configurer l'URL de l'API si fournie
+    if (urlParams.has('apiUrl')) {
+        GPT_ANALYZE_CONFIG.apiUrl = urlParams.get('apiUrl');
+        console.log('GPT Analyze API URL set to:', GPT_ANALYZE_CONFIG.apiUrl);
+    }
+    
+    console.log('GPT Analyze initialized');
+});
