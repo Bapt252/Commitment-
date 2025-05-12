@@ -15,6 +15,9 @@ from app.api.endpoints import (
     health
 )
 
+# Import du nouveau routeur GPT Parser
+from app.routes import gpt_parser
+
 api_router = APIRouter()
 
 # Ajout des routes par module
@@ -30,3 +33,6 @@ api_router.include_router(parsing_chat.router, prefix="/parsing-chat", tags=["pa
 api_router.include_router(questionnaires.router, prefix="/questionnaires", tags=["questionnaires"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(health.router, prefix="/health", tags=["health"])
+
+# Ajout du nouveau routeur GPT Parser
+api_router.include_router(gpt_parser.router, tags=["gpt_parser"])
