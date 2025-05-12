@@ -1378,6 +1378,7 @@
     <script src="../js/pdf-cleaner.js"></script>
     <script src="../js/job-parser-api.js"></script>
     <script src="../../scripts/gpt-analyze.js"></script>
+    <script src="../../scripts/debug-gpt.js"></script>
     <script>
         // Fonction pour afficher un message de debug
         function showDebugMessage(message) {
@@ -1410,6 +1411,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('debug')) {
             activateDebugMode();
+            // Ajouter un message supplémentaire pour indiquer l'URL de l'API
+            showDebugMessage('URL de l\'API configurée: ' + (urlParams.get('apiUrl') || 'http://localhost:5055'));
         }
         
         document.addEventListener('DOMContentLoaded', function() {
@@ -1986,6 +1989,38 @@
                             addBenefitTag(benefit);
                         });
                         showDebugMessage('Avantages définis: ' + jobData.benefits.join(', '));
+                    }
+                    
+                    // Support des champs potentiellement nommés avec titre au lieu de title
+                    if (jobData.titre && !jobData.title) {
+                        document.getElementById('job-title-value').textContent = jobData.titre;
+                        showDebugMessage('Titre défini (depuis titre): ' + jobData.titre);
+                    }
+                    
+                    if (jobData.type_contrat && !jobData.contract_type) {
+                        document.getElementById('job-contract-value').textContent = jobData.type_contrat;
+                        showDebugMessage('Type de contrat défini: ' + jobData.type_contrat);
+                    }
+                    
+                    if (jobData.localisation && !jobData.location) {
+                        document.getElementById('job-location-value').textContent = jobData.localisation;
+                        showDebugMessage('Lieu défini (depuis localisation): ' + jobData.localisation);
+                    }
+                    
+                    if (jobData.competences && !jobData.skills) {
+                        if (typeof jobData.competences === 'string') {
+                            // Si c'est une chaîne de caractères, la diviser
+                            const competences = jobData.competences.split(',').map(s => s.trim());
+                            document.getElementById('job-skills-value').innerHTML = competences.map(skill => 
+                                `<span class="tag">${skill}</span>`
+                            ).join('');
+                        } else if (Array.isArray(jobData.competences)) {
+                            document.getElementById('job-skills-value').innerHTML = jobData.competences.map(skill => 
+                                `<span class="tag">${skill}</span>`
+                            ).join('');
+                        }
+                        showDebugMessage('Compétences définies (depuis compétences): ' + 
+                            (typeof jobData.competences === 'string' ? jobData.competences : jobData.competences.join(', ')));
                     }
                     
                     // Afficher le conteneur des informations extraites
