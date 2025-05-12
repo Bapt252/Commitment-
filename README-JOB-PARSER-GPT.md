@@ -1,93 +1,85 @@
-# Modification du Job Parser Service pour utiliser GPT
+# Fonctionnalité d'analyse de fiches de poste avec GPT
 
-Ce document détaille les modifications apportées au service de parsing de fiches de poste (`job-parser-service`) pour adopter la même structure que le service de parsing de CV (`cv-parser-service`), notamment pour l'utilisation des modèles GPT.
+Cette fonctionnalité permet d'analyser automatiquement les fiches de poste à l'aide de GPT et d'extraire les informations structurées.
 
-## Modifications réalisées
+## Composants
 
-1. **Ajout d'une configuration cohérente** 
-   - Création d'un fichier `config.py` à la racine du service
-   - Mise à jour du fichier de configuration dans `app/core/config.py`
+1. **Backend API**: Un endpoint FastAPI qui traite les fichiers PDF, DOCX et TXT pour en extraire le texte et l'analyser avec GPT.
+2. **Frontend JavaScript**: Un client JavaScript qui communique avec l'API et un script d'intégration qui ajoute un bouton "Analyser avec GPT" à l'interface.
 
-2. **Implémentation d'un système de mock parser**
-   - Ajout d'un fichier `mock_parser.py` dans `app/services/`
-   - Génération de données fictives mais réalistes pour les tests et le développement
+## Installation
 
-3. **Amélioration de l'extraction de texte**
-   - Implémentation de méthodes robustes pour différents formats de fichiers (PDF, DOCX, DOC, TXT, RTF)
-   - Gestion des erreurs et mécanismes de fallback
+### Backend
 
-4. **Ajout d'un service de résilience**
-   - Création d'un fichier `resilience.py` dans `app/services/`
-   - Implémentation d'un circuit breaker et d'un mécanisme de retry pour les appels à l'API OpenAI
+Le backend utilise FastAPI et expose un endpoint `/api/parse-with-gpt` qui accepte un fichier en entrée et renvoie les informations extraites au format JSON.
 
-5. **Préchargement des modèles et dépendances**
-   - Ajout d'un fichier `preload_models.py` pour accélérer le démarrage du service
+Le routeur est défini dans le fichier `backend/app/routes/gpt_parser.py` et est intégré à l'application principale dans `backend/app/api/api.py`.
 
-6. **Amélioration du parser principal**
-   - Mise à jour du fichier `parser.py` dans `app/services/` pour utiliser la même structure que le cv-parser-service
-   - Ajout de fonctions de pré-traitement et post-traitement plus avancées
+### Frontend
 
-7. **Mise à jour du point d'entrée principal**
-   - Modification du fichier `main.py` pour être cohérent avec la nouvelle structure
+Deux fichiers JavaScript sont fournis:
+- `js/gpt-parser-client.js`: Classe client pour communiquer avec l'API
+- `js/gpt-integration.js`: Script pour intégrer le bouton "Analyser avec GPT" à l'interface utilisateur
+
+Pour inclure ces scripts dans votre page HTML, ajoutez ces lignes avant la fermeture de la balise `</body>`:
+
+```html
+<script src="../js/gpt-parser-client.js"></script>
+<script src="../js/gpt-integration.js"></script>
+```
 
 ## Utilisation
 
-Le service de parsing de fiches de poste fonctionne maintenant de la même manière que le service de parsing de CV. Il peut être utilisé de deux façons :
+1. Téléchargez une fiche de poste (PDF, DOCX ou TXT) via l'interface
+2. Cliquez sur le bouton "Analyser avec GPT" 
+3. Les informations extraites seront affichées et les champs du formulaire seront automatiquement remplis
 
-1. **Avec l'API OpenAI (mode normal)** 
-   - Nécessite une clé API OpenAI valide dans le fichier `.env` ou les variables d'environnement
-   - Utilise le modèle GPT spécifié dans la configuration (par défaut : `gpt-4o-mini`)
+## Structure des données
 
-2. **Sans API OpenAI (mode mock)** 
-   - Activé automatiquement si aucune clé API n'est fournie
-   - Peut être activé explicitement avec la variable d'environnement `USE_MOCK_PARSER=true`
-   - Génère des données fictives mais réalistes pour les tests et le développement
+L'API renvoie un objet JSON avec la structure suivante:
 
-## Améliorations par rapport à la version précédente
-
-- **Robustesse** : Meilleure gestion des erreurs à tous les niveaux
-- **Résilience** : Circuit breaker et mécanisme de retry pour les appels à l'API
-- **Extraction de texte** : Support de plus de formats avec des méthodes de fallback
-- **Données de test** : Génération de données fictives réalistes pour le développement
-- **Configuration** : Structure de configuration plus claire et cohérente
-- **Performance** : Préchargement des modèles et dépendances au démarrage
-
-## Structure du service
-
-```
-job-parser-service/
-├── app/
-│   ├── api/
-│   ├── core/
-│   │   └── config.py          # Configuration spécifique à l'app
-│   ├── services/
-│   │   ├── mock_parser.py     # Générateur de données fictives
-│   │   ├── parser.py          # Parser principal
-│   │   └── resilience.py      # Circuit breaker et retry
-│   ├── utils/
-│   └── workers/
-├── config.py                  # Configuration globale
-├── main.py                    # Point d'entrée principal
-├── preload_models.py          # Préchargement des modèles
-└── requirements.txt           # Dépendances
+```json
+{
+  "success": true,
+  "data": {
+    "titre_poste": "Titre du poste",
+    "entreprise": "Nom de l'entreprise",
+    "localisation": "Lieu de travail",
+    "type_contrat": "Type de contrat",
+    "competences": ["Compétence 1", "Compétence 2", "..."],
+    "experience": "Expérience requise",
+    "formation": "Formation requise",
+    "salaire": "Salaire proposé",
+    "description": "Description du poste"
+  },
+  "processing_time": "0.85 secondes"
+}
 ```
 
-## Exemple d'utilisation via l'API
+## Dépannage
 
-```bash
-# Test de l'endpoint health
-curl http://localhost:5053/health
+1. **Problème**: Le bouton "Analyser avec GPT" n'apparaît pas
+   **Solution**: Vérifiez que les scripts sont correctement inclus et que les éléments DOM nécessaires (zone de dépôt, input file) existent dans votre page.
 
-# Parsing d'une fiche de poste
-curl -X POST \
-  http://localhost:5053/api/parse-job \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@/chemin/vers/fiche_poste.pdf" \
-  -F "force_refresh=false"
-```
+2. **Problème**: Erreur 500 lors de l'analyse
+   **Solution**: Vérifiez que le script parse_fdp_gpt.py est accessible par le backend et que la clé API OpenAI est correctement configurée dans le fichier .env.
 
-## Remarques
+3. **Problème**: Résultats d'analyse vides ou incorrects
+   **Solution**: Vérifiez que le format de la fiche de poste est correct et que le texte peut être extrait correctement. Le mode debug peut aider à diagnostiquer les problèmes.
 
-- Le service utilise désormais le même modèle GPT que le service de parsing de CV
-- Les deux services partagent une structure similaire pour faciliter la maintenance
-- Les données extraites sont adaptées aux fiches de poste (titre, entreprise, compétences requises, etc.)
+## API Reference
+
+### Endpoint: `/api/parse-with-gpt`
+
+**Méthode**: POST
+
+**Corps de la requête**: FormData avec un champ `file` contenant le fichier à analyser
+
+**Réponse**: 
+- `200 OK`: L'analyse a réussi, renvoie les données extraites
+- `400 Bad Request`: Format de fichier non supporté
+- `500 Internal Server Error`: Erreur lors du traitement ou de l'analyse
+
+## Notes de développement
+
+Cette fonctionnalité s'appuie sur le script `parse_fdp_gpt.py` qui doit être accessible dans le PYTHONPATH du backend. Le script utilise l'API OpenAI pour l'analyse, assurez-vous qu'une clé API valide est configurée.
