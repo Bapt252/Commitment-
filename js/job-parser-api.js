@@ -8,7 +8,7 @@ const JOB_PARSER_CONFIG = {
     // URL de base de l'API - Choisir l'URL appropriée selon l'environnement
     // Utiliser l'URL relative pour la production, et l'URL complète pour le développement local
     apiBaseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://localhost:5000/api/job-parser'  // Développement local
+        ? 'http://localhost:7000/api/job-parser'  // Développement local sur port 7000
         : '/api/job-parser',  // Production (URL relative)
     
     // Timeout des requêtes en millisecondes
