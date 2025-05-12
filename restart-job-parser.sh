@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script pour redémarrer le service job-parser après les modifications
+# Script pour redémarrer le service job-parser
 
 echo "Arrêt du service job-parser..."
 docker-compose stop job-parser job-parser-worker
