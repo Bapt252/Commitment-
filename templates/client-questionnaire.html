@@ -1344,6 +1344,7 @@
     
     <!-- Scripts -->
     <script src="../assets/js/parser.js"></script>
+    <script src="../js/job-parser-api.js"></script>
     <script>
         // Fonction pour afficher un message de debug
         function showDebugMessage(message) {
@@ -1379,17 +1380,11 @@
         }
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Charger le script parser.js dynamiquement
-            const parserScript = document.createElement('script');
-            parserScript.src = '../assets/js/parser.js';
-            parserScript.onload = function() {
-                showDebugMessage('Parser script loaded successfully!');
-                initializeForm();
-            };
-            parserScript.onerror = function() {
-                showDebugMessage('Error loading parser script. Please check the path.');
-            };
-            document.body.appendChild(parserScript);
+            // Initialiser l'API JOB PARSER
+            const jobParserAPI = new JobParserAPI({
+                apiBaseUrl: '/api/job-parser',
+                debug: urlParams.has('debug')
+            });
             
             function initializeForm() {
                 // Variables pour les étapes et la navigation
@@ -1679,6 +1674,60 @@
                     fileName.textContent = file.name;
                     fileBadge.style.display = 'inline-flex';
                     showNotification('Fichier sélectionné avec succès', 'success');
+                    
+                    // Analyser automatiquement le fichier avec l'API JOB PARSER
+                    analyzeJobFile(file);
+                }
+                
+                // Fonction pour analyser un fichier avec l'API JOB PARSER
+                async function analyzeJobFile(file) {
+                    // Afficher le loader
+                    document.getElementById('analysis-loader').style.display = 'flex';
+                    
+                    try {
+                        // Utiliser l'API JOB PARSER pour analyser le fichier
+                        const result = await jobParserAPI.parseJobFile(file);
+                        
+                        // Sauvegarder les résultats dans sessionStorage
+                        sessionStorage.setItem('parsedJobData', JSON.stringify(result));
+                        
+                        // Afficher les résultats
+                        showJobResults(result);
+                        
+                        showNotification('Fiche de poste analysée avec succès !', 'success');
+                    } catch (error) {
+                        console.error('Erreur lors de l\'analyse du fichier:', error);
+                        
+                        // Fallback : Essayer de lire le fichier et l'analyser localement
+                        try {
+                            const fileText = await readFileAsText(file);
+                            const localResult = jobParserAPI.analyzeJobLocally(fileText);
+                            
+                            // Sauvegarder les résultats dans sessionStorage
+                            sessionStorage.setItem('parsedJobData', JSON.stringify(localResult));
+                            
+                            // Afficher les résultats
+                            showJobResults(localResult);
+                            
+                            showNotification('Fiche de poste analysée localement avec succès', 'info');
+                        } catch (localError) {
+                            console.error('Erreur lors de l\'analyse locale:', localError);
+                            showNotification('Erreur lors de l\'analyse de la fiche de poste', 'error');
+                        }
+                    } finally {
+                        // Masquer le loader
+                        document.getElementById('analysis-loader').style.display = 'none';
+                    }
+                }
+                
+                // Fonction pour lire un fichier comme texte
+                function readFileAsText(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = e => resolve(e.target.result);
+                        reader.onerror = e => reject(e);
+                        reader.readAsText(file);
+                    });
                 }
                 
                 // Gestion des tags pour les avantages
@@ -1799,7 +1848,7 @@
                     }, 1500);
                 });
                 
-                // Chargement des données parsées depuis la page job-form.html
+                // Chargement des données parsées depuis sessionStorage
                 function loadParsedJobData() {
                     try {
                         // Essayer d'abord sessionStorage (recommended)
@@ -1817,84 +1866,10 @@
                             showDebugMessage('Parsing des données...');
                             const jobData = JSON.parse(parsedJobData);
                             
-                            // Remplir les informations de l'étape 1
-                            if (jobData.title && jobData.title !== 'Unknown Position') {
-                                document.getElementById('job-title-value').textContent = jobData.title;
-                                showDebugMessage('Titre défini: ' + jobData.title);
-                            }
+                            // Afficher les résultats
+                            showJobResults(jobData);
                             
-                            if (jobData.company && jobData.company !== 'Unknown Company') {
-                                document.getElementById('job-contract-value').textContent = 'À déterminer';
-                                // Pré-remplir le nom de l'entreprise dans l'étape 2
-                                document.getElementById('company-name').value = jobData.company;
-                                showDebugMessage('Entreprise définie: ' + jobData.company);
-                            }
-                            
-                            if (jobData.location && jobData.location !== 'Unknown Location') {
-                                document.getElementById('job-location-value').textContent = jobData.location;
-                                showDebugMessage('Lieu défini: ' + jobData.location);
-                            }
-                            
-                            if (jobData.experience && jobData.experience !== 'Not specified') {
-                                document.getElementById('job-experience-value').textContent = jobData.experience;
-                                showDebugMessage('Expérience définie: ' + jobData.experience);
-                                
-                                // Pré-sélectionner l'expérience dans l'étape 3
-                                const experienceSelect = document.getElementById('experience-required');
-                                if (jobData.experience.includes('Entry')) {
-                                    experienceSelect.value = 'junior';
-                                } else if (jobData.experience.includes('2') || jobData.experience.includes('3')) {
-                                    experienceSelect.value = '2-3';
-                                } else if (jobData.experience.includes('5') || 
-                                        jobData.experience.includes('6') || 
-                                        jobData.experience.includes('7') || 
-                                        jobData.experience.includes('8') || 
-                                        jobData.experience.includes('9')) {
-                                    experienceSelect.value = '5-10';
-                                } else if (jobData.experience.includes('10') || 
-                                        jobData.experience.includes('Senior')) {
-                                    experienceSelect.value = '10+';
-                                }
-                            }
-                            
-                            document.getElementById('job-education-value').textContent = 'À déterminer';
-                            
-                            if (jobData.salary && jobData.salary !== 'Not specified') {
-                                document.getElementById('job-salary-value').textContent = jobData.salary;
-                                // Pré-remplir le salaire dans l'étape 3
-                                document.getElementById('salary').value = jobData.salary;
-                                showDebugMessage('Salaire défini: ' + jobData.salary);
-                            }
-                            
-                            if (jobData.skills && Array.isArray(jobData.skills) && jobData.skills.length > 0 && jobData.skills[0] !== 'Not specified') {
-                                document.getElementById('job-skills-value').innerHTML = jobData.skills.map(skill => 
-                                    `<span class="tag">${skill}</span>`
-                                ).join('');
-                                showDebugMessage('Compétences définies: ' + jobData.skills.join(', '));
-                            }
-                            
-                            if (jobData.responsibilities && Array.isArray(jobData.responsibilities) && jobData.responsibilities.length > 0 && jobData.responsibilities[0] !== 'Not specified') {
-                                document.getElementById('job-responsibilities-value').innerHTML = '<ul>' + 
-                                    jobData.responsibilities.map(resp => `<li>${resp}</li>`).join('') + 
-                                    '</ul>';
-                                showDebugMessage('Responsabilités définies: ' + jobData.responsibilities.length + ' éléments');
-                            }
-                            
-                            if (jobData.benefits && Array.isArray(jobData.benefits) && jobData.benefits.length > 0 && jobData.benefits[0] !== 'Not specified') {
-                                document.getElementById('job-benefits-value').innerHTML = '<ul>' + 
-                                    jobData.benefits.map(benefit => `<li>${benefit}</li>`).join('') + 
-                                    '</ul>';
-                                
-                                // Ajouter les avantages dans l'étape 3
-                                jobData.benefits.forEach(benefit => {
-                                    addBenefitTag(benefit);
-                                });
-                                showDebugMessage('Avantages définis: ' + jobData.benefits.join(', '));
-                            }
-                            
-                            // Afficher le conteneur des informations extraites
-                            document.getElementById('job-info-container').style.display = 'block';
-                            showDebugMessage('Affichage du conteneur d\'informations');
+                            showDebugMessage('Affichage des résultats terminé');
                         } else {
                             showDebugMessage('Aucune donnée trouvée dans le sessionStorage ou localStorage');
                         }
@@ -1903,8 +1878,86 @@
                     }
                 }
                 
-                // Appeler la fonction pour charger les données
-                loadParsedJobData();
+                // Fonction pour afficher les résultats d'analyse
+                function showJobResults(jobData) {
+                    // Remplir les informations de l'étape 1
+                    if (jobData.title && jobData.title !== 'Unknown Position') {
+                        document.getElementById('job-title-value').textContent = jobData.title;
+                        showDebugMessage('Titre défini: ' + jobData.title);
+                    }
+                    
+                    if (jobData.company && jobData.company !== 'Unknown Company') {
+                        document.getElementById('job-contract-value').textContent = 'À déterminer';
+                        // Pré-remplir le nom de l'entreprise dans l'étape 2
+                        document.getElementById('company-name').value = jobData.company;
+                        showDebugMessage('Entreprise définie: ' + jobData.company);
+                    }
+                    
+                    if (jobData.location && jobData.location !== 'Unknown Location') {
+                        document.getElementById('job-location-value').textContent = jobData.location;
+                        showDebugMessage('Lieu défini: ' + jobData.location);
+                    }
+                    
+                    if (jobData.experience && jobData.experience !== 'Not specified') {
+                        document.getElementById('job-experience-value').textContent = jobData.experience;
+                        showDebugMessage('Expérience définie: ' + jobData.experience);
+                        
+                        // Pré-sélectionner l'expérience dans l'étape 3
+                        const experienceSelect = document.getElementById('experience-required');
+                        if (jobData.experience.includes('Entry')) {
+                            experienceSelect.value = 'junior';
+                        } else if (jobData.experience.includes('2') || jobData.experience.includes('3')) {
+                            experienceSelect.value = '2-3';
+                        } else if (jobData.experience.includes('5') || 
+                                jobData.experience.includes('6') || 
+                                jobData.experience.includes('7') || 
+                                jobData.experience.includes('8') || 
+                                jobData.experience.includes('9')) {
+                            experienceSelect.value = '5-10';
+                        } else if (jobData.experience.includes('10') || 
+                                jobData.experience.includes('Senior')) {
+                            experienceSelect.value = '10+';
+                        }
+                    }
+                    
+                    document.getElementById('job-education-value').textContent = 'À déterminer';
+                    
+                    if (jobData.salary && jobData.salary !== 'Not specified') {
+                        document.getElementById('job-salary-value').textContent = jobData.salary;
+                        // Pré-remplir le salaire dans l'étape 3
+                        document.getElementById('salary').value = jobData.salary;
+                        showDebugMessage('Salaire défini: ' + jobData.salary);
+                    }
+                    
+                    if (jobData.skills && Array.isArray(jobData.skills) && jobData.skills.length > 0 && jobData.skills[0] !== 'Not specified') {
+                        document.getElementById('job-skills-value').innerHTML = jobData.skills.map(skill => 
+                            `<span class="tag">${skill}</span>`
+                        ).join('');
+                        showDebugMessage('Compétences définies: ' + jobData.skills.join(', '));
+                    }
+                    
+                    if (jobData.responsibilities && Array.isArray(jobData.responsibilities) && jobData.responsibilities.length > 0 && jobData.responsibilities[0] !== 'Not specified') {
+                        document.getElementById('job-responsibilities-value').innerHTML = '<ul>' + 
+                            jobData.responsibilities.map(resp => `<li>${resp}</li>`).join('') + 
+                            '</ul>';
+                        showDebugMessage('Responsabilités définies: ' + jobData.responsibilities.length + ' éléments');
+                    }
+                    
+                    if (jobData.benefits && Array.isArray(jobData.benefits) && jobData.benefits.length > 0 && jobData.benefits[0] !== 'Not specified') {
+                        document.getElementById('job-benefits-value').innerHTML = '<ul>' + 
+                            jobData.benefits.map(benefit => `<li>${benefit}</li>`).join('') + 
+                            '</ul>';
+                        
+                        // Ajouter les avantages dans l'étape 3
+                        jobData.benefits.forEach(benefit => {
+                            addBenefitTag(benefit);
+                        });
+                        showDebugMessage('Avantages définis: ' + jobData.benefits.join(', '));
+                    }
+                    
+                    // Afficher le conteneur des informations extraites
+                    document.getElementById('job-info-container').style.display = 'block';
+                }
                 
                 // Affichage des notifications
                 function showNotification(message, type = 'success') {
@@ -1969,7 +2022,7 @@
                 const analyzeButton = document.getElementById('analyze-job-text');
                 const jobDescriptionText = document.getElementById('job-description-text');
                 
-                analyzeButton.addEventListener('click', function() {
+                analyzeButton.addEventListener('click', async function() {
                     const text = jobDescriptionText.value.trim();
                     
                     if (!text) {
@@ -1977,23 +2030,51 @@
                         return;
                     }
                     
+                    // Afficher le loader
+                    document.getElementById('analysis-loader').style.display = 'flex';
+                    
                     try {
-                        // Analyser le texte
-                        const parsedData = window.JobParser.parseJobDescription(text);
-                        
-                        // Sauvegarder dans sessionStorage
-                        sessionStorage.setItem('parsedJobData', JSON.stringify(parsedData));
-                        
-                        // Recharger les données
-                        loadParsedJobData();
-                        
-                        showNotification("Fiche de poste analysée avec succès !", "success");
+                        // Essayer d'abord d'utiliser l'API JOB PARSER
+                        try {
+                            const result = await jobParserAPI.parseJobText(text);
+                            
+                            // Sauvegarder les résultats
+                            sessionStorage.setItem('parsedJobData', JSON.stringify(result));
+                            
+                            // Afficher les résultats
+                            showJobResults(result);
+                            
+                            showNotification("Fiche de poste analysée avec succès !", "success");
+                        } catch (apiError) {
+                            console.warn('Erreur API, fallback sur l\'analyse locale:', apiError);
+                            
+                            // Fallback sur l'analyse locale
+                            const localResult = jobParserAPI.analyzeJobLocally(text);
+                            
+                            // Sauvegarder les résultats
+                            sessionStorage.setItem('parsedJobData', JSON.stringify(localResult));
+                            
+                            // Afficher les résultats
+                            showJobResults(localResult);
+                            
+                            showNotification("Fiche de poste analysée localement", "info");
+                        }
                     } catch (error) {
+                        console.error("Erreur lors de l'analyse:", error);
                         showDebugMessage("Erreur lors de l'analyse: " + error.message);
                         showNotification("Erreur lors de l'analyse de la fiche de poste.", "error");
+                    } finally {
+                        // Masquer le loader
+                        document.getElementById('analysis-loader').style.display = 'none';
                     }
                 });
+                
+                // Charger les données parsées au démarrage
+                loadParsedJobData();
             }
+            
+            // Initialiser le formulaire
+            initializeForm();
         });
     </script>
 </body>
