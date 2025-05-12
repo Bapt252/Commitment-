@@ -1344,6 +1344,7 @@
     
     <!-- Scripts -->
     <script src="../assets/js/parser.js"></script>
+    <script src="../js/pdf-cleaner.js"></script>
     <script src="../js/job-parser-api.js"></script>
     <script>
         // Fonction pour afficher un message de debug
@@ -1382,8 +1383,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Initialiser l'API JOB PARSER
             const jobParserAPI = new JobParserAPI({
-                apiBaseUrl: '/api/job-parser',
-                debug: urlParams.has('debug')
+                debug: urlParams.has('debug'),
+                enablePDFCleaning: true  // Activer le nettoyage PDF
             });
             
             function initializeForm() {
