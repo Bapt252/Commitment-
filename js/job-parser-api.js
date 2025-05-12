@@ -5,8 +5,11 @@
 
 // Configuration par défaut
 const JOB_PARSER_CONFIG = {
-    // URL de base de l'API (à modifier selon l'environnement)
-    apiBaseUrl: 'http://localhost:5000/api/job-parser',
+    // URL de base de l'API - Choisir l'URL appropriée selon l'environnement
+    // Utiliser l'URL relative pour la production, et l'URL complète pour le développement local
+    apiBaseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:5000/api/job-parser'  // Développement local
+        : '/api/job-parser',  // Production (URL relative)
     
     // Timeout des requêtes en millisecondes
     requestTimeout: 120000,
@@ -17,8 +20,8 @@ const JOB_PARSER_CONFIG = {
     // Nombre maximum de tentatives de vérification
     maxPollAttempts: 30,
     
-    // Mode debug
-    debug: true
+    // Mode debug - activé par défaut si ?debug=true est présent dans l'URL
+    debug: new URLSearchParams(window.location.search).has('debug')
 };
 
 // Classe principale d'intégration avec le JOB PARSER
@@ -74,11 +77,21 @@ class JobParserAPI {
         this.log('Parsing job text, length:', text.length);
         
         try {
-            // Créer un fichier temporaire à partir du texte
-            const file = new File([text], 'job_description.txt', { type: 'text/plain' });
+            // Créer un formData avec le texte
+            const formData = new FormData();
+            formData.append('text', text);
             
-            // Utiliser la méthode parseJobFile
-            return await this.parseJobFile(file, options);
+            // Appel à l'API pour mettre le job dans la file d'attente
+            const queueResponse = await this._sendRequest('/queue', {
+                method: 'POST',
+                body: formData,
+                headers: options.apiKey ? { 'X-API-Key': options.apiKey } : undefined
+            });
+            
+            this.log('Job queued:', queueResponse);
+            
+            // Vérification périodique du statut du job
+            return await this._pollJobStatus(queueResponse.job_id, options);
         } catch (error) {
             this.logError('Error parsing job text:', error);
             throw error;
@@ -142,6 +155,8 @@ class JobParserAPI {
         const timeoutId = setTimeout(() => controller.abort(), this.config.requestTimeout);
         
         try {
+            this.log(`Sending request to ${url}`, options);
+            
             const response = await fetch(url, {
                 ...options,
                 signal: controller.signal
