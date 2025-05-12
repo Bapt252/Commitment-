@@ -9,17 +9,46 @@ class JobParserAPI {
      * @param {Object} config - Configuration de l'API
      * @param {boolean} config.debug - Active le mode debug
      * @param {boolean} config.enablePDFCleaning - Active le nettoyage des PDF
-     * @param {string} config.apiUrl - URL de l'API (par défaut: http://localhost:5055)
+     * @param {string} config.apiUrl - URL de l'API (par défaut: détection automatique ou localhost)
+     * @param {boolean} config.forceLocalProcessing - Force l'analyse locale sans appeler l'API
      */
     constructor(config = {}) {
+        // Récupérer l'URL de l'API depuis les paramètres de l'URL si disponible
+        const urlParams = new URLSearchParams(window.location.search);
+        const apiUrlFromParams = urlParams.get('apiUrl');
+        
         this.config = {
-            debug: config.debug || false,
+            debug: config.debug || urlParams.has('debug'),
             enablePDFCleaning: config.enablePDFCleaning || false,
-            apiUrl: config.apiUrl || 'http://localhost:5055'
+            apiUrl: config.apiUrl || apiUrlFromParams || this._detectApiUrl(),
+            forceLocalProcessing: config.forceLocalProcessing || urlParams.has('localOnly')
         };
         
         if (this.config.debug) {
             console.log('JobParserAPI initialisée avec la configuration:', this.config);
+        }
+    }
+    
+    /**
+     * Détecte automatiquement l'URL de l'API en fonction de l'environnement
+     * @returns {string} URL de l'API
+     * @private
+     */
+    _detectApiUrl() {
+        // Essayer de détecter l'adresse du serveur en fonction de l'URL courante
+        const currentUrl = new URL(window.location.href);
+        const hostname = currentUrl.hostname;
+        
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:5055';
+        } else if (hostname.includes('github.io')) {
+            // En mode GitHub Pages, tenter plusieurs URLs connues
+            return window.location.protocol + '//' + 
+                  (window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname) + 
+                  ':5055';
+        } else {
+            // Fallback sur l'adresse IP locale ou le nom d'hôte actuel
+            return window.location.protocol + '//' + hostname + ':5055';
         }
     }
     
@@ -33,12 +62,55 @@ class JobParserAPI {
             console.log('Analyse du fichier:', file.name);
         }
         
+        // Si on force le traitement local, ne pas essayer l'API
+        if (this.config.forceLocalProcessing) {
+            if (this.config.debug) {
+                console.log('Mode d\'analyse locale forcé, pas d\'appel API');
+            }
+            const text = await this._extractTextFromFile(file);
+            return this.analyzeJobLocally(text);
+        }
+        
         try {
             const formData = new FormData();
             formData.append('job_post_file', file);
             
+            if (this.config.debug) {
+                console.log('Tentative d\'appel API à:', this.config.apiUrl);
+            }
+            
+            try {
+                // Vérifier si l'API est accessible
+                const pingResponse = await fetch(`${this.config.apiUrl}/`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    timeout: 2000 // Timeout court pour le ping
+                }).catch(e => {
+                    if (this.config.debug) {
+                        console.warn('Erreur lors du ping de l\'API:', e);
+                    }
+                    throw new Error('API indisponible');
+                });
+                
+                if (!pingResponse || !pingResponse.ok) {
+                    throw new Error('API indisponible');
+                }
+            } catch (pingError) {
+                if (this.config.debug) {
+                    console.warn('API indisponible, fallback sur l\'analyse locale', pingError);
+                }
+                const text = await this._extractTextFromFile(file);
+                return this.analyzeJobLocally(text);
+            }
+            
             const response = await fetch(`${this.config.apiUrl}/api/parse-job-post`, {
                 method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
                 body: formData
             });
             
@@ -49,7 +121,7 @@ class JobParserAPI {
             const result = await response.json();
             
             if (this.config.debug) {
-                console.log('Résultat de l\'analyse:', result);
+                console.log('Résultat de l\'analyse API:', result);
             }
             
             if (result.success) {
@@ -59,17 +131,15 @@ class JobParserAPI {
             }
         } catch (error) {
             if (this.config.debug) {
-                console.error('Erreur lors de l\'analyse du fichier:', error);
+                console.error('Erreur lors de l\'analyse du fichier via API:', error);
             }
             
             // En cas d'erreur avec l'API, essayer l'analyse locale
-            if (this.config.enablePDFCleaning) {
-                console.warn('Tentative d\'analyse locale du fichier...');
-                const text = await this._extractTextFromFile(file);
-                return this.analyzeJobLocally(text);
+            if (this.config.debug) {
+                console.log('Fallback sur l\'analyse locale');
             }
-            
-            throw error;
+            const text = await this._extractTextFromFile(file);
+            return this.analyzeJobLocally(text);
         }
     }
     
@@ -83,11 +153,49 @@ class JobParserAPI {
             console.log('Analyse du texte de la fiche de poste');
         }
         
+        // Si on force le traitement local, ne pas essayer l'API
+        if (this.config.forceLocalProcessing) {
+            if (this.config.debug) {
+                console.log('Mode d\'analyse locale forcé, pas d\'appel API');
+            }
+            return this.analyzeJobLocally(text);
+        }
+        
         try {
+            try {
+                // Vérifier si l'API est accessible
+                const pingResponse = await fetch(`${this.config.apiUrl}/`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    timeout: 2000 // Timeout court pour le ping
+                }).catch(e => {
+                    if (this.config.debug) {
+                        console.warn('Erreur lors du ping de l\'API:', e);
+                    }
+                    throw new Error('API indisponible');
+                });
+                
+                if (!pingResponse || !pingResponse.ok) {
+                    throw new Error('API indisponible');
+                }
+            } catch (pingError) {
+                if (this.config.debug) {
+                    console.warn('API indisponible, fallback sur l\'analyse locale', pingError);
+                }
+                return this.analyzeJobLocally(text);
+            }
+            
             const response = await fetch(`${this.config.apiUrl}/api/parse-job-post`, {
                 method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({ job_post_text: text })
             });
@@ -99,7 +207,7 @@ class JobParserAPI {
             const result = await response.json();
             
             if (this.config.debug) {
-                console.log('Résultat de l\'analyse:', result);
+                console.log('Résultat de l\'analyse API:', result);
             }
             
             if (result.success) {
@@ -109,7 +217,7 @@ class JobParserAPI {
             }
         } catch (error) {
             if (this.config.debug) {
-                console.error('Erreur lors de l\'analyse du texte:', error);
+                console.error('Erreur lors de l\'analyse du texte via API:', error);
             }
             
             // En cas d'erreur avec l'API, essayer l'analyse locale
