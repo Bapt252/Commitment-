@@ -5,10 +5,16 @@ import uuid
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import openai
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement depuis .env
+load_dotenv()
 
 # Configuration
-API_KEY = os.environ.get('OPENAI_API_KEY')  # Assurez-vous de définir cette variable d'environnement
-MODEL = "gpt-3.5-turbo"  # Modèle GPT à utiliser
+API_KEY = os.environ.get('OPENAI_API_KEY')
+MODEL = os.environ.get('MODEL', 'gpt-3.5-turbo')
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
+JOB_EXPIRATION = int(os.environ.get('JOB_EXPIRATION', 86400))  # 24 heures par défaut
 
 # Initialisation de l'API OpenAI
 if API_KEY:
@@ -89,6 +95,17 @@ def get_job_result(job_id):
             "status": job["status"],
             "message": "Job en cours de traitement"
         })
+
+@app.route('/api/job-parser/health', methods=['GET'])
+def health_check():
+    """
+    Point d'entrée pour vérifier la santé du service
+    """
+    return jsonify({
+        "status": "ok",
+        "version": "1.0.0",
+        "api_status": "available" if API_KEY else "unavailable"
+    })
 
 def process_job(job_id):
     """
@@ -195,6 +212,43 @@ def extract_job_info_with_gpt(content):
     except Exception as e:
         raise Exception(f"Erreur lors de l'appel à l'API OpenAI: {str(e)}")
 
+# Nettoyage périodique des jobs expirés
+def cleanup_expired_jobs():
+    """
+    Nettoie les jobs qui ont expiré
+    """
+    now = time.time()
+    expired_jobs = []
+    
+    for job_id, job in jobs.items():
+        # Calculer l'âge du job
+        job_time = job.get("completed_at", job.get("created_at", now))
+        job_age = now - job_time
+        
+        # Si le job est plus vieux que JOB_EXPIRATION, le marquer pour suppression
+        if job_age > JOB_EXPIRATION:
+            expired_jobs.append(job_id)
+    
+    # Supprimer les jobs expirés
+    for job_id in expired_jobs:
+        del jobs[job_id]
+    
+    if expired_jobs and DEBUG:
+        print(f"Nettoyage: {len(expired_jobs)} jobs expirés supprimés")
+
 if __name__ == '__main__':
+    # Configurer le nettoyage périodique des jobs expirés
+    import threading
+    
+    def cleanup_thread():
+        while True:
+            time.sleep(3600)  # Une fois par heure
+            cleanup_expired_jobs()
+    
+    cleanup_thread = threading.Thread(target=cleanup_thread)
+    cleanup_thread.daemon = True
+    cleanup_thread.start()
+    
+    # Démarrer le serveur
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=DEBUG)
