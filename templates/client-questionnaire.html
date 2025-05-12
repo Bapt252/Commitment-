@@ -1444,8 +1444,7 @@
     </div>
     
     <!-- Scripts pour l'intégration du job parser -->
-    <script src="../js/simple-job-parser.js"></script>
-    <script src="../js/job-preview.js"></script>
+    <script src="../assets/js/parser.js"></script>
     
     <!-- Script amélioré pour le formulaire client -->
     <script>
@@ -1744,10 +1743,6 @@
             const benefitsContainer = document.getElementById('benefits-container');
             const addTagBtn = document.querySelector('.add-tag-btn');
             
-            // Exemples d'avantages par défaut
-            const defaultBenefits = ['Télétravail', 'Tickets restaurant', 'RTT', 'Mutuelle'];
-            defaultBenefits.forEach(benefit => addBenefitTag(benefit));
-            
             // Ajouter un tag par appui sur Entrée
             benefitInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -1861,6 +1856,88 @@
                 }, 1500);
             });
             
+            // Chargement des données parsées depuis la page job-form.html
+            function loadParsedJobData() {
+                const parsedJobData = localStorage.getItem('parsedJobData');
+                
+                if (parsedJobData) {
+                    const jobData = JSON.parse(parsedJobData);
+                    
+                    // Remplir les informations de l'étape 1
+                    if (jobData.title && jobData.title !== 'Unknown Position') {
+                        document.getElementById('job-title-value').textContent = jobData.title;
+                    }
+                    
+                    if (jobData.company && jobData.company !== 'Unknown Company') {
+                        document.getElementById('job-contract-value').textContent = 'À déterminer';
+                        // Pré-remplir le nom de l'entreprise dans l'étape 2
+                        document.getElementById('company-name').value = jobData.company;
+                    }
+                    
+                    if (jobData.location && jobData.location !== 'Unknown Location') {
+                        document.getElementById('job-location-value').textContent = jobData.location;
+                    }
+                    
+                    if (jobData.experience && jobData.experience !== 'Not specified') {
+                        document.getElementById('job-experience-value').textContent = jobData.experience;
+                        
+                        // Pré-sélectionner l'expérience dans l'étape 3
+                        const experienceSelect = document.getElementById('experience-required');
+                        if (jobData.experience.includes('Entry')) {
+                            experienceSelect.value = 'junior';
+                        } else if (jobData.experience.includes('2') || jobData.experience.includes('3')) {
+                            experienceSelect.value = '2-3';
+                        } else if (jobData.experience.includes('5') || 
+                                  jobData.experience.includes('6') || 
+                                  jobData.experience.includes('7') || 
+                                  jobData.experience.includes('8') || 
+                                  jobData.experience.includes('9')) {
+                            experienceSelect.value = '5-10';
+                        } else if (jobData.experience.includes('10') || 
+                                  jobData.experience.includes('Senior')) {
+                            experienceSelect.value = '10+';
+                        }
+                    }
+                    
+                    document.getElementById('job-education-value').textContent = 'À déterminer';
+                    
+                    if (jobData.salary && jobData.salary !== 'Not specified') {
+                        document.getElementById('job-salary-value').textContent = jobData.salary;
+                        // Pré-remplir le salaire dans l'étape 3
+                        document.getElementById('salary').value = jobData.salary;
+                    }
+                    
+                    if (jobData.skills && Array.isArray(jobData.skills) && jobData.skills.length > 0 && jobData.skills[0] !== 'Not specified') {
+                        document.getElementById('job-skills-value').innerHTML = jobData.skills.map(skill => 
+                            `<span class="tag">${skill}</span>`
+                        ).join('');
+                    }
+                    
+                    if (jobData.responsibilities && Array.isArray(jobData.responsibilities) && jobData.responsibilities.length > 0 && jobData.responsibilities[0] !== 'Not specified') {
+                        document.getElementById('job-responsibilities-value').innerHTML = '<ul>' + 
+                            jobData.responsibilities.map(resp => `<li>${resp}</li>`).join('') + 
+                            '</ul>';
+                    }
+                    
+                    if (jobData.benefits && Array.isArray(jobData.benefits) && jobData.benefits.length > 0 && jobData.benefits[0] !== 'Not specified') {
+                        document.getElementById('job-benefits-value').innerHTML = '<ul>' + 
+                            jobData.benefits.map(benefit => `<li>${benefit}</li>`).join('') + 
+                            '</ul>';
+                        
+                        // Ajouter les avantages dans l'étape 3
+                        jobData.benefits.forEach(benefit => {
+                            addBenefitTag(benefit);
+                        });
+                    }
+                    
+                    // Afficher le conteneur des informations extraites
+                    document.getElementById('job-info-container').style.display = 'block';
+                }
+            }
+            
+            // Appeler la fonction pour charger les données
+            loadParsedJobData();
+            
             // Affichage des notifications
             function showNotification(message, type = 'success') {
                 const notification = document.getElementById('notification');
@@ -1914,7 +1991,7 @@
                 }
             }
             
-            // Exposer la fonction showNotification globalement pour le connecteur de JOB Parser
+            // Exposer la fonction showNotification globalement
             window.showNotification = showNotification;
             
             // Initialiser la barre de progression
