@@ -4,9 +4,16 @@ Backend pour le projet Commitment, incluant l'analyse de CV et de fiches de post
 
 ## Nouvelles fonctionnalités
 
-### Job Parser avec GPT
+### Job Parser avec GPT et prise en charge avancée des PDF
 
-Le service d'analyse de fiches de poste a été ajouté ! Il permet d'extraire automatiquement les informations clés des fiches de poste à l'aide de GPT.
+Le service d'analyse de fiches de poste a été amélioré ! Il permet d'extraire automatiquement les informations clés des fiches de poste en utilisant plusieurs méthodes :
+
+1. **Analyse avec GPT** (si une clé API est configurée)
+2. **Extraction robuste de PDF** avec support multi-bibliothèques :
+   - PyPDF2 (par défaut)
+   - pdfminer.six (méthode alternative)
+   - PyMuPDF (méthode avancée)
+3. **Analyse locale de secours** si GPT n'est pas disponible
 
 #### Configuration
 
@@ -31,6 +38,16 @@ pip install -r requirements.txt
 ```bash
 python run.py
 ```
+
+#### Test du service d'extraction PDF
+
+Pour vérifier que l'extraction PDF fonctionne correctement :
+
+```bash
+python test_pdf_parser.py chemin/vers/votre/fiche_de_poste.pdf
+```
+
+Ce script testera l'extraction avec plusieurs bibliothèques et vous montrera le résultat.
 
 #### Utilisation de l'API Job Parser
 
@@ -72,12 +89,24 @@ Le frontend peut se connecter au backend via l'API. Pour activer le mode debug, 
 
 ## Troubleshooting
 
-Si vous rencontrez des problèmes, vérifiez les points suivants :
+Si vous rencontrez des problèmes d'extraction de PDF, essayez les solutions suivantes :
 
-1. La clé API OpenAI est correctement configurée
-2. Les dépendances sont correctement installées
-3. Le port 5000 est disponible
-4. Les logs dans la console pour identifier les erreurs
+1. **Vérifiez le type de PDF** : 
+   - Si c'est un PDF numérisé (image), les bibliothèques auront du mal à extraire le texte
+   - Si c'est un PDF protégé, il peut être impossible d'extraire le contenu
+
+2. **Essayez des bibliothèques alternatives** :
+   ```bash
+   pip install pdfminer.six pymupdf
+   ```
+
+3. **Utilisez le script de diagnostic** :
+   ```bash
+   python test_pdf_parser.py votre_fichier.pdf
+   ```
+
+4. **Fallback manuel** : 
+   - Si aucune méthode automatique ne fonctionne, copiez-collez le texte manuellement dans le champ texte
 
 ## Développement
 
