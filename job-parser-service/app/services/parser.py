@@ -12,6 +12,7 @@ import re
 from app.core.config import settings
 from app.services.resilience import resilient_openai_call
 from app.services.mock_parser import get_mock_job_data
+from app.utils.pdf_extractor import extract_text_from_pdf
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -107,7 +108,10 @@ def preprocess_job_text(text: str) -> str:
     """Prétraite le texte de la fiche de poste pour améliorer la qualité de l'analyse"""
     if not text:
         return ""
-        
+    
+    # Supprimer les artefacts PDF
+    text = remove_pdf_artifacts(text)
+    
     # Remplacer les séquences de plusieurs espaces par un seul
     text = re.sub(r' +', ' ', text)
     
@@ -115,6 +119,42 @@ def preprocess_job_text(text: str) -> str:
     text = re.sub(r'\n+', '\n', text)
     
     return text
+
+def remove_pdf_artifacts(text: str) -> str:
+    """Supprime les artefacts PDF du texte extrait"""
+    if not text:
+        return ""
+    
+    # Patterns d'artefacts PDF à supprimer
+    pdf_artifacts = [
+        r'\d+ \d+ obj',      # Objets PDF (ex: "1 0 obj")
+        r'endobj',           # Fin d'objet
+        r'xref',             # Table de référence
+        r'trailer',          # Trailer
+        r'startxref',        # Début de xref
+        r'stream',           # Début de stream
+        r'endstream',        # Fin de stream
+        r'<<.*?>>',          # Dictionnaire PDF
+        r'%PDF-\d+\.\d+',    # En-tête PDF
+        r'%[\s\n]*\d+',      # Commentaire avec nombre
+        r'/[A-Za-z]+\s+\d+', # Références dans le PDF
+        r'\[\s*\d+\s+\d+\s+\d+\s+\d+\s*\]', # Rectangle de sélection
+    ]
+    
+    # Appliquer les filtres
+    for pattern in pdf_artifacts:
+        text = re.sub(pattern, '', text)
+    
+    # Supprimer les lignes qui contiennent uniquement des nombres ou des caractères spéciaux
+    lines = text.split('\n')
+    filtered_lines = []
+    
+    for line in lines:
+        # Ignorer les lignes qui sont juste des nombres ou des caractères spéciaux
+        if not re.match(r'^[\d\s\W]+$', line.strip()):
+            filtered_lines.append(line)
+    
+    return '\n'.join(filtered_lines)
 
 def postprocess_job_data(data: Dict[str, Any], original_text: str) -> Dict[str, Any]:
     """Post-traitement des données extraites pour corriger et enrichir les informations"""
@@ -146,6 +186,13 @@ def postprocess_job_data(data: Dict[str, Any], original_text: str) -> Dict[str, 
         skills = extract_skills_from_text(original_text)
         if skills:
             data["required_skills"] = skills
+    
+    # Nettoyer les textes des champs (supprimer "Non spécifié" si présent)
+    for field in required_fields:
+        if isinstance(data.get(field), str) and data[field] in ["Non spécifié", "Not specified", "Unknown"]:
+            data[field] = ""
+        elif isinstance(data.get(field), list) and len(data[field]) == 1 and data[field][0] in ["Non spécifié", "Not specified", "Unknown"]:
+            data[field] = []
     
     return data
 
@@ -256,18 +303,6 @@ def extract_text_generic(file_path: str) -> str:
         except:
             logger.warning("Échec de l'extraction avec textract")
         
-        # Tenter avec pdfplumber (autre bibliothèque pour PDF)
-        try:
-            import pdfplumber
-            with pdfplumber.open(file_path) as pdf:
-                text = ""
-                for page in pdf.pages:
-                    text += page.extract_text() or ""
-                if text:
-                    return text
-        except:
-            logger.warning("Échec de l'extraction avec pdfplumber")
-        
         # Utiliser notre propre méthode PDF comme dernier recours
         try:
             return extract_text_from_pdf(file_path)
@@ -291,68 +326,6 @@ def extract_text_generic(file_path: str) -> str:
     except Exception as e:
         logger.error(f"Toutes les méthodes d'extraction ont échoué: {str(e)}")
         return "Échec de toutes les méthodes d'extraction de texte."
-
-def extract_text_from_pdf(file_path: str) -> str:
-    """Extrait le texte d'un fichier PDF avec meilleure gestion d'erreurs"""
-    try:
-        logger.info(f"Tentative d'extraction PDF depuis {file_path}")
-        
-        # Première tentative avec PyPDF2
-        try:
-            from PyPDF2 import PdfReader
-            
-            with open(file_path, 'rb') as file:
-                reader = PdfReader(file)
-                text = ""
-                for page in reader.pages:
-                    extracted_text = page.extract_text()
-                    if extracted_text:
-                        text += extracted_text + "\n"
-                
-                if text.strip():  # Vérifier que le texte extrait n'est pas vide
-                    logger.info(f"Extraction PyPDF2 réussie: {len(text)} caractères")
-                    return text
-                else:
-                    logger.warning("PyPDF2 n'a pas extrait de texte - le PDF pourrait être scanné ou contenir des images")
-        except Exception as e:
-            logger.warning(f"Échec de l'extraction avec PyPDF2: {str(e)}")
-        
-        # Deuxième tentative avec pdfminer.six
-        try:
-            from pdfminer.high_level import extract_text as pdfminer_extract
-            text = pdfminer_extract(file_path)
-            if text.strip():
-                logger.info(f"Extraction pdfminer.six réussie: {len(text)} caractères")
-                return text
-            else:
-                logger.warning("pdfminer.six n'a pas extrait de texte")
-        except Exception as e:
-            logger.warning(f"Échec de l'extraction avec pdfminer.six: {str(e)}")
-        
-        # Troisième tentative avec OCR si les autres méthodes échouent
-        try:
-            import pytesseract
-            from PIL import Image
-            import pdf2image
-            
-            logger.info("Tentative d'extraction via OCR (conversion PDF en images puis OCR)")
-            pages = pdf2image.convert_from_path(file_path)
-            text = ""
-            for page in pages:
-                text += pytesseract.image_to_string(page) + "\n"
-            
-            if text.strip():
-                logger.info(f"Extraction OCR réussie: {len(text)} caractères")
-                return text
-        except Exception as e:
-            logger.warning(f"Échec de l'extraction avec OCR: {str(e)}")
-        
-        # Si toutes les méthodes échouent
-        return "Texte non extractible de ce PDF. Il pourrait s'agir d'un document scanné ou protégé."
-        
-    except Exception as e:
-        logger.error(f"Erreur lors de l'extraction du texte PDF: {str(e)}")
-        raise
 
 def extract_text_from_docx(file_path: str) -> str:
     """Extrait le texte d'un fichier DOCX"""
@@ -542,6 +515,8 @@ Retourne un JSON avec cette structure précise et TOUS ces champs, même vides:
   "application_process": "", // Processus de candidature
   "company_description": ""  // Description de l'entreprise
 }}
+
+TRÈS IMPORTANT: Veille à ignorer tout artefact technique ou structures PDF (comme des numéros d'objets PDF, des références xref, etc.).
 
 FICHE DE POSTE À ANALYSER:
 {job_text}
