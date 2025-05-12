@@ -143,6 +143,13 @@ EOL
 log_message "Vérification de l'installation de pydantic-settings..."
 pip install --no-cache-dir pydantic-settings>=2.0.0
 
+# Exécuter le script de correction d'indentation pour s'assurer que tout est correct
+if [ -f "/app/fix-indentation.sh" ]; then
+  log_message "Exécution du script de correction d'indentation..."
+  chmod +x /app/fix-indentation.sh
+  /app/fix-indentation.sh
+fi
+
 # Activer le mode mock si pas de clé OpenAI
 if [ -z "${OPENAI_API_KEY}" ] && [ -z "${OPENAI}" ]; then
     log_message "Aucune clé API OpenAI trouvée. Activation du mode simulation..."
