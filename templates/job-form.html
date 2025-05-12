@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexten - Formulaire de fiche de poste</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/css/job-parser-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #7C3AED;
+            --primary-dark: #5B21B6;
+            --primary-light: #A78BFA;
+            --primary-glass: rgba(124, 58, 237, 0.1);
+            --success: #43AA8B;
+            --error: #E63946;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+            color: #111827;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .job-form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .job-form-header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        
+        .job-form-header p {
+            color: #6B7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .job-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-control {
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            border: 1px solid #D1D5DB;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+        }
+        
+        textarea.form-control {
+            min-height: 300px;
+            resize: vertical;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            text-align: center;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            color: #374151;
+            border: 1px solid #D1D5DB;
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+        
+        .file-upload {
+            border: 2px dashed #D1D5DB;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-glass);
+        }
+        
+        .file-upload-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .file-upload-text {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        
+        .file-upload-hint {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .or-divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: #6B7280;
+        }
+        
+        .or-divider:before,
+        .or-divider:after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background-color: #D1D5DB;
+        }
+        
+        .or-divider-text {
+            padding: 0 1rem;
+        }
+        
+        .examples-container {
+            margin-top: 2rem;
+        }
+        
+        .examples-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            padding: 0;
+            transition: var(--transition);
+        }
+        
+        .examples-toggle:hover {
+            color: var(--primary-dark);
+        }
+        
+        .examples-content {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            background-color: #F3F4F6;
+        }
+        
+        .examples-content.active {
+            display: block;
+        }
+        
+        .example-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .example-item h4 {
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .example-item p {
+            font-size: 0.875rem;
+            color: #6B7280;
+            white-space: pre-line;
+        }
+        
+        .example-copy-btn {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            background-color: #E5E7EB;
+            border: none;
+            color: #374151;
+            margin-top: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .example-copy-btn:hover {
+            background-color: #D1D5DB;
+        }
+        
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="job-form-header">
+            <h1>Analyse de fiche de poste</h1>
+            <p>Collez votre fiche de poste ci-dessous et laissez notre système extraire les informations clés pour vous.</p>
+        </div>
+        
+        <div class="card">
+            <form id="job-form" class="job-form">
+                <div class="form-group">
+                    <label for="job-description" class="form-label">Fiche de poste</label>
+                    <textarea id="job-description" name="job-description" class="form-control" placeholder="Collez votre fiche de poste complète ici..."></textarea>
+                </div>
+                
+                <div class="examples-container">
+                    <button type="button" id="toggle-examples" class="examples-toggle">
+                        <i class="fas fa-lightbulb"></i> Voir des exemples
+                    </button>
+                    
+                    <div id="examples-content" class="examples-content">
+                        <div class="example-item">
+                            <h4>Exemple de fiche de poste complète</h4>
+                            <p id="example-text-1">Développeur Full Stack JavaScript
+                                Poste : CDI
+                                Entreprise : TechInnovate
+                                Lieu : Paris (Hybride - 3j en présentiel, 2j en télétravail)
+                                
+                                À propos de nous :
+                                TechInnovate est une startup en pleine croissance spécialisée dans le développement de solutions SaaS pour la gestion de projets. Nous servons plus de 500 clients dans différents secteurs.
+                                
+                                Description du poste :
+                                Nous recherchons un Développeur Full Stack JavaScript pour renforcer notre équipe produit. Vous participerez au développement de nouvelles fonctionnalités et à l'amélioration de notre plateforme existante.
+                                
+                                Responsabilités :
+                                • Concevoir et développer des fonctionnalités frontend et backend
+                                • Participer à l'architecture technique des projets
+                                • Contribuer à l'amélioration continue de notre plateforme
+                                • Collaborer avec l'équipe produit et les designers
+                                • Participer aux code reviews et à la documentation technique
+                                • Assurer la qualité du code et la performance des applications
+                                
+                                Compétences requises :
+                                • 3+ ans d'expérience en développement web
+                                • Maîtrise de JavaScript/TypeScript
+                                • Expérience avec React.js et Node.js
+                                • Connaissance des bases de données SQL et NoSQL
+                                • Expérience avec les API RESTful
+                                • Bonnes pratiques de développement (tests, CI/CD)
+                                
+                                Compétences appréciées :
+                                • Expérience avec Next.js, GraphQL, ou AWS
+                                • Connaissance des principes de clean code et de tests unitaires
+                                • Expérience en microservices
+                                
+                                Profil recherché :
+                                • Autonomie et rigueur dans le travail
+                                • Capacité à communiquer efficacement
+                                • Esprit d'équipe et attitude positive
+                                • Passionné(e) par les nouvelles technologies
+                                
+                                Avantages :
+                                • Salaire compétitif (55-65K€ selon expérience)
+                                • Télétravail partiel (2 jours/semaine)
+                                • Tickets restaurant
+                                • Mutuelle d'entreprise
+                                • Budget formation annuel
+                                • Participation aux événements tech
+                                
+                                Pour postuler, envoyez votre CV et lettre de motivation à careers@techinnovate.fr</p>
+                            <button type="button" class="example-copy-btn" data-target="example-text-1">Copier cet exemple</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="reset" class="btn btn-outline">
+                        <i class="fas fa-redo"></i> Réinitialiser
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Analyser la fiche de poste
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="../assets/js/parser.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestion des exemples
+            const toggleExamples = document.getElementById('toggle-examples');
+            const examplesContent = document.getElementById('examples-content');
+            
+            toggleExamples.addEventListener('click', function() {
+                examplesContent.classList.toggle('active');
+                const isActive = examplesContent.classList.contains('active');
+                this.innerHTML = isActive 
+                    ? '<i class="fas fa-chevron-up"></i> Masquer les exemples'
+                    : '<i class="fas fa-lightbulb"></i> Voir des exemples';
+            });
+            
+            // Copier les exemples
+            document.querySelectorAll('.example-copy-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const textToCopy = document.getElementById(targetId).textContent;
+                    document.getElementById('job-description').value = textToCopy;
+                    
+                    // Mise à jour du bouton temporairement
+                    const originalText = this.textContent;
+                    this.textContent = 'Copié !';
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                    }, 2000);
+                });
+            });
+            
+            // Gestion du formulaire
+            const jobForm = document.getElementById('job-form');
+            const jobDescriptionInput = document.getElementById('job-description');
+            
+            jobForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const jobDescription = jobDescriptionInput.value.trim();
+                
+                if (!jobDescription) {
+                    alert('Veuillez entrer une fiche de poste');
+                    return;
+                }
+                
+                // Analyser la fiche de poste avec notre parser
+                const parsedJob = window.JobParser.parseJobDescription(jobDescription);
+                
+                // Enregistrer les données analysées dans localStorage
+                localStorage.setItem('parsedJobData', JSON.stringify(parsedJob));
+                
+                // Rediriger vers la page du questionnaire client
+                window.location.href = 'client-questionnaire.html';
+            });
+        });
+    </script>
+</body>
+</html>
