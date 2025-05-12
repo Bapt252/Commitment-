@@ -1,231 +1,132 @@
 #!/bin/bash
 
-# Script pour réparer le job-parser, finaliser le merge et configurer l'environnement
-# Créé par Claude via GitHub API
+echo "=== Script de correction du service job-parser ==="
+echo "Vérification des services en cours d'exécution..."
 
-# Couleurs pour une meilleure lisibilité
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
-
-# Fonction pour afficher un message formaté
-print_status() {
-    echo -e "${YELLOW}[INFO]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[SUCCÈS]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERREUR]${NC} $1"
-}
-
-print_step() {
-    echo -e "\n${BLUE}[ÉTAPE]${NC} $1"
-    echo "================================================================================"
-}
-
-# Déterminer la branche actuelle
-CURRENT_BRANCH=$(git branch --show-current)
-print_status "Branche actuelle: $CURRENT_BRANCH"
-
-# Étape 1: Vérifier et corriger le fichier .env
-print_step "1. Vérification et correction du fichier .env"
-
-if grep -q "<<<<<<< HEAD" .env 2>/dev/null; then
-    print_error "Conflit Git détecté dans le fichier .env. Création d'une sauvegarde et correction..."
-    # Sauvegarde du fichier original
-    cp .env .env.conflict.bak
-    
-    # Création d'un nouveau fichier .env propre
-    cat > .env << 'EOF'
-# Configuration pour le service de parsing CV et fiches de poste
-# Remplacez par votre propre clé API OpenAI
-OPENAI=sk-your-openai-api-key
-OPENAI_API_KEY=sk-your-openai-api-key
-
-# Utilisation du mock parser si vous n'avez pas de clé API OpenAI
-# Pour un parsing réel, mettez cette valeur à false
-USE_MOCK_PARSER=false
-
-# Configuration de base de données
-DATABASE_URL=postgresql://postgres:postgres@postgres:5432/nexten
-
-# Redis configuration 
-REDIS_URL=redis://redis:6379/0
-
-# MinIO configuration
-MINIO_ENDPOINT=storage:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-
-# Configuration webhook (optionnelle)
-WEBHOOK_SECRET=your-webhook-secret-here
-
-# Google Maps API Key (optionnelle)
-GOOGLE_MAPS_API_KEY=
-GOOGLE_MAPS_API_KEY_CLIENT=
-EOF
-    print_success "Fichier .env corrigé et sauvegardé."
-else
-    print_success "Fichier .env semble valide (pas de marqueurs de conflit détectés)."
+# Vérifier si les conteneurs sont en cours d'exécution
+if ! docker ps | grep -q "nexten-job-parser"; then
+  echo "Le conteneur nexten-job-parser n'est pas en cours d'exécution."
+  echo "Démarrage des services..."
+  docker-compose up -d job-parser job-parser-worker
 fi
 
-# Étape 2: Finalisation du merge en cours si nécessaire
-print_step "2. Finalisation du merge Git en cours (si nécessaire)"
-
-MERGE_HEAD_EXISTS=$(test -f .git/MERGE_HEAD && echo "true" || echo "false")
-
-if [ "$MERGE_HEAD_EXISTS" = "true" ]; then
-    print_status "Fusion Git en cours détectée, finalisation..."
-    
-    # Ajouter tous les fichiers résolus
-    git add -A
-    
-    # Finaliser le merge
-    git commit -m "Résolution des conflits de fusion et correction du .env pour job-parser"
-    
-    print_success "Fusion Git finalisée."
-else
-    print_status "Aucune fusion Git en cours détectée, aucune action nécessaire."
-fi
-
-# Étape 3: Création des scripts pour le job-parser
-print_step "3. Création des scripts pour le job-parser"
-
-# Script de redémarrage
-cat > restart-job-parser.sh << 'EOF'
+echo "Création du fichier entrypoint.sh corrigé..."
+cat > /tmp/entrypoint.sh.new << 'EOL'
 #!/bin/bash
+set -e
 
-echo "Redémarrage du service de parsing de fiches de poste"
-
-# Couleurs pour une meilleure lisibilité
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
-
-# Fonction pour afficher un message formaté
-print_status() {
-    echo -e "${YELLOW}[INFO]${NC} $1"
+# Fonction pour afficher des messages
+log_message() {
+  echo "[ENTRYPOINT] $1"
 }
 
-print_success() {
-    echo -e "${GREEN}[SUCCÈS]${NC} $1"
-}
+log_message "Démarrage du service job-parser..."
 
-print_error() {
-    echo -e "${RED}[ERREUR]${NC} $1"
-}
+# Créer le fichier pydantic_compat.py si nécessaire
+mkdir -p /app/app/core
+COMPAT_FILE="/app/app/core/pydantic_compat.py"
 
-# Vérification que Docker est disponible
-if ! command -v docker &> /dev/null; then
-    print_error "Docker n'est pas installé ou n'est pas dans le PATH"
-    exit 1
+if [ ! -f "$COMPAT_FILE" ]; then
+  log_message "Création du fichier pydantic_compat.py..."
+  cat > "$COMPAT_FILE" << 'EOLL'
+"""
+Module de compatibilité pour Pydantic v1 et v2.
+Permet d'utiliser le code avec les deux versions de Pydantic.
+"""
+import sys
+import importlib.util
+import logging
+
+logger = logging.getLogger(__name__)
+
+def is_pydantic_v2():
+    """Vérifie si Pydantic v2 est installé"""
+    import pydantic
+    return pydantic.__version__.startswith('2')
+
+# Classes et fonctions compatibles avec les deux versions
+def get_base_settings():
+    """Retourne la classe BaseSettings appropriée selon la version de Pydantic"""
+    if is_pydantic_v2():
+        try:
+            from pydantic_settings import BaseSettings
+            logger.info("Utilisation de BaseSettings depuis pydantic_settings (Pydantic v2)")
+            return BaseSettings
+        except ImportError:
+            logger.warning("pydantic_settings non trouvé, utilisation de la classe BaseSettings de Pydantic v1")
+            from pydantic import BaseSettings
+            return BaseSettings
+    else:
+        from pydantic import BaseSettings
+        logger.info("Utilisation de BaseSettings depuis pydantic (Pydantic v1)")
+        return BaseSettings
+
+# Exporter les classes et fonctions
+BaseSettings = get_base_settings()
+EOLL
+  log_message "Fichier pydantic_compat.py créé avec succès"
 fi
 
-# Vérification que docker-compose est disponible
-if ! command -v docker-compose &> /dev/null; then
-    print_error "Docker Compose n'est pas installé ou n'est pas dans le PATH"
-    exit 1
+# Vérifier si config.py existe
+CONFIG_FILE="/app/app/core/config.py"
+if [ ! -f "$CONFIG_FILE" ]; then
+  log_message "ERREUR: Le fichier config.py n'existe pas!"
+  exit 1
 fi
 
-# Arrêt des services liés au job parser
-print_status "Arrêt des services de parsing de fiches de poste..."
-docker-compose stop job-parser job-parser-worker
+# Modifier le fichier config.py
+log_message "Modification du fichier config.py pour utiliser pydantic_compat..."
+sed -i.bak 's/from pydantic import BaseSettings/try:\n    from app.core.pydantic_compat import BaseSettings\n    from pydantic import validator\nexcept ImportError:\n    try:\n        from pydantic_settings import BaseSettings\n        from pydantic import validator\n    except ImportError:\n        from pydantic import BaseSettings, validator/g' "$CONFIG_FILE"
 
-# Vérifier si on doit nettoyer les conteneurs
-if [ "$1" == "--clean" ]; then
-    print_status "Nettoyage des conteneurs job-parser..."
-    docker-compose rm -f job-parser job-parser-worker
+# Vérifier si pydantic-settings est installé
+log_message "Vérification de l'installation de pydantic-settings..."
+pip install --no-cache-dir pydantic-settings>=2.0.0
+
+# Activer le mode mock si pas de clé OpenAI
+if [ -z "${OPENAI_API_KEY}" ] && [ -z "${OPENAI}" ]; then
+    log_message "Aucune clé API OpenAI trouvée. Activation du mode simulation..."
+    export USE_MOCK_PARSER=true
 fi
 
-# Reconstruction des images si besoin
-if [ "$1" == "--rebuild" ] || [ "$1" == "--clean" ]; then
-    print_status "Reconstruction des images job-parser..."
-    docker-compose build job-parser job-parser-worker
+# Exécuter la commande fournie
+log_message "Exécution de la commande: $@"
+exec "$@"
+EOL
+
+echo "Application des corrections sur les conteneurs..."
+docker cp /tmp/entrypoint.sh.new nexten-job-parser:/entrypoint.sh
+docker exec nexten-job-parser chmod +x /entrypoint.sh
+
+# Appliquer aussi aux workers si nécessaire
+if docker ps | grep -q "commitment--job-parser-worker-1"; then
+  docker cp /tmp/entrypoint.sh.new commitment--job-parser-worker-1:/entrypoint.sh
+  docker exec commitment--job-parser-worker-1 chmod +x /entrypoint.sh
 fi
 
-# Démarrage des services
-print_status "Démarrage des services de parsing de fiches de poste..."
-docker-compose up -d job-parser job-parser-worker
+if docker ps | grep -q "commitment--job-parser-worker-2"; then
+  docker cp /tmp/entrypoint.sh.new commitment--job-parser-worker-2:/entrypoint.sh
+  docker exec commitment--job-parser-worker-2 chmod +x /entrypoint.sh
+fi
 
-# Vérification que les services sont bien démarrés
-print_status "Vérification de l'état des services..."
-sleep 5 # Attendre que les services démarrent
+echo "Installation des dépendances dans le conteneur..."
+docker exec nexten-job-parser pip install pydantic-settings>=2.0.0
 
-# Vérifier l'état des services
-job_parser_status=$(docker-compose ps | grep job-parser | grep -v worker | grep -c "Up" || echo "0")
-job_parser_worker_status=$(docker-compose ps | grep job-parser-worker | grep -c "Up" || echo "0")
-
-if [ "$job_parser_status" -gt 0 ] && [ "$job_parser_worker_status" -gt 0 ]; then
-    print_success "Les services de parsing de fiches de poste sont démarrés et fonctionnels."
-    
-    # Récupérer le port exposé
-    port=$(docker-compose port job-parser 5000 | cut -d ':' -f 2 || echo "5053")
-    print_success "Le service job-parser est accessible sur http://localhost:${port}"
-    
-    # Tester l'API
-    print_status "Test de l'API de santé..."
-    health_response=$(curl -s "http://localhost:${port}/health")
-    
-    if [[ "$health_response" == *"healthy"* ]]; then
-        print_success "L'API de santé répond correctement."
-        echo -e "${GREEN}==========================================${NC}"
-        echo "Pour tester le parsing d'une fiche de poste, utilisez:"
-        echo "  ./curl-test-job-parser.sh chemin/vers/fiche.pdf"
-        echo -e "${GREEN}==========================================${NC}"
-    else
-        print_error "L'API de santé ne répond pas correctement."
-        print_status "Réponse: $health_response"
-    fi
+echo "Mise à jour du fichier .env dans le conteneur..."
+if [ -f ".env" ]; then
+  docker cp .env nexten-job-parser:/app/.env
+  echo "Fichier .env copié dans le conteneur."
 else
-    print_error "Problème lors du démarrage des services de parsing de fiches de poste."
-    echo "Vérifiez les logs pour plus d'informations:"
-    echo "  docker-compose logs job-parser"
-    echo "  docker-compose logs job-parser-worker"
-fi
-EOF
-
-# Rendre exécutables
-chmod +x restart-job-parser.sh
-chmod +x curl-test-job-parser.sh
-
-print_success "Scripts job-parser créés et rendus exécutables."
-
-# Étape 4: Commit et push des changements locaux
-print_step "4. Commit et push des changements locaux"
-
-# Ajouter les nouveaux fichiers
-git add restart-job-parser.sh
-
-# Voir s'il y a des changements à committer
-if git diff-index --quiet HEAD --; then
-    print_status "Aucun changement détecté, pas besoin de commit."
-else 
-    # Commit des changements
-    git commit -m "Ajout du script restart-job-parser.sh pour simplifier l'utilisation du service"
-    print_success "Changements commités localement."
-    
-    # Push des changements
-    print_status "Tentative de push des changements..."
-    if git push; then
-        print_success "Changements pushés avec succès."
-    else
-        print_error "Erreur lors du push des changements."
-        print_status "Vous pouvez essayer de pusher manuellement plus tard avec 'git push'."
-    fi
+  echo "ATTENTION: Fichier .env non trouvé. Vous devriez en créer un avec votre clé API OpenAI."
 fi
 
-# Étape 5: Démarrage des services
-print_step "5. Démarrage des services job-parser"
+echo "Redémarrage des services..."
+docker-compose restart job-parser job-parser-worker
 
-print_status "Démarrage des services job-parser..."
-./restart-job-parser.sh --clean
+echo "=== Correction terminée ==="
+echo "Attendez quelques secondes pour que les services redémarrent, puis testez avec :"
+echo "curl -X POST http://localhost:5053/api/parse-job -H \"Content-Type: multipart/form-data\" -F \"file=@~/Desktop/fdp.pdf\" -F \"force_refresh=false\""
 
-print_step "Terminé!"
-echo "Le service job-parser devrait maintenant être opérationnel."
-echo "Utilisez ./curl-test-job-parser.sh pour tester avec un fichier de fiche de poste."
+# Afficher les logs
+echo "Affichage des logs (Ctrl+C pour quitter)..."
+sleep 2
+docker-compose logs -f job-parser
