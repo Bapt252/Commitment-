@@ -6,10 +6,10 @@
 // Configuration par défaut
 const JOB_PARSER_CONFIG = {
     // URL de base de l'API (à modifier selon l'environnement)
-    apiBaseUrl: '/api/job-parser',
+    apiBaseUrl: 'http://localhost:5000/api/job-parser',
     
     // Timeout des requêtes en millisecondes
-    requestTimeout: 60000,
+    requestTimeout: 120000,
     
     // Intervalle de vérification du statut d'un job en millisecondes
     pollInterval: 2000,
@@ -18,7 +18,7 @@ const JOB_PARSER_CONFIG = {
     maxPollAttempts: 30,
     
     // Mode debug
-    debug: false
+    debug: true
 };
 
 // Classe principale d'intégration avec le JOB PARSER
