@@ -17,6 +17,9 @@ WORKDIR /wheels
 # Copier uniquement le fichier requirements pour le cache
 COPY requirements.txt .
 
+# Installer pydantic-settings
+RUN pip install --no-cache-dir pydantic-settings>=2.0.0
+
 # Compiler les wheels
 RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
 
@@ -44,8 +47,9 @@ ENV PYTHONUNBUFFERED=1 \
 # Copier les wheels depuis le builder
 COPY --from=builder /wheels /wheels
 
-# Installer les dépendances depuis les wheels
+# Installer les dépendances depuis les wheels et installer pydantic-settings
 RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*.whl \
+    && pip install --no-cache-dir pydantic-settings>=2.0.0 \
     && rm -rf /wheels
 
 # Créer l'utilisateur non-root
@@ -63,6 +67,10 @@ WORKDIR /app
 # Copier le code de l'application
 COPY --chown=appuser:appuser . .
 
+# Rendre les scripts exécutables
+RUN chmod +x entrypoint.sh
+RUN chmod +x fix-indentation.sh
+
 # Passer à l'utilisateur non-root
 USER appuser
 
@@ -73,5 +81,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Port exposé
 EXPOSE 5000
 
-# Commande par défaut
+# Commande par défaut avec entrypoint comme shell script
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["python", "main.py"]
