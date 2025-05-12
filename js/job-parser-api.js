@@ -29,7 +29,10 @@ const JOB_PARSER_CONFIG = {
     maxPollAttempts: 30,
     
     // Mode debug - activé par défaut si ?debug=true est présent dans l'URL
-    debug: new URLSearchParams(window.location.search).has('debug')
+    debug: new URLSearchParams(window.location.search).has('debug'),
+    
+    // Nettoyage PDF - activé par défaut
+    enablePDFCleaning: true
 };
 
 // Classe principale d'intégration avec le JOB PARSER
@@ -37,6 +40,11 @@ class JobParserAPI {
     constructor(config = {}) {
         this.config = { ...JOB_PARSER_CONFIG, ...config };
         this.serverDetected = false;
+        
+        // Initialiser le nettoyeur de PDF
+        if (this.config.enablePDFCleaning && window.PDFCleaner) {
+            this.pdfCleaner = new PDFCleaner({ debug: this.config.debug });
+        }
         
         this.log('JobParserAPI initialized with config:', this.config);
         
@@ -136,44 +144,102 @@ class JobParserAPI {
                 await this._waitForServerDetection();
             }
             
-            // Création du FormData avec le fichier
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            // Ajout de l'option force_refresh
-            formData.append('force_refresh', options.forceRefresh || false);
-            
-            // Ajout des options supplémentaires si nécessaire
-            if (options.priority) {
-                formData.append('priority', options.priority);
-            }
-            
-            // Vérification spécifique pour les fichiers PDF
-            if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                this.log('File is a PDF, ensuring proper handling');
-            }
-            
-            // Déterminer si l'API utilise un système de file d'attente ou une API directe
-            if (this.config.activeApiUrl.includes('/job-parser')) {
-                // Système de file d'attente
-                const queueResponse = await this._sendRequest('/queue', {
-                    method: 'POST',
-                    body: formData
-                });
+            // Si c'est un PDF, et que le nettoyage PDF est activé, pré-traiter le fichier
+            if ((file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) && 
+                this.config.enablePDFCleaning && this.pdfCleaner) {
                 
-                this.log('Job queued:', queueResponse);
+                this.log('File is a PDF, pre-processing for better extraction');
                 
-                // Vérification périodique du statut du job
-                return await this._pollJobStatus(queueResponse.job_id, options);
+                // Pour les fichiers PDF, nous pouvons soit:
+                // 1. Les envoyer directement au serveur (qui a maintenant un meilleur extracteur PDF)
+                // 2. Les lire localement, nettoyer le texte, puis envoyer le texte nettoyé
+                
+                // Option 1: Envoyer directement au serveur (plus rapide)
+                // Création du FormData avec le fichier
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                // Ajout de l'option force_refresh
+                formData.append('force_refresh', options.forceRefresh || false);
+                
+                // Ajout des options supplémentaires si nécessaire
+                if (options.priority) {
+                    formData.append('priority', options.priority);
+                }
+                
+                // Déterminer si l'API utilise un système de file d'attente ou une API directe
+                try {
+                    if (this.config.activeApiUrl.includes('/job-parser')) {
+                        // Système de file d'attente
+                        const queueResponse = await this._sendRequest('/queue', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        this.log('Job queued:', queueResponse);
+                        
+                        // Vérification périodique du statut du job
+                        return await this._pollJobStatus(queueResponse.job_id, options);
+                    } else {
+                        // API directe
+                        const parseResponse = await this._sendDirectRequest('', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        this.log('Direct parsing completed');
+                        return parseResponse;
+                    }
+                } catch (apiError) {
+                    // En cas d'erreur avec l'API, essayer l'option 2 (lecture et nettoyage local)
+                    this.log('API error, falling back to local processing:', apiError.message);
+                    
+                    // Lire le fichier comme texte
+                    const text = await this._readFileAsText(file);
+                    
+                    // Nettoyer le texte
+                    const cleanedText = this.pdfCleaner.preprocessJobDescription(text);
+                    
+                    // Analyser le texte nettoyé
+                    return await this.parseJobText(cleanedText, { ...options, isPDFText: true });
+                }
             } else {
-                // API directe
-                const parseResponse = await this._sendDirectRequest('', {
-                    method: 'POST',
-                    body: formData
-                });
+                // Pour les autres formats, procéder normalement
                 
-                this.log('Direct parsing completed');
-                return parseResponse;
+                // Création du FormData avec le fichier
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                // Ajout de l'option force_refresh
+                formData.append('force_refresh', options.forceRefresh || false);
+                
+                // Ajout des options supplémentaires si nécessaire
+                if (options.priority) {
+                    formData.append('priority', options.priority);
+                }
+                
+                // Déterminer si l'API utilise un système de file d'attente ou une API directe
+                if (this.config.activeApiUrl.includes('/job-parser')) {
+                    // Système de file d'attente
+                    const queueResponse = await this._sendRequest('/queue', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    this.log('Job queued:', queueResponse);
+                    
+                    // Vérification périodique du statut du job
+                    return await this._pollJobStatus(queueResponse.job_id, options);
+                } else {
+                    // API directe
+                    const parseResponse = await this._sendDirectRequest('', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    this.log('Direct parsing completed');
+                    return parseResponse;
+                }
             }
         } catch (error) {
             this.logError('Error parsing job file:', error);
@@ -182,7 +248,15 @@ class JobParserAPI {
             if (options.useFallback !== false) {
                 this.log('Using local fallback analysis');
                 const text = await this._readFileAsText(file);
-                return this.analyzeJobLocally(text);
+                
+                // Nettoyer le texte si c'est un PDF
+                let cleanedText = text;
+                if ((file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) && 
+                    this.config.enablePDFCleaning && this.pdfCleaner) {
+                    cleanedText = this.pdfCleaner.preprocessJobDescription(text);
+                }
+                
+                return this.analyzeJobLocally(cleanedText);
             }
             
             throw error;
@@ -202,6 +276,13 @@ class JobParserAPI {
             // Vérification préalable du texte
             if (!text || text.trim().length === 0) {
                 throw new Error("Le texte est vide");
+            }
+            
+            // Nettoyer le texte s'il semble contenir des artefacts PDF
+            if (this.config.enablePDFCleaning && this.pdfCleaner && 
+                (options.isPDFText || this.pdfCleaner.hasPDFArtifacts(text))) {
+                this.log('PDF artifacts detected in text, cleaning...');
+                text = this.pdfCleaner.preprocessJobDescription(text);
             }
             
             // Attendre que la détection du serveur soit terminée
@@ -283,25 +364,9 @@ class JobParserAPI {
         this.log('Analyzing job locally (fallback)');
         
         // Nettoyage préalable du texte
-        if (text.startsWith("%PDF")) {
-            this.log('Detected PDF header in text, cleaning up');
-            
-            // Supprimer les lignes d'entête PDF
-            const lines = text.split('\n');
-            const cleanedLines = [];
-            let started = false;
-            
-            for (const line of lines) {
-                if (!started && (line.startsWith("%") || /^[^\w\s]/.test(line))) {
-                    continue;
-                } else {
-                    started = true;
-                    cleanedLines.push(line);
-                }
-            }
-            
-            text = cleanedLines.join('\n');
-            this.log('Cleaned text:', text.substring(0, 100) + '...');
+        if (this.config.enablePDFCleaning && this.pdfCleaner && this.pdfCleaner.hasPDFArtifacts(text)) {
+            this.log('PDF artifacts detected, cleaning before local analysis');
+            text = this.pdfCleaner.preprocessJobDescription(text);
         }
         
         // Utiliser le parser JS côté client s'il est disponible
