@@ -100,19 +100,75 @@ class JobParserService:
             str: Texte extrait du PDF
         """
         try:
+            logger.info(f"Démarrage de l'extraction PDF, taille: {len(file_content)} octets")
+            print(f"Démarrage de l'extraction PDF, taille: {len(file_content)} octets")
+            
+            # Essayer d'abord avec PyPDF2
             pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+            logger.info(f"PDF chargé avec succès: {len(pdf_reader.pages)} pages détectées")
+            print(f"PDF chargé avec succès: {len(pdf_reader.pages)} pages détectées")
+            
             content = ""
-            for page in pdf_reader.pages:
+            for i, page in enumerate(pdf_reader.pages):
                 page_text = page.extract_text()
                 if page_text:
                     content += page_text + "\n"
+                    logger.info(f"Page {i+1}: {len(page_text)} caractères extraits")
+                    print(f"Page {i+1}: {len(page_text)} caractères extraits")
+                else:
+                    logger.warning(f"Page {i+1}: Aucun texte extractible")
+                    print(f"Page {i+1}: Aucun texte extractible")
+            
+            # Si PyPDF2 n'a pas extrait de texte, essayer avec pdfminer si disponible
+            if not content.strip():
+                logger.warning("PyPDF2 n'a pas réussi à extraire du texte, essai avec d'autres méthodes")
+                print("PyPDF2 n'a pas réussi à extraire du texte, essai avec d'autres méthodes")
+                
+                # Essayer avec pdfminer.six si disponible
+                try:
+                    import importlib.util
+                    if importlib.util.find_spec("pdfminer"):
+                        from pdfminer.high_level import extract_text_from_binary
+                        logger.info("Tentative avec pdfminer.six")
+                        content = extract_text_from_binary(file_content)
+                        if content:
+                            logger.info(f"Extraction réussie avec pdfminer.six: {len(content)} caractères")
+                except ImportError:
+                    logger.warning("pdfminer.six non disponible")
+                
+                # Essayer avec PyMuPDF si disponible
+                if not content.strip():
+                    try:
+                        import importlib.util
+                        if importlib.util.find_spec("fitz"):
+                            import fitz  # PyMuPDF
+                            logger.info("Tentative avec PyMuPDF")
+                            mem_stream = io.BytesIO(file_content)
+                            doc = fitz.open(stream=mem_stream, filetype="pdf")
+                            content = ""
+                            for page in doc:
+                                content += page.get_text()
+                            logger.info(f"Extraction réussie avec PyMuPDF: {len(content)} caractères")
+                    except ImportError:
+                        logger.warning("PyMuPDF non disponible")
             
             if not content.strip():
-                raise ValueError("Le PDF ne semble pas contenir de texte extractible")
+                error_msg = "Le PDF ne semble pas contenir de texte extractible ou utilise un format non pris en charge"
+                logger.error(error_msg)
+                print(error_msg)
+                
+                # Retourner un message plus convivial pour l'utilisateur
+                raise ValueError(error_msg + ". Essayez de copier-coller le texte manuellement.")
+            
+            # Afficher les 200 premiers caractères pour débogage
+            preview = content[:200].replace('\n', ' ')
+            logger.info(f"Début du contenu extrait: '{preview}...'")
+            print(f"Début du contenu extrait: '{preview}...'")
             
             return content
         except Exception as e:
-            logger.error(f"Erreur lors de l'extraction du PDF: {str(e)}")
+            logger.error(f"ERREUR lors de l'extraction du PDF: {str(e)}")
+            print(f"ERREUR lors de l'extraction du PDF: {str(e)}")
             raise ValueError(f"Impossible de lire le PDF: {str(e)}")
 
     def _process_job(self, job_id):
@@ -142,6 +198,8 @@ class JobParserService:
             
             # Nettoyer le contenu original pour économiser de l'espace
             job.pop("content", None)
+            
+            logger.info(f"Job {job_id} traité avec succès")
         
         except Exception as e:
             logger.error(f"Erreur lors du traitement du job {job_id}: {str(e)}")
@@ -168,6 +226,7 @@ class JobParserService:
         
         # Limiter la taille du contenu pour éviter les problèmes avec l'API
         if len(content) > 15000:
+            logger.info(f"Contenu tronqué de {len(content)} à 15000 caractères")
             content = content[:15000] + "...[contenu tronqué pour respecter la limite de l'API]"
         
         # Préparer le prompt pour GPT
@@ -209,10 +268,12 @@ class JobParserService:
                 "max_tokens": 2000
             }
             
+            logger.info(f"Envoi de la requête à l'API OpenAI (modèle: {self.model})")
             response = requests.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers=headers,
-                json=payload
+                json=payload,
+                timeout=60  # 60 secondes de timeout
             )
             
             if response.status_code != 200:
@@ -221,18 +282,22 @@ class JobParserService:
             
             result = response.json()
             result_text = result["choices"][0]["message"]["content"].strip()
+            logger.info("Réponse reçue de l'API OpenAI")
             
             # Essayer de parser le JSON
             try:
                 result_json = json.loads(result_text)
+                logger.info("JSON correctement parsé")
                 return result_json
             except json.JSONDecodeError:
                 # Si GPT n'a pas renvoyé un JSON valide, essayer d'extraire le bloc JSON
+                logger.warning("Réponse non JSON, tentative d'extraction d'un bloc JSON")
                 json_pattern = r'```json\s*(.*?)\s*```'
                 match = re.search(json_pattern, result_text, re.DOTALL)
                 
                 if match:
                     result_json = json.loads(match.group(1))
+                    logger.info("JSON extrait du bloc de code")
                     return result_json
                 else:
                     # Si toujours pas de JSON valide, faire une analyse simplifiée
@@ -253,37 +318,106 @@ class JobParserService:
         Returns:
             dict: Informations extraites de la fiche de poste
         """
+        logger.info("Utilisation de l'analyse locale")
+        
+        # Enlever les entêtes techniques PDF si présents
+        if text.startswith("%PDF"):
+            logger.warning("Entête PDF détecté, nettoyage en cours")
+            # Trouver la première ligne qui ne contient pas de caractères spéciaux
+            lines = text.split('\n')
+            cleaned_lines = []
+            started = False
+            
+            for line in lines:
+                # Ignorer les lignes d'entête PDF
+                if not started and (line.startswith("%") or re.match(r'^[^a-zA-Z0-9\s]', line)):
+                    continue
+                else:
+                    started = True
+                    cleaned_lines.append(line)
+            
+            text = '\n'.join(cleaned_lines)
+            logger.info(f"Texte nettoyé: {len(text)} caractères")
+        
+        # Afficher le début du texte pour débogage
+        preview = text[:200].replace('\n', ' ')
+        logger.info(f"Début du texte analysé: '{preview}...'")
+        
         # Titre du poste (recherche d'un titre au début du texte)
         title_match = re.search(r'^(.+?)(?:[\n\r]|$)', text.strip())
         title = title_match.group(1) if title_match else "Non spécifié"
+        
+        # Essayer plusieurs patterns pour trouver le titre du poste
+        if title == "Non spécifié" or len(title) < 3:
+            title_patterns = [
+                r'(?:poste|position|job|offre)\s*:?\s*([^\n\r.,]+)',
+                r'(?:recrut\w+)\s+(?:un|une|des)?\s+([^\n\r.,]+)',
+                r'(?:cherch\w+)\s+(?:un|une|des)?\s+([^\n\r.,]+)'
+            ]
+            
+            for pattern in title_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    title = match.group(1).strip()
+                    break
         
         # Essayer de trouver l'entreprise
         company_match = re.search(r'(?:société|entreprise|company)\s*:?\s*([^\n\r,]+)', text, re.IGNORECASE)
         company = company_match.group(1).strip() if company_match else "Non spécifié"
         
         # Essayer de trouver le lieu
-        location_match = re.search(r'(?:lieu|location|adresse|ville)\s*:?\s*([^\n\r,]+)', text, re.IGNORECASE)
+        location_match = re.search(r'(?:lieu|location|adresse|ville|localisation)\s*:?\s*([^\n\r,]+)', text, re.IGNORECASE)
         location = location_match.group(1).strip() if location_match else "Non spécifié"
         
         # Essayer de trouver l'expérience
-        experience_match = re.search(r'(?:expérience|experience)\s*:?\s*([^\n\r,]+)', text, re.IGNORECASE)
+        experience_match = re.search(r'(?:expérience|experience)\s*:?\s*([^\n\r.,]+)', text, re.IGNORECASE)
         experience = experience_match.group(1).strip() if experience_match else "Non spécifié"
         
         # Essayer de trouver le salaire
         salary_match = re.search(r'(?:salaire|rémunération|salary|compensation)\s*:?\s*([^\n\r,]+)', text, re.IGNORECASE)
         salary = salary_match.group(1).strip() if salary_match else "Non spécifié"
         
+        # Extraction des compétences (simplifiée)
+        skills = ["Non spécifié"]
+        skills_section = re.search(r'(?:compétences|skills|profil|qualifications).*?((?:\n|.)*?)(?:\n\s*\n|\Z)', text, re.IGNORECASE)
+        if skills_section:
+            # Rechercher des listes à puces
+            skills_content = skills_section.group(1)
+            skills_items = re.findall(r'[•\-*]\s*([^\n]+)', skills_content)
+            if skills_items:
+                skills = [item.strip() for item in skills_items if item.strip()]
+        
+        # Extraction des responsabilités (simplifiée)
+        responsibilities = ["Non spécifié"]
+        resp_section = re.search(r'(?:responsabilités|missions|tâches|duties).*?((?:\n|.)*?)(?:\n\s*\n|\Z)', text, re.IGNORECASE)
+        if resp_section:
+            # Rechercher des listes à puces
+            resp_content = resp_section.group(1)
+            resp_items = re.findall(r'[•\-*]\s*([^\n]+)', resp_content)
+            if resp_items:
+                responsibilities = [item.strip() for item in resp_items if item.strip()]
+        
+        # Extraction des avantages (simplifiée)
+        benefits = ["Non spécifié"]
+        benefits_section = re.search(r'(?:avantages|benefits|nous offrons|we offer).*?((?:\n|.)*?)(?:\n\s*\n|\Z)', text, re.IGNORECASE)
+        if benefits_section:
+            # Rechercher des listes à puces
+            benefits_content = benefits_section.group(1)
+            benefits_items = re.findall(r'[•\-*]\s*([^\n]+)', benefits_content)
+            if benefits_items:
+                benefits = [item.strip() for item in benefits_items if item.strip()]
+        
         # Renvoyer les informations extraites
         return {
             "title": title,
             "company": company,
             "location": location,
-            "skills": ["Extraction automatique des compétences non disponible sans GPT"],
+            "skills": skills,
             "experience": experience,
-            "responsibilities": ["Extraction automatique des responsabilités non disponible sans GPT"],
+            "responsibilities": responsibilities,
             "requirements": ["Extraction automatique des prérequis non disponible sans GPT"],
             "salary": salary,
-            "benefits": ["Extraction automatique des avantages non disponible sans GPT"]
+            "benefits": benefits
         }
 
 
