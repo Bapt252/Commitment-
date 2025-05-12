@@ -13,15 +13,11 @@ try:
 except ImportError:
     try:
         # Essayer avec le module à la racine
-        from pydantic_compat import BaseSettings
+        from pydantic_settings import BaseSettings
         from pydantic import validator
     except ImportError:
         # Fallback direct pour les versions plus anciennes
-        try:
-            from pydantic_settings import BaseSettings
-            from pydantic import validator
-        except ImportError:
-            from pydantic import BaseSettings, validator
+        from pydantic import BaseSettings, validator
 
 class Settings(BaseSettings):
     """Paramètres de configuration du service"""
