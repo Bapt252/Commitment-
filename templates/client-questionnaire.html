@@ -771,6 +771,37 @@
             margin-top: 1.5rem;
         }
         
+        /* Style pour le bouton "Analyser avec GPT" */
+        .gpt-analyze-btn-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        #analyze-with-gpt {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #analyze-with-gpt:hover {
+            background-color: #45a049;
+        }
+        
+        #analyze-with-gpt:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #gpt-analyze-status {
+            margin-left: 10px;
+            font-style: italic;
+        }
+        
         /* Responsive pour mobile */
         @media (max-width: 768px) {
             .container {
@@ -1346,6 +1377,7 @@
     <script src="../assets/js/parser.js"></script>
     <script src="../js/pdf-cleaner.js"></script>
     <script src="../js/job-parser-api.js"></script>
+    <script src="../../scripts/gpt-analyze.js"></script>
     <script>
         // Fonction pour afficher un message de debug
         function showDebugMessage(message) {
