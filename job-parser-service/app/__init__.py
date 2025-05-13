@@ -38,6 +38,15 @@ from app.api.direct_routes import direct_router
 app.include_router(api_router, prefix="/api")
 app.include_router(direct_router, prefix="/api")
 
+# Import et inclusion du nouveau module de parsing GPT
+try:
+    from job_parser_gpt import job_parser_gpt_bp
+    app.include_router(job_parser_gpt_bp, prefix="")
+    logger.info("Module de parsing GPT intégré avec succès")
+except ImportError as e:
+    logger.warning(f"Module de parsing GPT non disponible: {str(e)}")
+    logger.warning("Le parsing avancé avec GPT ne sera pas disponible")
+
 # Route de santé
 @app.get("/health")
 async def health_check():
