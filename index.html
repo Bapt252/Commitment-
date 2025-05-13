@@ -3,270 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexten Commitment - Votre assistant recrutement</title>
-    <link rel="stylesheet" href="static/styles/nexten-modern-interactive.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Commitment - Redirection</title>
+    <meta http-equiv="refresh" content="0; URL=templates/index.html">
     <style>
-        /* Styles supplémentaires */
-        .landing-header {
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(124, 58, 237, 0.1));
-            padding: 3rem 0;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
             text-align: center;
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
+            background-color: #f5f5f5;
         }
-        
-        .landing-header h1 {
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 1rem;
-            font-size: 2.5rem;
-        }
-        
-        .landing-header p {
-            font-size: 1.2rem;
-            color: #555;
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-        
-        .landing-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
-        }
-        
-        .feature-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin: 3rem 0;
-        }
-        
-        .feature-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            text-decoration: none;
-            color: inherit;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-        
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(124, 58, 237, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1rem;
-            color: var(--primary);
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
-        }
-        
-        .feature-card:hover .feature-icon {
-            background-color: var(--primary);
-            color: white;
-            transform: scale(1.1);
-        }
-        
-        .feature-title {
-            font-weight: 600;
-            font-size: 1.2rem;
-            margin-bottom: 0.75rem;
-            color: #333;
-        }
-        
-        .feature-description {
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 1rem;
-        }
-        
-        .gpt-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        /* Bandeau de nouveauté */
-        .new-feature-banner {
-            background: linear-gradient(90deg, #10b981, #3b82f6);
-            color: white;
-            padding: 0.75rem 1rem;
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
-        .new-feature-content {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        h1 {
+            color: #333;
         }
-        
-        .new-feature-badge {
-            background-color: rgba(255, 255, 255, 0.2);
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
+        p {
+            color: #666;
+            margin-bottom: 20px;
         }
-        
-        .new-feature-text {
-            font-weight: 500;
-        }
-        
-        .new-feature-button {
-            background: white;
-            color: #10b981;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        a {
+            color: #0066cc;
             text-decoration: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        
-        .new-feature-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Le badge clignotant */
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-        
-        .pulse-badge {
-            animation: pulse 2s infinite;
-        }
-        
-        @media (max-width: 768px) {
-            .landing-header h1 {
-                font-size: 2rem;
-            }
-            
-            .feature-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .new-feature-banner {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Bandeau de nouveauté pour l'analyse GPT -->
-        <div class="new-feature-banner">
-            <div class="new-feature-content">
-                <span class="new-feature-badge pulse-badge">Nouveau</span>
-                <span class="new-feature-text">Analysez vos fiches de poste avec GPT et extrayez les informations clés en quelques secondes</span>
-            </div>
-            <a href="templates/job-analyzer.html" class="new-feature-button">Essayer maintenant <i class="fas fa-arrow-right"></i></a>
-        </div>
-        
-        <header class="landing-header">
-            <h1>Nexten Commitment</h1>
-            <p>Optimisez votre processus de recrutement avec notre suite d'outils intelligents</p>
-        </header>
-        
-        <main>
-            <div class="feature-cards">
-                <a href="templates/job-analyzer.html" class="feature-card">
-                    <span class="gpt-badge"><i class="fas fa-robot"></i> GPT</span>
-                    <div class="feature-icon">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <h3 class="feature-title">Analyse de fiches de poste</h3>
-                    <p class="feature-description">Uploadez votre fiche de poste et laissez notre IA extraire les informations clés</p>
-                    <button class="btn btn-primary btn-sm">Démarrer</button>
-                </a>
-                
-                <a href="templates/client-questionnaire.html" class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <h3 class="feature-title">Questionnaire client</h3>
-                    <p class="feature-description">Remplissez le questionnaire pour nous faire part de vos besoins en recrutement</p>
-                    <button class="btn btn-primary btn-sm">Démarrer</button>
-                </a>
-                
-                <a href="#" class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <h3 class="feature-title">Analyse de CV</h3>
-                    <p class="feature-description">Comparez les CV de candidats avec votre fiche de poste pour trouver le meilleur match</p>
-                    <button class="btn btn-primary btn-sm">Démarrer</button>
-                </a>
-                
-                <a href="#" class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3 class="feature-title">Dashboard de recrutement</h3>
-                    <p class="feature-description">Suivez l'avancement de vos recrutements et vos KPIs en temps réel</p>
-                    <button class="btn btn-primary btn-sm">Démarrer</button>
-                </a>
-            </div>
-        </main>
+        <h1>Redirection en cours...</h1>
+        <p>Vous allez être redirigé vers la page d'accueil de Commitment.</p>
+        <p>Si la redirection ne fonctionne pas, <a href="templates/index.html">cliquez ici</a>.</p>
     </div>
 </body>
 </html>
