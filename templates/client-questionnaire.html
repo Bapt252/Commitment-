@@ -639,6 +639,52 @@
             color: var(--gray);
             transform: scale(1.1);
         }
+
+        /* Style pour les suggestions d'adresse de Google Maps */
+        .pac-container {
+            z-index: 1051;
+            width: auto !important;
+            min-width: 300px;
+            font-family: 'Inter', sans-serif;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 5px;
+            border: 1px solid #eaeaea;
+        }
+
+        .pac-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background-color 0.2s;
+        }
+
+        .pac-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .pac-item-selected {
+            background-color: #f0f4ff;
+        }
+
+        .pac-icon {
+            margin-right: 10px;
+        }
+
+        .pac-item-query {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .pac-matched {
+            font-weight: 600;
+            color: #7c3aed;
+        }
+
+        .pac-secondary-text {
+            font-size: 12px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -1401,115 +1447,138 @@
             showDebugMessage('URL de l\'API configurée: ' + (urlParams.get('apiUrl') || 'http://localhost:5055'));
         }
     </script>
-    
-    <!-- Script pour l'intégration de Google Maps Places Autocomplete -->
-    <script>
-        // Fonction pour charger l'API Google Maps dynamiquement
-        function loadGoogleMapsScript(apiKey, callback) {
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${callback}`;
-            script.defer = true;
-            script.async = true;
-            document.head.appendChild(script);
-        }
 
-        // Initialisation de l'autocomplétion Google Maps Places
-        function initGoogleMapsAutocomplete() {
-            // Sélection du champ d'adresse
-            const addressInput = document.querySelector('input[placeholder="Adresse complète de votre structure"]');
+    <!-- Chargement direct de l'API Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places"></script>
+    
+    <script>
+        // Fonction pour initialiser l'autocomplétion
+        function initializeGoogleMapsAutocomplete() {
+            console.log("Initialisation de l'autocomplétion Google Maps");
+            
+            // Récupération du champ d'adresse par son ID
+            const addressInput = document.getElementById('company-address');
             
             if (!addressInput) {
-                console.error('Champ d\'adresse non trouvé');
+                console.error("Erreur: Champ d'adresse non trouvé");
                 return;
             }
             
-            // Création de l'objet autocomplete
-            const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-                types: ['address'],
-                componentRestrictions: { country: "fr" } // Restriction à la France
-            });
+            console.log("Champ d'adresse trouvé:", addressInput);
             
-            // Quand une adresse est sélectionnée
-            autocomplete.addListener('place_changed', function() {
-                const place = autocomplete.getPlace();
+            try {
+                // Création de l'objet autocomplete avec restriction à la France
+                const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                    types: ['address'],
+                    componentRestrictions: { country: "fr" }
+                });
                 
-                if (!place.geometry) {
-                    console.error("Aucun détail disponible pour l'entrée: '" + place.name + "'");
-                    return;
-                }
+                console.log("Objet Autocomplete créé");
                 
-                // Remplir le champ avec l'adresse formatée
-                addressInput.value = place.formatted_address;
-                
-                // Extraire les composants de l'adresse
-                const addressComponents = {
-                    streetNumber: '',
-                    route: '',
-                    locality: '',
-                    postalCode: '',
-                    country: ''
-                };
-                
-                place.address_components.forEach(component => {
-                    const types = component.types;
+                // Quand une adresse est sélectionnée
+                autocomplete.addListener('place_changed', function() {
+                    console.log("Événement 'place_changed' déclenché");
                     
-                    if (types.includes('street_number')) {
-                        addressComponents.streetNumber = component.long_name;
-                    } else if (types.includes('route')) {
-                        addressComponents.route = component.long_name;
-                    } else if (types.includes('locality')) {
-                        addressComponents.locality = component.long_name;
-                    } else if (types.includes('postal_code')) {
-                        addressComponents.postalCode = component.long_name;
-                    } else if (types.includes('country')) {
-                        addressComponents.country = component.long_name;
+                    const place = autocomplete.getPlace();
+                    
+                    if (!place.geometry) {
+                        console.error("Aucun détail disponible pour cette adresse:", place.name);
+                        return;
+                    }
+                    
+                    console.log("Lieu sélectionné:", place);
+                    
+                    // Extraire les composants de l'adresse
+                    const addressComponents = {
+                        streetNumber: '',
+                        route: '',
+                        locality: '',
+                        postalCode: '',
+                        country: ''
+                    };
+                    
+                    place.address_components.forEach(component => {
+                        const types = component.types;
+                        
+                        if (types.includes('street_number')) {
+                            addressComponents.streetNumber = component.long_name;
+                        } else if (types.includes('route')) {
+                            addressComponents.route = component.long_name;
+                        } else if (types.includes('locality')) {
+                            addressComponents.locality = component.long_name;
+                        } else if (types.includes('postal_code')) {
+                            addressComponents.postalCode = component.long_name;
+                        } else if (types.includes('country')) {
+                            addressComponents.country = component.long_name;
+                        }
+                    });
+                    
+                    console.log("Composants d'adresse extraits:", addressComponents);
+                    
+                    // Obtenir les coordonnées
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    
+                    console.log("Coordonnées:", { lat, lng });
+                    
+                    // Ajouter des champs cachés pour stocker les données
+                    addHiddenField('address_lat', lat);
+                    addHiddenField('address_lng', lng);
+                    addHiddenField('address_components', JSON.stringify(addressComponents));
+                    
+                    console.log("Champs cachés ajoutés au formulaire");
+                });
+                
+                // Empêcher la soumission du formulaire sur la touche Entrée
+                addressInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        console.log("Soumission du formulaire empêchée");
                     }
                 });
                 
-                // Obtenir les coordonnées
-                const lat = place.geometry.location.lat();
-                const lng = place.geometry.location.lng();
+                console.log("Initialisation de l'autocomplétion terminée avec succès");
                 
-                // Ajouter des champs cachés pour stocker les données additionnelles
-                addHiddenField('address_lat', lat);
-                addHiddenField('address_lng', lng);
-                addHiddenField('address_components', JSON.stringify(addressComponents));
-            });
-            
-            // Empêcher la soumission du formulaire lors de l'appui sur Entrée
-            addressInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                }
-            });
-            
-            // Fonction pour ajouter un champ caché au formulaire
-            function addHiddenField(name, value) {
-                const form = addressInput.closest('form');
-                if (!form) return;
-                
-                let field = form.querySelector(`input[name="${name}"]`);
-                
-                if (!field) {
-                    field = document.createElement('input');
-                    field.type = 'hidden';
-                    field.name = name;
-                    form.appendChild(field);
-                }
-                
-                field.value = value;
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation de l'autocomplete:", error);
             }
         }
-
-        // Fonction appelée par l'API Google Maps une fois chargée
-        function initAutocomplete() {
-            initGoogleMapsAutocomplete();
+        
+        // Fonction pour ajouter un champ caché au formulaire
+        function addHiddenField(name, value) {
+            const form = document.getElementById('client-questionnaire-form');
+            if (!form) {
+                console.error("Formulaire non trouvé");
+                return;
+            }
+            
+            let field = form.querySelector(`input[name="${name}"]`);
+            
+            if (!field) {
+                field = document.createElement('input');
+                field.type = 'hidden';
+                field.name = name;
+                form.appendChild(field);
+                console.log(`Champ caché '${name}' créé`);
+            }
+            
+            field.value = value;
+            console.log(`Valeur du champ '${name}' définie:`, value);
         }
-
-        // Chargement de l'API Google Maps
+        
+        // Exécuter l'initialisation après que la page soit complètement chargée
         document.addEventListener('DOMContentLoaded', function() {
-            loadGoogleMapsScript('AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8', 'initAutocomplete');
+            console.log("DOM entièrement chargé, initialisation de Google Maps...");
+            initializeGoogleMapsAutocomplete();
         });
+        
+        // S'assurer que l'initialisation est également appelée lorsque la librairie Google Maps est chargée
+        if (window.google && window.google.maps) {
+            console.log("Google Maps déjà chargé");
+            initializeGoogleMapsAutocomplete();
+        } else {
+            console.log("Attente du chargement de Google Maps...");
+        }
     </script>
 </body>
 </html>
