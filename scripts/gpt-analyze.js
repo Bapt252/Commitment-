@@ -1,9 +1,29 @@
-const GPT_MOCK_MODE = true; // Mode de simulation sans API externe
-
 /**
  * GPT Analysis Script
  * Script pour analyser une fiche de poste avec GPT
  */
+
+// Configuration de l'API
+const GPT_API_CONFIG = {
+    mockMode: false, // Mode de simulation sans API externe - mettre à false pour utiliser l'API réelle
+    apiBaseUrl: getApiBaseUrl() // URL de base de l'API, détectée automatiquement
+};
+
+/**
+ * Détecte l'URL de base de l'API à partir des paramètres d'URL ou utilise la valeur par défaut
+ */
+function getApiBaseUrl() {
+    // Récupérer l'URL de l'API à partir des paramètres de l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const apiUrl = urlParams.get('apiUrl');
+    
+    if (apiUrl) {
+        return apiUrl;
+    }
+    
+    // URL par défaut pour le développement local
+    return 'http://localhost:5055';
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     initGPTAnalysis();
@@ -32,6 +52,57 @@ function initGPTAnalysis() {
         jobText.addEventListener('input', function() {
             analyzeGptBtn.disabled = !this.value.trim();
         });
+    }
+    
+    // Vérifier la connexion avec l'API
+    if (!GPT_API_CONFIG.mockMode) {
+        checkApiConnection();
+    }
+}
+
+/**
+ * Vérifie la connexion avec l'API
+ */
+async function checkApiConnection() {
+    try {
+        const statusElement = document.getElementById('gpt-analyze-status');
+        if (statusElement) statusElement.textContent = 'Vérification de la connexion...';
+        
+        const response = await fetch(`${GPT_API_CONFIG.apiBaseUrl}/health`, {
+            method: 'GET'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('API connection successful:', data);
+            
+            if (statusElement) {
+                statusElement.textContent = 'Connecté à l\'API d\'analyse';
+                statusElement.style.color = '#10b981'; // Vert
+            }
+            
+            // Activer le bouton si un texte est disponible
+            const jobText = document.getElementById('job-description-text');
+            const analyzeGptBtn = document.getElementById('analyze-with-gpt');
+            if (jobText && analyzeGptBtn && jobText.value.trim()) {
+                analyzeGptBtn.disabled = false;
+            }
+        } else {
+            console.error('API connection failed:', await response.text());
+            
+            if (statusElement) {
+                statusElement.textContent = 'Erreur de connexion à l\'API';
+                statusElement.style.color = '#ef4444'; // Rouge
+            }
+        }
+    } catch (error) {
+        console.error('API connection check failed:', error);
+        
+        const statusElement = document.getElementById('gpt-analyze-status');
+        if (statusElement) {
+            statusElement.textContent = 'API indisponible';
+            statusElement.style.color = '#ef4444'; // Rouge
+        }
     }
 }
 
@@ -66,7 +137,7 @@ async function handleAnalyzeWithGPT() {
     try {
         let result;
         
-        if (GPT_MOCK_MODE) {
+        if (GPT_API_CONFIG.mockMode) {
             // Mode de simulation sans API externe
             console.log('Using GPT mock mode for analysis');
             result = await mockGPTAnalysis(text || 'Contenu du fichier non disponible');
@@ -77,6 +148,11 @@ async function handleAnalyzeWithGPT() {
             } else {
                 result = await analyzeTextWithGPT(text);
             }
+        }
+        
+        // Si la réponse contient job_info (structure de l'API), extraire les données
+        if (result && result.job_info) {
+            result = result.job_info;
         }
         
         // Sauvegarder et afficher les résultats
@@ -95,6 +171,13 @@ async function handleAnalyzeWithGPT() {
         // Mettre à jour le statut
         if (statusElement) statusElement.textContent = 'Analyse réussie!';
         showNotification('Fiche de poste analysée avec succès!', 'success');
+        
+        // Journaliser le résultat dans la console si le mode debug est activé
+        if (window.gptDebug) {
+            window.gptDebug.log('Résultat de l\'analyse GPT:', 'debug');
+            window.gptDebug.log(JSON.stringify(result, null, 2), 'debug');
+        }
+        
     } catch (error) {
         console.error('Error during GPT analysis:', error);
         
@@ -185,10 +268,14 @@ async function mockGPTAnalysis(text) {
  * @returns {Promise<Object>} - Les résultats de l'analyse
  */
 async function analyzeTextWithGPT(text) {
-    // Appel API réel (à implémenter selon votre backend)
-    const apiUrl = 'https://api.votre-service.com/analyze-job';
+    const apiUrl = `${GPT_API_CONFIG.apiBaseUrl}/analyze`;
     
     try {
+        // Journaliser l'appel API si le mode debug est activé
+        if (window.gptDebug && window.gptDebug.logApi) {
+            window.gptDebug.logApi(apiUrl, { text: text.substring(0, 100) + '...' });
+        }
+        
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -201,7 +288,14 @@ async function analyzeTextWithGPT(text) {
             throw new Error(`API Error (${response.status}): ${await response.text()}`);
         }
         
-        return await response.json();
+        const result = await response.json();
+        
+        // Journaliser la réponse API si le mode debug est activé
+        if (window.gptDebug && window.gptDebug.logApi) {
+            window.gptDebug.logApi(apiUrl, null, result);
+        }
+        
+        return result;
     } catch (error) {
         console.error('Error calling GPT API:', error);
         throw error;
@@ -214,10 +308,14 @@ async function analyzeTextWithGPT(text) {
  * @returns {Promise<Object>} - Les résultats de l'analyse
  */
 async function analyzeFileWithGPT(file) {
-    // Appel API réel (à implémenter selon votre backend)
-    const apiUrl = 'https://api.votre-service.com/analyze-job-file';
+    const apiUrl = `${GPT_API_CONFIG.apiBaseUrl}/analyze-file`;
     
     try {
+        // Journaliser l'appel API si le mode debug est activé
+        if (window.gptDebug && window.gptDebug.logApi) {
+            window.gptDebug.logApi(apiUrl, { file: file.name });
+        }
+        
         const formData = new FormData();
         formData.append('file', file);
         
@@ -230,7 +328,14 @@ async function analyzeFileWithGPT(file) {
             throw new Error(`API Error (${response.status}): ${await response.text()}`);
         }
         
-        return await response.json();
+        const result = await response.json();
+        
+        // Journaliser la réponse API si le mode debug est activé
+        if (window.gptDebug && window.gptDebug.logApi) {
+            window.gptDebug.logApi(apiUrl, null, result);
+        }
+        
+        return result;
     } catch (error) {
         console.error('Error calling GPT API for file:', error);
         throw error;
