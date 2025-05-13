@@ -32,7 +32,7 @@ Après avoir lancé les conteneurs, les services sont accessibles aux URLs suiva
 - **Frontend**: http://localhost:3000
 - **API principale**: http://localhost:5050
 - **Service de parsing CV**: http://localhost:5051
-- **Service de parsing fiches de poste**: http://localhost:5053
+- **Service de parsing fiches de poste**: http://localhost:5055 (nouvelle version GPT)
 - **Service de matching**: http://localhost:5052
 - **MinIO (stockage)**: http://localhost:9000 (API) et http://localhost:9001 (Console)
 - **Redis Commander**: http://localhost:8081
@@ -65,28 +65,67 @@ curl -X POST \
 
 ## Tester le service de parsing de fiches de poste
 
-Pour tester manuellement le service de parsing de fiches de poste:
+Pour tester manuellement le service de parsing de fiches de poste avec GPT:
 
 ```bash
 # Tester le endpoint health
-curl http://localhost:5053/health
+curl http://localhost:5055/api/health
 
 # Tester le parsing d'une fiche de poste
 curl -X POST \
-  http://localhost:5053/api/parse-job \
+  http://localhost:5055/api/parse-job \
   -H "Content-Type: multipart/form-data" \
-  -F "file=@/chemin/vers/votre/fiche_poste.pdf" \
-  -F "force_refresh=false"
+  -F "file=@/chemin/vers/votre/fiche_poste.pdf"
 ```
 
-Ou utilisez le script utilitaire:
+## Démarrer le service de parsing de fiches de poste
+
+Le nouveau service de parsing de fiches de poste avec GPT se trouve dans le répertoire `backend/`. Vous pouvez le démarrer de plusieurs façons :
+
+### 1. Utiliser Docker Compose (recommandé)
 
 ```bash
-# Assurez-vous que le script est exécutable
-chmod +x curl-test-job-parser.sh
+# Se placer dans le répertoire backend
+cd backend
 
-# Exécutez le script en spécifiant le chemin vers votre fiche de poste
-./curl-test-job-parser.sh /chemin/vers/votre/fiche_poste.pdf
+# Créer le fichier .env à partir du modèle
+cp .env.example .env
+# Éditer .env et ajouter votre clé API OpenAI
+
+# Démarrer le conteneur
+docker compose up -d
+```
+
+### 2. Installer et exécuter directement en Python
+
+```bash
+# Se placer dans le répertoire backend
+cd backend
+
+# Installer les dépendances
+pip install -r requirements.txt
+
+# Définir la clé API OpenAI
+export OPENAI_API_KEY=votre_clé_api_openai  # Linux/Mac
+# ou
+set OPENAI_API_KEY=votre_clé_api_openai  # Windows
+
+# Démarrer le serveur
+python job_parser_api.py
+```
+
+## Utiliser le frontend avec le parser GPT
+
+Pour utiliser le frontend avec le nouveau service de parsing GPT, ouvrez la page web suivante :
+
+```
+https://bapt252.github.io/Commitment-/templates/client-questionnaire.html?apiUrl=http://localhost:5055
+```
+
+Ou si vous hébergez le service sur un autre serveur :
+
+```
+https://bapt252.github.io/Commitment-/templates/client-questionnaire.html?apiUrl=http://votre-serveur:5055
 ```
 
 ## Architecture
@@ -94,7 +133,7 @@ chmod +x curl-test-job-parser.sh
 Le projet utilise une architecture microservices avec les composants suivants :
 
 1. **Service de parsing CV** : Extrait les informations des CV en utilisant GPT-4o-mini
-2. **Service de parsing de fiches de poste** : Extrait les informations des offres d'emploi en utilisant GPT-4o-mini
+2. **Service de parsing de fiches de poste** : Extrait les informations des offres d'emploi en utilisant GPT-3.5-turbo/GPT-4
 3. **Service de matching** : Match les CV avec les offres d'emploi
 4. **Redis** : File d'attente pour le traitement asynchrone et cache
 5. **MinIO** : Stockage des fichiers (CV et fiches de poste)
