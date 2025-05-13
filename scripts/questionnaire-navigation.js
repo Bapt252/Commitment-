@@ -141,38 +141,66 @@ function validateStep(stepNumber) {
     // En fonction de l'étape, effectuer des validations spécifiques
     switch(stepNumber) {
         case 1:
-            // Pour l'étape 1, vérifier qu'une fiche de poste a été analysée
-            // ou que les champs ont été remplis manuellement
-            const jobInfoContainer = document.getElementById('job-info-container');
+            // Pour l'étape 1, vérifier les champs obligatoires
+            const companyName = document.getElementById('company-name');
+            const companyAddress = document.getElementById('company-address');
             
-            // Vérifier si le conteneur d'informations est visible
-            if (jobInfoContainer && jobInfoContainer.style.display !== 'none') {
-                return true;
+            if (companyName && !companyName.value.trim()) {
+                alert('Veuillez renseigner le nom de votre structure.');
+                companyName.focus();
+                return false;
             }
             
-            // Ou vérifier si des données ont été sauvegardées dans la session
-            const parsedJobData = sessionStorage.getItem('parsedJobData');
-            if (parsedJobData) {
-                return true;
+            if (companyAddress && !companyAddress.value.trim()) {
+                alert('Veuillez renseigner l\'adresse de votre structure.');
+                companyAddress.focus();
+                return false;
             }
             
-            // Afficher une alerte si aucune donnée n'est disponible
-            alert('Veuillez analyser une fiche de poste avant de continuer.');
-            return false;
-            
-        case 2:
-        case 3:
-        case 4:
-            // Pour les étapes intermédiaires, pas de validation spécifique pour l'instant
             return true;
             
-        case 5:
+        case 2:
+            // Pour l'étape 2, validation basique des coordonnées de contact
+            const contactEmail = document.getElementById('contact-email');
+            if (contactEmail && contactEmail.value.trim() && !isValidEmail(contactEmail.value)) {
+                alert('Veuillez saisir une adresse email valide.');
+                contactEmail.focus();
+                return false;
+            }
+            return true;
+            
+        case 3:
+            // Pour l'étape 3, vérifier si l'utilisateur a choisi une option de recrutement
+            const recruitmentYes = document.getElementById('recruitment-yes');
+            const recruitmentNo = document.getElementById('recruitment-no');
+            
+            if ((!recruitmentYes || !recruitmentYes.checked) && (!recruitmentNo || !recruitmentNo.checked)) {
+                alert('Veuillez indiquer si vous avez un poste à recruter.');
+                return false;
+            }
+            
+            // Si l'utilisateur a indiqué oui, on n'impose pas de validation supplémentaire
+            // car les données peuvent être complétées plus tard
+            
+            return true;
+            
+        case 4:
             // Vérifier que les étapes précédentes ont été complétées
             return true;
             
         default:
             return true;
     }
+}
+
+/**
+ * Vérifie si une adresse email est valide
+ * @param {string} email - Adresse email à vérifier
+ * @returns {boolean} - true si l'email est valide, false sinon
+ */
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
 
 /**
