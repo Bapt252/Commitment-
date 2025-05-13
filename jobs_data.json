@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "titre": "Développeur Front-End Senior",
+    "entreprise": "TechVision",
+    "localisation": "15 Rue de Rivoli, 75004 Paris",
+    "type_contrat": "CDI",
+    "competences": ["JavaScript", "React", "TypeScript", "HTML", "CSS"],
+    "experience": "3-5 ans",
+    "date_debut": "01/05/2025",
+    "salaire": "45K-55K€",
+    "description": "Nous recherchons un développeur Front-End expérimenté pour renforcer notre équipe technique en pleine croissance. Vous serez en charge de concevoir et développer des interfaces utilisateur modernes et responsives pour nos produits SaaS. Vous travaillerez en étroite collaboration avec les designers UX/UI et les développeurs back-end pour créer des expériences utilisateur exceptionnelles."
+  },
+  {
+    "id": 2,
+    "titre": "Développeur Full-Stack",
+    "entreprise": "InnovateTech",
+    "localisation": "92 Avenue des Champs-Élysées, 75008 Paris",
+    "type_contrat": "CDI",
+    "competences": ["JavaScript", "React", "Node.js", "Express", "MongoDB"],
+    "experience": "2-4 ans",
+    "date_debut": "15/04/2025",
+    "salaire": "42K-48K€",
+    "description": "Notre entreprise cherche un développeur Full-Stack talentueux pour participer au développement de notre plateforme innovante. Vous travaillerez sur l'ensemble de notre stack technique, du front-end au back-end, et vous aurez l'opportunité de contribuer à la conception de nouvelles fonctionnalités et à l'amélioration de l'architecture existante."
+  },
+  {
+    "id": 3,
+    "titre": "Développeur Back-End",
+    "entreprise": "Data Solutions",
+    "localisation": "56 Rue du Faubourg Saint-Honoré, 75008 Paris",
+    "type_contrat": "CDI",
+    "competences": ["Python", "Django", "SQL", "Docker", "AWS"],
+    "experience": "2-5 ans",
+    "date_debut": "01/06/2025",
+    "salaire": "40K-50K€",
+    "description": "Data Solutions recherche un développeur Back-End pour renforcer son équipe tech. Vous serez chargé de concevoir et développer des APIs performantes, maintenir l'infrastructure cloud et optimiser les performances de nos bases de données. Vous participerez également à la conception de l'architecture technique de nos nouvelles solutions."
+  },
+  {
+    "id": 4,
+    "titre": "Ingénieur Frontend React",
+    "entreprise": "Digital Wave",
+    "localisation": "8 Place de l'Opéra, 75009 Paris",
+    "type_contrat": "CDI",
+    "competences": ["JavaScript", "React", "Redux", "TypeScript", "Sass"],
+    "experience": "2-6 ans",
+    "date_debut": "15/05/2025",
+    "salaire": "45K-60K€",
+    "description": "Digital Wave recherche un ingénieur Frontend spécialisé en React pour rejoindre notre équipe produit. Vous développerez des interfaces utilisateurs performantes et intuitives pour notre plateforme SaaS en pleine croissance, en étroite collaboration avec les designers et les développeurs backend."
+  },
+  {
+    "id": 5,
+    "titre": "Développeur Web JavaScript",
+    "entreprise": "Nexus Digital",
+    "localisation": "35 Rue de Seine, 75006 Paris",
+    "type_contrat": "CDD",
+    "competences": ["JavaScript", "HTML", "CSS", "Vue.js", "GraphQL"],
+    "experience": "1-3 ans",
+    "date_debut": "01/06/2025",
+    "salaire": "38K-45K€",
+    "description": "Nexus Digital recherche un développeur Web JavaScript passionné pour contribuer à l'évolution de notre plateforme e-commerce. Vous implémenterez de nouvelles fonctionnalités, optimiserez les performances et assurerez la maintenance de notre application web principale."
+  },
+  {
+    "id": 6,
+    "titre": "Développeur Full-Stack JavaScript",
+    "entreprise": "StartUp Factory",
+    "localisation": "128 Rue la Boétie, 75008 Paris",
+    "type_contrat": "CDI",
+    "competences": ["JavaScript", "Node.js", "React", "Express", "PostgreSQL"],
+    "experience": "3-6 ans",
+    "date_debut": "15/06/2025",
+    "salaire": "50K-65K€",
+    "description": "Rejoignez StartUp Factory en tant que développeur Full-Stack pour travailler sur des projets innovants dans divers secteurs. Vous participerez au développement complet d'applications web modernes, de la conception à la mise en production, en utilisant les dernières technologies JavaScript."
+  },
+  {
+    "id": 7,
+    "titre": "Ingénieur Frontend Angular",
+    "entreprise": "FinTech Solutions",
+    "localisation": "5 Avenue de la Grande Armée, 75116 Paris",
+    "type_contrat": "CDI",
+    "competences": ["TypeScript", "Angular", "RxJS", "SCSS", "Jest"],
+    "experience": "3-5 ans",
+    "date_debut": "01/07/2025",
+    "salaire": "45K-60K€",
+    "description": "FinTech Solutions recrute un ingénieur Frontend Angular pour développer notre nouvelle plateforme de services financiers. Vous serez responsable de la conception et de l'implémentation des interfaces utilisateur, en garantissant une expérience utilisateur optimale et sécurisée."
+  },
+  {
+    "id": 8,
+    "titre": "Développeur Backend Node.js",
+    "entreprise": "Cloud Services",
+    "localisation": "10 Rue de Marseille, 75010 Paris",
+    "type_contrat": "CDI",
+    "competences": ["Node.js", "Express", "MongoDB", "Redis", "Docker"],
+    "experience": "2-4 ans",
+    "date_debut": "15/05/2025",
+    "salaire": "42K-55K€",
+    "description": "Cloud Services recherche un développeur Backend Node.js pour renforcer son équipe d'ingénierie. Vous concevrez, développerez et maintiendrez les services backend et les APIs qui alimentent nos applications. Vous travaillerez dans un environnement cloud natif avec des pratiques DevOps modernes."
+  },
+  {
+    "id": 9,
+    "titre": "Développeur Mobile React Native",
+    "entreprise": "AppMakers",
+    "localisation": "24 Rue du Faubourg Saint-Antoine, 75012 Paris",
+    "type_contrat": "CDI",
+    "competences": ["JavaScript", "React Native", "Redux", "TypeScript", "Jest"],
+    "experience": "2-5 ans",
+    "date_debut": "01/06/2025",
+    "salaire": "42K-52K€",
+    "description": "AppMakers cherche un développeur mobile React Native pour créer des applications iOS et Android innovantes. Vous serez impliqué dans tout le cycle de développement, de la conception à la publication, et contribuerez à l'amélioration de notre framework interne."
+  },
+  {
+    "id": 10,
+    "titre": "Ingénieur DevOps",
+    "entreprise": "Secure Cloud",
+    "localisation": "18 Rue Yves Toudic, 75010 Paris",
+    "type_contrat": "CDI",
+    "competences": ["Kubernetes", "Docker", "AWS", "Terraform", "CI/CD"],
+    "experience": "3-6 ans",
+    "date_debut": "15/06/2025",
+    "salaire": "50K-70K€",
+    "description": "Secure Cloud recherche un ingénieur DevOps expérimenté pour optimiser et sécuriser notre infrastructure cloud. Vous serez responsable de l'automatisation des déploiements, de la mise en place de pipelines CI/CD, et de l'amélioration continue de nos processus opérationnels."
+  }
+]
