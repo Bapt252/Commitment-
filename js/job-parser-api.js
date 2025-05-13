@@ -1,536 +1,449 @@
-/**
- * job-parser-api.js
- * Interface pour communiquer avec le service de parsing de fiches de poste 
- */
-
+// Créer un service de parsing basique de fiches de poste
 class JobParserAPI {
     constructor(options = {}) {
-        // Configuration par défaut
-        this.config = {
-            apiUrl: options.apiUrl || 'http://localhost:5055/api/parse-job',
-            timeout: options.timeout || 30000, // 30 secondes
-            debug: options.debug || false,
-            enablePDFCleaning: options.enablePDFCleaning || false,
-            enableMockMode: options.enableMockMode || false
-        };
+        this.apiUrl = options.apiUrl || '/api/parse-job';
+        this.debug = options.debug || false;
+        this.enablePDFCleaning = options.enablePDFCleaning || false;
         
-        // Initialiser le nettoyeur PDF si activé
-        if (this.config.enablePDFCleaning && typeof PDFCleaner === 'function') {
-            this.pdfCleaner = new PDFCleaner();
-        }
-        
-        // Log de débogage sur l'initialisation
-        if (this.config.debug) {
-            console.log('JobParserAPI initialisée avec la configuration:', this.config);
+        if (this.debug) {
+            console.log('JobParserAPI initialized with options:', options);
         }
     }
     
     /**
-     * Parse une fiche de poste à partir d'un fichier
-     * @param {File} file - Le fichier à analyser (PDF, DOCX, TXT)
-     * @returns {Promise<Object>} Les informations extraites de la fiche de poste
+     * Analyse le texte d'une fiche de poste
+     * @param {string} text - Le texte de la fiche de poste
+     * @returns {Promise<Object>} - Les résultats de l'analyse
      */
-    async parseJobFile(file) {
-        if (this.config.debug) {
-            console.log(`Parsing du fichier: ${file.name} (${file.type}, ${file.size} bytes)`);
+    async parseJobText(text) {
+        if (this.debug) {
+            console.log('Parsing job text...');
         }
         
-        // Vérifier que le fichier est valide
-        this._validateFile(file);
-        
-        // En mode mock, retourner des données simulées
-        if (this.config.enableMockMode) {
-            return this._getMockJobData(file.name);
-        }
-        
-        // Créer un FormData avec le fichier
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        // Nettoyer le PDF si nécessaire et possible
-        if (this.config.enablePDFCleaning && file.type === 'application/pdf' && this.pdfCleaner) {
-            try {
-                const cleanedFile = await this.pdfCleaner.cleanFile(file);
-                formData.set('file', cleanedFile);
-                
-                if (this.config.debug) {
-                    console.log('Fichier PDF nettoyé avec succès');
-                }
-            } catch (error) {
-                console.warn('Erreur lors du nettoyage du PDF, utilisation du fichier original:', error);
-            }
-        }
-        
-        // Envoyer la requête à l'API
         try {
-            const response = await this._makeAPIRequest('POST', formData);
+            // Vérifier d'abord si on peut utiliser l'API
+            const apiAvailable = await this.checkApiAvailability();
             
-            // Traiter et retourner les données de parsing
-            return this._processParsingResult(response);
-        } catch (error) {
-            // En cas d'erreur, essayer une analyse locale si possible
-            console.error('Erreur lors de l\'appel à l\'API de parsing:', error);
-            
-            if (file.type === 'application/pdf' || file.type === 'text/plain') {
-                // Pour les fichiers PDF et TXT, on peut essayer une extraction de texte locale
-                try {
-                    const text = await this._extractTextFromFile(file);
-                    console.log('Fallback: Analyse locale du texte extrait');
-                    return this.analyzeJobLocally(text);
-                } catch (extractError) {
-                    console.error('Erreur lors de l\'extraction locale du texte:', extractError);
-                }
+            if (apiAvailable) {
+                return await this.sendTextToApi(text);
+            } else {
+                console.warn('API not available, using local fallback');
+                return this.analyzeJobLocally(text);
             }
-            
-            // Remonter l'erreur originale
+        } catch (error) {
+            console.error('Error parsing job text:', error);
             throw error;
         }
     }
     
     /**
-     * Parse une fiche de poste à partir d'un texte
-     * @param {string} text - Le texte de la fiche de poste
-     * @returns {Promise<Object>} Les informations extraites de la fiche de poste
+     * Analyse un fichier de fiche de poste
+     * @param {File} file - Le fichier de la fiche de poste
+     * @returns {Promise<Object>} - Les résultats de l'analyse
      */
-    async parseJobText(text) {
-        if (this.config.debug) {
-            console.log(`Parsing du texte (${text.length} caractères)`);
+    async parseJobFile(file) {
+        if (this.debug) {
+            console.log('Parsing job file:', file.name);
         }
         
-        // Vérifier que le texte est valide
-        if (!text || typeof text !== 'string' || text.trim().length === 0) {
-            throw new Error('Le texte de la fiche de poste est vide ou invalide');
+        try {
+            // Vérifier d'abord si on peut utiliser l'API
+            const apiAvailable = await this.checkApiAvailability();
+            
+            if (apiAvailable) {
+                return await this.sendFileToApi(file);
+            } else {
+                console.warn('API not available, converting file to text...');
+                
+                // Lire le contenu du fichier comme texte
+                const text = await this.readFileAsText(file);
+                return this.analyzeJobLocally(text);
+            }
+        } catch (error) {
+            console.error('Error parsing job file:', error);
+            throw error;
         }
-        
-        // En mode mock, retourner des données simulées
-        if (this.config.enableMockMode) {
-            return this._getMockJobData();
+    }
+    
+    /**
+     * Vérifie si l'API est disponible
+     * @returns {Promise<boolean>} - true si l'API est disponible, false sinon
+     */
+    async checkApiAvailability() {
+        try {
+            const apiUrl = this.apiUrl.replace('/parse-job', '/health');
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                signal: AbortSignal.timeout(1000) // Timeout court
+            });
+            
+            return response.ok;
+        } catch (error) {
+            console.warn('API check failed:', error);
+            return false;
         }
-        
-        // Créer un FormData avec le texte
+    }
+    
+    /**
+     * Envoie du texte à l'API pour analyse
+     * @param {string} text - Le texte à analyser
+     * @returns {Promise<Object>} - Les résultats de l'analyse
+     */
+    async sendTextToApi(text) {
         const formData = new FormData();
         formData.append('text', text);
         
-        // Envoyer la requête à l'API
-        try {
-            const response = await this._makeAPIRequest('POST', formData);
-            
-            // Traiter et retourner les données de parsing
-            return this._processParsingResult(response);
-        } catch (error) {
-            // En cas d'erreur, essayer une analyse locale
-            console.error('Erreur lors de l\'appel à l\'API de parsing:', error);
-            console.log('Fallback: Analyse locale du texte');
-            return this.analyzeJobLocally(text);
+        const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API Error (${response.status}): ${await response.text()}`);
         }
+        
+        return await response.json();
     }
     
     /**
-     * Analyse une fiche de poste localement avec des expressions régulières
-     * Utilisé comme fallback si l'API n'est pas disponible
-     * @param {string} text - Le texte de la fiche de poste
-     * @returns {Object} Les informations extraites de la fiche de poste
+     * Envoie un fichier à l'API pour analyse
+     * @param {File} file - Le fichier à analyser
+     * @returns {Promise<Object>} - Les résultats de l'analyse
      */
-    analyzeJobLocally(text) {
-        if (this.config.debug) {
-            console.log('Analyse locale du texte de la fiche de poste');
+    async sendFileToApi(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API Error (${response.status}): ${await response.text()}`);
         }
         
-        // Initialiser l'objet de résultat
-        const result = {
-            title: '',
-            company: '',
-            location: '',
-            contract_type: '',
-            skills: [],
-            experience: '',
-            education: '',
-            salary: '',
-            responsibilities: [],
-            benefits: []
-        };
-        
-        try {
-            // Extraction du titre du poste
-            const titlePatterns = [
-                /(?:^|\n)[\s•]*Poste[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Intitulé du poste[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Offre d'emploi[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*([\w\s\-']+(?:développeur|ingénieur|technicien|consultant|manager|responsable|directeur|analyste)[\w\s\-']+)(?:\n|$)/i
-            ];
-            
-            for (const pattern of titlePatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    result.title = match[1].trim();
-                    break;
-                }
-            }
-            
-            // Extraction de l'entreprise
-            const companyPatterns = [
-                /(?:^|\n)[\s•]*Entreprise[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Société[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Employeur[\s:]*(.+?)(?:\n|$)/i
-            ];
-            
-            for (const pattern of companyPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    result.company = match[1].trim();
-                    break;
-                }
-            }
-            
-            // Extraction de la localisation
-            const locationPatterns = [
-                /(?:^|\n)[\s•]*Lieu[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Localisation[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Localité[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Ville[\s:]*(.+?)(?:\n|$)/i
-            ];
-            
-            for (const pattern of locationPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    result.location = match[1].trim();
-                    break;
-                }
-            }
-            
-            // Extraction du type de contrat
-            const contractPatterns = [
-                /(?:^|\n)[\s•]*Type de contrat[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Contrat[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*(CDI|CDD|Stage|Alternance|Intérim|Freelance)(?:\n|$)/i
-            ];
-            
-            for (const pattern of contractPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    result.contract_type = match[1].trim();
-                    break;
-                }
-            }
-            
-            // Extraction des compétences
-            const skillsPatterns = [
-                /(?:^|\n)[\s•]*Compétences[\s:]*(.+?)(?:\n\n|$)/i,
-                /(?:^|\n)[\s•]*Compétences requises[\s:]*(.+?)(?:\n\n|$)/i,
-                /(?:^|\n)[\s•]*Compétences techniques[\s:]*(.+?)(?:\n\n|$)/i,
-                /(?:^|\n)[\s•]*Qualifications[\s:]*(.+?)(?:\n\n|$)/i,
-                /(?:^|\n)[\s•]*Prérequis[\s:]*(.+?)(?:\n\n|$)/i
-            ];
-            
-            for (const pattern of skillsPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    const skillsText = match[1].trim();
-                    // Extraire les compétences en les séparant par saut de ligne ou par des puces
-                    const skills = skillsText.split(/[\n•,]/).map(s => s.trim()).filter(Boolean);
-                    result.skills = skills;
-                    break;
-                }
-            }
-            
-            // Extraction de l'expérience
-            const expPatterns = [
-                /(?:^|\n)[\s•]*Expérience[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Années d'expérience[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*([\d]+[\s]*ans d'expérience)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Expérience requise[\s:]*(.+?)(?:\n|$)/i
-            ];
-            
-            for (const pattern of expPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    result.experience = match[1].trim();
-                    break;
-                }
-            }
-            
-            // Extraction de la formation
-            const eduPatterns = [
-                /(?:^|\n)[\s•]*Formation[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Diplôme[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Niveau d'études[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Éducation[\s:]*(.+?)(?:\n|$)/i
-            ];
-            
-            for (const pattern of eduPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    result.education = match[1].trim();
-                    break;
-                }
-            }
-            
-            // Extraction du salaire
-            const salaryPatterns = [
-                /(?:^|\n)[\s•]*Salaire[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Rémunération[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*Package[\s:]*(.+?)(?:\n|$)/i,
-                /(?:^|\n)[\s•]*\€[\s]*(.+?)(?:\n|$)/i
-            ];
-            
-            for (const pattern of salaryPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    result.salary = match[1].trim();
-                    break;
-                }
-            }
-            
-            // Extraction des responsabilités/missions
-            const respPatterns = [
-                /(?:^|\n)[\s•]*Description[\s:]*(.+?)(?:\n\n|$)/i,
-                /(?:^|\n)[\s•]*Description du poste[\s:]*(.+?)(?:\n\n|$)/i,
-                /(?:^|\n)[\s•]*Missions[\s:]*(.+?)(?:\n\n|$)/i,
-                /(?:^|\n)[\s•]*Responsabilités[\s:]*(.+?)(?:\n\n|$)/i
-            ];
-            
-            for (const pattern of respPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    result.responsibilities = [match[1].trim()];
-                    break;
-                }
-            }
-            
-            // Extraction des avantages
-            const benefitsPatterns = [
-                /(?:^|\n)[\s•]*Avantages[\s:]*(.+?)(?:\n\n|$)/i,
-                /(?:^|\n)[\s•]*Bénéfices[\s:]*(.+?)(?:\n\n|$)/i,
-                /(?:^|\n)[\s•]*CE qu'on vous offre[\s:]*(.+?)(?:\n\n|$)/i
-            ];
-            
-            for (const pattern of benefitsPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    const benefitsText = match[1].trim();
-                    // Extraire les avantages en les séparant par saut de ligne ou par des puces
-                    const benefits = benefitsText.split(/[\n•,]/).map(b => b.trim()).filter(Boolean);
-                    result.benefits = benefits;
-                    break;
-                }
-            }
-            
-            return result;
-        } catch (error) {
-            console.error('Erreur lors de l\'analyse locale:', error);
-            return result; // Retourner le résultat même incomplet
-        }
+        return await response.json();
     }
     
     /**
-     * Valide un fichier avant de l'envoyer à l'API
-     * @param {File} file - Le fichier à valider
-     * @throws {Error} Si le fichier est invalide
-     * @private
+     * Lit un fichier comme texte
+     * @param {File} file - Le fichier à lire
+     * @returns {Promise<string>} - Le contenu du fichier
      */
-    _validateFile(file) {
-        // Vérifier que le fichier est présent
-        if (!file) {
-            throw new Error('Aucun fichier fourni');
-        }
-        
-        // Vérifier le type de fichier
-        const allowedTypes = [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'text/plain'
-        ];
-        
-        if (!allowedTypes.includes(file.type)) {
-            throw new Error(`Type de fichier non supporté: ${file.type}. Types acceptés: PDF, DOC, DOCX et TXT.`);
-        }
-        
-        // Vérifier la taille du fichier (max 5MB)
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        if (file.size > maxSize) {
-            throw new Error(`Fichier trop volumineux: ${Math.round(file.size / 1024 / 1024)}MB. Taille maximale: 5MB.`);
-        }
-    }
-    
-    /**
-     * Fait une requête à l'API de parsing
-     * @param {string} method - La méthode HTTP (GET, POST, etc.)
-     * @param {FormData|Object} data - Les données à envoyer
-     * @returns {Promise<Object>} La réponse de l'API
-     * @private
-     */
-    async _makeAPIRequest(method, data) {
-        // Déterminer l'URL de l'API
-        const apiUrl = this._getApiUrl();
-        
-        // Options de la requête
-        const options = {
-            method: method,
-            headers: {},
-            body: data instanceof FormData ? data : JSON.stringify(data)
-        };
-        
-        // Si les données ne sont pas un FormData, ajouter le header Content-Type
-        if (!(data instanceof FormData)) {
-            options.headers['Content-Type'] = 'application/json';
-        }
-        
-        // Ajouter un timeout à la requête
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
-        options.signal = controller.signal;
-        
-        try {
-            // Log de debug pour la requête
-            if (this.config.debug) {
-                console.log(`Requête API: ${method} ${apiUrl}`);
-                console.log('Données:', data instanceof FormData ? 'FormData' : data);
-            }
-            
-            // Faire la requête
-            const response = await fetch(apiUrl, options);
-            
-            // Annuler le timeout
-            clearTimeout(timeoutId);
-            
-            // Vérifier le status de la réponse
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erreur API (${response.status}): ${errorText}`);
-            }
-            
-            // Parser la réponse JSON
-            const result = await response.json();
-            
-            // Log de debug pour la réponse
-            if (this.config.debug) {
-                console.log('Réponse API:', result);
-            }
-            
-            return result;
-        } catch (error) {
-            // Annuler le timeout si une erreur survient
-            clearTimeout(timeoutId);
-            
-            // Si c'est une erreur de timeout
-            if (error.name === 'AbortError') {
-                throw new Error(`La requête a expiré après ${this.config.timeout / 1000} secondes`);
-            }
-            
-            // Remonter l'erreur
-            throw error;
-        }
-    }
-    
-    /**
-     * Détermine l'URL de l'API à utiliser
-     * @returns {string} L'URL de l'API
-     * @private
-     */
-    _getApiUrl() {
-        // Chercher d'abord dans les paramètres d'URL
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('apiUrl')) {
-            return `${urlParams.get('apiUrl')}/api/parse-job`;
-        }
-        
-        // Sinon, utiliser l'URL configurée
-        return this.config.apiUrl;
-    }
-    
-    /**
-     * Extrait le texte d'un fichier localement
-     * @param {File} file - Le fichier à traiter
-     * @returns {Promise<string>} Le texte extrait
-     * @private
-     */
-    async _extractTextFromFile(file) {
+    async readFileAsText(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             
-            reader.onload = (event) => {
-                try {
-                    const text = event.target.result;
-                    resolve(text);
-                } catch (error) {
-                    reject(error);
-                }
+            reader.onload = function(e) {
+                resolve(e.target.result);
             };
             
-            reader.onerror = (error) => {
-                reject(error);
+            reader.onerror = function(e) {
+                reject(new Error('Error reading file: ' + e.target.error));
             };
             
-            // Lire le fichier comme texte
             reader.readAsText(file);
         });
     }
     
     /**
-     * Traite les résultats de parsing pour les normaliser
-     * @param {Object} response - La réponse de l'API
-     * @returns {Object} Les données normalisées
-     * @private
+     * Analyse localement un texte de fiche de poste (fallback)
+     * @param {string} text - Le texte à analyser
+     * @returns {Object} - Les résultats de l'analyse
      */
-    _processParsingResult(response) {
-        // Si la réponse a un format spécifique, la normaliser
-        if (response.job_info) {
-            // Format job_parser_gpt_cli.py
-            const jobInfo = response.job_info;
-            return {
-                title: jobInfo.titre_poste || '',
-                company: jobInfo.entreprise || '',
-                location: jobInfo.localisation || '',
-                contract_type: jobInfo.type_contrat || '',
-                skills: Array.isArray(jobInfo.competences) ? 
-                    jobInfo.competences : 
-                    (jobInfo.competences ? [jobInfo.competences] : []),
-                experience: jobInfo.experience || '',
-                education: jobInfo.formation || '',
-                salary: jobInfo.salaire || '',
-                description: jobInfo.description || '',
-                responsibilities: jobInfo.description ? [jobInfo.description] : [],
-                benefits: []
-            };
+    analyzeJobLocally(text) {
+        // Version simplifiée d'analyse locale
+        if (this.debug) {
+            console.log('Analyzing job locally...');
         }
         
-        // Sinon, retourner la réponse telle quelle
-        return response;
+        const result = {
+            title: this.extractJobTitle(text),
+            company: this.extractCompany(text),
+            location: this.extractLocation(text),
+            contract_type: this.extractContractType(text),
+            skills: this.extractSkills(text),
+            experience: this.extractExperience(text),
+            education: this.extractEducation(text),
+            salary: this.extractSalary(text),
+            responsibilities: this.extractResponsibilities(text),
+            benefits: this.extractBenefits(text)
+        };
+        
+        return result;
     }
     
-    /**
-     * Génère des données de mock pour les tests
-     * @param {string} filename - Le nom du fichier (optionnel)
-     * @returns {Object} Les données simulées
-     * @private
-     */
-    _getMockJobData(filename = '') {
-        // Données de mock basiques
-        return {
-            title: "Développeur Full Stack",
-            company: "TechCorp Solutions",
-            location: "Paris, France",
-            contract_type: "CDI",
-            skills: ["JavaScript", "React", "Node.js", "MongoDB", "Git"],
-            experience: "3-5 ans",
-            education: "Bac+5 en informatique ou équivalent",
-            salary: "45-55K€ selon expérience",
-            responsibilities: [
-                "Développer des applications web responsive",
-                "Collaborer avec l'équipe design pour implémenter les maquettes",
-                "Maintenir et améliorer les applications existantes",
-                "Participer aux revues de code et aux réunions d'équipe"
-            ],
-            benefits: [
-                "Télétravail partiel",
-                "Tickets restaurant",
-                "Mutuelle d'entreprise",
-                "Formation continue"
-            ]
-        };
+    // Méthodes d'extraction basées sur des règles simples
+    
+    extractJobTitle(text) {
+        // Chercher les mots-clés indiquant un titre de poste
+        const titleRegexList = [
+            /poste\s*:\s*([^\n.]+)/i,
+            /titre\s*:\s*([^\n.]+)/i,
+            /recrute\s*(?:un|une)\s*([^\n.]+)/i,
+            /recherch(?:e|ons)\s*(?:un|une)\s*([^\n.]+)/i,
+            /^([^\n.]+?)(?:\n|$)/i  // Première ligne comme fallback
+        ];
+        
+        for (const regex of titleRegexList) {
+            const match = text.match(regex);
+            if (match && match[1] && match[1].trim()) {
+                return match[1].trim();
+            }
+        }
+        
+        return 'Titre non détecté';
+    }
+    
+    extractCompany(text) {
+        // Chercher des mentions d'entreprise
+        const companyRegexList = [
+            /(?:société|entreprise|cabinet|groupe)\s*:\s*([^\n.]+)/i,
+            /(?:chez|pour)\s+([^\n.]+?)(?:\s|,|\.)/i
+        ];
+        
+        for (const regex of companyRegexList) {
+            const match = text.match(regex);
+            if (match && match[1] && match[1].trim()) {
+                return match[1].trim();
+            }
+        }
+        
+        return '';
+    }
+    
+    extractLocation(text) {
+        // Chercher des mentions de lieu
+        const locationRegexList = [
+            /(?:lieu|localisation|adresse|situé[e]? à)\s*:?\s*([^\n.]+)/i,
+            /(?:à|sur|dans)\s+((?:(?:[A-Z][a-zéèêëïîôöùûüç]+)(?:[\s-][A-Z][a-zéèêëïîôöùûüç]+)*)|(?:\d{5}))/i,
+            /(?:poste\s*basé\s*à|poste\s*localisé\s*à)\s+([^\n.]+)/i
+        ];
+        
+        for (const regex of locationRegexList) {
+            const match = text.match(regex);
+            if (match && match[1] && match[1].trim()) {
+                return match[1].trim();
+            }
+        }
+        
+        return '';
+    }
+    
+    extractContractType(text) {
+        // Chercher des mentions de type de contrat
+        const contractTypes = ['CDI', 'CDD', 'INTERIM', 'STAGE', 'ALTERNANCE', 'APPRENTISSAGE', 'FREELANCE'];
+        const contractRegexList = [
+            new RegExp(`(?:contrat|type de contrat)\\s*:?\\s*(${contractTypes.join('|')})`, 'i'),
+            new RegExp(`(${contractTypes.join('|')})`, 'i')
+        ];
+        
+        for (const regex of contractRegexList) {
+            const match = text.match(regex);
+            if (match && match[1]) {
+                return match[1].toUpperCase();
+            }
+        }
+        
+        return '';
+    }
+    
+    extractSkills(text) {
+        // Identificateur de sections liées aux compétences
+        const skillSectionRegexList = [
+            /comp[ée]tences(?:\s+requises|\s+techniques)?(?:\s*:|\s*\n)([\s\S]*?)(?:\n\s*\n|\n\s*[A-Z]|\Z)/i,
+            /profil(?:\s+recherch[ée])?(?:\s*:|\s*\n)([\s\S]*?)(?:\n\s*\n|\n\s*[A-Z]|\Z)/i,
+            /qualifications(?:\s*:|\s*\n)([\s\S]*?)(?:\n\s*\n|\n\s*[A-Z]|\Z)/i
+        ];
+        
+        // Extraire la section compétences
+        let skillsSection = '';
+        for (const regex of skillSectionRegexList) {
+            const match = text.match(regex);
+            if (match && match[1]) {
+                skillsSection = match[1].trim();
+                break;
+            }
+        }
+        
+        if (!skillsSection) {
+            return [];
+        }
+        
+        // Extraire les compétences individuelles (liste à puces ou séparées par virgules)
+        const skillsList = [];
+        
+        // Traiter les listes à puces
+        const bulletItems = skillsSection.match(/(?:^|\n)\s*[-•*]\s*([^\n]+)/g);
+        if (bulletItems) {
+            for (const item of bulletItems) {
+                const skill = item.replace(/^\s*[-•*]\s*/, '').trim();
+                if (skill && skill.length > 2) {
+                    skillsList.push(skill);
+                }
+            }
+        }
+        
+        // Si pas de liste à puces, découper par virgules/points/sauts de ligne
+        if (skillsList.length === 0) {
+            const items = skillsSection.split(/[,.;\n]/);
+            for (const item of items) {
+                const skill = item.trim();
+                if (skill && skill.length > 2) {
+                    skillsList.push(skill);
+                }
+            }
+        }
+        
+        return skillsList.length > 0 ? skillsList : [];
+    }
+    
+    extractExperience(text) {
+        // Chercher des mentions d'expérience
+        const experienceRegexList = [
+            /exp[ée]rience(?:\s+requise)?(?:\s*:|\s+de|\s+d[''])\s*([^\n.]+)/i,
+            /(\d+(?:[,\.]\d+)?(?:\s*[-àa]\s*\d+(?:[,\.]\d+)?)?)\s*an(?:s|nées?)(?:\s+d['']exp[ée]rience)?/i
+        ];
+        
+        for (const regex of experienceRegexList) {
+            const match = text.match(regex);
+            if (match && match[1] && match[1].trim()) {
+                return match[1].trim();
+            }
+        }
+        
+        return '';
+    }
+    
+    extractEducation(text) {
+        // Chercher des mentions de formation
+        const educationRegexList = [
+            /formation(?:\s+requise)?(?:\s*:|\s+de|\s+en|\s+type)\s*([^\n.]+)/i,
+            /(?:dipl[ôo]me|qualification)(?:\s+requis)?(?:\s*:|\s+de|\s+en)\s*([^\n.]+)/i,
+            /(?:bac|master|licence|doctorat|ingénieur|école)(?:\s*\+\s*\d+|\s+\d+)?(?:[^\n.]{0,30})/i
+        ];
+        
+        for (const regex of educationRegexList) {
+            const match = text.match(regex);
+            if (match && (match[1] || match[0]) && (match[1] || match[0]).trim()) {
+                return (match[1] || match[0]).trim();
+            }
+        }
+        
+        return '';
+    }
+    
+    extractSalary(text) {
+        // Chercher des mentions de salaire
+        const salaryRegexList = [
+            /salaire(?:\s+proposé)?(?:\s*:|\s+de|\s+entre|\s*\(?\s*(?:brut|net)\s*\)?)\s*([^\n.]+)/i,
+            /((?:\d{2,3}(?:\s|\s*[ ,.]\s*)\d{3})|(?:\d{1,3}[kK])|(?:\d+(?:[,.]\d+)?[ ]*(?:à|au?|et|-)[ ]*\d+(?:[,.]\d+)?))[ ]*(?:€|k€|euros|EUR)?[ ]*(?:brut|net)?[ ]*(?:\/|par)?[ ]*(?:an|mois|jour)/i,
+            /r[ée]mun[ée]ration(?:\s*:|\s+de|\s+entre|\s+à)\s*([^\n.]+)/i
+        ];
+        
+        for (const regex of salaryRegexList) {
+            const match = text.match(regex);
+            if (match && (match[1] || match[0]) && (match[1] || match[0]).trim()) {
+                return (match[1] || match[0]).trim();
+            }
+        }
+        
+        return '';
+    }
+    
+    extractResponsibilities(text) {
+        // Identificateur de sections liées aux responsabilités
+        const respSectionRegexList = [
+            /(?:missions|responsabilit[ée]s|t[âa]ches|poste)(?:\s*:|\s*\n)([\s\S]*?)(?:\n\s*\n|\n\s*[A-Z]|\Z)/i,
+            /(?:descriptif|description)(?:\s+du poste)?(?:\s*:|\s*\n)([\s\S]*?)(?:\n\s*\n|\n\s*[A-Z]|\Z)/i
+        ];
+        
+        // Extraire la section responsabilités
+        let respSection = '';
+        for (const regex of respSectionRegexList) {
+            const match = text.match(regex);
+            if (match && match[1]) {
+                respSection = match[1].trim();
+                break;
+            }
+        }
+        
+        if (!respSection) {
+            return [];
+        }
+        
+        // Extraire les responsabilités individuelles (liste à puces ou séparées par points)
+        const respList = [];
+        
+        // Traiter les listes à puces
+        const bulletItems = respSection.match(/(?:^|\n)\s*[-•*]\s*([^\n]+)/g);
+        if (bulletItems) {
+            for (const item of bulletItems) {
+                const resp = item.replace(/^\s*[-•*]\s*/, '').trim();
+                if (resp && resp.length > 5) {
+                    respList.push(resp);
+                }
+            }
+        }
+        
+        // Si pas de liste à puces, prendre tout comme une seule responsabilité
+        if (respList.length === 0) {
+            respList.push(respSection);
+        }
+        
+        return respList;
+    }
+    
+    extractBenefits(text) {
+        // Identificateur de sections liées aux avantages
+        const benefitSectionRegexList = [
+            /(?:avantages|b[ée]n[ée]fices|nous\s+(?:vous\s+)?offrons|nous\s+proposons)(?:\s*:|\s*\n)([\s\S]*?)(?:\n\s*\n|\n\s*[A-Z]|\Z)/i,
+            /(?:package|r[ée]mun[ée]ration et avantages)(?:\s*:|\s*\n)([\s\S]*?)(?:\n\s*\n|\n\s*[A-Z]|\Z)/i
+        ];
+        
+        // Extraire la section avantages
+        let benefitSection = '';
+        for (const regex of benefitSectionRegexList) {
+            const match = text.match(regex);
+            if (match && match[1]) {
+                benefitSection = match[1].trim();
+                break;
+            }
+        }
+        
+        if (!benefitSection) {
+            return [];
+        }
+        
+        // Extraire les avantages individuels (liste à puces ou séparées par points)
+        const benefitList = [];
+        
+        // Traiter les listes à puces
+        const bulletItems = benefitSection.match(/(?:^|\n)\s*[-•*]\s*([^\n]+)/g);
+        if (bulletItems) {
+            for (const item of bulletItems) {
+                const benefit = item.replace(/^\s*[-•*]\s*/, '').trim();
+                if (benefit && benefit.length > 2) {
+                    benefitList.push(benefit);
+                }
+            }
+        }
+        
+        // Si pas de liste à puces, découper par virgules/points/sauts de ligne
+        if (benefitList.length === 0) {
+            const items = benefitSection.split(/[,.;\n]/);
+            for (const item of items) {
+                const benefit = item.trim();
+                if (benefit && benefit.length > 2) {
+                    benefitList.push(benefit);
+                }
+            }
+        }
+        
+        return benefitList.length > 0 ? benefitList : [];
     }
 }
 
-// Exposer la classe globalement
+// Créer une instance globale pour l'utiliser dans d'autres scripts
 window.JobParserAPI = JobParserAPI;
