@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexten - Recommandations candidats</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/css/job-parser-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --purple: #7c3aed;
+            --purple-dark: #5b21b6;
+            --purple-light: #a78bfa;
+            --purple-glass: rgba(124, 58, 237, 0.1);
+            --green: #10b981;
+            --green-light: rgba(16, 185, 129, 0.1);
+            --red: #ef4444;
+            --red-light: rgba(239, 68, 68, 0.1);
+            --yellow: #f59e0b;
+            --yellow-light: rgba(245, 158, 11, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            color: #1f2937;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--purple);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            color: #6b7280;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
+            border-radius: 2px;
+        }
+        
+        /* Récapitulatif du poste */
+        .job-summary {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--purple);
+        }
+        
+        .job-summary h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        
+        .job-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .job-detail-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .job-detail-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--purple-light) 0%, var(--purple) 100%);
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);
+        }
+        
+        .job-detail-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .job-detail-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .job-detail-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        /* Liste des candidats recommandés */
+        .candidates-section {
+            margin-bottom: 3rem;
+        }
+        
+        .candidates-section h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .candidates-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
+            border-radius: 2px;
+        }
+        
+        .candidates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .candidate-card {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            border-top: 3px solid transparent;
+        }
+        
+        .candidate-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+        
+        .candidate-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+        
+        .candidate-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .candidate-header {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            position: relative;
+        }
+        
+        .candidate-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, white 0%, #f3f4f6 100%);
+            border: 3px solid white;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+            font-size: 1.5rem;
+            color: var(--purple-light);
+            transition: all 0.3s ease;
+        }
+        
+        .candidate-card:hover .candidate-photo {
+            transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .candidate-info {
+            flex: 1;
+        }
+        
+        .candidate-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #1f2937;
+        }
+        
+        .candidate-title {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        
+        .match-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 10px rgba(124, 58, 237, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .candidate-card:hover .match-badge {
+            transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(124, 58, 237, 0.3);
+        }
+        
+        .candidate-body {
+            padding: 1.5rem;
+        }
+        
+        .candidate-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .candidate-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .candidate-detail-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background-color: var(--purple-glass);
+            color: var(--purple);
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .candidate-detail-text {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        
+        .candidate-detail-text strong {
+            color: #1f2937;
+            font-weight: 600;
+            display: block;
+        }
+        
+        .skills-container {
+            margin-top: 1rem;
+        }
+        
+        .skills-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #4b5563;
+        }
+        
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .skill-tag {
+            background-color: var(--purple-glass);
+            color: var(--purple);
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .skill-tag:hover {
+            background-color: var(--purple);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .candidate-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 6px rgba(124, 58, 237, 0.2);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(124, 58, 237, 0.3);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--purple);
+            color: var(--purple);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--purple-glass);
+            transform: translateY(-3px);
+        }
+        
+        /* Actions section */
+        .actions-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: #f3f4f6;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .back-btn:hover {
+            background-color: #e5e7eb;
+            transform: translateX(-5px);
+        }
+        
+        .proceed-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(124, 58, 237, 0.2);
+            text-decoration: none;
+        }
+        
+        .proceed-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(124, 58, 237, 0.3);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .candidates-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .job-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .candidate-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions-section {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Recommandations de candidats</h1>
+            <p>Sur la base des informations que vous avez fournies, voici les candidats qui correspondent le mieux à votre profil de poste.</p>
+        </header>
+        
+        <!-- Récapitulatif du poste -->
+        <section class="job-summary">
+            <h2>Récapitulatif du poste</h2>
+            <div class="job-details" id="job-summary">
+                <!-- Les détails du poste seront injectés ici par JavaScript -->
+                <div class="job-detail-item">
+                    <div class="job-detail-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="job-detail-text">
+                        <span class="job-detail-label">Poste</span>
+                        <span class="job-detail-value" id="job-title">-</span>
+                    </div>
+                </div>
+                
+                <div class="job-detail-item">
+                    <div class="job-detail-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="job-detail-text">
+                        <span class="job-detail-label">Entreprise</span>
+                        <span class="job-detail-value" id="company-name">-</span>
+                    </div>
+                </div>
+                
+                <div class="job-detail-item">
+                    <div class="job-detail-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="job-detail-text">
+                        <span class="job-detail-label">Localisation</span>
+                        <span class="job-detail-value" id="job-location">-</span>
+                    </div>
+                </div>
+                
+                <div class="job-detail-item">
+                    <div class="job-detail-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <div class="job-detail-text">
+                        <span class="job-detail-label">Type de contrat</span>
+                        <span class="job-detail-value" id="contract-type">-</span>
+                    </div>
+                </div>
+                
+                <div class="job-detail-item">
+                    <div class="job-detail-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="job-detail-text">
+                        <span class="job-detail-label">Rémunération</span>
+                        <span class="job-detail-value" id="salary-range">-</span>
+                    </div>
+                </div>
+                
+                <div class="job-detail-item">
+                    <div class="job-detail-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="job-detail-text">
+                        <span class="job-detail-label">Délai de recrutement</span>
+                        <span class="job-detail-value" id="recruitment-delay">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Liste des candidats recommandés -->
+        <section class="candidates-section">
+            <h2>Candidats recommandés</h2>
+            
+            <div class="candidates-grid" id="candidates-container">
+                <!-- Les cartes candidats seront injectées ici par JavaScript -->
+            </div>
+        </section>
+        
+        <!-- Actions -->
+        <section class="actions-section">
+            <a href="client-questionnaire.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Retour au questionnaire
+            </a>
+            
+            <a href="company-dashboard.html" class="proceed-btn">
+                <span>Accéder au tableau de bord</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </section>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Récupérer les données du questionnaire client
+            let formData = {};
+            let jobData = {};
+            try {
+                const storedData = sessionStorage.getItem('clientFormData');
+                if (storedData) {
+                    formData = JSON.parse(storedData);
+                }
+                
+                const jobDataStr = sessionStorage.getItem('parsedJobData');
+                if (jobDataStr) {
+                    jobData = JSON.parse(jobDataStr);
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données :', error);
+            }
+            
+            // Remplir le récapitulatif du poste
+            document.getElementById('job-title').textContent = jobData.title || formData.jobTitle || 'Développeur Frontend';
+            document.getElementById('company-name').textContent = formData.companyName || 'InnovTech';
+            document.getElementById('job-location').textContent = jobData.location || formData.companyAddress || 'Paris, France';
+            document.getElementById('contract-type').textContent = jobData.contract_type || document.getElementById('contract-type')?.value || '35h';
+            document.getElementById('salary-range').textContent = jobData.salary || document.getElementById('salary')?.value || '40K - 45K';
+            document.getElementById('recruitment-delay').textContent = getRecruitmentDelays() || '2 semaines';
+            
+            // Générer les candidats recommandés (données simulées pour l'exemple)
+            const candidates = [
+                {
+                    id: 1,
+                    name: 'Thomas Martin',
+                    photo: '',
+                    title: 'Développeur Frontend Senior',
+                    match: 92,
+                    location: 'Paris, France',
+                    distance: '15 min',
+                    experience: '5 ans',
+                    salary: '42K - 48K',
+                    availability: 'Disponible sous 1 mois',
+                    skills: ['JavaScript', 'React', 'HTML/CSS', 'TypeScript', 'Node.js']
+                },
+                {
+                    id: 2,
+                    name: 'Sophie Dubois',
+                    photo: '',
+                    title: 'Développeuse Frontend / UX Designer',
+                    match: 87,
+                    location: 'Levallois-Perret',
+                    distance: '25 min',
+                    experience: '4 ans',
+                    salary: '40K - 45K',
+                    availability: 'Disponible immédiatement',
+                    skills: ['JavaScript', 'Vue.js', 'HTML/CSS', 'Figma', 'UX Design']
+                },
+                {
+                    id: 3,
+                    name: 'Lucas Bernard',
+                    photo: '',
+                    title: 'Développeur Fullstack',
+                    match: 85,
+                    location: 'Boulogne-Billancourt',
+                    distance: '30 min',
+                    experience: '6 ans',
+                    salary: '45K - 50K',
+                    availability: 'Disponible sous 2 mois',
+                    skills: ['JavaScript', 'React', 'Node.js', 'MongoDB', 'Express']
+                },
+                {
+                    id: 4,
+                    name: 'Emma Petit',
+                    photo: '',
+                    title: 'Développeuse Frontend',
+                    match: 80,
+                    location: 'Paris, France',
+                    distance: '20 min',
+                    experience: '3 ans',
+                    salary: '38K - 42K',
+                    availability: 'Disponible sous 3 semaines',
+                    skills: ['JavaScript', 'Angular', 'HTML/CSS', 'SASS', 'TypeScript']
+                }
+            ];
+            
+            // Générer le HTML pour chaque candidat
+            const candidatesContainer = document.getElementById('candidates-container');
+            candidates.forEach(candidate => {
+                const candidateCard = document.createElement('div');
+                candidateCard.className = 'candidate-card';
+                
+                // Générer le HTML de la carte
+                candidateCard.innerHTML = `
+                    <div class="candidate-header">
+                        <div class="candidate-photo">
+                            ${candidate.photo ? `<img src="${candidate.photo}" alt="${candidate.name}">` : '<i class="fas fa-user"></i>'}
+                        </div>
+                        <div class="candidate-info">
+                            <div class="candidate-name">${candidate.name}</div>
+                            <div class="candidate-title">${candidate.title}</div>
+                        </div>
+                        <div class="match-badge">
+                            <i class="fas fa-check-circle"></i> ${candidate.match}% match
+                        </div>
+                    </div>
+                    
+                    <div class="candidate-body">
+                        <div class="candidate-details">
+                            <div class="candidate-detail-item">
+                                <div class="candidate-detail-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="candidate-detail-text">
+                                    <strong>${candidate.location}</strong>
+                                    Trajet: ${candidate.distance}
+                                </div>
+                            </div>
+                            
+                            <div class="candidate-detail-item">
+                                <div class="candidate-detail-icon">
+                                    <i class="fas fa-briefcase"></i>
+                                </div>
+                                <div class="candidate-detail-text">
+                                    <strong>${candidate.experience}</strong>
+                                    d'expérience
+                                </div>
+                            </div>
+                            
+                            <div class="candidate-detail-item">
+                                <div class="candidate-detail-icon">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div class="candidate-detail-text">
+                                    <strong>${candidate.salary}</strong>
+                                    annuel brut
+                                </div>
+                            </div>
+                            
+                            <div class="candidate-detail-item">
+                                <div class="candidate-detail-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="candidate-detail-text">
+                                    <strong>${candidate.availability}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="skills-container">
+                            <div class="skills-title">Compétences clés</div>
+                            <div class="skills-list">
+                                ${candidate.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="candidate-footer">
+                        <button class="btn btn-outline" onclick="viewCandidateProfile(${candidate.id})">
+                            <i class="fas fa-eye"></i> Voir profil
+                        </button>
+                        <button class="btn btn-primary" onclick="selectCandidate(${candidate.id})">
+                            <i class="fas fa-plus"></i> Sélectionner
+                        </button>
+                    </div>
+                `;
+                
+                candidatesContainer.appendChild(candidateCard);
+            });
+            
+            // Fonctions utilitaires
+            function getRecruitmentDelays() {
+                const delays = {
+                    'immediate': 'Immédiat',
+                    '2weeks': '2 semaines',
+                    '1month': '1 mois',
+                    '2months': '2 mois',
+                    '3months': '3 mois'
+                };
+                
+                const delayCheckboxes = document.querySelectorAll('input[name="recruitment-delay"]:checked');
+                if (!delayCheckboxes || delayCheckboxes.length === 0) return '';
+                
+                return Array.from(delayCheckboxes).map(checkbox => delays[checkbox.value] || checkbox.value).join(', ');
+            }
+        });
+        
+        // Fonctions pour les boutons d'actions des candidats
+        function viewCandidateProfile(candidateId) {
+            // Rediriger vers la page de profil candidat
+            window.location.href = `candidate-page.html?id=${candidateId}`;
+        }
+        
+        function selectCandidate(candidateId) {
+            // Sauvegarder la sélection et afficher une notification
+            const selectedCandidates = JSON.parse(sessionStorage.getItem('selectedCandidates') || '[]');
+            if (!selectedCandidates.includes(candidateId)) {
+                selectedCandidates.push(candidateId);
+                sessionStorage.setItem('selectedCandidates', JSON.stringify(selectedCandidates));
+                
+                alert(`Candidat ajouté à votre sélection (${selectedCandidates.length} candidat(s) sélectionné(s))`);
+            } else {
+                alert('Ce candidat est déjà dans votre sélection.');
+            }
+        }
+    </script>
+</body>
+</html>
