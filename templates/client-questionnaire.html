@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexten - Questionnaire Recrutement</title>
+    <title>Nexten - Questionnaire Client</title>
     
     <!-- CSS -->
     <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
@@ -512,6 +512,54 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Styles pour les questions conditionnelles */
+        .conditional-section {
+            display: none;
+        }
+        
+        .conditional-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        /* Style pour les sélecteurs radio et checkbox */
+        .radio-group, .checkbox-group {
+            margin-bottom: 1rem;
+        }
+        
+        .radio-option, .checkbox-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .radio-option input, .checkbox-option input {
+            margin-right: 0.5rem;
+        }
+        
+        /* Style pour le bouton de génération de présentation */
+        .generate-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 1rem;
+        }
+        
+        .generate-btn:hover {
+            background-color: #45a049;
+        }
+        
+        /* Style pour les champs obligatoires */
+        .required-field::after {
+            content: " *";
+            color: #e32;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -519,7 +567,7 @@
     <div class="container">
         <header class="header">
             <h1>Questionnaire Client</h1>
-            <p class="subtitle">Aidez-nous à mieux comprendre vos besoins en recrutement pour trouver les meilleurs candidats</p>
+            <p class="subtitle">Aidez-nous à mieux comprendre votre structure et vos besoins en recrutement</p>
         </header>
 
         <!-- Section de debug -->
@@ -546,138 +594,70 @@
                 <div class="progress-steps">
                     <div class="step active" data-step="1" tabindex="0">
                         <div class="step-bubble"><span>1</span></div>
-                        <div class="step-label">Fiche de poste</div>
+                        <div class="step-label">Structure</div>
                     </div>
                     <div class="step" data-step="2" tabindex="0">
                         <div class="step-bubble"><span>2</span></div>
-                        <div class="step-label">Entreprise</div>
+                        <div class="step-label">Contact</div>
                     </div>
                     <div class="step" data-step="3" tabindex="0">
                         <div class="step-bubble"><span>3</span></div>
-                        <div class="step-label">Poste</div>
+                        <div class="step-label">Recrutement</div>
                     </div>
                     <div class="step" data-step="4" tabindex="0">
                         <div class="step-bubble"><span>4</span></div>
-                        <div class="step-label">Contact</div>
-                    </div>
-                    <div class="step" data-step="5" tabindex="0">
-                        <div class="step-bubble"><span>5</span></div>
                         <div class="step-label">Confirmation</div>
                     </div>
                 </div>
             </div>
             
             <form id="client-questionnaire-form">
-                <!-- Étape 1: Analyse de la fiche de poste -->
+                <!-- Étape 1: Informations sur la structure -->
                 <section class="form-section active" data-step="1">
-                    <h2>Analysez votre fiche de poste</h2>
-                    <p>Commencez par analyser votre fiche de poste pour en extraire automatiquement les informations clés.</p>
+                    <h2>Informations sur votre structure</h2>
+                    <p>Renseignez les informations de base sur votre structure.</p>
                     
-                    <div class="upload-container" id="job-drop-zone">
-                        <i class="fas fa-file-upload upload-icon"></i>
-                        <h3 class="upload-text drop-zone-text">Glissez-déposez votre fiche de poste ici</h3>
-                        <p class="upload-hint">Formats acceptés: PDF, DOCX, TXT (max 5MB)</p>
-                        <input type="file" id="job-file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
-                        
-                        <!-- Badge de fichier sélectionné (initialement caché) -->
-                        <div id="file-badge" class="file-badge" style="display: none;">
-                            <i class="fas fa-file-alt"></i>
-                            <span id="file-name" class="file-name">nom-du-fichier.pdf</span>
-                            <i class="fas fa-times remove-button" id="remove-file"></i>
-                        </div>
+                    <!-- Nom de la structure -->
+                    <div class="form-group">
+                        <label for="company-name" class="required-field">Nom de la structure</label>
+                        <input type="text" id="company-name" class="form-control" placeholder="Nom de votre structure" required>
                     </div>
                     
-                    <div class="separator">
-                        <div class="line"></div>
-                        <div class="text">OU</div>
-                        <div class="line"></div>
+                    <!-- Adresse complète -->
+                    <div class="form-group">
+                        <label for="company-address" class="required-field">Adresse complète</label>
+                        <input type="text" id="company-address" class="form-control" placeholder="Adresse complète de votre structure" required>
                     </div>
                     
-                    <div class="textarea-container">
-                        <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse automatique..."></textarea>
-                        <button type="button" id="analyze-job-text" class="analyze-button" title="Analyser">
-                            <i class="fas fa-search"></i>
-                        </button>
+                    <!-- Site internet -->
+                    <div class="form-group">
+                        <label for="company-website">Site internet</label>
+                        <input type="url" id="company-website" class="form-control" placeholder="https://www.votresite.com">
                     </div>
                     
-                    <!-- Section pour les résultats d'analyse inline -->
-                    <div id="inline-analysis-results" style="display: none;"></div>
-                    
-                    <!-- Bouton d'analyse GPT -->
-                    <div class="gpt-analyze-btn-container">
-                        <button type="button" id="analyze-with-gpt" class="btn btn-success" disabled>
-                            Analyser avec GPT
-                        </button>
-                        <span id="gpt-analyze-status"></span>
+                    <!-- Présentation rapide -->
+                    <div class="form-group">
+                        <label for="company-description">Présentation rapide</label>
+                        <div class="textarea-container">
+                            <textarea id="company-description" class="form-control" placeholder="Présentez brièvement votre structure..."></textarea>
+                            <button type="button" id="generate-description" class="generate-btn" title="Générer automatiquement">
+                                <i class="fas fa-magic"></i> Auto
+                            </button>
+                        </div>
+                        <small>La présentation peut être générée automatiquement à partir de votre site web.</small>
                     </div>
                     
-                    <!-- Indicateur de chargement amélioré -->
-                    <div id="analysis-loader" class="loader-container">
-                        <div class="loader"></div>
-                        <span class="loader-text">Analyse en cours...</span>
-                    </div>
-                    
-                    <!-- Résultats d'analyse améliorés -->
-                    <div id="job-info-container" class="job-info-container" style="display: none;">
-                        <h3><i class="fas fa-check-circle"></i> Informations extraites</h3>
-                        
-                        <div class="info-grid">
-                            <div class="info-group">
-                                <label class="info-label">Titre du poste</label>
-                                <div id="job-title-value" class="info-value">Non spécifié</div>
-                            </div>
-                            
-                            <div class="info-group">
-                                <label class="info-label">Type de contrat</label>
-                                <div id="job-contract-value" class="info-value">Non spécifié</div>
-                            </div>
-                            
-                            <div class="info-group">
-                                <label class="info-label">Lieu</label>
-                                <div id="job-location-value" class="info-value">Non spécifié</div>
-                            </div>
-                            
-                            <div class="info-group">
-                                <label class="info-label">Expérience requise</label>
-                                <div id="job-experience-value" class="info-value">Non spécifié</div>
-                            </div>
-                            
-                            <div class="info-group">
-                                <label class="info-label">Formation</label>
-                                <div id="job-education-value" class="info-value">Non spécifié</div>
-                            </div>
-                            
-                            <div class="info-group">
-                                <label class="info-label">Rémunération</label>
-                                <div id="job-salary-value" class="info-value">Non spécifié</div>
-                            </div>
-                        </div>
-                        
-                        <div class="info-group full-width">
-                            <label class="info-label">Compétences requises</label>
-                            <div id="job-skills-value" class="info-value skills-container">Non spécifié</div>
-                        </div>
-                        
-                        <div class="info-group full-width">
-                            <label class="info-label">Responsabilités / Missions</label>
-                            <div id="job-responsibilities-value" class="info-value">Non spécifié</div>
-                        </div>
-                        
-                        <div class="info-group full-width">
-                            <label class="info-label">Avantages</label>
-                            <div id="job-benefits-value" class="info-value">Non spécifié</div>
-                        </div>
-                        
-                        <div class="job-actions">
-                            <div class="job-export-buttons">
-                                <button type="button" id="preview-job-info" class="btn btn-outline">
-                                    <i class="fas fa-eye"></i> Aperçu
-                                </button>
-                                <button type="button" id="edit-parsed-info" class="btn btn-outline">
-                                    <i class="fas fa-edit"></i> Modifier manuellement
-                                </button>
-                            </div>
-                        </div>
+                    <!-- Taille de structure -->
+                    <div class="form-group">
+                        <label for="company-size">Taille de structure</label>
+                        <select id="company-size" class="form-control">
+                            <option value="">Sélectionnez</option>
+                            <option value="tpe">TPE</option>
+                            <option value="pme">PME</option>
+                            <option value="eti">ETI</option>
+                            <option value="groupe">Groupe</option>
+                            <option value="startup">Startup</option>
+                        </select>
                     </div>
                     
                     <div class="form-navigation">
@@ -688,92 +668,12 @@
                     </div>
                 </section>
                 
-                <!-- Étape 2: Entreprise -->
+                <!-- Étape 2: Contact -->
                 <section class="form-section" data-step="2">
-                    <h2>Informations sur l'entreprise</h2>
-                    <p>Dites-nous en plus sur votre entreprise et votre culture.</p>
-                    
-                    <!-- Contenu de l'étape 2 -->
-                    <div class="form-group">
-                        <label for="company-name">Nom de l'entreprise</label>
-                        <input type="text" id="company-name" class="form-control" placeholder="Nom de votre entreprise">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="company-industry">Secteur d'activité</label>
-                        <input type="text" id="company-industry" class="form-control" placeholder="Par exemple: Tech, Finance, Santé...">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="company-size">Taille de l'entreprise</label>
-                        <select id="company-size" class="form-control">
-                            <option value="">Sélectionnez</option>
-                            <option value="1-10">1-10 employés</option>
-                            <option value="11-50">11-50 employés</option>
-                            <option value="51-200">51-200 employés</option>
-                            <option value="201-500">201-500 employés</option>
-                            <option value="501-1000">501-1000 employés</option>
-                            <option value="1001+">Plus de 1000 employés</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="company-culture">Culture d'entreprise</label>
-                        <textarea id="company-culture" class="form-control" placeholder="Décrivez la culture et les valeurs de votre entreprise..."></textarea>
-                    </div>
-                    
-                    <div class="form-navigation">
-                        <button type="button" class="btn btn-outline prev-step" data-step="1">
-                            <i class="fas fa-arrow-left"></i> Précédent
-                        </button>
-                        <button type="button" class="btn btn-primary next-step" data-step="3">
-                            Continuer <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </section>
-                
-                <!-- Étape 3: Poste -->
-                <section class="form-section" data-step="3">
-                    <h2>Détails du poste</h2>
-                    <p>Précisez les détails spécifiques du poste à pourvoir.</p>
-                    
-                    <!-- Contenu de l'étape 3 -->
-                    <div class="form-group">
-                        <label for="position-department">Département</label>
-                        <input type="text" id="position-department" class="form-control" placeholder="Par exemple: Développement, Marketing, RH...">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="position-reports-to">Relation hiérarchique</label>
-                        <input type="text" id="position-reports-to" class="form-control" placeholder="À qui ce poste rapporte-t-il?">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="position-team-size">Taille de l'équipe</label>
-                        <input type="number" id="position-team-size" class="form-control" placeholder="Nombre de personnes dans l'équipe">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="position-budget">Budget de recrutement</label>
-                        <input type="text" id="position-budget" class="form-control" placeholder="Budget alloué pour ce recrutement">
-                    </div>
-                    
-                    <div class="form-navigation">
-                        <button type="button" class="btn btn-outline prev-step" data-step="2">
-                            <i class="fas fa-arrow-left"></i> Précédent
-                        </button>
-                        <button type="button" class="btn btn-primary next-step" data-step="4">
-                            Continuer <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </section>
-                
-                <!-- Étape 4: Contact -->
-                <section class="form-section" data-step="4">
                     <h2>Informations de contact</h2>
-                    <p>Comment pouvons-nous vous contacter pour discuter de ce recrutement?</p>
+                    <p>Comment pouvons-nous vous contacter?</p>
                     
-                    <!-- Contenu de l'étape 4 -->
+                    <!-- Contact -->
                     <div class="form-group">
                         <label for="contact-name">Nom complet</label>
                         <input type="text" id="contact-name" class="form-control" placeholder="Votre nom et prénom">
@@ -805,17 +705,338 @@
                     </div>
                     
                     <div class="form-navigation">
-                        <button type="button" class="btn btn-outline prev-step" data-step="3">
+                        <button type="button" class="btn btn-outline prev-step" data-step="1">
                             <i class="fas fa-arrow-left"></i> Précédent
                         </button>
-                        <button type="button" class="btn btn-primary next-step" data-step="5">
-                            Finaliser <i class="fas fa-check"></i>
+                        <button type="button" class="btn btn-primary next-step" data-step="3">
+                            Continuer <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
                 </section>
                 
-                <!-- Étape 5: Confirmation -->
-                <section class="form-section" data-step="5">
+                <!-- Étape 3: Recrutement -->
+                <section class="form-section" data-step="3">
+                    <h2>Besoin en recrutement</h2>
+                    <p>Avez-vous un poste sur lequel vous souhaitez recruter?</p>
+                    
+                    <!-- Question sur le besoin de recrutement -->
+                    <div class="form-group">
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="recruitment-yes" name="recruitment-need" value="yes">
+                                <label for="recruitment-yes">Oui</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="recruitment-no" name="recruitment-need" value="no">
+                                <label for="recruitment-no">Non</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section conditionnelle pour le parser de fiche de poste -->
+                    <div id="job-parsing-section" class="conditional-section">
+                        <h3>Fiche de poste</h3>
+                        <p>Analysez votre fiche de poste pour en extraire automatiquement les informations clés.</p>
+                        
+                        <div class="upload-container" id="job-drop-zone">
+                            <i class="fas fa-file-upload upload-icon"></i>
+                            <h3 class="upload-text drop-zone-text">Glissez-déposez votre fiche de poste ici</h3>
+                            <p class="upload-hint">Formats acceptés: PDF, DOCX, TXT (max 5MB)</p>
+                            <input type="file" id="job-file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
+                            
+                            <!-- Badge de fichier sélectionné (initialement caché) -->
+                            <div id="file-badge" class="file-badge" style="display: none;">
+                                <i class="fas fa-file-alt"></i>
+                                <span id="file-name" class="file-name">nom-du-fichier.pdf</span>
+                                <i class="fas fa-times remove-button" id="remove-file"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="separator">
+                            <div class="line"></div>
+                            <div class="text">OU</div>
+                            <div class="line"></div>
+                        </div>
+                        
+                        <div class="textarea-container">
+                            <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse automatique..."></textarea>
+                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyser">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Bouton d'analyse GPT -->
+                        <div class="gpt-analyze-btn-container">
+                            <button type="button" id="analyze-with-gpt" class="btn btn-success" disabled>
+                                Analyser avec GPT
+                            </button>
+                            <span id="gpt-analyze-status"></span>
+                        </div>
+                        
+                        <!-- Indicateur de chargement -->
+                        <div id="analysis-loader" class="loader-container">
+                            <div class="loader"></div>
+                            <span class="loader-text">Analyse en cours...</span>
+                        </div>
+                        
+                        <!-- Résultats d'analyse -->
+                        <div id="job-info-container" class="job-info-container" style="display: none;">
+                            <h3><i class="fas fa-check-circle"></i> Informations extraites</h3>
+                            
+                            <div class="info-grid">
+                                <div class="info-group">
+                                    <label class="info-label">Titre du poste</label>
+                                    <div id="job-title-value" class="info-value">Non spécifié</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Type de contrat</label>
+                                    <div id="job-contract-value" class="info-value">Non spécifié</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Lieu</label>
+                                    <div id="job-location-value" class="info-value">Non spécifié</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Expérience requise</label>
+                                    <div id="job-experience-value" class="info-value">Non spécifié</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Formation</label>
+                                    <div id="job-education-value" class="info-value">Non spécifié</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Rémunération</label>
+                                    <div id="job-salary-value" class="info-value">Non spécifié</div>
+                                </div>
+                            </div>
+                            
+                            <div class="info-group full-width">
+                                <label class="info-label">Compétences requises</label>
+                                <div id="job-skills-value" class="info-value skills-container">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group full-width">
+                                <label class="info-label">Responsabilités / Missions</label>
+                                <div id="job-responsibilities-value" class="info-value">Non spécifié</div>
+                            </div>
+                            
+                            <div class="info-group full-width">
+                                <label class="info-label">Avantages</label>
+                                <div id="job-benefits-value" class="info-value">Non spécifié</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Détails supplémentaires sur le recrutement -->
+                        <div id="recruitment-details-section">
+                            <h3>Détails du recrutement</h3>
+                            
+                            <!-- Délai de recrutement -->
+                            <div class="form-group">
+                                <label>Délai de recrutement</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-option">
+                                        <input type="checkbox" id="delay-immediate" name="recruitment-delay" value="immediate">
+                                        <label for="delay-immediate">Immédiat</label>
+                                    </div>
+                                    <div class="checkbox-option">
+                                        <input type="checkbox" id="delay-2weeks" name="recruitment-delay" value="2weeks">
+                                        <label for="delay-2weeks">2 semaines</label>
+                                    </div>
+                                    <div class="checkbox-option">
+                                        <input type="checkbox" id="delay-1month" name="recruitment-delay" value="1month">
+                                        <label for="delay-1month">1 mois</label>
+                                    </div>
+                                    <div class="checkbox-option">
+                                        <input type="checkbox" id="delay-2months" name="recruitment-delay" value="2months">
+                                        <label for="delay-2months">2 mois</label>
+                                    </div>
+                                    <div class="checkbox-option">
+                                        <input type="checkbox" id="delay-3months" name="recruitment-delay" value="3months">
+                                        <label for="delay-3months">3 mois</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Préavis -->
+                            <div class="form-group">
+                                <label>Pouvez-vous gérer un préavis ?</label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="notice-yes" name="can-handle-notice" value="yes">
+                                        <label for="notice-yes">Oui</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="notice-no" name="can-handle-notice" value="no">
+                                        <label for="notice-no">Non</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Durée du préavis (conditionnel) -->
+                            <div id="notice-duration-section" class="conditional-section">
+                                <div class="form-group">
+                                    <label>Durée du préavis</label>
+                                    <select id="notice-duration" class="form-control">
+                                        <option value="">Sélectionnez</option>
+                                        <option value="1month">1 mois</option>
+                                        <option value="2months">2 mois</option>
+                                        <option value="3months">3 mois</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Contexte de recrutement -->
+                            <div class="form-group">
+                                <label>Contexte de recrutement</label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="context-creation" name="recruitment-context" value="creation">
+                                        <label for="context-creation">Création de poste</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="context-replacement" name="recruitment-context" value="replacement">
+                                        <label for="context-replacement">Remplacement</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="context-growth" name="recruitment-context" value="growth">
+                                        <label for="context-growth">Accroissement d'activité / Renfort</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="context-confidential" name="recruitment-context" value="confidential">
+                                        <label for="context-confidential">Je ne souhaite pas communiquer</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Années d'expérience -->
+                            <div class="form-group">
+                                <label>Année d'expérience requise pour le poste</label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="exp-junior" name="experience-required" value="junior">
+                                        <label for="exp-junior">Profil Junior</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="exp-2-3" name="experience-required" value="2-3">
+                                        <label for="exp-2-3">2 ans - 3 ans</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="exp-5-10" name="experience-required" value="5-10">
+                                        <label for="exp-5-10">5 ans - 10 ans</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="exp-10plus" name="experience-required" value="10plus">
+                                        <label for="exp-10plus">10 ans et plus</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Connaissance du secteur -->
+                            <div class="form-group">
+                                <label>La connaissance de votre secteur est obligatoire ?</label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="sector-yes" name="sector-knowledge" value="yes">
+                                        <label for="sector-yes">Oui</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="sector-no" name="sector-knowledge" value="no">
+                                        <label for="sector-no">Non</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Liste déroulante de secteurs (conditionnelle) -->
+                            <div id="sector-list-section" class="conditional-section">
+                                <div class="form-group">
+                                    <label>Secteur d'activité</label>
+                                    <select id="sector-list" class="form-control">
+                                        <option value="">Sélectionnez</option>
+                                        <option value="tech">Informatique / Tech</option>
+                                        <option value="finance">Finance / Banque / Assurance</option>
+                                        <option value="health">Santé / Médical</option>
+                                        <option value="industry">Industrie / Production</option>
+                                        <option value="services">Services</option>
+                                        <option value="retail">Commerce / Distribution</option>
+                                        <option value="construction">Construction / BTP</option>
+                                        <option value="transport">Transport / Logistique</option>
+                                        <option value="hospitality">Hôtellerie / Restauration</option>
+                                        <option value="education">Éducation / Formation</option>
+                                        <option value="other">Autre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Environnement de travail -->
+                            <div class="form-group">
+                                <label>Environnement de travail</label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="env-openspace" name="work-environment" value="openspace">
+                                        <label for="env-openspace">Open space</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="env-office" name="work-environment" value="office">
+                                        <label for="env-office">Bureau</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Composition de l'équipe -->
+                            <div class="form-group">
+                                <label>Composition de l'équipe et rattachement interne</label>
+                                <textarea id="team-composition" class="form-control" placeholder="Ex: Équipe de 5 personnes, rattaché à un responsable..."></textarea>
+                            </div>
+                            
+                            <!-- Perspectives d'évolution -->
+                            <div class="form-group">
+                                <label>Perspectives d'évolution</label>
+                                <textarea id="evolution-perspectives" class="form-control" placeholder="Précisez les possibilités d'évolution dans ce poste..."></textarea>
+                            </div>
+                            
+                            <!-- Rémunération -->
+                            <div class="form-group">
+                                <label>Rémunération</label>
+                                <input type="text" id="salary" class="form-control" placeholder="Ex: 40-45K€ annuel brut">
+                            </div>
+                            
+                            <!-- Avantages -->
+                            <div class="form-group">
+                                <label>Avantages</label>
+                                <textarea id="benefits" class="form-control" placeholder="Ex: Télétravail, RTT, 13e mois, etc..."></textarea>
+                            </div>
+                            
+                            <!-- Type de contrat -->
+                            <div class="form-group">
+                                <label>Type de contrat</label>
+                                <select id="contract-type" class="form-control">
+                                    <option value="">Sélectionnez</option>
+                                    <option value="35h">35h</option>
+                                    <option value="39h">39h</option>
+                                    <option value="cadre">Cadre</option>
+                                    <option value="non-cadre">Non-cadre</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="2">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="4">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 4: Confirmation -->
+                <section class="form-section" data-step="4">
                     <h2>Confirmation</h2>
                     <p>Merci pour vos informations! Voici un récapitulatif de votre demande.</p>
                     
@@ -833,7 +1054,7 @@
                     </div>
                     
                     <div class="form-navigation">
-                        <button type="button" class="btn btn-outline prev-step" data-step="4">
+                        <button type="button" class="btn btn-outline prev-step" data-step="3">
                             <i class="fas fa-arrow-left"></i> Précédent
                         </button>
                         <button type="submit" class="btn btn-primary" id="submit-form">
@@ -951,6 +1172,123 @@
                     updateBackendStatusBanner(false);
                 }
             }, 1000);
+            
+            // Gérer les sections conditionnelles
+            const recruitmentYes = document.getElementById('recruitment-yes');
+            const recruitmentNo = document.getElementById('recruitment-no');
+            const jobParsingSection = document.getElementById('job-parsing-section');
+            const noticeYes = document.getElementById('notice-yes');
+            const noticeNo = document.getElementById('notice-no');
+            const noticeDurationSection = document.getElementById('notice-duration-section');
+            const sectorYes = document.getElementById('sector-yes');
+            const sectorNo = document.getElementById('sector-no');
+            const sectorListSection = document.getElementById('sector-list-section');
+            
+            // Gérer l'affichage conditionnel du parsing de job
+            recruitmentYes.addEventListener('change', function() {
+                if (this.checked) {
+                    jobParsingSection.classList.add('active');
+                }
+            });
+            
+            recruitmentNo.addEventListener('change', function() {
+                if (this.checked) {
+                    jobParsingSection.classList.remove('active');
+                }
+            });
+            
+            // Gérer l'affichage conditionnel de la durée du préavis
+            noticeYes.addEventListener('change', function() {
+                if (this.checked) {
+                    noticeDurationSection.classList.add('active');
+                }
+            });
+            
+            noticeNo.addEventListener('change', function() {
+                if (this.checked) {
+                    noticeDurationSection.classList.remove('active');
+                }
+            });
+            
+            // Gérer l'affichage conditionnel des secteurs d'activité
+            sectorYes.addEventListener('change', function() {
+                if (this.checked) {
+                    sectorListSection.classList.add('active');
+                }
+            });
+            
+            sectorNo.addEventListener('change', function() {
+                if (this.checked) {
+                    sectorListSection.classList.remove('active');
+                }
+            });
+            
+            // Générer automatiquement une description à partir du site web
+            const generateDescriptionBtn = document.getElementById('generate-description');
+            const companyWebsiteInput = document.getElementById('company-website');
+            const companyDescriptionInput = document.getElementById('company-description');
+            
+            generateDescriptionBtn.addEventListener('click', function() {
+                const websiteUrl = companyWebsiteInput.value.trim();
+                if (!websiteUrl) {
+                    alert('Veuillez d\'abord saisir l\'URL de votre site web.');
+                    return;
+                }
+                
+                // Simuler un chargement
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
+                
+                // Appel à l'API (à implémenter)
+                setTimeout(() => {
+                    // Simulation de réponse (à remplacer par l'appel API réel)
+                    companyDescriptionInput.value = `Description automatique générée à partir du site web ${websiteUrl}. Cette fonctionnalité utilisera l'API pour extraire les informations pertinentes.`;
+                    
+                    // Réinitialiser le bouton
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-magic"></i> Auto';
+                }, 1500);
+            });
+            
+            // Gestion de la validation de formulaire
+            const form = document.getElementById('client-questionnaire-form');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Collecter toutes les données du formulaire
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                // Ajouter les données spécifiques
+                data.companyName = document.getElementById('company-name').value;
+                data.companyAddress = document.getElementById('company-address').value;
+                data.companyWebsite = document.getElementById('company-website').value;
+                data.companyDescription = document.getElementById('company-description').value;
+                data.companySize = document.getElementById('company-size').value;
+                
+                // Vérifier si recrutement est requis
+                data.recruitmentNeeded = document.querySelector('input[name="recruitment-need"]:checked')?.value || 'no';
+                
+                // Si recrutement est requis, collecter ces données
+                if (data.recruitmentNeeded === 'yes') {
+                    // Collecter toutes les données de recrutement
+                    // ...
+                }
+                
+                // Envoyer les données (simulé)
+                console.log('Données à envoyer:', data);
+                
+                // Afficher un message de succès
+                showNotification('Votre demande a été envoyée avec succès!', 'success');
+                
+                // Rediriger vers le dashboard (à implémenter)
+                setTimeout(() => {
+                    // Redirection vers le dashboard
+                    // window.location.href = '/dashboard';
+                    alert('Redirigé vers le dashboard entreprise');
+                }, 2000);
+            });
             
             // La fonction initializeForm est maintenant dans questionnaire-navigation.js
             // Elle sera appelée automatiquement au chargement du script
