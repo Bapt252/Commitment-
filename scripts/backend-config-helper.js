@@ -134,18 +134,20 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     document.head.appendChild(style);
     
-    // Créer le bouton d'accès rapide
+    // Créer le bouton d'accès rapide avec z-index augmenté
     const configButton = document.createElement('button');
     configButton.id = 'backend-config-button';
     configButton.className = 'config-button';
     configButton.innerHTML = '<i class="fas fa-cog"></i>';
     configButton.title = 'Configurer le backend';
+    configButton.style.zIndex = '9999'; // Augmenter le z-index
     document.body.appendChild(configButton);
     
     // Créer le panneau de configuration
     const panel = document.createElement('div');
     panel.id = 'backend-config-panel';
     panel.className = 'collapsed';
+    panel.style.zIndex = '9999'; // Augmenter le z-index
     panel.innerHTML = `
         <div class="backend-config-header">
             <h3>Configuration du Backend</h3>
@@ -177,10 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Gestion des événements
     const toggleButton = panel.querySelector('.toggle-button');
     const header = panel.querySelector('.backend-config-header');
-    const testConnectionButton = document.getElementById('test-connection');
-    const applyConfigButton = document.getElementById('apply-config');
-    const statusIndicator = document.getElementById('status-indicator');
-    const statusText = document.getElementById('status-text');
     
     // Ouvrir/fermer le panneau avec le bouton d'accès rapide
     configButton.addEventListener('click', function() {
@@ -194,8 +192,10 @@ document.addEventListener('DOMContentLoaded', function() {
         configButton.style.display = 'flex';
     });
     
-    // Cacher le panneau au chargement
-    panel.classList.add('collapsed');
+    // S'assurer que le bouton de configuration est visible
+    setTimeout(() => {
+        configButton.style.display = 'flex';
+    }, 1000);
     
     // Restaurer les valeurs depuis localStorage
     const urlInput = document.getElementById('backend-url');
@@ -206,89 +206,140 @@ document.addEventListener('DOMContentLoaded', function() {
     apiKeyInput.value = localStorage.getItem('openaiKey') || '';
     
     // Tester la connexion au backend
-    testConnectionButton.addEventListener('click', async function() {
-        const url = urlInput.value.trim();
-        if (!url) {
-            showNotification('Veuillez entrer une URL de backend valide', 'error');
-            return;
-        }
-        
-        // Mettre à jour l'UI
-        statusIndicator.className = 'status-indicator';
-        statusText.textContent = 'Test en cours...';
-        testConnectionButton.disabled = true;
-        
-        try {
-            // Tester la connexion
-            const response = await fetch(`${url}/api/health`, {
-                method: 'GET',
-                signal: AbortSignal.timeout(5000) // 5 secondes timeout
-            });
+    const testConnectionButton = document.getElementById('test-connection');
+    if (testConnectionButton) {
+        testConnectionButton.addEventListener('click', async function() {
+            const url = urlInput.value.trim();
+            if (!url) {
+                showNotification('Veuillez entrer une URL de backend valide', 'error');
+                return;
+            }
             
-            if (response.ok) {
-                // Connexion réussie
-                statusIndicator.className = 'status-indicator connected';
-                statusText.textContent = 'Connecté';
-                showNotification('Connexion au backend réussie !', 'success');
-            } else {
-                // Réponse reçue mais avec erreur
+            // Mettre à jour l'UI
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            
+            statusIndicator.className = 'status-indicator';
+            statusText.textContent = 'Test en cours...';
+            testConnectionButton.disabled = true;
+            
+            try {
+                // Tester la connexion
+                const response = await fetch(`${url}/api/health`, {
+                    method: 'GET',
+                    signal: AbortSignal.timeout(5000) // 5 secondes timeout
+                });
+                
+                if (response.ok) {
+                    // Connexion réussie
+                    statusIndicator.className = 'status-indicator connected';
+                    statusText.textContent = 'Connecté';
+                    showNotification('Connexion au backend réussie !', 'success');
+                } else {
+                    // Réponse reçue mais avec erreur
+                    statusIndicator.className = 'status-indicator disconnected';
+                    statusText.textContent = `Erreur: ${response.status}`;
+                    showNotification(`Le backend a répondu avec une erreur: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                // Erreur de connexion
                 statusIndicator.className = 'status-indicator disconnected';
-                statusText.textContent = `Erreur: ${response.status}`;
-                showNotification(`Le backend a répondu avec une erreur: ${response.status}`, 'error');
+                statusText.textContent = 'Non connecté';
+                
+                if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+                    showNotification('La connexion au backend a expiré. Le serveur est-il démarré ?', 'error');
+                } else {
+                    showNotification(`Erreur de connexion: ${error.message}`, 'error');
+                }
+            } finally {
+                testConnectionButton.disabled = false;
             }
-        } catch (error) {
-            // Erreur de connexion
-            statusIndicator.className = 'status-indicator disconnected';
-            statusText.textContent = 'Non connecté';
-            
-            if (error.name === 'TimeoutError' || error.name === 'AbortError') {
-                showNotification('La connexion au backend a expiré. Le serveur est-il démarré ?', 'error');
-            } else {
-                showNotification(`Erreur de connexion: ${error.message}`, 'error');
-            }
-        } finally {
-            testConnectionButton.disabled = false;
-        }
-    });
+        });
+    }
     
     // Appliquer la configuration
-    applyConfigButton.addEventListener('click', function() {
-        const url = urlInput.value.trim();
-        const apiKey = apiKeyInput.value.trim();
-        
-        if (!url) {
-            showNotification('Veuillez entrer une URL de backend valide', 'error');
+    const applyConfigButton = document.getElementById('apply-config');
+    if (applyConfigButton) {
+        applyConfigButton.addEventListener('click', function() {
+            const url = urlInput.value.trim();
+            const apiKey = apiKeyInput.value.trim();
+            
+            if (!url) {
+                showNotification('Veuillez entrer une URL de backend valide', 'error');
+                return;
+            }
+            
+            // Sauvegarder dans localStorage
+            localStorage.setItem('backendUrl', url);
+            if (apiKey) {
+                localStorage.setItem('openaiKey', apiKey);
+            }
+            
+            // Construire la nouvelle URL avec les paramètres
+            let newUrl = `${window.location.pathname}?apiUrl=${encodeURIComponent(url)}`;
+            
+            // Ajouter d'autres paramètres d'URL existants (sauf apiUrl)
+            const currentParams = new URLSearchParams(window.location.search);
+            for (const [key, value] of currentParams.entries()) {
+                if (key !== 'apiUrl') {
+                    newUrl += `&${key}=${encodeURIComponent(value)}`;
+                }
+            }
+            
+            // Demander confirmation avant de recharger la page
+            if (confirm('La page va être rechargée pour appliquer la nouvelle configuration. Continuer ?')) {
+                window.location.href = newUrl;
+            }
+        });
+    }
+    
+    // Fonction pour afficher une notification
+    function showNotification(message, type = 'info') {
+        // Vérifier si la fonction globale existe
+        if (typeof window.showNotification === 'function') {
+            window.showNotification(message, type);
             return;
         }
         
-        // Sauvegarder dans localStorage
-        localStorage.setItem('backendUrl', url);
-        if (apiKey) {
-            localStorage.setItem('openaiKey', apiKey);
+        // Sinon, créer une notification temporaire
+        const notification = document.createElement('div');
+        notification.style.position = 'fixed';
+        notification.style.top = '20px';
+        notification.style.right = '20px';
+        notification.style.padding = '10px 15px';
+        notification.style.borderRadius = '4px';
+        notification.style.color = 'white';
+        notification.style.zIndex = '10000';
+        notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+        
+        if (type === 'error') {
+            notification.style.backgroundColor = '#ef4444';
+        } else if (type === 'success') {
+            notification.style.backgroundColor = '#10b981';
+        } else {
+            notification.style.backgroundColor = '#3b82f6';
         }
         
-        // Construire la nouvelle URL avec les paramètres
-        let newUrl = `${window.location.pathname}?apiUrl=${encodeURIComponent(url)}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
         
-        // Ajouter d'autres paramètres d'URL existants (sauf apiUrl)
-        const currentParams = new URLSearchParams(window.location.search);
-        for (const [key, value] of currentParams.entries()) {
-            if (key !== 'apiUrl') {
-                newUrl += `&${key}=${encodeURIComponent(value)}`;
-            }
-        }
-        
-        // Demander confirmation avant de recharger la page
-        if (confirm('La page va être rechargée pour appliquer la nouvelle configuration. Continuer ?')) {
-            window.location.href = newUrl;
-        }
-    });
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 3000);
+    }
     
     // Tester automatiquement la connexion au démarrage
     setTimeout(async function() {
         try {
             const url = urlInput.value.trim();
             if (!url) return;
+            
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
             
             const response = await fetch(`${url}/api/health`, {
                 method: 'GET',
@@ -303,4 +354,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Ignorer les erreurs
         }
     }, 1000);
+});
+
+// Fonction additionnelle pour forcer l'affichage du bouton de configuration
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        const configButton = document.getElementById('backend-config-button');
+        if (configButton) {
+            configButton.style.display = 'flex';
+            configButton.style.opacity = '1';
+            configButton.style.visibility = 'visible';
+            configButton.style.zIndex = '9999';
+        }
+    }, 2000);
 });
