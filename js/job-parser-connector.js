@@ -150,11 +150,13 @@ async function handleAnalyzeGptClick() {
     try {
         let result;
         
-        // Utiliser l'API GPT pour l'analyse
+        // Utiliser notre API pour l'analyse avec GPT
         if (file) {
-            result = await parseJobFileWithGpt(file);
+            // Envoyer le fichier à notre backend (au lieu de l'API GPT directe)
+            result = await parseJobFileWithServer(file);
         } else {
-            result = await parseJobTextWithGpt(text);
+            // Envoyer le texte à notre backend (au lieu de l'API GPT directe)
+            result = await parseJobTextWithServer(text);
         }
         
         // Sauvegarder et afficher les résultats
@@ -194,12 +196,12 @@ async function handleAnalyzeGptClick() {
 }
 
 /**
- * Analyse une fiche de poste au format texte avec GPT
+ * Envoie un texte au serveur backend pour analyse
  * @param {string} text - Le texte à analyser
  * @returns {Promise<Object>} - Les résultats de l'analyse
  */
-async function parseJobTextWithGpt(text) {
-    const apiUrl = `${JOB_PARSER_CONNECTOR.apiBaseUrl}/api/parse-job-gpt`;
+async function parseJobTextWithServer(text) {
+    const apiUrl = `${JOB_PARSER_CONNECTOR.apiBaseUrl}/api/parse-job`;
     
     if (JOB_PARSER_CONNECTOR.debug) {
         console.log(`Sending text to ${apiUrl}`);
@@ -222,16 +224,16 @@ async function parseJobTextWithGpt(text) {
     
     // Récupérer et traiter la réponse
     const data = await response.json();
-    return processGptResponse(data);
+    return processServerResponse(data);
 }
 
 /**
- * Analyse une fiche de poste au format fichier avec GPT
+ * Envoie un fichier au serveur backend pour analyse
  * @param {File} file - Le fichier à analyser
  * @returns {Promise<Object>} - Les résultats de l'analyse
  */
-async function parseJobFileWithGpt(file) {
-    const apiUrl = `${JOB_PARSER_CONNECTOR.apiBaseUrl}/api/parse-job-gpt`;
+async function parseJobFileWithServer(file) {
+    const apiUrl = `${JOB_PARSER_CONNECTOR.apiBaseUrl}/api/parse-job`;
     
     if (JOB_PARSER_CONNECTOR.debug) {
         console.log(`Sending file to ${apiUrl}`, file);
@@ -254,15 +256,15 @@ async function parseJobFileWithGpt(file) {
     
     // Récupérer et traiter la réponse
     const data = await response.json();
-    return processGptResponse(data);
+    return processServerResponse(data);
 }
 
 /**
- * Traite la réponse de l'API GPT pour la normaliser
- * @param {Object} response - La réponse de l'API
+ * Traite la réponse du serveur backend pour la normaliser
+ * @param {Object} response - La réponse du serveur
  * @returns {Object} - Les données normalisées
  */
-function processGptResponse(response) {
+function processServerResponse(response) {
     // Si la réponse est au format attendu par le frontend, la retourner directement
     if (response.title || response.job_title) {
         return {
@@ -313,11 +315,8 @@ async function testBackendConnection() {
     
     try {
         // Tester la connexion avec une requête simple
-        const response = await fetch(`${JOB_PARSER_CONNECTOR.apiBaseUrl}/api/health-check`, {
+        const response = await fetch(`${JOB_PARSER_CONNECTOR.apiBaseUrl}/api/health`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             // Timeout court pour ne pas bloquer l'interface
             signal: AbortSignal.timeout(2000)
         });
