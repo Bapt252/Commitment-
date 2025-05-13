@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  job-parser-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5055:5055"
+    environment:
+      - PORT=5055
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEBUG=True
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
