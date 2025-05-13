@@ -1,0 +1,27 @@
+{
+  "id": 1,
+  "titre": "Développeur Full-Stack Senior",
+  "entreprise": "TechInnovation",
+  "localisation": "15 Rue de Rivoli, 75004 Paris",
+  "type_contrat": "CDI",
+  "competences": ["React", "Node.js", "MongoDB", "AWS", "Git"],
+  "competences_techniques_details": {
+    "indispensables": ["React", "Node.js"],
+    "importantes": ["MongoDB", "AWS"],
+    "souhaitables": ["Docker", "TypeScript"]
+  },
+  "soft_skills": ["Communication", "Travail d'équipe", "Autonomie", "Résolution de problèmes"],
+  "experience": "3-5 ans",
+  "experience_required": "5-10",
+  "formation": "Bac+3 minimum en informatique ou équivalent",
+  "date_debut": "01/06/2025",
+  "salaire": "45K-60K€",
+  "localisation": "Paris",
+  "remote": "Hybride (2-3 jours/semaine)",
+  "culture_entreprise": {
+    "valeurs": ["Innovation", "Équilibre vie pro/perso", "Excellence technique"],
+    "taille_equipe": 12,
+    "methodologie": "Agile/Scrum",
+    "environnement": "Startup en croissance"
+  }
+}

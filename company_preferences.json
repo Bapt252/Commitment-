@@ -1,0 +1,30 @@
+{
+  "priorites": {
+    "competences_techniques": 5,
+    "experience": 4,
+    "formation": 3,
+    "soft_skills": 4,
+    "disponibilite": 3
+  },
+  "flexibilite": {
+    "salaire": "négociable pour le bon candidat",
+    "experience": "+/- 1 an",
+    "remote": "jusqu'à 100% pour un candidat exceptionnel"
+  },
+  "deal_breakers": [
+    "Pas de maîtrise de React", 
+    "Moins de 2 ans d'expérience", 
+    "Pas de travail d'équipe"
+  ],
+  "recrutement": {
+    "delai": "1month",
+    "contexte": "growth",
+    "peut_gerer_preavis": true,
+    "duree_preavis_acceptable": "2months",
+    "connaissance_secteur_obligatoire": false,
+    "environnement_travail": "openspace",
+    "composition_equipe": "Équipe de 5 développeurs, rattachée au CTO",
+    "perspectives_evolution": "Possibilité d'évoluer vers un poste de lead developer dans les 2 ans",
+    "avantages": "Télétravail 2j/semaine, RTT, tickets restaurant, mutuelle"
+  }
+}
