@@ -459,6 +459,59 @@
             text-decoration: underline;
             padding: 0;
         }
+
+        /* Style pour les boutons de navigation */
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 10px rgba(124, 58, 237, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--gray-dark);
+            border: 1px solid var(--gray-light);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: rgba(124, 58, 237, 0.05);
+        }
+
+        /* Animation de fadeIn */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -635,9 +688,159 @@
                     </div>
                 </section>
                 
-                <!-- Le reste des sections (étapes 2-5) reste inchangé -->
-                <!-- ... -->
+                <!-- Étape 2: Entreprise -->
+                <section class="form-section" data-step="2">
+                    <h2>Informations sur l'entreprise</h2>
+                    <p>Dites-nous en plus sur votre entreprise et votre culture.</p>
+                    
+                    <!-- Contenu de l'étape 2 -->
+                    <div class="form-group">
+                        <label for="company-name">Nom de l'entreprise</label>
+                        <input type="text" id="company-name" class="form-control" placeholder="Nom de votre entreprise">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-industry">Secteur d'activité</label>
+                        <input type="text" id="company-industry" class="form-control" placeholder="Par exemple: Tech, Finance, Santé...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-size">Taille de l'entreprise</label>
+                        <select id="company-size" class="form-control">
+                            <option value="">Sélectionnez</option>
+                            <option value="1-10">1-10 employés</option>
+                            <option value="11-50">11-50 employés</option>
+                            <option value="51-200">51-200 employés</option>
+                            <option value="201-500">201-500 employés</option>
+                            <option value="501-1000">501-1000 employés</option>
+                            <option value="1001+">Plus de 1000 employés</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-culture">Culture d'entreprise</label>
+                        <textarea id="company-culture" class="form-control" placeholder="Décrivez la culture et les valeurs de votre entreprise..."></textarea>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="1">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="3">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
                 
+                <!-- Étape 3: Poste -->
+                <section class="form-section" data-step="3">
+                    <h2>Détails du poste</h2>
+                    <p>Précisez les détails spécifiques du poste à pourvoir.</p>
+                    
+                    <!-- Contenu de l'étape 3 -->
+                    <div class="form-group">
+                        <label for="position-department">Département</label>
+                        <input type="text" id="position-department" class="form-control" placeholder="Par exemple: Développement, Marketing, RH...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="position-reports-to">Relation hiérarchique</label>
+                        <input type="text" id="position-reports-to" class="form-control" placeholder="À qui ce poste rapporte-t-il?">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="position-team-size">Taille de l'équipe</label>
+                        <input type="number" id="position-team-size" class="form-control" placeholder="Nombre de personnes dans l'équipe">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="position-budget">Budget de recrutement</label>
+                        <input type="text" id="position-budget" class="form-control" placeholder="Budget alloué pour ce recrutement">
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="2">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="4">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 4: Contact -->
+                <section class="form-section" data-step="4">
+                    <h2>Informations de contact</h2>
+                    <p>Comment pouvons-nous vous contacter pour discuter de ce recrutement?</p>
+                    
+                    <!-- Contenu de l'étape 4 -->
+                    <div class="form-group">
+                        <label for="contact-name">Nom complet</label>
+                        <input type="text" id="contact-name" class="form-control" placeholder="Votre nom et prénom">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-title">Fonction</label>
+                        <input type="text" id="contact-title" class="form-control" placeholder="Votre fonction dans l'entreprise">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-email">Email</label>
+                        <input type="email" id="contact-email" class="form-control" placeholder="Votre adresse email professionnelle">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-phone">Téléphone</label>
+                        <input type="tel" id="contact-phone" class="form-control" placeholder="Votre numéro de téléphone">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-preferred">Méthode de contact préférée</label>
+                        <select id="contact-preferred" class="form-control">
+                            <option value="">Sélectionnez</option>
+                            <option value="email">Email</option>
+                            <option value="phone">Téléphone</option>
+                            <option value="video">Visioconférence</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="3">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="5">
+                            Finaliser <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 5: Confirmation -->
+                <section class="form-section" data-step="5">
+                    <h2>Confirmation</h2>
+                    <p>Merci pour vos informations! Voici un récapitulatif de votre demande.</p>
+                    
+                    <!-- Récapitulatif des informations -->
+                    <div class="summary-container">
+                        <h3>Résumé de votre demande</h3>
+                        <div id="summary-content">
+                            <!-- Le contenu sera généré dynamiquement -->
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="additional-comments">Commentaires supplémentaires</label>
+                        <textarea id="additional-comments" class="form-control" placeholder="Avez-vous des commentaires ou des précisions à apporter?"></textarea>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="4">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submit-form">
+                            Soumettre <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </section>
             </form>
         </main>
     </div>
@@ -664,6 +867,7 @@
     <script src="../scripts/gpt-analyze.js"></script>
     <script src="../scripts/debug-gpt.js"></script>
     <script src="../scripts/backend-config-helper.js"></script>
+    <script src="../scripts/questionnaire-navigation.js"></script>
     <script>
         // Fonction pour afficher un message de debug
         function showDebugMessage(message) {
@@ -748,14 +952,8 @@
                 }
             }, 1000);
             
-            // Initialisation du formulaire (code existant)
-            function initializeForm() {
-                // Le reste du code d'initialisation de formulaire reste inchangé
-                // ...
-            }
-            
-            // Initialiser le formulaire
-            initializeForm();
+            // La fonction initializeForm est maintenant dans questionnaire-navigation.js
+            // Elle sera appelée automatiquement au chargement du script
         });
     </script>
 </body>
