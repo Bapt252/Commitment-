@@ -1090,6 +1090,9 @@
     <script src="../scripts/backend-config-helper.js"></script>
     <script src="../scripts/questionnaire-navigation.js"></script>
     <script>
+        // Définir l'URL du dashboard
+        const DASHBOARD_URL = "https://bapt252.github.io/Commitment-/templates/company-dashboard.html";
+        
         // Fonction pour afficher un message de debug
         function showDebugMessage(message) {
             const debugSection = document.getElementById('debug-section');
@@ -1188,12 +1191,28 @@
             recruitmentYes.addEventListener('change', function() {
                 if (this.checked) {
                     jobParsingSection.classList.add('active');
+                    
+                    // Stocker la réponse dans sessionStorage
+                    sessionStorage.setItem('recruitmentNeeded', 'yes');
                 }
             });
             
             recruitmentNo.addEventListener('change', function() {
                 if (this.checked) {
                     jobParsingSection.classList.remove('active');
+                    
+                    // Stocker la réponse dans sessionStorage
+                    sessionStorage.setItem('recruitmentNeeded', 'no');
+                    
+                    // Rediriger vers le dashboard entreprise après confirmation
+                    const redirect = confirm("Vous allez être redirigé vers le dashboard entreprise. Continuer?");
+                    if (redirect) {
+                        // Sauvegarder les données du formulaire avant redirection
+                        saveFormData();
+                        
+                        // Rediriger vers le dashboard
+                        window.location.href = DASHBOARD_URL;
+                    }
                 }
             });
             
@@ -1250,47 +1269,78 @@
                 }, 1500);
             });
             
+            // Fonction pour sauvegarder les données du formulaire
+            function saveFormData() {
+                const formData = {
+                    companyName: document.getElementById('company-name').value,
+                    companyAddress: document.getElementById('company-address').value,
+                    companyWebsite: document.getElementById('company-website').value,
+                    companyDescription: document.getElementById('company-description').value,
+                    companySize: document.getElementById('company-size').value,
+                    contactName: document.getElementById('contact-name').value,
+                    contactTitle: document.getElementById('contact-title').value,
+                    contactEmail: document.getElementById('contact-email').value,
+                    contactPhone: document.getElementById('contact-phone').value,
+                    contactPreferred: document.getElementById('contact-preferred').value,
+                    recruitmentNeeded: document.querySelector('input[name="recruitment-need"]:checked')?.value || 'no'
+                };
+                
+                // Stocker les données dans sessionStorage
+                sessionStorage.setItem('clientFormData', JSON.stringify(formData));
+            }
+            
             // Gestion de la validation de formulaire
             const form = document.getElementById('client-questionnaire-form');
             
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                // Collecter toutes les données du formulaire
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData.entries());
-                
-                // Ajouter les données spécifiques
-                data.companyName = document.getElementById('company-name').value;
-                data.companyAddress = document.getElementById('company-address').value;
-                data.companyWebsite = document.getElementById('company-website').value;
-                data.companyDescription = document.getElementById('company-description').value;
-                data.companySize = document.getElementById('company-size').value;
-                
-                // Vérifier si recrutement est requis
-                data.recruitmentNeeded = document.querySelector('input[name="recruitment-need"]:checked')?.value || 'no';
-                
-                // Si recrutement est requis, collecter ces données
-                if (data.recruitmentNeeded === 'yes') {
-                    // Collecter toutes les données de recrutement
-                    // ...
-                }
-                
-                // Envoyer les données (simulé)
-                console.log('Données à envoyer:', data);
+                // Sauvegarder les données du formulaire
+                saveFormData();
                 
                 // Afficher un message de succès
                 showNotification('Votre demande a été envoyée avec succès!', 'success');
                 
-                // Rediriger vers le dashboard (à implémenter)
+                // Vérifier la réponse à la question de recrutement
+                const recruitmentNeeded = sessionStorage.getItem('recruitmentNeeded') || 'no';
+                
+                // Rediriger vers le dashboard après un court délai
                 setTimeout(() => {
-                    // Redirection vers le dashboard
-                    // window.location.href = '/dashboard';
-                    alert('Redirigé vers le dashboard entreprise');
+                    window.location.href = DASHBOARD_URL;
                 }, 2000);
             });
             
-            // La fonction initializeForm est maintenant dans questionnaire-navigation.js
+            // Vérifier s'il y a des données sauvegardées et les pré-remplir
+            const savedFormData = sessionStorage.getItem('clientFormData');
+            if (savedFormData) {
+                try {
+                    const data = JSON.parse(savedFormData);
+                    
+                    // Pré-remplir les champs
+                    document.getElementById('company-name').value = data.companyName || '';
+                    document.getElementById('company-address').value = data.companyAddress || '';
+                    document.getElementById('company-website').value = data.companyWebsite || '';
+                    document.getElementById('company-description').value = data.companyDescription || '';
+                    document.getElementById('company-size').value = data.companySize || '';
+                    document.getElementById('contact-name').value = data.contactName || '';
+                    document.getElementById('contact-title').value = data.contactTitle || '';
+                    document.getElementById('contact-email').value = data.contactEmail || '';
+                    document.getElementById('contact-phone').value = data.contactPhone || '';
+                    document.getElementById('contact-preferred').value = data.contactPreferred || '';
+                    
+                    // Vérifier la réponse à la question de recrutement
+                    if (data.recruitmentNeeded === 'yes') {
+                        document.getElementById('recruitment-yes').checked = true;
+                        jobParsingSection.classList.add('active');
+                    } else if (data.recruitmentNeeded === 'no') {
+                        document.getElementById('recruitment-no').checked = true;
+                    }
+                } catch (error) {
+                    console.error('Erreur lors du chargement des données sauvegardées:', error);
+                }
+            }
+            
+            // La fonction initializeForm est dans questionnaire-navigation.js
             // Elle sera appelée automatiquement au chargement du script
         });
     </script>
