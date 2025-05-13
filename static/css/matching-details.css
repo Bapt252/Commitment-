@@ -1,0 +1,143 @@
+/* Styles pour l'affichage détaillé des résultats de matching */
+
+.matching-details-container {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid var(--cream-dark);
+    border-bottom: 1px solid var(--cream-dark);
+}
+
+.detailed-scores, .matching-explanations {
+    margin-bottom: 1.5rem;
+}
+
+.detailed-scores h4, .matching-explanations h4 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--purple);
+}
+
+.score-bars {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.score-bar-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.score-label {
+    width: 100px;
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+.score-bar-container {
+    flex-grow: 1;
+    height: 8px;
+    background-color: #eaeaea;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 10px;
+}
+
+.score-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
+    border-radius: 4px;
+}
+
+.score-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--black);
+    width: 40px;
+    text-align: right;
+}
+
+.matching-explanations ul {
+    padding-left: 1.5rem;
+}
+
+.matching-explanations li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: var(--gray);
+}
+
+.btn-details {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--purple);
+    background-color: white;
+    color: var(--purple);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 0.8rem;
+}
+
+.btn-details:hover {
+    background-color: var(--purple-glass);
+    transform: translateY(-2px);
+}
+
+.skills-badges, .soft-skills-list, .avantages-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.skill-badge, .soft-skill-badge, .avantage-badge, .culture-value-badge {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.skill-badge {
+    background-color: var(--purple-glass);
+    color: var(--purple);
+}
+
+.soft-skill-badge {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+}
+
+.avantage-badge {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #F59E0B;
+}
+
+.culture-value-badge {
+    background-color: rgba(79, 70, 229, 0.1);
+    color: #4F46E5;
+}
+
+.culture-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.culture-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.culture-methodology, .team-size {
+    font-size: 0.85rem;
+    color: var(--gray);
+    margin-top: 0.5rem;
+}

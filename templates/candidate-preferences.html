@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionnaire Préférences - Nexten</title>
+    <!-- Mêmes styles que votre template existant -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Questionnaire de préférences avancées</h1>
+        
+        <form id="preferences-form">
+            <section class="form-section">
+                <h2>Compétences comportementales (Soft Skills)</h2>
+                <p>Sélectionnez les compétences comportementales qui vous caractérisent le mieux :</p>
+                
+                <div class="soft-skills-container">
+                    <div class="skill-chip">
+                        <input type="checkbox" id="communication" name="soft_skills" value="Communication">
+                        <label for="communication">Communication</label>
+                    </div>
+                    <div class="skill-chip">
+                        <input type="checkbox" id="teamwork" name="soft_skills" value="Travail d'équipe">
+                        <label for="teamwork">Travail d'équipe</label>
+                    </div>
+                    <div class="skill-chip">
+                        <input type="checkbox" id="problemsolving" name="soft_skills" value="Résolution de problèmes">
+                        <label for="problemsolving">Résolution de problèmes</label>
+                    </div>
+                    <div class="skill-chip">
+                        <input type="checkbox" id="adaptability" name="soft_skills" value="Adaptabilité">
+                        <label for="adaptability">Adaptabilité</label>
+                    </div>
+                    <div class="skill-chip">
+                        <input type="checkbox" id="creativity" name="soft_skills" value="Créativité">
+                        <label for="creativity">Créativité</label>
+                    </div>
+                    <div class="skill-chip">
+                        <input type="checkbox" id="leadership" name="soft_skills" value="Leadership">
+                        <label for="leadership">Leadership</label>
+                    </div>
+                    <div class="skill-chip">
+                        <input type="checkbox" id="timemanagement" name="soft_skills" value="Gestion du temps">
+                        <label for="timemanagement">Gestion du temps</label>
+                    </div>
+                    <div class="skill-chip">
+                        <input type="checkbox" id="empathy" name="soft_skills" value="Empathie">
+                        <label for="empathy">Empathie</label>
+                    </div>
+                    <div class="skill-chip">
+                        <input type="checkbox" id="criticalthinking" name="soft_skills" value="Esprit critique">
+                        <label for="criticalthinking">Esprit critique</label>
+                    </div>
+                    <div class="skill-chip">
+                        <input type="checkbox" id="selfmotivation" name="soft_skills" value="Auto-motivation">
+                        <label for="selfmotivation">Auto-motivation</label>
+                    </div>
+                    
+                    <div class="skill-chip custom-chip">
+                        <input type="text" id="custom-soft-skill" placeholder="Autre compétence...">
+                        <button type="button" id="add-soft-skill">+</button>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="form-section">
+                <h2>Préférences de culture d'entreprise</h2>
+                
+                <div class="form-group">
+                    <label for="values">Valeurs importantes pour vous :</label>
+                    <select id="values" name="values" multiple>
+                        <option value="Innovation">Innovation</option>
+                        <option value="Equilibre travail-vie personnelle">Équilibre travail-vie personnelle</option>
+                        <option value="Excellence technique">Excellence technique</option>
+                        <option value="Inclusivité">Inclusivité</option>
+                        <option value="Durabilité">Durabilité</option>
+                        <option value="Transparence">Transparence</option>
+                        <option value="Autonomie">Autonomie</option>
+                        <option value="Collaboration">Collaboration</option>
+                        <option value="Apprentissage continu">Apprentissage continu</option>
+                    </select>
+                    <p class="form-help">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs valeurs</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="team-size">Taille d'équipe préférée :</label>
+                    <select id="team-size" name="team_size">
+                        <option value="">Sélectionnez...</option>
+                        <option value="petite">Petite (1-10 personnes)</option>
+                        <option value="moyenne">Moyenne (10-30 personnes)</option>
+                        <option value="grande">Grande (30-100 personnes)</option>
+                        <option value="très grande">Très grande (100+ personnes)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="methodology">Méthodologie de travail préférée :</label>
+                    <select id="methodology" name="methodology">
+                        <option value="">Sélectionnez...</option>
+                        <option value="Agile/Scrum">Agile/Scrum</option>
+                        <option value="Kanban">Kanban</option>
+                        <option value="Waterfall">Waterfall/Méthode classique</option>
+                        <option value="DevOps">DevOps</option>
+                        <option value="Design Thinking">Design Thinking</option>
+                        <option value="Lean">Lean</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="environment">Environnement de travail préféré :</label>
+                    <select id="environment" name="environment">
+                        <option value="">Sélectionnez...</option>
+                        <option value="Startup dynamique">Startup dynamique</option>
+                        <option value="PME innovante">PME innovante</option>
+                        <option value="Grande entreprise structurée">Grande entreprise structurée</option>
+                        <option value="Agence créative">Agence créative</option>
+                        <option value="Entreprise de conseil">Entreprise de conseil</option>
+                        <option value="Organisation publique">Organisation publique</option>
+                    </select>
+                </div>
+            </section>
+            
+            <section class="form-section">
+                <h2>Importance des critères de matching</h2>
+                <p>Déplacez les curseurs pour indiquer l'importance que vous accordez à chaque critère :</p>
+                
+                <div class="slider-container">
+                    <label for="skills-importance">Compétences techniques</label>
+                    <input type="range" id="skills-importance" name="importance_skills" min="1" max="5" value="3">
+                    <div class="slider-labels">
+                        <span>Peu important</span>
+                        <span>Très important</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="contract-importance">Type de contrat</label>
+                    <input type="range" id="contract-importance" name="importance_contract" min="1" max="5" value="3">
+                    <div class="slider-labels">
+                        <span>Peu important</span>
+                        <span>Très important</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="location-importance">Localisation</label>
+                    <input type="range" id="location-importance" name="importance_location" min="1" max="5" value="3">
+                    <div class="slider-labels">
+                        <span>Peu important</span>
+                        <span>Très important</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="salary-importance">Rémunération</label>
+                    <input type="range" id="salary-importance" name="importance_salary" min="1" max="5" value="3">
+                    <div class="slider-labels">
+                        <span>Peu important</span>
+                        <span>Très important</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="date-importance">Date de disponibilité</label>
+                    <input type="range" id="date-importance" name="importance_date" min="1" max="5" value="3">
+                    <div class="slider-labels">
+                        <span>Peu important</span>
+                        <span>Très important</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="experience-importance">Expérience</label>
+                    <input type="range" id="experience-importance" name="importance_experience" min="1" max="5" value="3">
+                    <div class="slider-labels">
+                        <span>Peu important</span>
+                        <span>Très important</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="softskills-importance">Compétences comportementales</label>
+                    <input type="range" id="softskills-importance" name="importance_soft_skills" min="1" max="5" value="3">
+                    <div class="slider-labels">
+                        <span>Peu important</span>
+                        <span>Très important</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="culture-importance">Culture d'entreprise</label>
+                    <input type="range" id="culture-importance" name="importance_culture" min="1" max="5" value="3">
+                    <div class="slider-labels">
+                        <span>Peu important</span>
+                        <span>Très important</span>
+                    </div>
+                </div>
+            </section>
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" id="back-button">Précédent</button>
+                <button type="submit" class="btn btn-primary">Enregistrer et continuer</button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Référence au formulaire
+            const form = document.getElementById('preferences-form');
+            
+            // Gestion de l'ajout de soft skills personnalisés
+            const customSkillInput = document.getElementById('custom-soft-skill');
+            const addSkillButton = document.getElementById('add-soft-skill');
+            const softSkillsContainer = document.querySelector('.soft-skills-container');
+            
+            addSkillButton.addEventListener('click', function() {
+                const skillValue = customSkillInput.value.trim();
+                
+                if (skillValue) {
+                    // Créer un nouvel élément de compétence
+                    const skillId = 'skill-' + Date.now();
+                    const skillChip = document.createElement('div');
+                    skillChip.className = 'skill-chip';
+                    skillChip.innerHTML = `
+                        <input type="checkbox" id="${skillId}" name="soft_skills" value="${skillValue}" checked>
+                        <label for="${skillId}">${skillValue}</label>
+                        <button type="button" class="remove-skill">×</button>
+                    `;
+                    
+                    // Insérer avant le champ personnalisé
+                    softSkillsContainer.insertBefore(skillChip, document.querySelector('.custom-chip'));
+                    
+                    // Réinitialiser le champ
+                    customSkillInput.value = '';
+                    customSkillInput.focus();
+                    
+                    // Ajouter l'événement de suppression
+                    const removeButton = skillChip.querySelector('.remove-skill');
+                    removeButton.addEventListener('click', function() {
+                        skillChip.remove();
+                    });
+                }
+            });
+            
+            // Soumettre le formulaire
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Récupérer l'email du localStorage
+                const email = localStorage.getItem('user_email');
+                
+                if (!email) {
+                    alert('Session expirée. Veuillez vous reconnecter.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Collecter les données du formulaire
+                const formData = new FormData(form);
+                
+                // Préparer les données pour l'API
+                const softSkills = Array.from(formData.getAll('soft_skills'));
+                
+                const values = Array.from(document.getElementById('values').selectedOptions).map(option => option.value);
+                
+                const importanceData = {
+                    competences: parseInt(formData.get('importance_skills')),
+                    contrat: parseInt(formData.get('importance_contract')),
+                    localisation: parseInt(formData.get('importance_location')),
+                    salaire: parseInt(formData.get('importance_salary')),
+                    date_disponibilite: parseInt(formData.get('importance_date')),
+                    experience: parseInt(formData.get('importance_experience')),
+                    soft_skills: parseInt(formData.get('importance_soft_skills')),
+                    culture: parseInt(formData.get('importance_culture'))
+                };
+                
+                const preferencesData = {
+                    email: email,
+                    soft_skills: softSkills,
+                    preferences_culture: {
+                        valeurs_importantes: values,
+                        taille_equipe_preferee: formData.get('team_size'),
+                        methodologie_preferee: formData.get('methodology'),
+                        environnement_prefere: formData.get('environment')
+                    },
+                    criteres_importants: importanceData
+                };
+                
+                // Envoyer les données à l'API
+                try {
+                    const response = await fetch('http://localhost:8000/api/update-preferences', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(preferencesData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || 'Erreur lors de l\'enregistrement des préférences');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Rediriger vers la page de matching
+                        window.location.href = 'candidate-matching-improved.html';
+                    } else {
+                        throw new Error(data.message || 'Erreur inconnue');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Une erreur est survenue : ' + error.message);
+                }
+            });
+            
+            // Bouton précédent
+            document.getElementById('back-button').addEventListener('click', function() {
+                window.history.back();
+            });
+        });
+    </script>
+    
+    <style>
+        /* Styles pour le formulaire */
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #1A1A1A;
+            background-color: #F8F7F3;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #7C3AED;
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #EFEEE9;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        
+        h2 {
+            color: #2D2D2D;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #3F3F3F;
+        }
+        
+        select, input[type="text"] {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1.5px solid #EFEEE9;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+        }
+        
+        select[multiple] {
+            height: 150px;
+        }
+        
+        .form-help {
+            font-size: 0.85rem;
+            color: #666666;
+            margin-top: 0.3rem;
+        }
+        
+        /* Styles pour les chips de compétences */
+        .soft-skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+        
+        .skill-chip {
+            display: inline-flex;
+            align-items: center;
+            background-color: #F3F4F6;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .skill-chip:hover {
+            background-color: rgba(124, 58, 237, 0.1);
+        }
+        
+        .skill-chip input[type="checkbox"] {
+            display: none;
+        }
+        
+        .skill-chip label {
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        
+        .skill-chip input[type="checkbox"]:checked + label {
+            color: #7C3AED;
+            font-weight: 600;
+        }
+        
+        .skill-chip input[type="checkbox"]:checked ~ .skill-chip {
+            background-color: rgba(124, 58, 237, 0.1);
+            border-color: #7C3AED;
+        }
+        
+        .remove-skill {
+            margin-left: 0.5rem;
+            background: none;
+            border: none;
+            color: #9CA3AF;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0;
+            line-height: 1;
+        }
+        
+        .remove-skill:hover {
+            color: #EF4444;
+        }
+        
+        .custom-chip {
+            display: flex;
+            background-color: white;
+            border: 1.5px dashed #EFEEE9;
+        }
+        
+        .custom-chip:hover {
+            background-color: white;
+            border-color: #7C3AED;
+        }
+        
+        .custom-chip input[type="text"] {
+            border: none;
+            background: transparent;
+            padding: 0;
+            width: auto;
+            flex-grow: 1;
+        }
+        
+        .custom-chip input[type="text"]:focus {
+            outline: none;
+        }
+        
+        .custom-chip button {
+            background: none;
+            border: none;
+            color: #7C3AED;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 0 0 0.5rem;
+        }
+        
+        /* Styles pour les sliders */
+        .slider-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            -webkit-appearance: none;
+            background: #EFEEE9;
+            outline: none;
+            border-radius: 5px;
+            margin: 0.7rem 0;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #7C3AED;
+            cursor: pointer;
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #666666;
+        }
+        
+        /* Boutons */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .btn-primary {
+            background-color: #7C3AED;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #6D28D9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(124, 58, 237, 0.2);
+        }
+        
+        .btn-outline {
+            background-color: white;
+            color: #7C3AED;
+            border: 1.5px solid #7C3AED;
+        }
+        
+        .btn-outline:hover {
+            background-color: rgba(124, 58, 237, 0.1);
+            transform: translateY(-2px);
+        }
+    </style>
+</body>
+</html>
