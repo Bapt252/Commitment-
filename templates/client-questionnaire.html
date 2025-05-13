@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Bibliothèques externes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
     <!-- Style supplémentaire pour les améliorations -->
     <style>
         /* Debug section */
@@ -639,6 +642,73 @@
             color: var(--gray);
             transform: scale(1.1);
         }
+
+        /* Styles spécifiques pour les badges de compétences et tags */
+        .tag {
+            display: inline-block;
+            padding: 6px 10px;
+            background-color: rgba(124, 58, 237, 0.1);
+            color: var(--primary-dark);
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            white-space: nowrap;
+        }
+
+        .file-badge {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-top: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .file-badge .file-name {
+            margin-left: 8px;
+            margin-right: 8px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .file-badge .remove-button {
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .file-badge .remove-button:hover {
+            color: var(--error);
+        }
+
+        /* Séparateur "OU" */
+        .separator {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+
+        .separator .line {
+            flex: 1;
+            height: 1px;
+            background-color: var(--gray-light);
+        }
+
+        .separator .text {
+            padding: 0 1rem;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -1159,16 +1229,21 @@
         </div>
     </div>
     
-    <!-- Scripts -->
-    <script src="../assets/js/parser.js"></script>
+    <!-- Scripts - Ordre important pour les dépendances -->
+    <!-- 1. Classes et utilitaires de base -->
     <script src="../js/pdf-cleaner.js"></script>
     <script src="../js/job-parser-api.js"></script>
+    
+    <!-- 2. Connecteurs et services -->
     <script src="../js/job-parser-connector.js"></script>
-    <script src="../scripts/gpt-analyze.js"></script>
-    <script src="../scripts/debug-gpt.js"></script>
-    <script src="../scripts/backend-config-helper.js"></script>
+    
+    <!-- 3. Fonctionnalités d'interface -->
     <script src="../scripts/questionnaire-navigation.js"></script>
+    <script src="../scripts/job-parsing-ui.js"></script>
+    <script src="../scripts/gpt-analyze.js"></script>
+    <script src="../scripts/backend-config-helper.js"></script>
     <script src="../scripts/summary-generator.js"></script>
+    <script src="../scripts/debug-gpt.js"></script>
     
     <script>
         // Définir les URLs de redirection
@@ -1212,194 +1287,36 @@
                 console.error("Bouton soumettre non trouvé!");
             }
             
-            // Gérer les sections conditionnelles
-            const recruitmentYes = document.getElementById('recruitment-yes');
-            const recruitmentNo = document.getElementById('recruitment-no');
-            const jobParsingSection = document.getElementById('job-parsing-section');
-            const noticeYes = document.getElementById('notice-yes');
-            const noticeNo = document.getElementById('notice-no');
-            const noticeDurationSection = document.getElementById('notice-duration-section');
-            const sectorYes = document.getElementById('sector-yes');
-            const sectorNo = document.getElementById('sector-no');
-            const sectorListSection = document.getElementById('sector-list-section');
-            
-            // Gérer l'affichage conditionnel du parsing de job
-            recruitmentYes.addEventListener('change', function() {
-                if (this.checked) {
-                    jobParsingSection.classList.add('active');
-                    
-                    // Stocker la réponse dans sessionStorage
-                    sessionStorage.setItem('recruitmentNeeded', 'yes');
+            // Fonction pour afficher une notification
+            function showNotification(message, type = 'info') {
+                if (window.QuestionnaireNavigation && window.QuestionnaireNavigation.showNotification) {
+                    window.QuestionnaireNavigation.showNotification(message, type);
+                } else {
+                    alert(message);
                 }
-            });
+            }
             
-            recruitmentNo.addEventListener('change', function() {
-                if (this.checked) {
-                    jobParsingSection.classList.remove('active');
-                    
-                    // Stocker la réponse dans sessionStorage
-                    sessionStorage.setItem('recruitmentNeeded', 'no');
-                    
-                    // Rediriger vers le dashboard entreprise après confirmation
-                    const redirect = confirm("Vous allez être redirigé vers le dashboard entreprise. Continuer?");
-                    if (redirect) {
-                        // Sauvegarder les données du formulaire avant redirection
-                        saveFormData();
-                        
-                        // Rediriger vers le dashboard
-                        window.location.href = DASHBOARD_URL;
-                    }
-                }
-            });
-            
-            // Gérer l'affichage conditionnel de la durée du préavis
-            noticeYes.addEventListener('change', function() {
-                if (this.checked) {
-                    noticeDurationSection.classList.add('active');
-                }
-            });
-            
-            noticeNo.addEventListener('change', function() {
-                if (this.checked) {
-                    noticeDurationSection.classList.remove('active');
-                }
-            });
-            
-            // Gérer l'affichage conditionnel des secteurs d'activité
-            sectorYes.addEventListener('change', function() {
-                if (this.checked) {
-                    sectorListSection.classList.add('active');
-                }
-            });
-            
-            sectorNo.addEventListener('change', function() {
-                if (this.checked) {
-                    sectorListSection.classList.remove('active');
-                }
-            });
-            
-            // Générer automatiquement une description à partir du site web
-            const generateDescriptionBtn = document.getElementById('generate-description');
-            const companyWebsiteInput = document.getElementById('company-website');
-            const companyDescriptionInput = document.getElementById('company-description');
-            
-            generateDescriptionBtn.addEventListener('click', function() {
-                const websiteUrl = companyWebsiteInput.value.trim();
-                if (!websiteUrl) {
-                    alert('Veuillez d\'abord saisir l\'URL de votre site web.');
-                    return;
-                }
+            // Fonction pour sauvegarder les données du formulaire
+            function saveFormData() {
+                const formData = {
+                    companyName: document.getElementById('company-name')?.value || '',
+                    companyAddress: document.getElementById('company-address')?.value || '',
+                    companyWebsite: document.getElementById('company-website')?.value || '',
+                    companyDescription: document.getElementById('company-description')?.value || '',
+                    companySize: document.getElementById('company-size')?.value || '',
+                    contactName: document.getElementById('contact-name')?.value || '',
+                    contactTitle: document.getElementById('contact-title')?.value || '',
+                    contactEmail: document.getElementById('contact-email')?.value || '',
+                    contactPhone: document.getElementById('contact-phone')?.value || '',
+                    contactPreferred: document.getElementById('contact-preferred')?.value || '',
+                    recruitmentNeeded: document.querySelector('input[name="recruitment-need"]:checked')?.value || 'no'
+                };
                 
-                // Simuler un chargement
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
-                
-                // Appel à l'API (à implémenter)
-                setTimeout(() => {
-                    // Simulation de réponse (à remplacer par l'appel API réel)
-                    companyDescriptionInput.value = `Description automatique générée à partir du site web ${websiteUrl}. Cette fonctionnalité utilisera l'API pour extraire les informations pertinentes.`;
-                    
-                    // Réinitialiser le bouton
-                    this.disabled = false;
-                    this.innerHTML = '<i class="fas fa-magic"></i> Auto';
-                }, 1500);
-            });
+                // Stocker les données dans sessionStorage
+                sessionStorage.setItem('clientFormData', JSON.stringify(formData));
+                console.log("Données du formulaire sauvegardées:", formData);
+            }
         });
-        
-        // Fonction pour sauvegarder les données du formulaire
-        function saveFormData() {
-            const formData = {
-                companyName: document.getElementById('company-name')?.value || '',
-                companyAddress: document.getElementById('company-address')?.value || '',
-                companyWebsite: document.getElementById('company-website')?.value || '',
-                companyDescription: document.getElementById('company-description')?.value || '',
-                companySize: document.getElementById('company-size')?.value || '',
-                contactName: document.getElementById('contact-name')?.value || '',
-                contactTitle: document.getElementById('contact-title')?.value || '',
-                contactEmail: document.getElementById('contact-email')?.value || '',
-                contactPhone: document.getElementById('contact-phone')?.value || '',
-                contactPreferred: document.getElementById('contact-preferred')?.value || '',
-                recruitmentNeeded: document.querySelector('input[name="recruitment-need"]:checked')?.value || 'no'
-            };
-            
-            // Stocker les données dans sessionStorage
-            sessionStorage.setItem('clientFormData', JSON.stringify(formData));
-            console.log("Données du formulaire sauvegardées:", formData);
-        }
-        
-        // Fonction pour afficher une notification
-        function showNotification(message, type = 'info') {
-            const notification = document.getElementById('notification');
-            if (!notification) return;
-            
-            // Configurer le type de notification
-            notification.className = 'notification ' + type;
-            
-            // Mettre à jour l'icône
-            const icon = notification.querySelector('.notification-icon i');
-            if (icon) {
-                icon.className = type === 'success' 
-                    ? 'fas fa-check-circle' 
-                    : (type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle');
-            }
-            
-            // Mettre à jour le titre
-            const title = notification.querySelector('.notification-title');
-            if (title) {
-                title.textContent = type === 'success' 
-                    ? 'Succès' 
-                    : (type === 'error' ? 'Erreur' : 'Information');
-            }
-            
-            // Mettre à jour le message
-            const notifMessage = notification.querySelector('.notification-message');
-            if (notifMessage) {
-                notifMessage.textContent = message;
-            }
-            
-            // Afficher la notification
-            notification.style.display = 'flex';
-            
-            // Faire disparaître la notification après un délai
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 5000);
-        }
-        
-        // Fonction pour activer le mode debug
-        function activateDebugMode() {
-            const debugSection = document.getElementById('debug-section');
-            debugSection.style.display = 'block';
-            showDebugMessage('Mode debug activé');
-            
-            // Afficher le contenu de sessionStorage
-            const parsedJobData = sessionStorage.getItem('parsedJobData');
-            if (parsedJobData) {
-                showDebugMessage('Données trouvées dans sessionStorage: ' + parsedJobData);
-            } else {
-                showDebugMessage('Aucune donnée trouvée dans sessionStorage');
-            }
-        }
-        
-        // Fonction pour afficher un message de debug
-        function showDebugMessage(message) {
-            const debugSection = document.getElementById('debug-section');
-            const debugContent = document.getElementById('debug-content');
-            debugSection.style.display = 'block';
-            
-            // Ajouter le nouveau message
-            const msgElement = document.createElement('p');
-            msgElement.textContent = message;
-            debugContent.appendChild(msgElement);
-        }
-        
-        // Vérifier si un paramètre debug est présent dans l'URL
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('debug')) {
-            activateDebugMode();
-            // Ajouter un message supplémentaire pour indiquer l'URL de l'API
-            showDebugMessage('URL de l\'API configurée: ' + (urlParams.get('apiUrl') || 'http://localhost:5055'));
-        }
     </script>
     
     <!-- Script pour l'intégration de Google Maps Places Autocomplete -->
@@ -1508,7 +1425,9 @@
 
         // Chargement de l'API Google Maps
         document.addEventListener('DOMContentLoaded', function() {
-            loadGoogleMapsScript('AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8', 'initAutocomplete');
+            // Désactiver l'API Maps en mode développement pour éviter les erreurs
+            // En production, décommentez la ligne ci-dessous et utilisez une clé API valide
+            // loadGoogleMapsScript('AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8', 'initAutocomplete');
         });
     </script>
 </body>
