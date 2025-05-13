@@ -14,6 +14,44 @@ const GPT_ANALYZE_CONFIG = {
     useLocalFallback: true
 };
 
+// Fonction pour afficher une notification si non disponible globalement
+function showNotificationLocal(message, type = 'info') {
+    if (typeof window.showNotification === 'function') {
+        window.showNotification(message, type);
+        return;
+    }
+    
+    // Créer une notification temporaire
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.padding = '10px 15px';
+    notification.style.borderRadius = '4px';
+    notification.style.color = 'white';
+    notification.style.zIndex = '10000';
+    notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+    
+    if (type === 'error') {
+        notification.style.backgroundColor = '#ef4444';
+    } else if (type === 'success') {
+        notification.style.backgroundColor = '#10b981';
+    } else {
+        notification.style.backgroundColor = '#3b82f6';
+    }
+    
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.5s';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 500);
+    }, 3000);
+}
+
 // Créer un bouton "Analyser avec GPT" dans la page
 function initializeGptAnalyzeButton() {
     // Vérifier si les éléments nécessaires existent dans la page
@@ -21,8 +59,8 @@ function initializeGptAnalyzeButton() {
     const textarea = document.getElementById('job-description-text');
     const fileInput = document.getElementById('job-file-input');
     
-    if (!jobInfoContainer || !textarea) {
-        console.error('Éléments requis non trouvés dans la page');
+    if (!textarea) {
+        console.error('Textarea non trouvé dans la page');
         return;
     }
     
@@ -33,6 +71,7 @@ function initializeGptAnalyzeButton() {
     // Créer le bouton "Analyser avec GPT"
     const button = document.createElement('button');
     button.id = 'analyze-with-gpt';
+    button.className = 'btn btn-success';
     button.textContent = 'Analyser avec GPT';
     button.disabled = !(textarea.value.trim() || (fileInput && fileInput.files.length > 0));
     
@@ -48,8 +87,21 @@ function initializeGptAnalyzeButton() {
     // Insérer le conteneur après le champ de texte de la fiche de poste
     if (textarea.parentNode) {
         textarea.parentNode.insertAdjacentElement('afterend', container);
-    } else {
+    } else if (jobInfoContainer) {
         jobInfoContainer.insertAdjacentElement('beforebegin', container);
+    } else {
+        // Tenter de trouver un autre endroit pour insérer le bouton
+        const possibleParents = [
+            document.querySelector('.textarea-container'),
+            document.querySelector('.form-section[data-step="3"]')
+        ];
+        
+        for (const parent of possibleParents) {
+            if (parent) {
+                parent.appendChild(container);
+                break;
+            }
+        }
     }
     
     // Activer/désactiver le bouton en fonction du contenu du textarea
@@ -66,20 +118,58 @@ function initializeGptAnalyzeButton() {
     
     // Gérer le clic sur le bouton
     button.addEventListener('click', handleGptAnalysis);
+    
+    console.log('GPT Analyze Button initialized');
 }
 
 // Fonction pour analyser la fiche de poste avec GPT
 async function handleGptAnalysis() {
+    console.log('handleGptAnalysis called');
+    
     const textarea = document.getElementById('job-description-text');
     const fileInput = document.getElementById('job-file-input');
     const button = document.getElementById('analyze-with-gpt');
     const status = document.getElementById('gpt-analyze-status');
     
+    // Vérifier si la fonction est bien appelée
+    if (!textarea) {
+        console.error('Textarea non trouvé lors de l\'analyse');
+        return;
+    }
+    
     // Vérifier que nous avons du contenu à analyser
     if (!(textarea.value.trim() || (fileInput && fileInput.files.length > 0))) {
-        showNotification ? 
-            showNotification("Veuillez d'abord entrer ou télécharger une fiche de poste", "error") : 
-            alert("Veuillez d'abord entrer ou télécharger une fiche de poste");
+        showNotificationLocal("Veuillez d'abord entrer ou télécharger une fiche de poste", "error");
+        return;
+    }
+    
+    // Vérifier la configuration du backend
+    const apiUrl = determineApiUrl();
+    if (!apiUrl || (!getApiKey() && apiUrl.includes('api.openai.com'))) {
+        // Afficher un message indiquant que la configuration est nécessaire
+        showNotificationLocal("Veuillez configurer l'API en cliquant sur le bouton de configuration en bas à droite", "error");
+        
+        // Assurer que le bouton de configuration est visible
+        const configButton = document.getElementById('backend-config-button');
+        if (configButton) {
+            configButton.style.display = 'flex';
+            configButton.style.opacity = '1';
+            configButton.style.zIndex = '9999';
+            
+            // Animer pour attirer l'attention
+            configButton.style.animation = 'pulse 1s infinite';
+            if (!configButton.style.cssText.includes('@keyframes pulse')) {
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes pulse {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.1); }
+                        100% { transform: scale(1); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
         return;
     }
     
@@ -115,16 +205,12 @@ async function handleGptAnalysis() {
         
         // Notification de succès
         status.textContent = 'Analyse réussie!';
-        showNotification ? 
-            showNotification("Fiche de poste analysée avec succès par GPT!", "success") : 
-            alert("Fiche de poste analysée avec succès!");
+        showNotificationLocal("Fiche de poste analysée avec succès par GPT!", "success");
         
     } catch (error) {
         console.error('Erreur lors de l\'analyse GPT:', error);
         status.textContent = 'Échec de l\'analyse';
-        showNotification ? 
-            showNotification("Erreur lors de l'analyse par GPT: " + error.message, "error") : 
-            alert("Erreur lors de l'analyse: " + error.message);
+        showNotificationLocal("Erreur lors de l'analyse par GPT: " + error.message, "error");
         
         // Utiliser l'analyse locale si configurée
         if (GPT_ANALYZE_CONFIG.useLocalFallback) {
@@ -169,6 +255,8 @@ function readFileAsText(file) {
 
 // Fonction pour envoyer la fiche de poste à l'API de parsing GPT
 async function parseJobPostingWithGpt(jobText, file = null) {
+    console.log('Parsing job posting with GPT');
+    
     // Création d'un prompt pour analyser la fiche de poste
     const prompt = `Extrais les informations clés de cette fiche de poste pour un parser automatique. 
     Pour chaque champ, cherche les informations pertinentes et les retourne au format précis.
@@ -196,12 +284,17 @@ async function parseJobPostingWithGpt(jobText, file = null) {
     try {
         // Vérifier si nous utilisons l'API OpenAI directement ou un backend personnalisé
         const apiKey = getApiKey();
-        if (!apiKey && !isUsingCustomBackend()) {
-            throw new Error("Clé API non configurée. Veuillez fournir une clé API via les paramètres d'URL (apiKey=...)");
+        const isCustomBackend = isUsingCustomBackend();
+        
+        console.log('Using custom backend:', isCustomBackend);
+        
+        if (!apiKey && !isCustomBackend) {
+            throw new Error("Clé API non configurée. Veuillez fournir une clé API via les paramètres d'URL (apiKey=...) ou utiliser un backend personnalisé");
         }
         
         // Déterminer l'URL de l'API à utiliser
         const apiUrl = determineApiUrl();
+        console.log('API URL:', apiUrl);
         
         // Log de debug
         if (GPT_ANALYZE_CONFIG.debug) {
@@ -210,7 +303,7 @@ async function parseJobPostingWithGpt(jobText, file = null) {
         }
         
         // Si nous utilisons un backend personnalisé, envoyer une requête différente
-        if (isUsingCustomBackend()) {
+        if (isCustomBackend) {
             return await callCustomBackend(apiUrl, jobText, file);
         }
         
@@ -292,6 +385,8 @@ function isUsingCustomBackend() {
 
 // Fonction pour appeler un backend personnalisé
 async function callCustomBackend(apiUrl, jobText, file) {
+    console.log('Calling custom backend:', apiUrl);
+    
     // Créer un objet FormData pour l'envoi de données
     const formData = new FormData();
     
@@ -327,7 +422,13 @@ async function callCustomBackend(apiUrl, jobText, file) {
 
 // Fonction pour récupérer la clé API à partir des paramètres ou de la configuration
 function getApiKey() {
-    // Vérifier d'abord dans les paramètres d'URL
+    // Vérifier dans localStorage (sauvegarde par le panneau de configuration)
+    const savedKey = localStorage.getItem('openaiKey');
+    if (savedKey) {
+        return savedKey;
+    }
+    
+    // Vérifier dans les paramètres d'URL
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('apiKey')) {
         return urlParams.get('apiKey');
@@ -339,6 +440,12 @@ function getApiKey() {
 
 // Fonction pour déterminer l'URL de l'API
 function determineApiUrl() {
+    // Vérifier d'abord dans localStorage (sauvegarde par le panneau de configuration)
+    const savedUrl = localStorage.getItem('backendUrl');
+    if (savedUrl) {
+        return savedUrl.endsWith('/api/parse-job') ? savedUrl : `${savedUrl}/api/parse-job`;
+    }
+    
     // Vérifier si l'URL est définie dans l'URL de la page
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('apiUrl')) {
@@ -487,6 +594,8 @@ function displayParsingResults(result) {
 
 // Initialiser l'analyse GPT lorsque la page est chargée
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('GPT Analyze script loaded');
+    
     // Initialiser le bouton d'analyse GPT
     initializeGptAnalyzeButton();
     
@@ -518,4 +627,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log('GPT Analyze initialized');
+});
+
+// Fonction pour forcer la réinitialisation des éléments après le chargement complet
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        // Réinitialiser le bouton GPT
+        if (!document.getElementById('analyze-with-gpt')) {
+            console.log('Réinitialisation du bouton GPT');
+            initializeGptAnalyzeButton();
+        }
+        
+        // Vérifier si le bouton de configuration est visible
+        const configButton = document.getElementById('backend-config-button');
+        if (configButton) {
+            configButton.style.display = 'flex';
+            configButton.style.opacity = '1';
+            configButton.style.visibility = 'visible';
+            configButton.style.zIndex = '9999';
+        }
+    }, 2000);
 });
