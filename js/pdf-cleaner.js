@@ -1,103 +1,68 @@
 /**
- * pdf-cleaner.js
- * Utilitaire pour nettoyer les fichiers PDF avant de les envoyer à l'API de parsing
+ * Classe pour nettoyer et extraire le texte des PDFs
  */
-
 class PDFCleaner {
-    constructor(options = {}) {
-        this.options = {
-            debug: options.debug || false,
-            // Les options spécifiques aux fichiers PDF peuvent être ajoutées ici
-        };
+    constructor() {
+        // On pourrait ajouter des options ici si nécessaire
     }
     
     /**
-     * Nettoie un fichier PDF pour améliorer les résultats de parsing
-     * @param {File} file - Le fichier PDF à nettoyer
-     * @returns {Promise<File>} Un nouveau fichier PDF nettoyé
+     * Extrait le texte d'un fichier PDF
+     * @param {File} pdfFile - Le fichier PDF
+     * @returns {Promise<string>} - Le texte extrait
      */
-    async cleanFile(file) {
-        // Vérifier que le fichier est un PDF
-        if (!file || file.type !== 'application/pdf') {
-            throw new Error('Le fichier n\'est pas un PDF valide');
+    async extractTextFromPDF(pdfFile) {
+        // Vérifier si pdfjsLib est disponible
+        if (!window.pdfjsLib) {
+            console.error('PDF.js library not found!');
+            throw new Error('PDF.js library not loaded. Please include it in your project.');
         }
         
-        if (this.options.debug) {
-            console.log(`Nettoyage du PDF: ${file.name} (${file.size} bytes)`);
-        }
-        
-        // Pour l'instant, nous retournons simplement le fichier original
-        // car l'implémentation complète nécessiterait une bibliothèque de manipulation de PDF
-        
-        // Note : Pour une implémentation réelle, vous pourriez utiliser des bibliothèques comme pdf.js
-        // pour extraire et nettoyer le texte, puis recréer un PDF
-        
-        // Le code ci-dessous est un exemple de ce que pourrait être une implémentation future
-        
-        /* 
         try {
-            // Lire le fichier PDF
-            const arrayBuffer = await this._readFileAsArrayBuffer(file);
+            // Lire le fichier en tant qu'ArrayBuffer
+            const arrayBuffer = await this.readFileAsArrayBuffer(pdfFile);
             
-            // Utiliser pdf.js pour extraire le texte
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            // Charger le document PDF
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
             
-            // Extraire et nettoyer le texte de chaque page
-            let cleanedText = '';
+            // Extraire le texte de toutes les pages
+            let extractedText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
+                const content = await page.getTextContent();
                 
-                // Extraire le texte
-                const pageText = textContent.items.map(item => item.str).join(' ');
+                // Fusionner les éléments textuels avec des espaces
+                const pageText = content.items
+                    .map(item => item.str)
+                    .join(' ');
                 
-                // Nettoyer le texte : supprimer les espaces multiples, les caractères spéciaux, etc.
-                const cleanedPageText = this._cleanText(pageText);
-                
-                cleanedText += cleanedPageText + '\n\n';
+                extractedText += pageText + '\n\n';
             }
             
-            // Créer un nouveau fichier PDF avec le texte nettoyé
-            // (Cela nécessiterait une bibliothèque pour créer des PDF)
-            
-            // Pour cet exemple, nous allons simplement retourner un fichier texte
-            const cleanedTextBlob = new Blob([cleanedText], { type: 'text/plain' });
-            const cleanedFile = new File([cleanedTextBlob], file.name.replace('.pdf', '-cleaned.txt'), {
-                type: 'text/plain',
-                lastModified: new Date().getTime()
-            });
-            
-            return cleanedFile;
+            // Nettoyer le texte extrait
+            return this.cleanPDFText(extractedText);
         } catch (error) {
-            console.error('Erreur lors du nettoyage du PDF:', error);
-            // En cas d'erreur, retourner le fichier original
-            return file;
+            console.error('Error extracting text from PDF:', error);
+            throw error;
         }
-        */
-        
-        // Simuler un traitement
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Retourner le fichier original
-        return file;
     }
     
     /**
-     * Lit un fichier sous forme d'ArrayBuffer
+     * Lit un fichier en tant qu'ArrayBuffer
      * @param {File} file - Le fichier à lire
-     * @returns {Promise<ArrayBuffer>} Le contenu du fichier en ArrayBuffer
-     * @private
+     * @returns {Promise<ArrayBuffer>} - Le contenu du fichier
      */
-    _readFileAsArrayBuffer(file) {
+    readFileAsArrayBuffer(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             
-            reader.onload = (event) => {
-                resolve(event.target.result);
+            reader.onload = function(e) {
+                resolve(e.target.result);
             };
             
-            reader.onerror = (error) => {
-                reject(error);
+            reader.onerror = function(e) {
+                reject(new Error('Error reading file: ' + e.target.error));
             };
             
             reader.readAsArrayBuffer(file);
@@ -105,21 +70,66 @@ class PDFCleaner {
     }
     
     /**
-     * Nettoie un texte
-     * @param {string} text - Le texte à nettoyer
-     * @returns {string} Le texte nettoyé
-     * @private
+     * Nettoie le texte extrait d'un PDF
+     * @param {string} text - Le texte brut
+     * @returns {string} - Le texte nettoyé
      */
-    _cleanText(text) {
-        // Supprimer les caractères spéciaux et les espaces multiples
-        let cleanedText = text.replace(/[^\w\s.,;:!?()]/g, ' ').replace(/\s+/g, ' ').trim();
+    cleanPDFText(text) {
+        if (!text) return '';
         
-        // Supprimer les lignes vides
-        cleanedText = cleanedText.split('\n').filter(line => line.trim()).join('\n');
+        // Supprimer les caractères spéciaux inutiles
+        let cleanedText = text
+            .replace(/\s+/g, ' ')  // Remplacer les séquences d'espaces par un seul espace
+            .replace(/[^\x20-\x7E\xA0-\xFF\u0100-\u017F\u0180-\u024F\n]/g, '') // Garder uniquement les caractères latins courants
+            .replace(/(\n\s*){3,}/g, '\n\n');  // Limiter les sauts de ligne consécutifs
+        
+        // Supprimer les en-têtes et pieds de page récurrents (motifs typiques)
+        cleanedText = this.removeHeadersAndFooters(cleanedText);
+        
+        // Normaliser les sauts de ligne pour les listes
+        cleanedText = this.normalizeListItems(cleanedText);
+        
+        return cleanedText.trim();
+    }
+    
+    /**
+     * Supprime les en-têtes et pieds de page récurrents
+     * @param {string} text - Le texte à nettoyer
+     * @returns {string} - Le texte sans en-têtes/pieds de page
+     */
+    removeHeadersAndFooters(text) {
+        // Supprimer les numéros de page isolés
+        const pageNumberRegex = /^[0-9]+$|^Page [0-9]+ \/ [0-9]+$|^Page [0-9]+$/gm;
+        let cleanedText = text.replace(pageNumberRegex, '');
+        
+        // Supprimer les dates isolées
+        const dateRegex = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/gm;
+        cleanedText = cleanedText.replace(dateRegex, '');
+        
+        // Supprimer les lignes qui contiennent uniquement le nom du fichier ou des informations de copyright
+        const copyrightRegex = /^.*(?:confidential|tous droits réservés|copyright|©|confidentiel).*$/gim;
+        cleanedText = cleanedText.replace(copyrightRegex, '');
         
         return cleanedText;
     }
+    
+    /**
+     * Normalise les éléments de liste
+     * @param {string} text - Le texte à normaliser
+     * @returns {string} - Le texte avec listes normalisées
+     */
+    normalizeListItems(text) {
+        // Détecter et normaliser les éléments de liste avec chiffres
+        const numberedListRegex = /(\n\s*)(\d+[\.\)]\s+)([A-Z])/g;
+        let normalizedText = text.replace(numberedListRegex, '$1$2$3');
+        
+        // Détecter et normaliser les éléments de liste avec puces
+        const bulletListRegex = /(\n\s*)([\-\•\*]\s+)([A-Z])/g;
+        normalizedText = normalizedText.replace(bulletListRegex, '$1$2$3');
+        
+        return normalizedText;
+    }
 }
 
-// Exposer la classe globalement
+// Exposer globalement
 window.PDFCleaner = PDFCleaner;
