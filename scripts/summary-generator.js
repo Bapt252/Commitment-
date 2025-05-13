@@ -1,22 +1,27 @@
 // Fonction pour générer le récapitulatif des informations
 function generateSummary() {
+    console.log("Génération du récapitulatif...");
     const summaryContainer = document.getElementById('summary-content');
     if (!summaryContainer) return;
     
     // Récupérer les données de sessionStorage ou localStorage
     let clientData = {};
+    let parsedJobData = null;
     
     try {
         // Essayer de récupérer les données du formulaire client
         const storedData = sessionStorage.getItem('clientFormData');
         if (storedData) {
             clientData = JSON.parse(storedData);
+            console.log("Données client récupérées:", clientData);
         }
         
         // Récupérer aussi les données de parsing de poste si disponibles
         const jobData = sessionStorage.getItem('parsedJobData');
         if (jobData) {
-            clientData.jobData = JSON.parse(jobData);
+            parsedJobData = JSON.parse(jobData);
+            console.log("Données de poste récupérées:", parsedJobData);
+            clientData.jobData = parsedJobData;
         }
     } catch (error) {
         console.error('Erreur lors de la récupération des données :', error);
@@ -24,8 +29,12 @@ function generateSummary() {
     
     // Si aucune donnée n'est disponible, récupérer directement depuis les formulaires
     if (Object.keys(clientData).length === 0) {
-        collectFormData();
+        clientData = collectFormData();
     }
+    
+    // Déterminer si un recrutement est nécessaire en vérifiant plusieurs sources
+    const recruitmentNeeded = determineRecruitmentNeeded();
+    console.log("Besoin de recrutement détecté:", recruitmentNeeded);
     
     // Construire le HTML du récapitulatif
     let summaryHTML = `
@@ -47,7 +56,7 @@ function generateSummary() {
                     </tr>
                     <tr>
                         <td><strong>Taille de la structure :</strong></td>
-                        <td>${clientData.companySize || document.getElementById('company-size')?.value || 'Non spécifié'}</td>
+                        <td>${getCompanySizeLabel(clientData.companySize) || getCompanySizeLabel(document.getElementById('company-size')?.value) || 'Non spécifié'}</td>
                     </tr>
                 </tbody>
             </table>
@@ -75,17 +84,12 @@ function generateSummary() {
                     </tr>
                     <tr>
                         <td><strong>Mode de contact préféré :</strong></td>
-                        <td>${clientData.contactPreferred || document.getElementById('contact-preferred')?.value || 'Non spécifié'}</td>
+                        <td>${getContactMethodLabel(clientData.contactPreferred) || getContactMethodLabel(document.getElementById('contact-preferred')?.value) || 'Non spécifié'}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     `;
-    
-    // Récupérer les informations de recrutement
-    const recruitmentNeeded = clientData.recruitmentNeeded || 
-                             document.querySelector('input[name="recruitment-need"]:checked')?.value || 
-                             'no';
     
     summaryHTML += `
         <div class="summary-section">
@@ -94,7 +98,7 @@ function generateSummary() {
                 <tbody>
                     <tr>
                         <td><strong>Besoin de recrutement :</strong></td>
-                        <td>${recruitmentNeeded === 'yes' ? 'Oui' : 'Non'}</td>
+                        <td>${recruitmentNeeded ? 'Oui' : 'Non'}</td>
                     </tr>
                 </tbody>
             </table>
@@ -102,32 +106,77 @@ function generateSummary() {
     `;
     
     // Si un recrutement est nécessaire, ajouter les détails du poste
-    if (recruitmentNeeded === 'yes') {
-        // Récupérer les données du poste
-        const jobData = clientData.jobData || {};
+    if (recruitmentNeeded) {
+        console.log("Ajout des détails du poste au récapitulatif");
         
-        // Ajouter les informations du poste
+        // Récupérer les données du poste
+        const jobData = clientData.jobData || parsedJobData || {};
+        
+        // Vérifier si des données de poste ont été extraites par le parser
+        const hasJobInfo = jobData && (jobData.title || document.getElementById('job-title-value')?.textContent !== 'Non spécifié');
+        
+        if (hasJobInfo) {
+            summaryHTML += `
+                <div class="summary-section">
+                    <h3>Informations sur le poste (extraites)</h3>
+                    <table class="summary-table">
+                        <tbody>
+                            <tr>
+                                <td><strong>Titre du poste :</strong></td>
+                                <td>${jobData.title || document.getElementById('job-title-value')?.textContent || 'Non spécifié'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Type de contrat :</strong></td>
+                                <td>${jobData.contract_type || document.getElementById('job-contract-value')?.textContent || 'Non spécifié'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lieu :</strong></td>
+                                <td>${jobData.location || document.getElementById('job-location-value')?.textContent || 'Non spécifié'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Expérience requise :</strong></td>
+                                <td>${jobData.experience || document.getElementById('job-experience-value')?.textContent || 'Non spécifié'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Formation :</strong></td>
+                                <td>${jobData.education || document.getElementById('job-education-value')?.textContent || 'Non spécifié'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Salaire :</strong></td>
+                                <td>${jobData.salary || document.getElementById('job-salary-value')?.textContent || 'Non spécifié'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="summary-section">
+                    <h3>Compétences et responsabilités (extraites)</h3>
+                    <table class="summary-table">
+                        <tbody>
+                            <tr>
+                                <td><strong>Compétences requises :</strong></td>
+                                <td>${formatSkills(jobData.skills) || document.getElementById('job-skills-value')?.innerHTML || 'Non spécifié'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Responsabilités :</strong></td>
+                                <td>${formatList(jobData.responsibilities) || document.getElementById('job-responsibilities-value')?.innerHTML || 'Non spécifié'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Avantages :</strong></td>
+                                <td>${formatList(jobData.benefits) || document.getElementById('job-benefits-value')?.innerHTML || 'Non spécifié'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        
+        // Ajouter les informations du poste renseignées manuellement
         summaryHTML += `
             <div class="summary-section">
-                <h3>Détails du poste</h3>
+                <h3>Détails du recrutement (renseignés)</h3>
                 <table class="summary-table">
                     <tbody>
-                        <tr>
-                            <td><strong>Titre du poste :</strong></td>
-                            <td>${jobData.title || document.getElementById('job-title-value')?.textContent || 'Non spécifié'}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Type de contrat :</strong></td>
-                            <td>${jobData.contract_type || document.getElementById('job-contract-value')?.textContent || document.getElementById('contract-type')?.value || 'Non spécifié'}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Lieu :</strong></td>
-                            <td>${jobData.location || document.getElementById('job-location-value')?.textContent || 'Non spécifié'}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Expérience requise :</strong></td>
-                            <td>${getExperienceValue() || jobData.experience || document.getElementById('job-experience-value')?.textContent || 'Non spécifié'}</td>
-                        </tr>
                         <tr>
                             <td><strong>Délai de recrutement :</strong></td>
                             <td>${getRecruitmentDelays() || 'Non spécifié'}</td>
@@ -139,6 +188,14 @@ function generateSummary() {
                         <tr>
                             <td><strong>Contexte de recrutement :</strong></td>
                             <td>${getRecruitmentContext() || 'Non spécifié'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Expérience requise :</strong></td>
+                            <td>${getExperienceValue() || 'Non spécifié'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Connaissance du secteur :</strong></td>
+                            <td>${getSectorKnowledge() || 'Non spécifié'}</td>
                         </tr>
                         <tr>
                             <td><strong>Environnement de travail :</strong></td>
@@ -154,11 +211,15 @@ function generateSummary() {
                         </tr>
                         <tr>
                             <td><strong>Rémunération :</strong></td>
-                            <td>${document.getElementById('salary')?.value || jobData.salary || document.getElementById('job-salary-value')?.textContent || 'Non spécifié'}</td>
+                            <td>${document.getElementById('salary')?.value || jobData?.salary || document.getElementById('job-salary-value')?.textContent || 'Non spécifié'}</td>
                         </tr>
                         <tr>
                             <td><strong>Avantages :</strong></td>
-                            <td>${document.getElementById('benefits')?.value || formatBenefits(jobData.benefits) || document.getElementById('job-benefits-value')?.textContent || 'Non spécifié'}</td>
+                            <td>${document.getElementById('benefits')?.value || formatBenefits(jobData?.benefits) || document.getElementById('job-benefits-value')?.textContent || 'Non spécifié'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Type de contrat :</strong></td>
+                            <td>${getContractTypeLabel() || jobData?.contract_type || document.getElementById('job-contract-value')?.textContent || 'Non spécifié'}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -168,6 +229,72 @@ function generateSummary() {
     
     // Appliquer le HTML généré au conteneur
     summaryContainer.innerHTML = summaryHTML;
+}
+
+// Fonction pour déterminer si l'utilisateur a besoin d'un recrutement
+function determineRecruitmentNeeded() {
+    // Vérifier plusieurs sources pour déterminer si un recrutement est nécessaire
+    
+    // 1. Vérifier dans sessionStorage
+    const storedValue = sessionStorage.getItem('recruitmentNeeded');
+    if (storedValue === 'yes') {
+        return true;
+    }
+    
+    // 2. Vérifier le bouton radio
+    const recruitmentYes = document.getElementById('recruitment-yes');
+    if (recruitmentYes && recruitmentYes.checked) {
+        return true;
+    }
+    
+    // 3. Vérifier si des informations de poste ont été parsées
+    const parsedJobData = sessionStorage.getItem('parsedJobData');
+    if (parsedJobData) {
+        return true;
+    }
+    
+    // 4. Vérifier si le conteneur d'informations de poste est visible
+    const jobInfoContainer = document.getElementById('job-info-container');
+    if (jobInfoContainer && jobInfoContainer.style.display !== 'none') {
+        return true;
+    }
+    
+    // 5. Vérifier si la section de parsing est active
+    const jobParsingSection = document.getElementById('job-parsing-section');
+    if (jobParsingSection && jobParsingSection.classList.contains('active')) {
+        return true;
+    }
+    
+    // Par défaut, retourner false
+    return false;
+}
+
+// Fonction pour obtenir le libellé de la taille de l'entreprise
+function getCompanySizeLabel(value) {
+    if (!value) return '';
+    
+    const sizeLabels = {
+        'tpe': 'TPE',
+        'pme': 'PME',
+        'eti': 'ETI',
+        'groupe': 'Groupe',
+        'startup': 'Startup'
+    };
+    
+    return sizeLabels[value] || value;
+}
+
+// Fonction pour obtenir le libellé de la méthode de contact
+function getContactMethodLabel(value) {
+    if (!value) return '';
+    
+    const methodLabels = {
+        'email': 'Email',
+        'phone': 'Téléphone',
+        'video': 'Visioconférence'
+    };
+    
+    return methodLabels[value] || value;
 }
 
 // Fonction pour récupérer la valeur d'expérience
@@ -251,6 +378,72 @@ function getWorkEnvironment() {
     return envValues[envRadio.value] || '';
 }
 
+// Fonction pour récupérer les informations sur la connaissance du secteur
+function getSectorKnowledge() {
+    const sectorRadio = document.querySelector('input[name="sector-knowledge"]:checked');
+    if (!sectorRadio) return '';
+    
+    if (sectorRadio.value === 'no') {
+        return 'Non';
+    } else {
+        const sectorSelect = document.getElementById('sector-list');
+        const sectorValue = sectorSelect?.value || '';
+        
+        const sectorValues = {
+            'tech': 'Informatique / Tech',
+            'finance': 'Finance / Banque / Assurance',
+            'health': 'Santé / Médical',
+            'industry': 'Industrie / Production',
+            'services': 'Services',
+            'retail': 'Commerce / Distribution',
+            'construction': 'Construction / BTP',
+            'transport': 'Transport / Logistique',
+            'hospitality': 'Hôtellerie / Restauration',
+            'education': 'Éducation / Formation',
+            'other': 'Autre'
+        };
+        
+        return `Oui (${sectorValues[sectorValue] || sectorValue})`;
+    }
+}
+
+// Fonction pour récupérer le type de contrat
+function getContractTypeLabel() {
+    const contractType = document.getElementById('contract-type')?.value;
+    if (!contractType) return '';
+    
+    const contractValues = {
+        '35h': '35h',
+        '39h': '39h',
+        'cadre': 'Cadre',
+        'non-cadre': 'Non-cadre'
+    };
+    
+    return contractValues[contractType] || contractType;
+}
+
+// Fonction pour formater les compétences depuis les données du poste
+function formatSkills(skills) {
+    if (!skills || !Array.isArray(skills) || skills.length === 0) return '';
+    
+    // Récupérer l'élément HTML des compétences pour vérifier son format
+    const skillsElement = document.getElementById('job-skills-value');
+    if (skillsElement && skillsElement.innerHTML.includes('tag')) {
+        // Si l'élément utilise des tags, formater de la même façon
+        return skills.map(skill => `<span class="tag">${skill}</span>`).join(' ');
+    }
+    
+    // Sinon, retourner une liste simple
+    return skills.join(', ');
+}
+
+// Fonction pour formater une liste
+function formatList(items) {
+    if (!items || !Array.isArray(items) || items.length === 0) return '';
+    
+    return `<ul>${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+}
+
 // Fonction pour formater les avantages depuis les données du poste
 function formatBenefits(benefits) {
     if (!benefits || !Array.isArray(benefits) || benefits.length === 0) return '';
@@ -287,6 +480,8 @@ function collectFormData() {
 
 // Initialisation - Générer le résumé lorsque la page est chargée
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("Initialisation du générateur de récapitulatif");
+    
     // Vérifier si nous sommes sur la page de confirmation
     const confirmationSection = document.querySelector('.form-section[data-step="4"]');
     const isConfirmationActive = confirmationSection?.classList.contains('active');
@@ -305,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Si la page de confirmation est déjà active, générer le résumé
     if (isConfirmationActive) {
-        generateSummary();
+        setTimeout(generateSummary, 100);
     }
 });
 
@@ -352,6 +547,42 @@ document.addEventListener('DOMContentLoaded', function() {
         .summary-table td:last-child {
             width: 65%;
         }
+        
+        /* Style spécifique pour les tags */
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            background-color: #e5e7eb;
+            color: #4b5563;
+            margin: 0.25rem;
+            font-size: 0.85rem;
+        }
+        
+        /* Style pour les listes */
+        .summary-table ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        
+        .summary-table li {
+            margin-bottom: 0.25rem;
+        }
     `;
     document.head.appendChild(style);
+});
+
+// Fonction pour forcer la génération du récapitulatif
+window.forceGenerateSummary = function() {
+    generateSummary();
+};
+
+// Ajouter un écouteur d'événements pour l'étape de confirmation
+window.addEventListener('load', function() {
+    // Si on est sur l'étape de confirmation, générer le récapitulatif
+    const confirmationSection = document.querySelector('.form-section[data-step="4"]');
+    if (confirmationSection && confirmationSection.classList.contains('active')) {
+        console.log("Page de confirmation active au chargement de la page");
+        setTimeout(generateSummary, 300);
+    }
 });
