@@ -20,17 +20,29 @@ document.addEventListener('DOMContentLoaded', function() {
 /**
  * Initialise le connecteur entre le frontend et le backend
  */
-function initJobParserConnector() {
+async function initJobParserConnector() {
     // Configurer à partir des paramètres d'URL
     const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.has('apiUrl')) {
-        JOB_PARSER_CONNECTOR.apiBaseUrl = urlParams.get('apiUrl');
-    }
     
     if (urlParams.has('debug')) {
         JOB_PARSER_CONNECTOR.debug = true;
         console.log('Job Parser Connector: Debug mode enabled');
+    }
+    
+    // Essayer de détecter automatiquement un backend local si aucun n'est spécifié
+    if (!urlParams.has('apiUrl')) {
+        const detectedUrl = await tryAutoDetectBackend();
+        if (detectedUrl) {
+            JOB_PARSER_CONNECTOR.apiBaseUrl = detectedUrl;
+            if (JOB_PARSER_CONNECTOR.debug) {
+                console.log('Backend détecté automatiquement:', detectedUrl);
+            }
+            
+            // Mettre à jour l'URL pour les futurs rechargements
+            updateUrlWithBackend(detectedUrl);
+        }
+    } else {
+        JOB_PARSER_CONNECTOR.apiBaseUrl = urlParams.get('apiUrl');
     }
 
     // S'assurer que JobParserAPI est correctement initialisée avec nos paramètres
@@ -53,6 +65,79 @@ function initJobParserConnector() {
     
     // Vérifier la connexion au backend
     testBackendConnection();
+}
+
+/**
+ * Tente de détecter automatiquement un backend en cours d'exécution
+ * @returns {Promise<string|null>} L'URL du backend détecté ou null si aucun n'est trouvé
+ */
+async function tryAutoDetectBackend() {
+    // Liste des URLs de backend à tester
+    const potentialBackends = [
+        'http://localhost:5055',  // Serveur local standard
+        'http://127.0.0.1:5055',  // Alternative localhost
+        'http://localhost:5056',  // Port alternatif 1
+        'http://127.0.0.1:5056',  // Port alternatif 1 sur 127.0.0.1
+        'http://localhost:8055',  // Port alternatif 2
+        'http://localhost:3000',  // Port de développement courant
+    ];
+    
+    // URL déjà configurée dans localStorage
+    const savedUrl = localStorage.getItem('backendUrl');
+    if (savedUrl) {
+        // Tester d'abord l'URL sauvegardée
+        try {
+            const response = await fetch(`${savedUrl}/api/health`, {
+                method: 'GET',
+                signal: AbortSignal.timeout(500)
+            });
+            
+            if (response.ok) {
+                return savedUrl;
+            }
+        } catch (error) {
+            // Ignorer l'erreur et continuer avec les autres URLs
+            console.log('Erreur avec l\'URL sauvegardée, test des autres options');
+        }
+    }
+    
+    // Tester chaque URL potentielle
+    for (const url of potentialBackends) {
+        try {
+            const response = await fetch(`${url}/api/health`, {
+                method: 'GET',
+                signal: AbortSignal.timeout(500) // Court timeout pour ne pas bloquer longtemps
+            });
+            
+            if (response.ok) {
+                // Sauvegarder l'URL détectée pour les prochaines visites
+                localStorage.setItem('backendUrl', url);
+                return url;
+            }
+        } catch (error) {
+            // Ignorer les erreurs et essayer l'URL suivante
+        }
+    }
+    
+    // Aucun backend trouvé
+    return null;
+}
+
+/**
+ * Met à jour l'URL avec le paramètre du backend sans recharger la page
+ * @param {string} backendUrl - L'URL du backend à ajouter aux paramètres
+ */
+function updateUrlWithBackend(backendUrl) {
+    if (!backendUrl) return;
+    
+    // Créer une nouvelle URL avec les paramètres actuels
+    const url = new URL(window.location.href);
+    
+    // Ajouter ou mettre à jour le paramètre apiUrl
+    url.searchParams.set('apiUrl', backendUrl);
+    
+    // Mettre à jour l'URL sans recharger la page
+    window.history.replaceState({}, '', url.toString());
 }
 
 /**
@@ -312,6 +397,8 @@ function processServerResponse(response) {
 async function testBackendConnection() {
     const gptButton = document.getElementById('analyze-with-gpt');
     const statusElement = document.getElementById('gpt-analyze-status');
+    const backendStatusBanner = document.getElementById('backend-status-banner');
+    const backendStatusText = document.getElementById('backend-status-text');
     
     try {
         // Tester la connexion avec une requête simple
@@ -332,6 +419,12 @@ async function testBackendConnection() {
                 statusElement.style.color = 'green';
             }
             
+            // Mettre à jour la bannière d'état si elle existe
+            if (backendStatusBanner && backendStatusText) {
+                backendStatusBanner.className = 'backend-status-banner connected';
+                backendStatusText.textContent = 'Connecté au service d\'analyse GPT';
+            }
+            
             // Activer le bouton GPT si du texte est présent
             const jobText = document.getElementById('job-description-text');
             if (gptButton && jobText && jobText.value.trim()) {
@@ -348,6 +441,12 @@ async function testBackendConnection() {
         if (statusElement) {
             statusElement.textContent = 'Service non disponible';
             statusElement.style.color = 'red';
+        }
+        
+        // Mettre à jour la bannière d'état si elle existe
+        if (backendStatusBanner && backendStatusText) {
+            backendStatusBanner.className = 'backend-status-banner disconnected';
+            backendStatusText.textContent = 'Service d\'analyse GPT non disponible - Vérifiez la configuration';
         }
         
         // Désactiver le bouton GPT si la connexion a échoué
