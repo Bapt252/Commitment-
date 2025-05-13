@@ -1401,5 +1401,115 @@
             showDebugMessage('URL de l\'API configurée: ' + (urlParams.get('apiUrl') || 'http://localhost:5055'));
         }
     </script>
+    
+    <!-- Script pour l'intégration de Google Maps Places Autocomplete -->
+    <script>
+        // Fonction pour charger l'API Google Maps dynamiquement
+        function loadGoogleMapsScript(apiKey, callback) {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${callback}`;
+            script.defer = true;
+            script.async = true;
+            document.head.appendChild(script);
+        }
+
+        // Initialisation de l'autocomplétion Google Maps Places
+        function initGoogleMapsAutocomplete() {
+            // Sélection du champ d'adresse
+            const addressInput = document.querySelector('input[placeholder="Adresse complète de votre structure"]');
+            
+            if (!addressInput) {
+                console.error('Champ d\'adresse non trouvé');
+                return;
+            }
+            
+            // Création de l'objet autocomplete
+            const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                types: ['address'],
+                componentRestrictions: { country: "fr" } // Restriction à la France
+            });
+            
+            // Quand une adresse est sélectionnée
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                
+                if (!place.geometry) {
+                    console.error("Aucun détail disponible pour l'entrée: '" + place.name + "'");
+                    return;
+                }
+                
+                // Remplir le champ avec l'adresse formatée
+                addressInput.value = place.formatted_address;
+                
+                // Extraire les composants de l'adresse
+                const addressComponents = {
+                    streetNumber: '',
+                    route: '',
+                    locality: '',
+                    postalCode: '',
+                    country: ''
+                };
+                
+                place.address_components.forEach(component => {
+                    const types = component.types;
+                    
+                    if (types.includes('street_number')) {
+                        addressComponents.streetNumber = component.long_name;
+                    } else if (types.includes('route')) {
+                        addressComponents.route = component.long_name;
+                    } else if (types.includes('locality')) {
+                        addressComponents.locality = component.long_name;
+                    } else if (types.includes('postal_code')) {
+                        addressComponents.postalCode = component.long_name;
+                    } else if (types.includes('country')) {
+                        addressComponents.country = component.long_name;
+                    }
+                });
+                
+                // Obtenir les coordonnées
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                
+                // Ajouter des champs cachés pour stocker les données additionnelles
+                addHiddenField('address_lat', lat);
+                addHiddenField('address_lng', lng);
+                addHiddenField('address_components', JSON.stringify(addressComponents));
+            });
+            
+            // Empêcher la soumission du formulaire lors de l'appui sur Entrée
+            addressInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
+            });
+            
+            // Fonction pour ajouter un champ caché au formulaire
+            function addHiddenField(name, value) {
+                const form = addressInput.closest('form');
+                if (!form) return;
+                
+                let field = form.querySelector(`input[name="${name}"]`);
+                
+                if (!field) {
+                    field = document.createElement('input');
+                    field.type = 'hidden';
+                    field.name = name;
+                    form.appendChild(field);
+                }
+                
+                field.value = value;
+            }
+        }
+
+        // Fonction appelée par l'API Google Maps une fois chargée
+        function initAutocomplete() {
+            initGoogleMapsAutocomplete();
+        }
+
+        // Chargement de l'API Google Maps
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGoogleMapsScript('AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8', 'initAutocomplete');
+        });
+    </script>
 </body>
 </html>
