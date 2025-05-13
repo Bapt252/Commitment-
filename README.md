@@ -38,6 +38,52 @@ Après avoir lancé les conteneurs, les services sont accessibles aux URLs suiva
 - **Redis Commander**: http://localhost:8081
 - **RQ Dashboard**: http://localhost:9181
 
+## Nouvelle fonctionnalité : Analyse GPT des fiches de poste
+
+Nous avons ajouté un nouveau service d'analyse des fiches de poste avec GPT. Ce service permet d'extraire automatiquement les informations clés des fiches de poste, comme le titre, l'entreprise, la localisation, les compétences requises, etc.
+
+### Démarrer le service d'analyse GPT des fiches de poste
+
+```bash
+# Se placer dans le répertoire job-parser-service
+cd job-parser-service
+
+# Rendre le script de démarrage exécutable
+chmod +x start-gpt-api.sh
+
+# Démarrer le service
+./start-gpt-api.sh
+```
+
+Vous serez invité à saisir votre clé API OpenAI si elle n'est pas déjà définie dans l'environnement.
+
+### Utiliser Docker pour le service d'analyse GPT
+
+```bash
+# Se placer dans le répertoire job-parser-service
+cd job-parser-service
+
+# Construire l'image Docker
+docker build -t job-parser-gpt-api .
+
+# Démarrer le conteneur
+docker run -p 5055:5055 -e OPENAI_API_KEY="votre-clé-api-openai" job-parser-gpt-api
+```
+
+### Utiliser le frontend avec l'analyse GPT
+
+Pour utiliser l'interface web avec le nouveau service d'analyse GPT, ouvrez la page suivante :
+
+```
+https://bapt252.github.io/Commitment-/templates/client-questionnaire.html?apiUrl=http://localhost:5055
+```
+
+Vous pouvez également ajouter le paramètre `debug=true` pour activer le mode de débogage :
+
+```
+https://bapt252.github.io/Commitment-/templates/client-questionnaire.html?apiUrl=http://localhost:5055&debug=true
+```
+
 ## Scripts utilitaires
 
 Le projet contient plusieurs scripts utilitaires pour faciliter le développement:
@@ -46,6 +92,7 @@ Le projet contient plusieurs scripts utilitaires pour faciliter le développemen
 - `./restart-cv-parser.sh`: Script pour redémarrer uniquement le service cv-parser
 - `./curl-test-cv-parser.sh`: Script pour tester l'API de parsing de CV avec curl
 - `./curl-test-job-parser.sh`: Script pour tester l'API de parsing de fiches de poste avec curl
+- `./job-parser-service/start-gpt-api.sh`: Script pour démarrer le service d'analyse GPT des fiches de poste
 
 ## Tester le service de parsing CV
 
@@ -63,69 +110,25 @@ curl -X POST \
   -F "force_refresh=false"
 ```
 
-## Tester le service de parsing de fiches de poste
+## Tester le service d'analyse GPT des fiches de poste
 
-Pour tester manuellement le service de parsing de fiches de poste avec GPT:
+Pour tester manuellement le service d'analyse GPT des fiches de poste:
 
 ```bash
 # Tester le endpoint health
-curl http://localhost:5055/api/health
+curl http://localhost:5055/health
 
-# Tester le parsing d'une fiche de poste
+# Tester l'analyse par texte
 curl -X POST \
-  http://localhost:5055/api/parse-job \
+  http://localhost:5055/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Fiche de poste: Développeur Full Stack..."}'
+
+# Tester l'analyse par fichier
+curl -X POST \
+  http://localhost:5055/analyze-file \
   -H "Content-Type: multipart/form-data" \
   -F "file=@/chemin/vers/votre/fiche_poste.pdf"
-```
-
-## Démarrer le service de parsing de fiches de poste
-
-Le nouveau service de parsing de fiches de poste avec GPT se trouve dans le répertoire `backend/`. Vous pouvez le démarrer de plusieurs façons :
-
-### 1. Utiliser Docker Compose (recommandé)
-
-```bash
-# Se placer dans le répertoire backend
-cd backend
-
-# Créer le fichier .env à partir du modèle
-cp .env.example .env
-# Éditer .env et ajouter votre clé API OpenAI
-
-# Démarrer le conteneur
-docker compose up -d
-```
-
-### 2. Installer et exécuter directement en Python
-
-```bash
-# Se placer dans le répertoire backend
-cd backend
-
-# Installer les dépendances
-pip install -r requirements.txt
-
-# Définir la clé API OpenAI
-export OPENAI_API_KEY=votre_clé_api_openai  # Linux/Mac
-# ou
-set OPENAI_API_KEY=votre_clé_api_openai  # Windows
-
-# Démarrer le serveur
-python job_parser_api.py
-```
-
-## Utiliser le frontend avec le parser GPT
-
-Pour utiliser le frontend avec le nouveau service de parsing GPT, ouvrez la page web suivante :
-
-```
-https://bapt252.github.io/Commitment-/templates/client-questionnaire.html?apiUrl=http://localhost:5055
-```
-
-Ou si vous hébergez le service sur un autre serveur :
-
-```
-https://bapt252.github.io/Commitment-/templates/client-questionnaire.html?apiUrl=http://votre-serveur:5055
 ```
 
 ## Architecture
