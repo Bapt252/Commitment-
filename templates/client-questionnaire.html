@@ -560,6 +560,21 @@
             color: #e32;
             font-weight: bold;
         }
+        
+        /* Style pour le récapitulatif */
+        .summary-container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-container h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -1089,6 +1104,7 @@
     <script src="../scripts/debug-gpt.js"></script>
     <script src="../scripts/backend-config-helper.js"></script>
     <script src="../scripts/questionnaire-navigation.js"></script>
+    <script src="../scripts/summary-generator.js"></script> <!-- Ajout du script de récapitulatif -->
     <script>
         // Définir l'URL du dashboard
         const DASHBOARD_URL = "https://bapt252.github.io/Commitment-/templates/company-dashboard.html";
