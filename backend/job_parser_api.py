@@ -273,6 +273,16 @@ def analyze_job_locally(job_text: str) -> Dict[str, Any]:
         logger.error(f"Erreur lors de l'analyse locale: {e}")
         return result
 
+# Route racine pour vérifier que le serveur répond
+@app.route('/', methods=['GET'])
+def root():
+    """Endpoint racine pour tester si le serveur fonctionne."""
+    return jsonify({
+        "message": "Job Parser API est en cours d'exécution",
+        "version": "1.0.0",
+        "endpoints": ["/api/health", "/api/parse-job"]
+    })
+
 # Route pour l'analyse de fichier/texte
 @app.route('/api/parse-job', methods=['POST'])
 def parse_job():
@@ -336,12 +346,21 @@ def health_check():
     """Endpoint pour vérifier que l'API est fonctionnelle."""
     return jsonify({"status": "ok", "version": "1.0.0"})
 
+# Ajouter un endpoint alternatif pour health-check
+@app.route('/api/health-check', methods=['GET'])
+def alt_health_check():
+    """Endpoint alternatif pour vérifier que l'API est fonctionnelle."""
+    return health_check()
+
 # Lancement de l'application
 if __name__ == '__main__':
     # Vérifier si la clé API est configurée
     if not Config.OPENAI_API_KEY:
         logger.warning("Aucune clé API OpenAI n'a été configurée. Certaines fonctionnalités seront limitées.")
+    else:
+        logger.info(f"Utilisation du modèle OpenAI: {Config.OPENAI_MODEL}")
     
     # Démarrer le serveur
     port = int(os.environ.get("PORT", 5055))
+    logger.info(f"Démarrage du serveur sur le port {port}...")
     app.run(host='0.0.0.0', port=port, debug=Config.DEBUG)
