@@ -19,17 +19,18 @@ logger = logging.getLogger(__name__)
 class GoogleMapsClient:
     """Client pour interagir avec l'API Google Maps avec mode hybride automatique"""
     
-    def __init__(self, use_mock_mode=False, use_hybrid_mode=True):
+    def __init__(self, api_key=None, use_mock_mode=False, use_hybrid_mode=True):
         """
         Initialise le client Google Maps
         
         Args:
+            api_key: Clé API Google Maps (optionnelle, pour compatibilité)
             use_mock_mode (bool): Si True, utilise uniquement des données simulées
             use_hybrid_mode (bool): Si True, bascule automatiquement entre API réelle et simulation
         """
-        # Charger la clé API depuis les variables d'environnement
+        # Charger la clé API depuis les variables d'environnement ou le paramètre
         load_dotenv()
-        self.api_key = os.getenv('GOOGLE_MAPS_API_KEY')
+        self.api_key = api_key or os.getenv('GOOGLE_MAPS_API_KEY')
         self.use_mock_mode = use_mock_mode
         self.use_hybrid_mode = use_hybrid_mode and not use_mock_mode  # Hybride uniquement si pas en mode simulation pur
         
@@ -118,7 +119,10 @@ class GoogleMapsClient:
             "75001, France": (48.86, 2.34),
             "92100, France": (48.9, 2.3),
             "20 Rue de la Paix, 75002 Paris, France": (48.8689111, 2.3297426),
-            "10 Place Bellecour, 69002 Lyon, France": (45.7578137, 4.8320114)
+            "10 Place Bellecour, 69002 Lyon, France": (45.7578137, 4.8320114),
+            # Adresses spécifiques pour l'exemple d'intégration
+            "Tour Montparnasse, 75015 Paris, France": (48.8421, 2.3219),
+            "15 Quai des Bateliers, 67000 Strasbourg, France": (48.5809, 7.7523)
         }
         
         # Ajouter des données depuis le fichier sample_addresses.py si disponible
