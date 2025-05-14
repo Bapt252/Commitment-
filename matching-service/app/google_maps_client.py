@@ -1,287 +1,350 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Client Google Maps pour le système Nexten SmartMatch
----------------------------------------------------
-Calcule les temps de trajet entre les localisations des candidats et des entreprises
-en utilisant différents modes de transport (voiture, transports en commun, etc.)
-Auteur: Claude/Anthropic
-Date: 14/05/2025
+Client Google Maps amélioré avec mode simulation pour Nexten SmartMatch
 """
 
 import os
 import logging
-import requests
+import random
+import json
 import time
-from typing import Dict, Any, List, Optional, Tuple, Union
-from functools import lru_cache
+from typing import Dict, Optional, List, Tuple, Any
+from dotenv import load_dotenv
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GoogleMapsClient:
-    """
-    Client pour l'API Google Maps Distance Matrix.
-    Permet de calculer les temps de trajet entre deux adresses avec différents modes de transport.
-    """
+    """Client pour interagir avec l'API Google Maps"""
     
-    def __init__(self, api_key: str = None, use_cache: bool = True, cache_size: int = 1000):
+    def __init__(self, use_mock_mode=False):
         """
-        Initialise le client avec une clé API et des options de cache.
+        Initialise le client Google Maps
         
         Args:
-            api_key (str, optional): Clé API Google Maps
-            use_cache (bool): Utiliser le cache pour les calculs de trajet
-            cache_size (int): Taille du cache (nombre d'entrées)
+            use_mock_mode (bool): Si True, utilise des données simulées au lieu d'appeler l'API
         """
-        self.api_key = api_key or os.environ.get('GOOGLE_MAPS_API_KEY')
+        # Charger la clé API depuis les variables d'environnement
+        load_dotenv()
+        self.api_key = os.getenv('GOOGLE_MAPS_API_KEY')
+        self.use_mock_mode = use_mock_mode
         
-        if not self.api_key:
-            logger.warning("Aucune clé API Google Maps trouvée. Les fonctionnalités de calcul de trajet utiliseront des estimations.")
+        if not self.api_key and not self.use_mock_mode:
+            logger.warning("⚠️ Clé API Google Maps non trouvée! Les requêtes échoueront.")
         else:
             logger.info("Client Google Maps initialisé avec succès")
+            
+        # Initialiser le client Google Maps réel si nécessaire
+        if not self.use_mock_mode:
+            try:
+                import googlemaps
+                self.gmaps = googlemaps.Client(key=self.api_key)
+            except ImportError:
+                logger.error("❌ Module 'googlemaps' non installé!")
+                self.gmaps = None
+            except Exception as e:
+                logger.error(f"❌ Erreur lors de l'initialisation du client: {e}")
+                self.gmaps = None
         
-        # URL de base pour l'API Distance Matrix
-        self.base_url = "https://maps.googleapis.com/maps/api/distancematrix/json"
-        
-        # Configuration du cache
-        self.use_cache = use_cache
-        if use_cache:
-            # Décorateur de cache pour la méthode get_travel_time
-            self.get_travel_time = lru_cache(maxsize=cache_size)(self._get_travel_time)
-        else:
-            self.get_travel_time = self._get_travel_time
+        # Données simulées
+        self._mock_data = self._load_mock_data()
     
-    def _get_travel_time(self, origin: str, destination: str, mode: str = "driving") -> int:
+    def _load_mock_data(self) -> Dict:
+        """Charge ou génère des données simulées pour le développement"""
+        # Trajets prédéfinis (origine -> destination -> durée en minutes par mode)
+        predefined_routes = {
+            # Format: "origine|destination": {"driving": minutes, "transit": minutes, ...}
+            "Paris, France|Lyon, France": {
+                "driving": 273, 
+                "transit": 119, 
+                "bicycling": 1620, 
+                "walking": 3240
+            },
+            "Paris, France|Versailles, France": {
+                "driving": 28,
+                "transit": 42,
+                "bicycling": 65,
+                "walking": 133
+            },
+            "Nantes, France|Saint-Nazaire, France": {
+                "driving": 55,
+                "transit": 78,
+                "bicycling": 162,
+                "walking": 390
+            },
+            "75001, France|92100, France": {
+                "driving": 24,
+                "transit": 39,
+                "bicycling": 45,
+                "walking": 96
+            }
+        }
+        
+        # Géocodage prédéfini (adresse -> lat, lng)
+        predefined_geocodes = {
+            "Paris, France": (48.856614, 2.3522219),
+            "Lyon, France": (45.764043, 4.835659),
+            "Versailles, France": (48.8035403, 2.1266886),
+            "Nantes, France": (47.218371, -1.553621),
+            "Saint-Nazaire, France": (47.2734979, -2.213848),
+            "75001, France": (48.86, 2.34),
+            "92100, France": (48.9, 2.3),
+            "20 Rue de la Paix, 75002 Paris, France": (48.8689111, 2.3297426),
+            "10 Place Bellecour, 69002 Lyon, France": (45.7578137, 4.8320114)
+        }
+        
+        # Ajouter des données depuis le fichier sample_addresses.py si disponible
+        try:
+            from test.data.sample_addresses import SAMPLE_ADDRESSES, SAMPLE_MATCHING_PAIRS
+            
+            # Ajouter les adresses d'exemple
+            for address in SAMPLE_ADDRESSES:
+                if address not in predefined_geocodes:
+                    # Générer des coordonnées fictives en France
+                    predefined_geocodes[address] = (
+                        random.uniform(42.0, 51.0),  # latitude en France
+                        random.uniform(-4.0, 8.0)    # longitude en France
+                    )
+            
+            # Ajouter les paires de matching
+            for pair in SAMPLE_MATCHING_PAIRS:
+                key = f"{pair['candidate']}|{pair['company']}"
+                if key not in predefined_routes:
+                    predefined_routes[key] = pair.get('expected_commute', {})
+                    
+                    # Si les temps de trajet ne sont pas définis, générer des valeurs
+                    if not predefined_routes[key]:
+                        predefined_routes[key] = {
+                            "driving": random.randint(10, 90),
+                            "transit": random.randint(15, 120),
+                            "bicycling": random.randint(20, 180),
+                            "walking": random.randint(30, 360)
+                        }
+                        
+        except ImportError:
+            logger.warning("⚠️ Données d'exemple non disponibles. Utilisation des données prédéfinies seulement.")
+            
+        return {
+            "routes": predefined_routes,
+            "geocodes": predefined_geocodes
+        }
+    
+    def get_travel_time(self, origin: str, destination: str, mode: str = "driving") -> int:
         """
         Calcule le temps de trajet entre deux adresses.
         
         Args:
-            origin (str): Adresse de départ
-            destination (str): Adresse d'arrivée
-            mode (str): Mode de transport (driving, transit, walking, bicycling)
+            origin: Adresse d'origine
+            destination: Adresse de destination
+            mode: Mode de transport (driving, transit, bicycling, walking)
             
         Returns:
-            int: Temps de trajet en minutes, -1 en cas d'erreur
+            Temps de trajet estimé en minutes, -1 en cas d'erreur
         """
-        if not self.api_key:
-            # Estimation basique basée sur une vitesse moyenne et une distance à vol d'oiseau
-            logger.warning("Pas de clé API, utilisation d'une estimation basique du temps de trajet")
-            return self._estimate_travel_time(origin, destination, mode)
+        # Mode simulation
+        if self.use_mock_mode:
+            return self._mock_get_travel_time(origin, destination, mode)
         
-        # Construire les paramètres de l'URL
-        params = {
-            "origins": origin,
-            "destinations": destination,
-            "mode": mode,
-            "key": self.api_key
-        }
-        
-        # Ajouter des paramètres spécifiques pour les transports en commun
-        if mode == "transit":
-            # Utiliser l'heure actuelle par défaut
-            params["departure_time"] = "now"
+        # Mode réel avec API
+        if not self.gmaps:
+            logger.error("❌ Client Google Maps non initialisé!")
+            return -1
         
         try:
-            # Effectuer la requête
-            logger.debug(f"Calcul du temps de trajet de {origin} à {destination} en {mode}")
-            response = requests.get(self.base_url, params=params)
-            
-            # Vérifier la réponse
-            if response.status_code != 200:
-                logger.error(f"Erreur de requête à l'API Google Maps: {response.status_code}")
-                return -1
-            
-            # Analyser la réponse JSON
-            data = response.json()
-            
-            # Vérifier le statut de la réponse
-            if data["status"] != "OK":
-                logger.error(f"Erreur API Google Maps: {data['status']}")
-                return -1
-            
-            # Extraire le temps de trajet
-            if data["rows"][0]["elements"][0]["status"] == "OK":
-                duration_seconds = data["rows"][0]["elements"][0]["duration"]["value"]
-                duration_minutes = round(duration_seconds / 60)
-                
-                # Ajouter des informations supplémentaires pour le mode transit
-                if mode == "transit" and "transit_details" in data["rows"][0]["elements"][0]:
-                    transit_details = data["rows"][0]["elements"][0]["transit_details"]
-                    logger.info(f"Détails du transit: {transit_details}")
-                
-                return duration_minutes
-            else:
-                logger.warning(f"Impossible de calculer le trajet: {data['rows'][0]['elements'][0]['status']}")
-                return -1
-        
-        except Exception as e:
-            logger.error(f"Erreur lors du calcul du temps de trajet: {e}")
-            return -1
-    
-    def _estimate_travel_time(self, origin: str, destination: str, mode: str = "driving") -> int:
-        """
-        Estime le temps de trajet sans utiliser l'API Google Maps.
-        Utilise une approximation basée sur des vitesses moyennes.
-        
-        Args:
-            origin (str): Adresse de départ
-            destination (str): Adresse d'arrivée
-            mode (str): Mode de transport
-            
-        Returns:
-            int: Temps de trajet estimé en minutes
-        """
-        try:
-            # Vitesses moyennes approximatives en km/h par mode de transport
-            speeds = {
-                "driving": 50,     # Vitesse moyenne en ville/périphérie
-                "transit": 30,     # Vitesse moyenne des transports en commun
-                "walking": 5,      # Vitesse moyenne de marche
-                "bicycling": 15    # Vitesse moyenne à vélo
-            }
-            
-            # Si les villes sont identiques (même début d'adresse), retourner un temps court
-            if origin.split(',')[0] == destination.split(',')[0]:
-                if mode == "driving":
-                    return 15  # 15 minutes en voiture dans la même ville
-                elif mode == "transit":
-                    return 25  # 25 minutes en transport dans la même ville
-                elif mode == "walking":
-                    return 45  # 45 minutes à pied dans la même ville
-                elif mode == "bicycling":
-                    return 25  # 25 minutes à vélo dans la même ville
-            
-            # Pour les villes différentes, faire une estimation plus longue
-            else:
-                if mode == "driving":
-                    return 60  # 1 heure en voiture entre villes
-                elif mode == "transit":
-                    return 90  # 1h30 en transport entre villes
-                elif mode == "walking":
-                    return -1  # Trop loin pour marcher
-                elif mode == "bicycling":
-                    return 180  # 3h à vélo entre villes (peu probable)
-            
-            return -1  # Par défaut si on ne peut pas estimer
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de l'estimation du temps de trajet: {e}")
-            return -1
-    
-    def get_transit_time(self, origin: str, destination: str) -> int:
-        """
-        Calcule le temps de trajet en transports en commun entre deux adresses.
-        
-        Args:
-            origin (str): Adresse de départ
-            destination (str): Adresse d'arrivée
-            
-        Returns:
-            int: Temps de trajet en minutes, -1 en cas d'erreur
-        """
-        return self.get_travel_time(origin, destination, mode="transit")
-    
-    def get_walking_time(self, origin: str, destination: str) -> int:
-        """
-        Calcule le temps de trajet à pied entre deux adresses.
-        
-        Args:
-            origin (str): Adresse de départ
-            destination (str): Adresse d'arrivée
-            
-        Returns:
-            int: Temps de trajet en minutes, -1 en cas d'erreur
-        """
-        return self.get_travel_time(origin, destination, mode="walking")
-    
-    def get_bicycling_time(self, origin: str, destination: str) -> int:
-        """
-        Calcule le temps de trajet à vélo entre deux adresses.
-        
-        Args:
-            origin (str): Adresse de départ
-            destination (str): Adresse d'arrivée
-            
-        Returns:
-            int: Temps de trajet en minutes, -1 en cas d'erreur
-        """
-        return self.get_travel_time(origin, destination, mode="bicycling")
-    
-    def get_all_transit_modes(self, origin: str, destination: str) -> Dict[str, int]:
-        """
-        Calcule les temps de trajet pour tous les modes de transport disponibles.
-        
-        Args:
-            origin (str): Adresse de départ
-            destination (str): Adresse d'arrivée
-            
-        Returns:
-            Dict[str, int]: Dictionnaire des temps de trajet par mode
-        """
-        return {
-            "driving": self.get_travel_time(origin, destination, mode="driving"),
-            "transit": self.get_travel_time(origin, destination, mode="transit"),
-            "walking": self.get_travel_time(origin, destination, mode="walking"),
-            "bicycling": self.get_travel_time(origin, destination, mode="bicycling")
-        }
-    
-    def calculate_commute_score(self, origin: str, destination: str, 
-                               max_time_minutes: int = 60,
-                               preferred_mode: str = "driving") -> float:
-        """
-        Calcule un score de facilité de trajet entre 0 et 1.
-        
-        Args:
-            origin (str): Adresse de départ
-            destination (str): Adresse d'arrivée
-            max_time_minutes (int): Temps de trajet maximum acceptable en minutes
-            preferred_mode (str): Mode de transport préféré
-            
-        Returns:
-            float: Score entre 0 (très difficile) et 1 (très facile)
-        """
-        # Obtenir les temps de trajet pour différents modes
-        driving_time = self.get_travel_time(origin, destination, mode="driving")
-        transit_time = self.get_travel_time(origin, destination, mode="transit")
-        walking_time = self.get_travel_time(origin, destination, mode="walking")
-        
-        # Si aucun trajet n'est possible
-        if driving_time <= 0 and transit_time <= 0 and walking_time <= 0:
-            return 0.0
-        
-        # Sélectionner le temps pour le mode préféré
-        if preferred_mode == "driving":
-            preferred_time = driving_time if driving_time > 0 else float('inf')
-        elif preferred_mode == "transit":
-            preferred_time = transit_time if transit_time > 0 else float('inf')
-        elif preferred_mode == "walking":
-            preferred_time = walking_time if walking_time > 0 else float('inf')
-        else:
-            # Par défaut, prendre le meilleur temps
-            preferred_time = min(
-                driving_time if driving_time > 0 else float('inf'),
-                transit_time if transit_time > 0 else float('inf'),
-                walking_time if walking_time > 0 else float('inf')
+            now = int(time.time())
+            directions = self.gmaps.directions(
+                origin=origin,
+                destination=destination,
+                mode=mode,
+                departure_time=now
             )
-            if preferred_time == float('inf'):
-                preferred_time = -1
+            
+            if directions and len(directions) > 0:
+                # Récupérer la durée du premier itinéraire
+                leg = directions[0].get('legs', [{}])[0]
+                duration = leg.get('duration', {}).get('value', 0)
+                
+                # Convertir de secondes en minutes
+                return int(duration / 60)
+            else:
+                logger.warning(f"⚠️ Aucun itinéraire trouvé entre {origin} et {destination}")
+                return -1
+                
+        except Exception as e:
+            logger.error(f"❌ Erreur API Google Maps: {e}")
+            return -1
+    
+    def _mock_get_travel_time(self, origin: str, destination: str, mode: str = "driving") -> int:
+        """Version simulée de get_travel_time pour le développement"""
+        # Rechercher d'abord une correspondance exacte
+        key = f"{origin}|{destination}"
+        if key in self._mock_data["routes"]:
+            return self._mock_data["routes"][key].get(mode, 30)
         
-        # Si le mode préféré n'est pas possible
-        if preferred_time <= 0:
-            return 0.2  # Score de base faible mais pas nul
+        # Si pas de correspondance exacte, simuler un temps raisonnable
+        # basé sur le mode de transport
+        base_time = random.randint(15, 45)  # Temps de base entre 15 et 45 minutes
+        mode_multipliers = {
+            "driving": 1.0,
+            "transit": 1.5,
+            "bicycling": 3.0,
+            "walking": 6.0
+        }
         
-        # Calculer le score basé sur le ratio temps/temps max
-        ratio = preferred_time / max_time_minutes
+        # Ajouter un peu de variabilité
+        variation = random.uniform(0.8, 1.2)
         
-        if ratio <= 0.5:  # Moins de la moitié du temps max
-            score = 1.0
-        elif ratio <= 1.0:  # Entre la moitié et le temps max
-            score = 1.0 - 0.5 * (ratio - 0.5) / 0.5
-        else:  # Plus que le temps max
-            score = 0.5 * max(0, 2.0 - ratio)
+        # Simuler un temps raisonnable
+        return int(base_time * mode_multipliers.get(mode, 1.0) * variation)
+    
+    def geocode_address(self, address: str) -> Optional[Tuple[float, float]]:
+        """
+        Convertit une adresse en coordonnées géographiques (latitude, longitude)
         
-        # Bonus pour les options multiples de transport
-        transport_options = sum(1 for t in [driving_time, transit_time, walking_time] if t > 0 and t <= max_time_minutes * 1.5)
-        option_bonus = min(0.2, transport_options * 0.1)  # Max 0.2 de bonus
+        Args:
+            address: Adresse à géocoder
+            
+        Returns:
+            Tuple (latitude, longitude) ou None en cas d'erreur
+        """
+        # Mode simulation
+        if self.use_mock_mode:
+            return self._mock_geocode_address(address)
         
-        return min(1.0, score + option_bonus)
+        # Mode réel avec API
+        if not self.gmaps:
+            logger.error("❌ Client Google Maps non initialisé!")
+            return None
+        
+        try:
+            geocode_result = self.gmaps.geocode(address)
+            
+            if geocode_result and len(geocode_result) > 0:
+                location = geocode_result[0].get('geometry', {}).get('location', {})
+                lat = location.get('lat')
+                lng = location.get('lng')
+                
+                if lat is not None and lng is not None:
+                    return (lat, lng)
+                    
+            logger.warning(f"⚠️ Impossible de géocoder l'adresse: {address}")
+            return None
+            
+        except Exception as e:
+            logger.error(f"❌ Erreur API Google Maps: {e}")
+            return None
+    
+    def _mock_geocode_address(self, address: str) -> Optional[Tuple[float, float]]:
+        """Version simulée de geocode_address pour le développement"""
+        # Rechercher une correspondance exacte
+        if address in self._mock_data["geocodes"]:
+            return self._mock_data["geocodes"][address]
+        
+        # Générer des coordonnées fictives en France
+        lat = random.uniform(42.0, 51.0)  # latitude en France
+        lng = random.uniform(-4.0, 8.0)   # longitude en France
+        
+        # Ajouter à notre cache pour une utilisation future
+        self._mock_data["geocodes"][address] = (lat, lng)
+        
+        return (lat, lng)
+    
+    def get_distance_matrix(self, origins: List[str], destinations: List[str], 
+                           mode: str = "driving") -> Dict:
+        """
+        Calcule une matrice de distance entre plusieurs origines et destinations
+        
+        Args:
+            origins: Liste d'adresses d'origine
+            destinations: Liste d'adresses de destination
+            mode: Mode de transport
+            
+        Returns:
+            Dictionnaire contenant la matrice de distance et de durée
+        """
+        # Mode simulation
+        if self.use_mock_mode:
+            return self._mock_get_distance_matrix(origins, destinations, mode)
+        
+        # Mode réel avec API
+        if not self.gmaps:
+            logger.error("❌ Client Google Maps non initialisé!")
+            return {"error": "Client non initialisé"}
+        
+        try:
+            now = int(time.time())
+            matrix = self.gmaps.distance_matrix(
+                origins=origins,
+                destinations=destinations,
+                mode=mode,
+                departure_time=now
+            )
+            
+            return matrix
+            
+        except Exception as e:
+            logger.error(f"❌ Erreur API Google Maps: {e}")
+            return {"error": str(e)}
+    
+    def _mock_get_distance_matrix(self, origins: List[str], destinations: List[str], 
+                                 mode: str = "driving") -> Dict:
+        """Version simulée de get_distance_matrix pour le développement"""
+        rows = []
+        
+        for origin in origins:
+            row = {"elements": []}
+            
+            for destination in destinations:
+                # Récupérer ou générer un temps de trajet
+                travel_time = self._mock_get_travel_time(origin, destination, mode)
+                
+                # Convertir en secondes pour la cohérence avec l'API
+                duration_value = travel_time * 60
+                
+                # Distance approximative (en mètres, basée sur le temps)
+                # Vitesse moyenne approximative selon le mode de transport
+                speeds = {
+                    "driving": 50,    # km/h
+                    "transit": 35,    # km/h
+                    "bicycling": 15,  # km/h
+                    "walking": 5      # km/h
+                }
+                speed = speeds.get(mode, 30)
+                distance_value = int(travel_time * speed * 1000 / 60)  # en mètres
+                
+                element = {
+                    "distance": {
+                        "text": f"{int(distance_value/1000)} km",
+                        "value": distance_value
+                    },
+                    "duration": {
+                        "text": f"{travel_time} mins",
+                        "value": duration_value
+                    },
+                    "status": "OK"
+                }
+                
+                row["elements"].append(element)
+            
+            rows.append(row)
+        
+        return {
+            "rows": rows,
+            "status": "OK",
+            "origin_addresses": origins,
+            "destination_addresses": destinations
+        }
+
+# Test simple si exécuté directement
+if __name__ == "__main__":
+    # Test avec le mode réel
+    client_real = GoogleMapsClient()
+    time_real = client_real.get_travel_time("Paris, France", "Lyon, France")
+    print(f"API: Temps de trajet Paris-Lyon: {time_real} minutes")
+    
+    # Test avec le mode simulation
+    client_mock = GoogleMapsClient(use_mock_mode=True)
+    time_mock = client_mock.get_travel_time("Paris, France", "Lyon, France")
+    print(f"MOCK: Temps de trajet Paris-Lyon: {time_mock} minutes")
