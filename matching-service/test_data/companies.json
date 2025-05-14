@@ -1,0 +1,62 @@
+[
+  {
+    "id": "comp001",
+    "name": "TechSolutions SAS",
+    "required_skills": ["Python", "JavaScript", "React", "Node.js"],
+    "location": "Paris, France",
+    "remote_policy": "hybrid",
+    "salary_range": {"min": 55000, "max": 80000},
+    "required_experience": 3,
+    "transit_friendly": true,
+    "public_transport_access": ["Metro Ligne 1", "RER A", "Bus 73"],
+    "bicycle_facilities": true
+  },
+  {
+    "id": "comp002",
+    "name": "DataInnovate",
+    "required_skills": ["Java", "Spring", "SQL", "Big Data"],
+    "location": "Marseille, France",
+    "remote_policy": "office_only",
+    "salary_range": {"min": 60000, "max": 90000},
+    "required_experience": 5,
+    "transit_friendly": false,
+    "public_transport_access": ["Bus 82"],
+    "bicycle_facilities": false
+  },
+  {
+    "id": "comp003",
+    "name": "DesignStudio",
+    "required_skills": ["UX/UI Design", "Figma", "Adobe XD", "HTML", "CSS"],
+    "location": "Lille, France",
+    "remote_policy": "office_only",
+    "salary_range": {"min": 45000, "max": 65000},
+    "required_experience": 2,
+    "transit_friendly": true,
+    "public_transport_access": ["Metro Ligne 2", "Tramway T1"],
+    "bicycle_facilities": true
+  },
+  {
+    "id": "comp004",
+    "name": "CloudOps",
+    "required_skills": ["DevOps", "AWS", "Docker", "Kubernetes"],
+    "location": "Lyon, France",
+    "remote_policy": "full",
+    "salary_range": {"min": 65000, "max": 95000},
+    "required_experience": 4,
+    "transit_friendly": true,
+    "public_transport_access": ["Metro Ligne B", "Tramway T1"],
+    "bicycle_facilities": true
+  },
+  {
+    "id": "comp005",
+    "name": "AILabs",
+    "required_skills": ["Python", "Machine Learning", "TensorFlow", "Data Science"],
+    "location": "Bordeaux, France",
+    "remote_policy": "hybrid",
+    "salary_range": {"min": 60000, "max": 85000},
+    "required_experience": 3,
+    "transit_friendly": true,
+    "public_transport_access": ["Tramway Ligne A", "Tramway Ligne C"],
+    "bicycle_facilities": true
+  }
+]

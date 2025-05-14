@@ -1,0 +1,57 @@
+[
+  {
+    "id": "cand001",
+    "name": "Jean Dupont",
+    "skills": ["Python", "JavaScript", "React", "Node.js", "SQL"],
+    "experience": 4,
+    "location": "Paris, France",
+    "remote_preference": "hybrid",
+    "salary_expectation": 65000,
+    "preferred_commute_time": 45,
+    "preferred_transport_mode": "transit"
+  },
+  {
+    "id": "cand002",
+    "name": "Marie Martin",
+    "skills": ["Java", "Spring", "Hibernate", "SQL", "Docker"],
+    "experience": 7,
+    "location": "Lyon, France",
+    "remote_preference": "full",
+    "salary_expectation": 72000,
+    "preferred_commute_time": 30,
+    "preferred_transport_mode": "driving"
+  },
+  {
+    "id": "cand003",
+    "name": "Alexandre Chen",
+    "skills": ["Python", "Data Science", "Machine Learning", "TensorFlow", "SQL"],
+    "experience": 5,
+    "location": "Bordeaux, France",
+    "remote_preference": "hybrid",
+    "salary_expectation": 70000,
+    "preferred_commute_time": 60,
+    "preferred_transport_mode": "bicycling"
+  },
+  {
+    "id": "cand004",
+    "name": "Sophie Bernard",
+    "skills": ["UX/UI Design", "Figma", "Adobe XD", "HTML", "CSS"],
+    "experience": 3,
+    "location": "Lille, France",
+    "remote_preference": "office_only",
+    "salary_expectation": 55000,
+    "preferred_commute_time": 25,
+    "preferred_transport_mode": "transit"
+  },
+  {
+    "id": "cand005",
+    "name": "Thomas Moreau",
+    "skills": ["DevOps", "AWS", "Docker", "Kubernetes", "Python"],
+    "experience": 6,
+    "location": "Marseille, France",
+    "remote_preference": "full",
+    "salary_expectation": 80000,
+    "preferred_commute_time": 40,
+    "preferred_transport_mode": "driving"
+  }
+]

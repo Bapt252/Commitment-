@@ -1,0 +1,40 @@
+{
+  "email": "demo.utilisateur@nexten.fr",
+  "cv_data": {
+    "nom": "Dupont",
+    "prenom": "Jean",
+    "email": "demo.utilisateur@nexten.fr",
+    "telephone": "+33 6 12 34 56 78",
+    "adresse": "123 Rue de Paris, 75015 Paris",
+    "competences": ["JavaScript", "React", "Node.js", "HTML", "CSS", "Git", "TypeScript", "MongoDB"],
+    "annees_experience": 4,
+    "formation": "Master en Informatique, Université Paris-Saclay (2020)",
+    "langues": ["Français (Natif)", "Anglais (Courant)"],
+    "postes_precedents": [
+      {
+        "titre": "Développeur Full Stack",
+        "entreprise": "TechCorp",
+        "date_debut": "01/2021",
+        "date_fin": "Présent",
+        "description": "Développement d'applications web avec React et Node.js"
+      },
+      {
+        "titre": "Développeur Frontend",
+        "entreprise": "WebAgency",
+        "date_debut": "06/2019",
+        "date_fin": "12/2020",
+        "description": "Développement de sites web avec HTML, CSS et JavaScript"
+      }
+    ]
+  },
+  "questionnaire_data": {
+    "email": "demo.utilisateur@nexten.fr",
+    "contrats_recherches": ["CDI", "CDD"],
+    "adresse": "123 Rue de Paris, 75015 Paris",
+    "temps_trajet_max": 45,
+    "date_disponibilite": "01/06/2025",
+    "salaire_min": 45000,
+    "domaines_interets": ["Web", "Data"]
+  },
+  "matching_calculated_at": "2025-05-13T00:00:00Z"
+}

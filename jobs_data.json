@@ -1,0 +1,135 @@
+[
+  {
+    "id": 1,
+    "titre": "Développeur Front-End Senior",
+    "entreprise": "TechVision",
+    "localisation": "15 Rue de Rivoli, 75004 Paris",
+    "type_contrat": "CDI",
+    "competences": ["JavaScript", "React", "TypeScript", "HTML", "CSS", "Redux", "Jest"],
+    "competences_techniques": {
+      "niveau_technique": "senior",
+      "frameworks": ["React", "Vue.js"],
+      "tests": ["Jest", "React Testing Library"],
+      "outils": ["Webpack", "Git", "VS Code"]
+    },
+    "soft_skills": ["Communication", "Travail d'équipe", "Résolution de problèmes", "Autonomie"],
+    "culture_entreprise": {
+      "valeurs": ["Innovation", "Excellence technique", "Collaboration"],
+      "environnement": "Startup dynamique",
+      "taille_equipe": 15,
+      "methodologie": "Agile/Scrum"
+    },
+    "experience": "3-5 ans",
+    "date_debut": "01/05/2025",
+    "salaire": "45K-55K€",
+    "description": "Nous recherchons un développeur Front-End expérimenté pour renforcer notre équipe technique en pleine croissance.",
+    "avantages": ["Tickets restaurant", "Télétravail partiel", "RTT", "Mutuelle"]
+  },
+  {
+    "id": 2,
+    "titre": "Développeur Full-Stack",
+    "entreprise": "InnovateTech",
+    "localisation": "92 Avenue des Champs-Élysées, 75008 Paris",
+    "type_contrat": "CDI",
+    "competences": ["JavaScript", "React", "Node.js", "Express", "MongoDB", "AWS"],
+    "competences_techniques": {
+      "niveau_technique": "intermediaire",
+      "frameworks": ["React", "Express.js"],
+      "bases_de_donnees": ["MongoDB", "PostgreSQL"],
+      "cloud": ["AWS", "Docker"],
+      "outils": ["Git", "CI/CD", "Postman"]
+    },
+    "soft_skills": ["Adaptabilité", "Gestion du temps", "Communication écrite", "Pédagogie"],
+    "culture_entreprise": {
+      "valeurs": ["Apprentissage continu", "Équilibre travail-vie personnelle", "Inclusivité"],
+      "environnement": "Entreprise en croissance",
+      "taille_equipe": 8,
+      "methodologie": "Kanban"
+    },
+    "experience": "2-4 ans",
+    "date_debut": "15/04/2025",
+    "salaire": "42K-48K€",
+    "description": "Notre entreprise cherche un développeur Full-Stack talentueux pour participer au développement de notre plateforme innovante.",
+    "avantages": ["Télétravail 3j/semaine", "Formation continue", "Horaires flexibles"]
+  },
+  {
+    "id": 3,
+    "titre": "Data Engineer",
+    "entreprise": "DataInsights",
+    "localisation": "8 Boulevard Haussmann, 75009 Paris",
+    "type_contrat": "CDI",
+    "competences": ["Python", "SQL", "Spark", "Hadoop", "ETL", "Airflow"],
+    "competences_techniques": {
+      "niveau_technique": "senior",
+      "bases_de_donnees": ["PostgreSQL", "MongoDB", "Redis"],
+      "big_data": ["Hadoop", "Spark", "Kafka"],
+      "cloud": ["AWS", "GCP"],
+      "outils": ["Airflow", "Docker", "Kubernetes"]
+    },
+    "soft_skills": ["Analyse critique", "Organisation", "Communication", "Curiosité intellectuelle"],
+    "culture_entreprise": {
+      "valeurs": ["Excellence technique", "Innovation", "Décisions basées sur les données"],
+      "environnement": "Grande entreprise structurée",
+      "taille_equipe": 25,
+      "methodologie": "Agile/SAFe"
+    },
+    "experience": "4-7 ans",
+    "date_debut": "01/06/2025",
+    "salaire": "55K-65K€",
+    "description": "Rejoignez notre équipe Data pour construire et maintenir des pipelines de données robustes et évolutifs.",
+    "avantages": ["Prime annuelle", "Plan d'épargne entreprise", "Télétravail", "Formations certifiantes"]
+  },
+  {
+    "id": 4,
+    "titre": "DevOps Engineer",
+    "entreprise": "CloudSolutions",
+    "localisation": "5 Rue de Stockholm, 75008 Paris",
+    "type_contrat": "CDI",
+    "competences": ["Linux", "Docker", "Kubernetes", "Terraform", "AWS", "CI/CD", "Prometheus"],
+    "competences_techniques": {
+      "niveau_technique": "intermediaire",
+      "infrastructure_as_code": ["Terraform", "Ansible"],
+      "conteneurisation": ["Docker", "Kubernetes"],
+      "cloud": ["AWS", "Azure"],
+      "monitoring": ["Prometheus", "Grafana", "ELK"]
+    },
+    "soft_skills": ["Résolution de problèmes", "Travail sous pression", "Proactivité", "Documentation"],
+    "culture_entreprise": {
+      "valeurs": ["Automatisation", "Fiabilité", "Sécurité"],
+      "environnement": "Entreprise de conseil",
+      "taille_equipe": 12,
+      "methodologie": "DevOps"
+    },
+    "experience": "2-5 ans",
+    "date_debut": "15/05/2025",
+    "salaire": "50K-60K€",
+    "description": "Nous recherchons un ingénieur DevOps pour nous aider à automatiser et améliorer nos infrastructures cloud.",
+    "avantages": ["Télétravail complet possible", "Budget formation", "Conférences tech"]
+  },
+  {
+    "id": 5,
+    "titre": "UX/UI Designer",
+    "entreprise": "DesignStudio",
+    "localisation": "23 Rue du Faubourg Saint-Honoré, 75008 Paris",
+    "type_contrat": "CDI",
+    "competences": ["Figma", "Adobe XD", "Sketch", "HTML/CSS", "Prototypage", "Recherche utilisateur"],
+    "competences_techniques": {
+      "niveau_technique": "senior",
+      "outils_design": ["Figma", "Adobe XD", "Sketch"],
+      "prototypage": ["InVision", "Principle"],
+      "recherche_utilisateur": ["Tests utilisateurs", "Entretiens", "Personas"]
+    },
+    "soft_skills": ["Empathie", "Créativité", "Communication visuelle", "Présentation"],
+    "culture_entreprise": {
+      "valeurs": ["Créativité", "Design centré utilisateur", "Excellence visuelle"],
+      "environnement": "Studio de design",
+      "taille_equipe": 10,
+      "methodologie": "Design Thinking"
+    },
+    "experience": "3-6 ans",
+    "date_debut": "01/07/2025",
+    "salaire": "40K-50K€",
+    "description": "Rejoignez notre studio de design pour créer des expériences utilisateur intuitives et esthétiques pour nos clients.",
+    "avantages": ["Horaires flexibles", "Équipement Apple", "Événements créatifs"]
+  }
+]

@@ -32,11 +32,57 @@ Après avoir lancé les conteneurs, les services sont accessibles aux URLs suiva
 - **Frontend**: http://localhost:3000
 - **API principale**: http://localhost:5050
 - **Service de parsing CV**: http://localhost:5051
-- **Service de parsing fiches de poste**: http://localhost:5053
+- **Service de parsing fiches de poste**: http://localhost:5055 (nouvelle version GPT)
 - **Service de matching**: http://localhost:5052
 - **MinIO (stockage)**: http://localhost:9000 (API) et http://localhost:9001 (Console)
 - **Redis Commander**: http://localhost:8081
 - **RQ Dashboard**: http://localhost:9181
+
+## Nouvelle fonctionnalité : Analyse GPT des fiches de poste
+
+Nous avons ajouté un nouveau service d'analyse des fiches de poste avec GPT. Ce service permet d'extraire automatiquement les informations clés des fiches de poste, comme le titre, l'entreprise, la localisation, les compétences requises, etc.
+
+### Démarrer le service d'analyse GPT des fiches de poste
+
+```bash
+# Se placer dans le répertoire job-parser-service
+cd job-parser-service
+
+# Rendre le script de démarrage exécutable
+chmod +x start-gpt-api.sh
+
+# Démarrer le service
+./start-gpt-api.sh
+```
+
+Vous serez invité à saisir votre clé API OpenAI si elle n'est pas déjà définie dans l'environnement.
+
+### Utiliser Docker pour le service d'analyse GPT
+
+```bash
+# Se placer dans le répertoire job-parser-service
+cd job-parser-service
+
+# Construire l'image Docker
+docker build -t job-parser-gpt-api .
+
+# Démarrer le conteneur
+docker run -p 5055:5055 -e OPENAI_API_KEY="votre-clé-api-openai" job-parser-gpt-api
+```
+
+### Utiliser le frontend avec l'analyse GPT
+
+Pour utiliser l'interface web avec le nouveau service d'analyse GPT, ouvrez la page suivante :
+
+```
+https://bapt252.github.io/Commitment-/templates/client-questionnaire.html?apiUrl=http://localhost:5055
+```
+
+Vous pouvez également ajouter le paramètre `debug=true` pour activer le mode de débogage :
+
+```
+https://bapt252.github.io/Commitment-/templates/client-questionnaire.html?apiUrl=http://localhost:5055&debug=true
+```
 
 ## Scripts utilitaires
 
@@ -46,6 +92,7 @@ Le projet contient plusieurs scripts utilitaires pour faciliter le développemen
 - `./restart-cv-parser.sh`: Script pour redémarrer uniquement le service cv-parser
 - `./curl-test-cv-parser.sh`: Script pour tester l'API de parsing de CV avec curl
 - `./curl-test-job-parser.sh`: Script pour tester l'API de parsing de fiches de poste avec curl
+- `./job-parser-service/start-gpt-api.sh`: Script pour démarrer le service d'analyse GPT des fiches de poste
 
 ## Tester le service de parsing CV
 
@@ -63,30 +110,25 @@ curl -X POST \
   -F "force_refresh=false"
 ```
 
-## Tester le service de parsing de fiches de poste
+## Tester le service d'analyse GPT des fiches de poste
 
-Pour tester manuellement le service de parsing de fiches de poste:
+Pour tester manuellement le service d'analyse GPT des fiches de poste:
 
 ```bash
 # Tester le endpoint health
-curl http://localhost:5053/health
+curl http://localhost:5055/health
 
-# Tester le parsing d'une fiche de poste
+# Tester l'analyse par texte
 curl -X POST \
-  http://localhost:5053/api/parse-job \
+  http://localhost:5055/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Fiche de poste: Développeur Full Stack..."}'
+
+# Tester l'analyse par fichier
+curl -X POST \
+  http://localhost:5055/analyze-file \
   -H "Content-Type: multipart/form-data" \
-  -F "file=@/chemin/vers/votre/fiche_poste.pdf" \
-  -F "force_refresh=false"
-```
-
-Ou utilisez le script utilitaire:
-
-```bash
-# Assurez-vous que le script est exécutable
-chmod +x curl-test-job-parser.sh
-
-# Exécutez le script en spécifiant le chemin vers votre fiche de poste
-./curl-test-job-parser.sh /chemin/vers/votre/fiche_poste.pdf
+  -F "file=@/chemin/vers/votre/fiche_poste.pdf"
 ```
 
 ## Architecture
@@ -94,7 +136,7 @@ chmod +x curl-test-job-parser.sh
 Le projet utilise une architecture microservices avec les composants suivants :
 
 1. **Service de parsing CV** : Extrait les informations des CV en utilisant GPT-4o-mini
-2. **Service de parsing de fiches de poste** : Extrait les informations des offres d'emploi en utilisant GPT-4o-mini
+2. **Service de parsing de fiches de poste** : Extrait les informations des offres d'emploi en utilisant GPT-3.5-turbo/GPT-4
 3. **Service de matching** : Match les CV avec les offres d'emploi
 4. **Redis** : File d'attente pour le traitement asynchrone et cache
 5. **MinIO** : Stockage des fichiers (CV et fiches de poste)
