@@ -285,4 +285,3 @@ class GoogleMapsClient:
         option_bonus = min(0.2, transport_options * 0.1)  # Max 0.2 de bonus
         
         return min(1.0, score + option_bonus)
-"""
