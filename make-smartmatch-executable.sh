@@ -1,19 +1,25 @@
 #!/bin/bash
-# Script pour rendre test-smartmatch-simple.sh exécutable
-# Auteur: Claude/Anthropic
-# Date: 14/05/2025
 
-echo "Rendre les scripts SmartMatch exécutables..."
+# Script pour rendre les fichiers du système SmartMatch exécutables
 
-# Rendre le script de test simplifié exécutable
-chmod +x test-smartmatch-simple.sh
-echo "Script test-smartmatch-simple.sh rendu exécutable."
+# Rendre le script de test exécutable
+chmod +x test_smartmatch.py
+echo "Le script de test test_smartmatch.py est maintenant exécutable."
 
-# Si le script de test complet existe, le rendre exécutable aussi
-if [ -f "test-smartmatch.sh" ]; then
-  chmod +x test-smartmatch.sh
-  echo "Script test-smartmatch.sh rendu exécutable."
+# Rendre le fichier principal exécutable
+chmod +x main.py
+echo "Le fichier main.py est maintenant exécutable."
+
+# Vérifier si le dossier test_results existe, sinon le créer
+if [ ! -d "test_results" ]; then
+    mkdir -p test_results
+    echo "Le dossier test_results a été créé."
 fi
 
-echo "Terminé!"
-echo "Vous pouvez maintenant exécuter ./test-smartmatch-simple.sh pour tester rapidement le système SmartMatch."
+# Vérifier si le dossier test_data existe, sinon le créer
+if [ ! -d "test_data" ]; then
+    mkdir -p test_data
+    echo "Le dossier test_data a été créé."
+fi
+
+echo "Configuration terminée. Vous pouvez maintenant exécuter './test_smartmatch.py' pour tester le système."

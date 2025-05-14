@@ -1,0 +1,59 @@
+{
+  "candidates": [
+    {
+      "id": "cand001",
+      "name": "Jean Dupont",
+      "skills": ["Python", "JavaScript", "React", "Node.js", "SQL", "Data Analysis"],
+      "experience": 4,
+      "location": "Paris, France",
+      "remote_preference": "hybrid",
+      "salary_expectation": 65000,
+      "education": "Master en Informatique",
+      "preferred_sectors": ["Tech", "Finance"]
+    },
+    {
+      "id": "cand002",
+      "name": "Marie Laurent",
+      "skills": ["Java", "Spring", "Hibernate", "SQL", "Git", "Cloud Computing"],
+      "experience": 6,
+      "location": "Lyon, France",
+      "remote_preference": "full",
+      "salary_expectation": 75000,
+      "education": "École d'ingénieur",
+      "preferred_sectors": ["E-commerce", "Healthcare"]
+    },
+    {
+      "id": "cand003",
+      "name": "Alexandre Martin",
+      "skills": ["JavaScript", "Vue.js", "React", "CSS", "UI/UX", "Frontend Development"],
+      "experience": 3,
+      "location": "Nantes, France",
+      "remote_preference": "hybrid",
+      "salary_expectation": 55000,
+      "education": "Licence en Informatique",
+      "preferred_sectors": ["Media", "Marketing"]
+    },
+    {
+      "id": "cand004",
+      "name": "Sophie Petit",
+      "skills": ["Data Science", "Python", "R", "Machine Learning", "SQL", "Statistics"],
+      "experience": 5,
+      "location": "Bordeaux, France",
+      "remote_preference": "office",
+      "salary_expectation": 72000,
+      "education": "Doctorat en Data Science",
+      "preferred_sectors": ["Research", "AI"]
+    },
+    {
+      "id": "cand005",
+      "name": "Thomas Leroy",
+      "skills": ["DevOps", "Docker", "Kubernetes", "AWS", "CI/CD", "Linux"],
+      "experience": 7,
+      "location": "Lille, France",
+      "remote_preference": "hybrid",
+      "salary_expectation": 80000,
+      "education": "Master en Systèmes Informatiques",
+      "preferred_sectors": ["Cloud", "Security"]
+    }
+  ]
+}

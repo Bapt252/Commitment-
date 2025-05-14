@@ -1,0 +1,64 @@
+{
+  "companies": [
+    {
+      "id": "comp001",
+      "name": "TechSolutions SAS",
+      "required_skills": ["Python", "JavaScript", "React", "Node.js", "DevOps"],
+      "location": "Paris, France",
+      "remote_policy": "hybrid",
+      "salary_range": {"min": 55000, "max": 80000},
+      "company_size": "50-200",
+      "sector": "Tech",
+      "job_title": "Développeur Full Stack",
+      "required_experience": 3
+    },
+    {
+      "id": "comp002",
+      "name": "DataInnovate",
+      "required_skills": ["Data Science", "Python", "Machine Learning", "SQL", "Big Data"],
+      "location": "Lyon, France",
+      "remote_policy": "full",
+      "salary_range": {"min": 65000, "max": 90000},
+      "company_size": "10-50",
+      "sector": "AI",
+      "job_title": "Data Scientist",
+      "required_experience": 4
+    },
+    {
+      "id": "comp003",
+      "name": "WebCreate",
+      "required_skills": ["JavaScript", "React", "Vue.js", "CSS", "UX/UI"],
+      "location": "Bordeaux, France",
+      "remote_policy": "office_only",
+      "salary_range": {"min": 45000, "max": 65000},
+      "company_size": "1-10",
+      "sector": "Media",
+      "job_title": "Développeur Frontend",
+      "required_experience": 2
+    },
+    {
+      "id": "comp004",
+      "name": "CloudSecure",
+      "required_skills": ["DevOps", "Kubernetes", "Docker", "AWS", "Security"],
+      "location": "Lille, France",
+      "remote_policy": "hybrid",
+      "salary_range": {"min": 70000, "max": 95000},
+      "company_size": "200-500",
+      "sector": "Cloud",
+      "job_title": "DevOps Engineer",
+      "required_experience": 5
+    },
+    {
+      "id": "comp005",
+      "name": "HealthTech",
+      "required_skills": ["Java", "Spring", "Angular", "SQL", "API Development"],
+      "location": "Nantes, France",
+      "remote_policy": "hybrid",
+      "salary_range": {"min": 60000, "max": 85000},
+      "company_size": "50-200",
+      "sector": "Healthcare",
+      "job_title": "Développeur Backend",
+      "required_experience": 4
+    }
+  ]
+}
