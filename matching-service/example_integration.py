@@ -9,7 +9,7 @@ import logging
 import json
 from typing import Dict, List, Any
 from dotenv import load_dotenv
-from app.google_maps_client import GoogleMapsClient
+from app.hybrid_maps_client import HybridGoogleMapsClient
 from app.smartmatch_transport import CommuteMatchExtension
 
 # Configuration du logging
@@ -50,11 +50,11 @@ class EnhancedSmartMatcher:
             }
         }
         
-        # Initialiser le client Google Maps en mode hybride
-        self.maps_client = GoogleMapsClient(use_hybrid_mode=True)
-        logger.info("Client Google Maps initialisé en mode hybride")
+        # Initialiser le client Google Maps hybride adapté
+        self.maps_client = HybridGoogleMapsClient()
+        logger.info("Client Google Maps hybride adapté initialisé")
         
-        # Initialiser l'extension de transport
+        # Initialiser l'extension de transport avec notre client
         self.transport_extension = CommuteMatchExtension(self.maps_client)
         logger.info("Extension de transport initialisée")
     
@@ -334,9 +334,10 @@ def run_example():
     
     # Afficher les statistiques d'utilisation de l'API
     logger.info("\nStatistiques d'utilisation de l'API:")
-    stats = matcher.maps_client.get_usage_stats()
-    for key, value in stats.items():
-        logger.info(f"  - {key}: {value}")
+    if hasattr(matcher.maps_client, 'stats'):
+        stats = matcher.maps_client.stats
+        for key, value in stats.items():
+            logger.info(f"  - {key}: {value}")
     
     logger.info("=== EXEMPLE TERMINÉ ===")
 
