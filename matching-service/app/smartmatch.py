@@ -714,7 +714,8 @@ class SmartMatcher:
         ]
         
         return {"candidates": candidates, "jobs": jobs}
-"""
+
+
 def load_test_data():
     """
     Fonction de compatibilité avec l'ancien code
