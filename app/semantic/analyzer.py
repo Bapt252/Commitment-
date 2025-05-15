@@ -85,6 +85,10 @@ class SemanticAnalyzer:
         matched_skills = set(cv_skills_normalized).intersection(set(job_skills_normalized))
         direct_match_score = len(matched_skills) / len(job_skills_normalized)
         
+        # Si on a une correspondance parfaite, on retourne 1.0 directement
+        if direct_match_score == 1.0:
+            return 1.0
+        
         # Approche 2: Correspondance avec expansion sémantique
         expanded_matches = self._get_expanded_matches(cv_skills_normalized, job_skills_normalized)
         semantic_match_score = min(1.0, len(expanded_matches) / len(job_skills_normalized))
