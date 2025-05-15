@@ -1,59 +1,112 @@
-{
-  "candidates": [
-    {
-      "id": "cand001",
-      "name": "Jean Dupont",
-      "skills": ["Python", "JavaScript", "React", "Node.js", "SQL", "Data Analysis"],
-      "experience": 4,
-      "location": "Paris, France",
-      "remote_preference": "hybrid",
-      "salary_expectation": 65000,
-      "education": "Master en Informatique",
-      "preferred_sectors": ["Tech", "Finance"]
+[
+  {
+    "id": "cand_0",
+    "name": "Candidat 0",
+    "skills": [
+      "Python",
+      "JavaScript",
+      "SQL",
+      "Docker",
+      "AWS"
+    ],
+    "experience": 5,
+    "location": "75001 Paris, France",
+    "location_coordinates": {
+      "lat": 48.86,
+      "lng": 2.34
     },
-    {
-      "id": "cand002",
-      "name": "Marie Laurent",
-      "skills": ["Java", "Spring", "Hibernate", "SQL", "Git", "Cloud Computing"],
-      "experience": 6,
-      "location": "Lyon, France",
-      "remote_preference": "full",
-      "salary_expectation": 75000,
-      "education": "École d'ingénieur",
-      "preferred_sectors": ["E-commerce", "Healthcare"]
+    "remote_preference": "hybrid",
+    "max_travel_time": 45,
+    "salary_expectation": 65000,
+    "preferred_company_size": "midsize",
+    "created_at": "2025-05-15T10:30:00"
+  },
+  {
+    "id": "cand_1",
+    "name": "Candidat 1",
+    "skills": [
+      "Java",
+      "Spring Boot",
+      "React",
+      "PostgreSQL",
+      "Kubernetes"
+    ],
+    "experience": 8,
+    "location": "92100 Boulogne-Billancourt, France",
+    "location_coordinates": {
+      "lat": 48.83,
+      "lng": 2.24
     },
-    {
-      "id": "cand003",
-      "name": "Alexandre Martin",
-      "skills": ["JavaScript", "Vue.js", "React", "CSS", "UI/UX", "Frontend Development"],
-      "experience": 3,
-      "location": "Nantes, France",
-      "remote_preference": "hybrid",
-      "salary_expectation": 55000,
-      "education": "Licence en Informatique",
-      "preferred_sectors": ["Media", "Marketing"]
+    "remote_preference": "office",
+    "max_travel_time": 30,
+    "salary_expectation": 80000,
+    "preferred_company_size": "enterprise",
+    "created_at": "2025-05-15T10:30:00"
+  },
+  {
+    "id": "cand_2",
+    "name": "Candidat 2",
+    "skills": [
+      "JavaScript",
+      "Vue.js",
+      "Node.js",
+      "MongoDB",
+      "DevOps"
+    ],
+    "experience": 3,
+    "location": "75011 Paris, France",
+    "location_coordinates": {
+      "lat": 48.86,
+      "lng": 2.38
     },
-    {
-      "id": "cand004",
-      "name": "Sophie Petit",
-      "skills": ["Data Science", "Python", "R", "Machine Learning", "SQL", "Statistics"],
-      "experience": 5,
-      "location": "Bordeaux, France",
-      "remote_preference": "office",
-      "salary_expectation": 72000,
-      "education": "Doctorat en Data Science",
-      "preferred_sectors": ["Research", "AI"]
+    "remote_preference": "full",
+    "max_travel_time": 60,
+    "salary_expectation": 55000,
+    "preferred_company_size": "startup",
+    "created_at": "2025-05-15T10:30:00"
+  },
+  {
+    "id": "cand_3",
+    "name": "Candidat 3",
+    "skills": [
+      "Python",
+      "Django",
+      "PostgreSQL",
+      "React",
+      "Git"
+    ],
+    "experience": 2,
+    "location": "93200 Saint-Denis, France",
+    "location_coordinates": {
+      "lat": 48.93,
+      "lng": 2.35
     },
-    {
-      "id": "cand005",
-      "name": "Thomas Leroy",
-      "skills": ["DevOps", "Docker", "Kubernetes", "AWS", "CI/CD", "Linux"],
-      "experience": 7,
-      "location": "Lille, France",
-      "remote_preference": "hybrid",
-      "salary_expectation": 80000,
-      "education": "Master en Systèmes Informatiques",
-      "preferred_sectors": ["Cloud", "Security"]
-    }
-  ]
-}
+    "remote_preference": "hybrid",
+    "max_travel_time": 45,
+    "salary_expectation": 45000,
+    "preferred_company_size": "startup",
+    "created_at": "2025-05-15T10:30:00"
+  },
+  {
+    "id": "cand_4",
+    "name": "Candidat 4",
+    "skills": [
+      "C++",
+      "Qt",
+      "Python",
+      "Machine Learning",
+      "SQL"
+    ],
+    "experience": 10,
+    "location": "78000 Versailles, France",
+    "location_coordinates": {
+      "lat": 48.8,
+      "lng": 2.13
+    },
+    "remote_preference": "office",
+    "max_travel_time": 60,
+    "salary_expectation": 90000,
+    "preferred_company_size": "enterprise",
+    "created_at": "2025-05-15T10:30:00"
+  }
+]

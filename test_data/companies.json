@@ -1,64 +1,71 @@
-{
-  "companies": [
-    {
-      "id": "comp001",
-      "name": "TechSolutions SAS",
-      "required_skills": ["Python", "JavaScript", "React", "Node.js", "DevOps"],
-      "location": "Paris, France",
-      "remote_policy": "hybrid",
-      "salary_range": {"min": 55000, "max": 80000},
-      "company_size": "50-200",
-      "sector": "Tech",
-      "job_title": "Développeur Full Stack",
-      "required_experience": 3
+[
+  {
+    "id": "comp_0",
+    "name": "Entreprise 0",
+    "required_skills": [
+      "Python",
+      "Django",
+      "PostgreSQL",
+      "Git"
+    ],
+    "location": "75008 Paris, France",
+    "location_coordinates": {
+      "lat": 48.87,
+      "lng": 2.32
     },
-    {
-      "id": "comp002",
-      "name": "DataInnovate",
-      "required_skills": ["Data Science", "Python", "Machine Learning", "SQL", "Big Data"],
-      "location": "Lyon, France",
-      "remote_policy": "full",
-      "salary_range": {"min": 65000, "max": 90000},
-      "company_size": "10-50",
-      "sector": "AI",
-      "job_title": "Data Scientist",
-      "required_experience": 4
+    "remote_policy": "hybrid",
+    "required_experience": 3,
+    "salary_range": {
+      "min": 45000,
+      "max": 65000
     },
-    {
-      "id": "comp003",
-      "name": "WebCreate",
-      "required_skills": ["JavaScript", "React", "Vue.js", "CSS", "UX/UI"],
-      "location": "Bordeaux, France",
-      "remote_policy": "office_only",
-      "salary_range": {"min": 45000, "max": 65000},
-      "company_size": "1-10",
-      "sector": "Media",
-      "job_title": "Développeur Frontend",
-      "required_experience": 2
+    "company_size": "midsize",
+    "created_at": "2025-05-15T10:30:00"
+  },
+  {
+    "id": "comp_1",
+    "name": "Entreprise 1",
+    "required_skills": [
+      "JavaScript",
+      "React",
+      "Node.js",
+      "MongoDB"
+    ],
+    "location": "92300 Levallois-Perret, France",
+    "location_coordinates": {
+      "lat": 48.89,
+      "lng": 2.28
     },
-    {
-      "id": "comp004",
-      "name": "CloudSecure",
-      "required_skills": ["DevOps", "Kubernetes", "Docker", "AWS", "Security"],
-      "location": "Lille, France",
-      "remote_policy": "hybrid",
-      "salary_range": {"min": 70000, "max": 95000},
-      "company_size": "200-500",
-      "sector": "Cloud",
-      "job_title": "DevOps Engineer",
-      "required_experience": 5
+    "remote_policy": "full",
+    "required_experience": 2,
+    "salary_range": {
+      "min": 50000,
+      "max": 70000
     },
-    {
-      "id": "comp005",
-      "name": "HealthTech",
-      "required_skills": ["Java", "Spring", "Angular", "SQL", "API Development"],
-      "location": "Nantes, France",
-      "remote_policy": "hybrid",
-      "salary_range": {"min": 60000, "max": 85000},
-      "company_size": "50-200",
-      "sector": "Healthcare",
-      "job_title": "Développeur Backend",
-      "required_experience": 4
-    }
-  ]
-}
+    "company_size": "startup",
+    "created_at": "2025-05-15T10:30:00"
+  },
+  {
+    "id": "comp_2",
+    "name": "Entreprise 2",
+    "required_skills": [
+      "Java",
+      "Spring Boot",
+      "Hibernate",
+      "Oracle"
+    ],
+    "location": "75016 Paris, France",
+    "location_coordinates": {
+      "lat": 48.86,
+      "lng": 2.27
+    },
+    "remote_policy": "office_only",
+    "required_experience": 5,
+    "salary_range": {
+      "min": 65000,
+      "max": 85000
+    },
+    "company_size": "enterprise",
+    "created_at": "2025-05-15T10:30:00"
+  }
+]
