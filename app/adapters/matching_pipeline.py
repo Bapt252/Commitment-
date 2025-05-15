@@ -7,6 +7,7 @@ import logging
 import json
 import os
 import time
+import asyncio
 from typing import Dict, List, Any, Optional, Union, Tuple
 
 from app.smartmatch import SmartMatchEngine
@@ -76,6 +77,51 @@ class MatchingPipeline:
         
         return matching_results, insights
     
+    async def match_specific_async(self, cv_id: str, job_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Version asynchrone de match_specific: Exécute un matching spécifique entre un CV et une fiche de poste.
+        
+        Args:
+            cv_id (str): Identifiant du CV
+            job_id (str): Identifiant de la fiche de poste
+            
+        Returns:
+            Dict: Résultat du matching, ou None en cas d'erreur
+        """
+        logger.info(f"Démarrage du matching spécifique entre CV {cv_id} et fiche de poste {job_id}")
+        
+        # Récupérer et convertir les données de façon asynchrone
+        cv_data_task = self.parsing_adapter.get_cv_data_async(cv_id)
+        job_data_task = self.parsing_adapter.get_job_data_async(job_id)
+        
+        cv_data, job_data = await asyncio.gather(cv_data_task, job_data_task)
+        
+        if not cv_data or not job_data:
+            logger.error("Impossible de récupérer les données nécessaires")
+            return None
+        
+        candidate = self.parsing_adapter.cv_to_candidate(cv_data)
+        company = self.parsing_adapter.job_to_company(job_data)
+        
+        # Exécuter le matching
+        results = self.matcher.match([candidate], [company])
+        
+        if not results:
+            logger.warning("Aucun résultat de matching trouvé")
+            return None
+        
+        # Générer des insights pour ce matching spécifique
+        insights = self.insight_generator.generate_insights(results)
+        
+        # Enrichir le résultat avec les insights
+        result = results[0]
+        result["insights"] = insights
+        
+        # Sauvegarder le résultat
+        self._save_specific_result(result, cv_id, job_id)
+        
+        return result
+    
     def match_specific(self, cv_id: str, job_id: str) -> Optional[Dict[str, Any]]:
         """
         Exécute un matching spécifique entre un CV et une fiche de poste.
@@ -119,6 +165,37 @@ class MatchingPipeline:
         
         return result
     
+    async def match_cv_with_all_jobs_async(self, cv_id: str) -> List[Dict[str, Any]]:
+        """
+        Version asynchrone de match_cv_with_all_jobs: Exécute un matching entre un CV et toutes les fiches de poste.
+        
+        Args:
+            cv_id (str): Identifiant du CV
+            
+        Returns:
+            List[Dict]: Résultats du matching
+        """
+        logger.info(f"Démarrage du matching du CV {cv_id} avec toutes les fiches de poste")
+        
+        # Récupérer et convertir les données de façon asynchrone
+        cv_data = await self.parsing_adapter.get_cv_data_async(cv_id)
+        
+        if not cv_data:
+            logger.error(f"Impossible de récupérer les données du CV {cv_id}")
+            return []
+        
+        candidate = self.parsing_adapter.cv_to_candidate(cv_data)
+        companies = self.parsing_adapter.convert_all_jobs()
+        
+        # Exécuter le matching
+        results = self.matcher.match([candidate], companies)
+        logger.info(f"Matching terminé. {len(results)} matchs trouvés pour le CV {cv_id}.")
+        
+        # Sauvegarder les résultats
+        self._save_cv_results(results, cv_id)
+        
+        return results
+    
     def match_cv_with_all_jobs(self, cv_id: str) -> List[Dict[str, Any]]:
         """
         Exécute un matching entre un CV spécifique et toutes les fiches de poste.
@@ -146,6 +223,37 @@ class MatchingPipeline:
         
         # Sauvegarder les résultats
         self._save_cv_results(results, cv_id)
+        
+        return results
+    
+    async def match_job_with_all_cvs_async(self, job_id: str) -> List[Dict[str, Any]]:
+        """
+        Version asynchrone de match_job_with_all_cvs: Exécute un matching entre une fiche de poste et tous les CVs.
+        
+        Args:
+            job_id (str): Identifiant de la fiche de poste
+            
+        Returns:
+            List[Dict]: Résultats du matching
+        """
+        logger.info(f"Démarrage du matching de la fiche de poste {job_id} avec tous les CVs")
+        
+        # Récupérer et convertir les données de façon asynchrone
+        job_data = await self.parsing_adapter.get_job_data_async(job_id)
+        
+        if not job_data:
+            logger.error(f"Impossible de récupérer les données de la fiche de poste {job_id}")
+            return []
+        
+        company = self.parsing_adapter.job_to_company(job_data)
+        candidates = self.parsing_adapter.convert_all_cvs()
+        
+        # Exécuter le matching
+        results = self.matcher.match(candidates, [company])
+        logger.info(f"Matching terminé. {len(results)} matchs trouvés pour la fiche de poste {job_id}.")
+        
+        # Sauvegarder les résultats
+        self._save_job_results(results, job_id)
         
         return results
     
@@ -178,6 +286,50 @@ class MatchingPipeline:
         self._save_job_results(results, job_id)
         
         return results
+    
+    async def parse_and_match_cv_job(self, cv_data: Dict[str, Any], job_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Parse et match directement un CV et une fiche de poste à partir de leurs données brutes.
+        
+        Args:
+            cv_data (Dict): Données brutes du CV
+            job_data (Dict): Données brutes de la fiche de poste
+            
+        Returns:
+            Dict: Résultat du matching
+        """
+        logger.info("Démarrage du parsing et matching direct de CV et fiche de poste")
+        
+        # Parser les données de façon asynchrone
+        parsed_cv_task = self.parsing_adapter.parse_cv(cv_data)
+        parsed_job_task = self.parsing_adapter.parse_job(job_data)
+        
+        parsed_cv, parsed_job = await asyncio.gather(parsed_cv_task, parsed_job_task)
+        
+        if not parsed_cv or not parsed_job:
+            logger.error("Erreur lors du parsing des données")
+            return {"status": "error", "message": "Erreur lors du parsing des données"}
+        
+        # Convertir au format SmartMatch
+        candidate = self.parsing_adapter.cv_to_candidate(parsed_cv)
+        company = self.parsing_adapter.job_to_company(parsed_job)
+        
+        # Exécuter le matching
+        results = self.matcher.match([candidate], [company])
+        
+        if not results:
+            logger.warning("Aucun résultat de matching trouvé")
+            return {"status": "error", "message": "Aucun résultat de matching trouvé"}
+        
+        # Générer des insights pour ce matching
+        insights = self.insight_generator.generate_insights(results)
+        
+        # Enrichir le résultat avec les insights
+        result = results[0]
+        result["insights"] = insights
+        result["status"] = "success"
+        
+        return result
     
     def _save_results(self, matching_results: List[Dict[str, Any]], insights: List[Dict[str, Any]]) -> None:
         """
