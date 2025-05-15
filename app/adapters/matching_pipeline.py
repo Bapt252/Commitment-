@@ -1,116 +1,256 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+Matching Pipeline Module
 
-"""Pipeline d'intégration pour le matching entre CVs et fiches de poste."""
+This module provides the orchestration pipeline for the matching process, connecting
+parsers and the SmartMatch engine.
+"""
 
 import logging
-import json
-import os
-import time
-import asyncio
-from typing import Dict, List, Any, Optional, Union, Tuple
+from typing import Dict, Any, Optional, List, Union
 
-from app.core.smart_match import SmartMatcher
 from app.adapters.parsing_adapter import ParsingAdapter
+from app.core.smart_match import SmartMatcher
 
-# Configuration du logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("MatchingPipeline")
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class MatchingPipeline:
     """
-    Pipeline d'intégration pour le matching entre CVs et fiches de poste.
+    Orchestrates the entire matching process, from parsing to matching.
     """
     
-    def __init__(self, cv_parser_url: str = "http://localhost:5051", 
-                 job_parser_url: str = "http://localhost:5055",
-                 results_dir: str = "matching_results"):
+    def __init__(self, parsing_adapter: ParsingAdapter, config: Optional[Dict[str, Any]] = None):
         """
-        Initialise le pipeline de matching.
+        Initialize the MatchingPipeline with adapters and optional configuration.
         
         Args:
-            cv_parser_url (str): URL du service de parsing de CV
-            job_parser_url (str): URL du service de parsing de fiches de poste
-            results_dir (str): Répertoire pour stocker les résultats
+            parsing_adapter (ParsingAdapter): The parsing adapter
+            config (dict, optional): Configuration parameters
         """
-        self.parsing_adapter = ParsingAdapter(cv_parser_url, job_parser_url)
-        self.matcher = SmartMatcher()
-        self.results_dir = results_dir
+        self.parsing_adapter = parsing_adapter
+        self.config = config or {}
         
-        # Créer le répertoire des résultats s'il n'existe pas
-        os.makedirs(results_dir, exist_ok=True)
+        # Initialize the matcher with config
+        matcher_config = self.config.get("matcher", {})
+        self.matcher = SmartMatcher(matcher_config)
         
-        logger.info("Pipeline de matching initialisé avec succès")
+        logger.info("MatchingPipeline initialized")
     
-    async def parse_and_match_cv_job(self, cv_data: Dict[str, Any], 
-                                     job_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def match_cv_to_job(
+        self,
+        cv_file: bytes,
+        cv_filename: Optional[str] = None,
+        job_description: Optional[str] = None,
+        job_file: Optional[bytes] = None,
+        job_filename: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
-        Parse et match directement un CV et une fiche de poste à partir de leurs données brutes.
+        Match a CV to a job posting.
         
         Args:
-            cv_data (Dict): Données brutes du CV
-            job_data (Dict): Données brutes de la fiche de poste
+            cv_file (bytes): The CV file content
+            cv_filename (str, optional): The CV file name
+            job_description (str, optional): The job description text
+            job_file (bytes, optional): The job description file content
+            job_filename (str, optional): The job description file name
             
         Returns:
-            Dict: Résultat du matching
+            dict: Match results
         """
-        logger.info("Démarrage du parsing et matching direct de CV et fiche de poste")
+        logger.info(f"Starting CV to job matching for {cv_filename or 'unnamed CV'}")
         
-        try:
-            # Parser les données de façon asynchrone
-            parsed_cv_task = self.parsing_adapter.parse_cv(cv_data)
-            parsed_job_task = self.parsing_adapter.parse_job(job_data)
-            
-            parsed_cv, parsed_job = await asyncio.gather(parsed_cv_task, parsed_job_task)
-            
-            if not parsed_cv or not parsed_job:
-                logger.error("Erreur lors du parsing des données")
-                return {"status": "error", "message": "Erreur lors du parsing des données"}
-            
-            # Convertir au format SmartMatch
-            candidate = self.parsing_adapter.cv_to_candidate(parsed_cv)
-            company = self.parsing_adapter.job_to_company(parsed_job)
-            
-            # Exécuter le matching
-            score, details = self.matcher.calculate_match(candidate, company)
-            
-            # Préparer le résultat
-            result = {
-                "status": "success",
-                "candidate": {
-                    "id": candidate["id"],
-                    "name": candidate["name"]
-                },
-                "job": {
-                    "id": company["id"],
-                    "name": company["name"]
-                },
-                "score": score,
-                "details": details
-            }
-            
-            # Sauvegarder le résultat
-            self._save_result(result)
-            
-            return result
-        except Exception as e:
-            logger.error(f"Erreur lors du matching direct: {str(e)}")
-            return {"status": "error", "message": str(e)}
+        # Parse CV
+        cv_data = await self.parsing_adapter.parse_cv(cv_file, cv_filename)
+        prepared_cv = self.parsing_adapter.prepare_for_matching(cv_data, "cv")
+        
+        # Parse job - either from text or file
+        if job_description:
+            job_data = await self.parsing_adapter.parse_job(job_description)
+        elif job_file:
+            job_data = await self.parsing_adapter.parse_job_file(job_file, job_filename)
+        else:
+            raise ValueError("Either job_description or job_file must be provided")
+        
+        prepared_job = self.parsing_adapter.prepare_for_matching(job_data, "job")
+        
+        # Match
+        match_result = self.matcher.match_cv_to_job(prepared_cv, prepared_job)
+        
+        # Return results
+        return {
+            "cv_info": {
+                "name": cv_data.get("personal_info", {}).get("name", cv_filename or "Unnamed CV"),
+                "skills": prepared_cv.get("skills", []),
+                "experience": prepared_cv.get("total_experience", 0),
+                "location": prepared_cv.get("location", "")
+            },
+            "job_info": {
+                "title": job_data.get("title", job_filename or "Unnamed Job"),
+                "company": job_data.get("company", ""),
+                "skills": prepared_job.get("skills", []),
+                "location": prepared_job.get("location", "")
+            },
+            "match_score": match_result["match_score"],
+            "match_details": match_result["match_details"]
+        }
     
-    def _save_result(self, result: Dict[str, Any]) -> None:
+    async def match_job_to_cv(
+        self,
+        job_description: Optional[str] = None,
+        cv_file: bytes = None,
+        cv_filename: Optional[str] = None,
+        job_file: Optional[bytes] = None,
+        job_filename: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
-        Sauvegarde un résultat de matching dans un fichier JSON.
+        Match a job posting to a CV.
         
         Args:
-            result (Dict): Résultat du matching
+            job_description (str, optional): The job description text
+            cv_file (bytes): The CV file content
+            cv_filename (str, optional): The CV file name
+            job_file (bytes, optional): The job description file content
+            job_filename (str, optional): The job description file name
+            
+        Returns:
+            dict: Match results
         """
-        timestamp = int(time.time())
-        candidate_id = result.get("candidate", {}).get("id", "unknown")
-        job_id = result.get("job", {}).get("id", "unknown")
+        logger.info(f"Starting job to CV matching")
         
-        filename = os.path.join(self.results_dir, f"match_{candidate_id}_{job_id}_{timestamp}.json")
+        # Parse job - either from text or file
+        if job_description:
+            job_data = await self.parsing_adapter.parse_job(job_description)
+        elif job_file:
+            job_data = await self.parsing_adapter.parse_job_file(job_file, job_filename)
+        else:
+            raise ValueError("Either job_description or job_file must be provided")
+            
+        prepared_job = self.parsing_adapter.prepare_for_matching(job_data, "job")
         
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
+        # Parse CV
+        cv_data = await self.parsing_adapter.parse_cv(cv_file, cv_filename)
+        prepared_cv = self.parsing_adapter.prepare_for_matching(cv_data, "cv")
         
-        logger.info(f"Résultat du matching sauvegardé dans {filename}")
+        # Match
+        match_result = self.matcher.match_job_to_cv(prepared_job, prepared_cv)
+        
+        # Return results
+        return {
+            "job_info": {
+                "title": job_data.get("title", job_filename or "Unnamed Job"),
+                "company": job_data.get("company", ""),
+                "skills": prepared_job.get("skills", []),
+                "location": prepared_job.get("location", "")
+            },
+            "cv_info": {
+                "name": cv_data.get("personal_info", {}).get("name", cv_filename or "Unnamed CV"),
+                "skills": prepared_cv.get("skills", []),
+                "experience": prepared_cv.get("total_experience", 0),
+                "location": prepared_cv.get("location", "")
+            },
+            "match_score": match_result["match_score"],
+            "match_details": match_result["match_details"]
+        }
+    
+    async def match_multiple_cvs_to_job(
+        self,
+        cv_files: List[Dict[str, Union[bytes, str]]],
+        job_description: Optional[str] = None,
+        job_file: Optional[bytes] = None,
+        job_filename: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Match multiple CVs to a job posting.
+        
+        Args:
+            cv_files (list): List of dicts with 'content' (bytes) and 'filename' (str) keys
+            job_description (str, optional): The job description text
+            job_file (bytes, optional): The job description file content
+            job_filename (str, optional): The job description file name
+            
+        Returns:
+            list: Sorted list of match results
+        """
+        # Parse job once - either from text or file
+        if job_description:
+            job_data = await self.parsing_adapter.parse_job(job_description)
+        elif job_file:
+            job_data = await self.parsing_adapter.parse_job_file(job_file, job_filename)
+        else:
+            raise ValueError("Either job_description or job_file must be provided")
+            
+        prepared_job = self.parsing_adapter.prepare_for_matching(job_data, "job")
+        
+        # Match each CV
+        results = []
+        for cv in cv_files:
+            cv_content = cv.get('content')
+            cv_filename = cv.get('filename')
+            
+            try:
+                # Parse CV
+                cv_data = await self.parsing_adapter.parse_cv(cv_content, cv_filename)
+                prepared_cv = self.parsing_adapter.prepare_for_matching(cv_data, "cv")
+                
+                # Match
+                match_result = self.matcher.match_cv_to_job(prepared_cv, prepared_job)
+                
+                # Add to results
+                results.append({
+                    "cv_filename": cv_filename,
+                    "cv_info": {
+                        "name": cv_data.get("personal_info", {}).get("name", cv_filename or "Unnamed CV"),
+                        "skills": prepared_cv.get("skills", []),
+                        "experience": prepared_cv.get("total_experience", 0),
+                        "location": prepared_cv.get("location", "")
+                    },
+                    "job_info": {
+                        "title": job_data.get("title", job_filename or "Unnamed Job"),
+                        "company": job_data.get("company", ""),
+                        "skills": prepared_job.get("skills", []),
+                        "location": prepared_job.get("location", "")
+                    },
+                    "match_score": match_result["match_score"],
+                    "match_details": match_result["match_details"]
+                })
+            except Exception as e:
+                logger.error(f"Error matching CV '{cv_filename}': {str(e)}")
+                # Add error result
+                results.append({
+                    "cv_filename": cv_filename,
+                    "error": str(e),
+                    "match_score": 0
+                })
+        
+        # Sort by match score (descending)
+        results.sort(key=lambda x: x.get("match_score", 0), reverse=True)
+        
+        return results
+    
+    async def match_job_to_multiple_cvs(
+        self,
+        job_description: Optional[str] = None,
+        cv_files: List[Dict[str, Union[bytes, str]]] = None,
+        job_file: Optional[bytes] = None,
+        job_filename: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Match a job posting to multiple CVs.
+        
+        Args:
+            job_description (str, optional): The job description text
+            cv_files (list): List of dicts with 'content' (bytes) and 'filename' (str) keys
+            job_file (bytes, optional): The job description file content
+            job_filename (str, optional): The job description file name
+            
+        Returns:
+            list: Sorted list of match results
+        """
+        # Use the same implementation as match_multiple_cvs_to_job
+        # Results will be the same, just with a different perspective
+        return await self.match_multiple_cvs_to_job(
+            cv_files=cv_files,
+            job_description=job_description,
+            job_file=job_file,
+            job_filename=job_filename
+        )

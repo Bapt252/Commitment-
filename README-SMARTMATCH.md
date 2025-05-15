@@ -1,196 +1,122 @@
 # Nexten SmartMatch
 
-Nexten SmartMatch est un système de matching bidirectionnel avancé qui permet de mettre en relation des candidats et des entreprises en fonction de critères multiples, incluant la compatibilité des compétences, la localisation, les préférences de travail à distance, l'expérience et les attentes salariales.
+Nexten SmartMatch est un système intelligent de mise en correspondance bidirectionnelle entre CV et fiches de poste. Il offre une solution complète d'analyse et de matching pour optimiser le processus de recrutement.
 
-## Caractéristiques principales
+## Fonctionnalités
 
-- **Matching bidirectionnel** : Prend en compte à la fois les besoins des entreprises et les préférences des candidats
-- **Analyse sémantique des compétences** : Va au-delà de la simple correspondance de mots-clés pour comprendre la similarité entre les compétences
-- **Intégration Google Maps** : Calcule les temps de trajet réels entre les localisations des candidats et des entreprises
-- **Gestion des préférences de travail à distance** : Prend en compte les politiques de télétravail des entreprises et les préférences des candidats
-- **Génération d'insights** : Fournit des analyses détaillées sur les résultats de matching
+- **Matching bidirectionnel** : Faites correspondre des CV à des postes ou des postes à des CV selon vos besoins.
+- **Analyse approfondie** : Extraction et mise en correspondance de multiples critères (compétences, expérience, formation, localisation, etc.).
+- **Intégration avec les services de parsing existants** : Compatibilité avec les services de parsing de CV et d'offres d'emploi déjà en place.
+- **API REST complète** : Interface facile à intégrer dans n'importe quelle application.
+- **Scoring détaillé** : Obtenez des scores de correspondance précis avec une explication détaillée des résultats.
+
+## Architecture
+
+L'architecture de SmartMatch est composée de plusieurs modules :
+
+1. **SmartMatcher** : Le moteur de matching qui calcule les correspondances entre les CV et les fiches de poste.
+2. **ParsingAdapter** : Un adaptateur qui se connecte aux services de parsing existants pour extraire les données structurées des CV et des fiches de poste.
+3. **MatchingPipeline** : Une classe qui coordonne le processus complet, de l'extraction des données au matching.
+4. **API REST FastAPI** : Une interface REST pour exposer les fonctionnalités de SmartMatch.
+
+```
+┌──────────────────┐    ┌───────────────────┐
+│   Matching API   │◄───┤ Matching Pipeline │
+└─────────┬────────┘    └────────┬──────────┘
+          │                      │
+          │                      │
+          ▼                      ▼
+┌──────────────────┐    ┌───────────────────┐
+│  Parsing Adapter │    │   Smart Matcher   │
+└─────────┬────────┘    └───────────────────┘
+          │
+          │
+          ▼
+┌──────────────────┐    ┌───────────────────┐
+│   CV Parser      │    │    Job Parser     │
+└──────────────────┘    └───────────────────┘
+```
 
 ## Installation
 
-### Prérequis
+1. Clonez le dépôt :
+   ```bash
+   git clone https://github.com/Bapt252/Commitment-.git
+   cd Commitment-
+   ```
 
-- Python 3.8 ou supérieur
-- Une clé API Google Maps (pour le calcul des temps de trajet)
+2. Installez les dépendances :
+   ```bash
+   pip install -r requirements-smartmatch.txt
+   ```
 
-### Installation des dépendances
-
-```bash
-pip install -r requirements.txt
-```
-
-### Configuration de la clé API Google Maps
-
-Deux options s'offrent à vous :
-
-1. Configuration par variable d'environnement :
-
-```bash
-export GOOGLE_MAPS_API_KEY="votre_clé_api_google_maps"
-```
-
-2. Configuration directe dans le code :
-
-```python
-from app.compat import GoogleMapsClient
-
-# Initialiser le client avec votre clé API
-maps_client = GoogleMapsClient(api_key="votre_clé_api_google_maps")
-```
+3. Configurez les variables d'environnement (créez un fichier `.env`) :
+   ```
+   CV_PARSER_URL=http://localhost:5051
+   JOB_PARSER_URL=http://localhost:5055
+   PORT=5052
+   RELOAD=True
+   ```
 
 ## Utilisation
 
-### Utilisation simple
-
-```python
-from app.smartmatch import SmartMatchEngine
-from app.data_loader import DataLoader
-
-# Charger les données
-data_loader = DataLoader()
-candidates = data_loader.load_candidates("chemin/vers/candidats.json")
-companies = data_loader.load_companies("chemin/vers/entreprises.json")
-
-# Initialiser le moteur de matching
-engine = SmartMatchEngine()
-
-# Exécuter le matching
-matching_results = engine.match(candidates, companies)
-
-# Afficher les résultats
-for match in matching_results[:5]:  # Top 5 des meilleurs matchings
-    print(f"Candidat {match['candidate_id']} - Entreprise {match['company_id']} - Score: {match['score']:.2f}")
-```
-
-### Utilisation avancée
-
-```python
-from app.smartmatch import SmartMatchEngine
-from app.data_loader import DataLoader
-from app.insight_generator import InsightGenerator
-
-# Charger les données
-data_loader = DataLoader()
-candidates = data_loader.load_candidates("chemin/vers/candidats.json")
-companies = data_loader.load_companies("chemin/vers/entreprises.json")
-
-# Initialiser le moteur de matching avec des pondérations personnalisées
-engine = SmartMatchEngine()
-engine.set_weights({
-    "skills": 0.4,
-    "location": 0.25,
-    "remote_policy": 0.15,
-    "experience": 0.1,
-    "salary": 0.1
-})
-
-# Exécuter le matching
-matching_results = engine.match(candidates, companies)
-
-# Générer des insights
-insight_generator = InsightGenerator()
-insights = insight_generator.generate_insights(matching_results)
-
-# Afficher les insights
-for insight in insights:
-    print(f"[{insight['type']}] {insight['message']}")
-
-# Exporter les résultats
-data_loader.save_results(matching_results, "resultats_matching.json")
-```
-
-### Utilisation en ligne de commande
-
-Vous pouvez également utiliser l'outil en ligne de commande :
+### Démarrer l'API
 
 ```bash
-python main.py --candidates chemin/vers/candidats.json --companies chemin/vers/entreprises.json --output resultats.json
+python run_matching_api.py
 ```
 
-Options disponibles :
-- `--candidates` : Chemin vers le fichier de données des candidats (JSON ou CSV)
-- `--companies` : Chemin vers le fichier de données des entreprises (JSON ou CSV)
-- `--output` : Chemin du fichier de sortie pour les résultats (JSON ou CSV)
-- `--weights` : Pondérations personnalisées au format JSON (ex: '{"skills": 0.4, "location": 0.3, ...}')
-- `--threshold` : Seuil minimum pour considérer un match (défaut: 0.6)
-- `--google-maps-key` : Clé API Google Maps pour le calcul des temps de trajet
-- `--verbose` : Afficher des informations détaillées pendant l'exécution
+### Endpoints API
 
-## Format des données
+- `/health` : Vérification de l'état de santé du service
+- `/api/match/cv-to-job` : Matcher un CV à une fiche de poste
+- `/api/match/job-to-cv` : Matcher une fiche de poste à un CV
+- `/api/match/multi-cv` : Matcher plusieurs CV à une fiche de poste
+- `/api/match/job-to-multi-cv` : Matcher une fiche de poste à plusieurs CV
+- `/api/match/score-explanation` : Obtenir des explications sur le calcul du score
 
-### Format des données des candidats
+### Exemples d'utilisation
 
-```json
-[
-  {
-    "id": "cand001",
-    "name": "Jean Dupont",
-    "skills": ["Python", "JavaScript", "React", "Node.js", "SQL"],
-    "experience": 4,
-    "location": "Paris, France",
-    "remote_preference": "hybrid",
-    "salary_expectation": 65000
-  },
-  // Autres candidats...
-]
-```
-
-### Format des données des entreprises
-
-```json
-[
-  {
-    "id": "comp001",
-    "name": "TechSolutions SAS",
-    "required_skills": ["Python", "JavaScript", "React", "Node.js"],
-    "location": "Paris, France",
-    "remote_policy": "hybrid",
-    "salary_range": {"min": 55000, "max": 80000},
-    "required_experience": 3
-  },
-  // Autres entreprises...
-]
-```
-
-## Intégration au site web
-
-Pour intégrer le système SmartMatch à un site web, vous pouvez utiliser l'API RESTful fournie. Voici un exemple simple d'intégration avec Flask :
-
-```python
-from flask import Flask, request, jsonify
-from app.smartmatch import SmartMatchEngine
-
-app = Flask(__name__)
-
-@app.route('/api/match', methods=['POST'])
-def match():
-    data = request.json
-    candidates = data.get('candidates', [])
-    companies = data.get('companies', [])
-    
-    engine = SmartMatchEngine()
-    matching_results = engine.match(candidates, companies)
-    
-    return jsonify({
-        'matches': matching_results
-    })
-
-if __name__ == '__main__':
-    app.run(debug=True)
-```
-
-## Tests
-
-Pour exécuter les tests unitaires :
+#### Matcher un CV à une fiche de poste
 
 ```bash
-python test_smartmatch.py
+curl -X POST http://localhost:5052/api/match/cv-to-job \
+  -F "cv_file=@/chemin/vers/cv.pdf" \
+  -F "job_description=Description du poste..."
 ```
 
-## Licence
+#### Matcher une fiche de poste à un CV
 
-Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
+```bash
+curl -X POST http://localhost:5052/api/match/job-to-cv \
+  -F "job_description=Description du poste..." \
+  -F "cv_file=@/chemin/vers/cv.pdf"
+```
+
+## Intégration
+
+SmartMatch s'intègre facilement à d'autres systèmes :
+
+1. **Services de parsing** : Configurez les URL des services de parsing dans le fichier `.env` ou lors de la création des adaptateurs.
+2. **APIs externes** : Utilisez l'API REST pour intégrer SmartMatch à n'importe quelle application.
+
+## Personnalisation
+
+Vous pouvez personnaliser le comportement de SmartMatch de plusieurs façons :
+
+- **Pondération des critères** : Modifiez les poids attribués à chaque critère de matching dans la configuration du SmartMatcher.
+- **Adaptation du format de données** : Personnalisez la transformation des données dans le ParsingAdapter pour s'adapter à vos formats spécifiques.
+- **Ajout de critères** : Étendez le SmartMatcher pour prendre en compte des critères supplémentaires.
+
+## Limitations actuelles
+
+- L'analyse des emplacements géographiques pourrait être améliorée en intégrant Google Maps API pour une meilleure gestion des distances.
+- L'analyse sémantique des descriptions de postes et des expériences pourrait être approfondie avec des modèles NLP plus avancés.
+
+## Roadmap
+
+- [ ] Intégrer Google Maps API pour l'analyse de localisation
+- [ ] Ajouter des modèles NLP avancés pour l'analyse sémantique
+- [ ] Implémenter le support multilingue
+- [ ] Ajouter des statistiques et un tableau de bord d'analyse
+- [ ] Développer des fonctionnalités de suggestion pour améliorer les CV et les fiches de poste

@@ -1,304 +1,425 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+Smart Match Engine
 
-"""Moteur de matching SmartMatch pour comparer candidats et entreprises."""
+This module provides the core matching engine for the SmartMatch system, 
+enabling bidirectional matching between CVs and job posts.
+"""
 
 import logging
-from typing import Dict, List, Any, Tuple
+from typing import Dict, Any, List, Tuple, Optional
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
 
-# Configuration du logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("SmartMatch")
+# Download necessary NLTK resources
+try:
+    nltk.data.find('tokenizers/punkt')
+    nltk.data.find('corpora/stopwords')
+    nltk.data.find('corpora/wordnet')
+except LookupError:
+    nltk.download('punkt')
+    nltk.download('stopwords')
+    nltk.download('wordnet')
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class SmartMatcher:
     """
-    Moteur de matching qui évalue la correspondance entre candidats et entreprises
-    en fonction de différents critères.
+    Main engine for matching CVs and job descriptions using various 
+    sophisticated techniques.
     """
-    
-    def __init__(self):
-        """Initialise le moteur de matching."""
-        logger.info("Initialisation du moteur SmartMatch")
-        
-        # Poids des différents critères (à ajuster selon les besoins)
-        self.weights = {
-            "skills": 0.5,        # Compétences
-            "experience": 0.2,    # Expérience professionnelle
-            "location": 0.15,     # Emplacement géographique
-            "remote": 0.1,        # Politique de travail à distance
-            "salary": 0.05        # Attentes salariales
-        }
-    
-    def calculate_match(self, candidate: Dict[str, Any], 
-                        company: Dict[str, Any]) -> Tuple[float, Dict[str, Any]]:
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
-        Calcule le score de matching entre un candidat et une entreprise.
+        Initialize the SmartMatcher with optional configuration parameters.
         
         Args:
-            candidate (Dict): Profil du candidat
-            company (Dict): Profil de l'entreprise/poste
+            config (dict, optional): Configuration parameters for the matcher.
+        """
+        self.config = config or {}
+        
+        # Initialize NLP tools
+        self.lemmatizer = WordNetLemmatizer()
+        self.stop_words = set(stopwords.words('english') + stopwords.words('french'))
+        
+        # Set default weights for match scoring
+        self.weights = self.config.get('weights', {
+            'skills': 0.40,
+            'experience': 0.25,
+            'education': 0.15,
+            'title_relevance': 0.10,
+            'location': 0.10,
+        })
+        
+        logger.info("SmartMatcher initialized with weights: %s", self.weights)
+
+    def preprocess_text(self, text: str) -> str:
+        """
+        Preprocess text for NLP analysis.
+        
+        Args:
+            text (str): Text to preprocess
             
         Returns:
-            Tuple[float, Dict]: Score de matching (0-100) et détails
+            str: Preprocessed text
         """
-        logger.debug(f"Calcul du matching entre candidat {candidate.get('id')} et entreprise {company.get('id')}")
+        if not text:
+            return ""
+            
+        # Convert to lowercase
+        text = text.lower()
         
-        # Calcul des scores par critère
-        skills_score = self._calculate_skills_match(candidate, company)
-        experience_score = self._calculate_experience_match(candidate, company)
-        location_score = self._calculate_location_match(candidate, company)
-        remote_score = self._calculate_remote_match(candidate, company)
-        salary_score = self._calculate_salary_match(candidate, company)
+        # Remove special characters and numbers
+        text = re.sub(r'[^\w\s]', ' ', text)
+        text = re.sub(r'\d+', ' ', text)
         
-        # Calcul du score global
-        total_score = (
-            skills_score * self.weights["skills"] +
-            experience_score * self.weights["experience"] +
-            location_score * self.weights["location"] +
-            remote_score * self.weights["remote"] +
-            salary_score * self.weights["salary"]
-        ) * 100  # Conversion en pourcentage
+        # Tokenize
+        tokens = word_tokenize(text)
         
-        # Arrondir à 2 décimales
-        total_score = round(total_score, 2)
+        # Remove stopwords and lemmatize
+        filtered_tokens = [
+            self.lemmatizer.lemmatize(word) 
+            for word in tokens 
+            if word not in self.stop_words and len(word) > 2
+        ]
         
-        # Détails du matching
+        return " ".join(filtered_tokens)
+
+    def calculate_match_score(self, cv_data: Dict[str, Any], job_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Calculate the match score between a CV and a job posting.
+        
+        Args:
+            cv_data (dict): Structured CV data
+            job_data (dict): Structured job posting data
+            
+        Returns:
+            dict: Match score and detailed breakdown
+        """
+        # Initialize score components
+        scores = {
+            'skills': 0.0,
+            'experience': 0.0,
+            'education': 0.0,
+            'title_relevance': 0.0,
+            'location': 0.0,
+            'total': 0.0
+        }
+        
         details = {
-            "skills": {
-                "score": skills_score,
-                "weight": self.weights["skills"],
-                "details": self._get_skills_details(candidate, company)
-            },
-            "experience": {
-                "score": experience_score,
-                "weight": self.weights["experience"]
-            },
-            "location": {
-                "score": location_score,
-                "weight": self.weights["location"]
-            },
-            "remote": {
-                "score": remote_score,
-                "weight": self.weights["remote"]
-            },
-            "salary": {
-                "score": salary_score,
-                "weight": self.weights["salary"]
-            }
+            'matched_skills': [],
+            'missing_skills': [],
+            'experience_match': False,
+            'education_match': False,
+            'location_match': False,
+            'title_relevance': 0.0
         }
         
-        logger.debug(f"Score de matching: {total_score}%")
-        return total_score, details
-    
-    def match(self, candidates: List[Dict[str, Any]], 
-              companies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Effectue le matching entre plusieurs candidats et entreprises.
+        # Calculate skills match
+        scores['skills'], details['matched_skills'], details['missing_skills'] = self._calculate_skills_match(
+            cv_data.get('skills', []),
+            job_data.get('skills', [])
+        )
         
-        Args:
-            candidates (List[Dict]): Liste de profils de candidats
-            companies (List[Dict]): Liste de profils d'entreprises/postes
-            
-        Returns:
-            List[Dict]: Résultats de matching triés par score
-        """
-        logger.info(f"Matching de {len(candidates)} candidats avec {len(companies)} entreprises")
+        # Calculate experience match
+        scores['experience'], details['experience_match'] = self._calculate_experience_match(
+            cv_data.get('total_experience', 0),
+            job_data.get('experience_required', 0)
+        )
         
-        results = []
+        # Calculate education match
+        scores['education'], details['education_match'] = self._calculate_education_match(
+            cv_data.get('education', []),
+            job_data.get('education_required', '')
+        )
         
-        for candidate in candidates:
-            for company in companies:
-                score, details = self.calculate_match(candidate, company)
-                
-                # Créer l'objet de résultat
-                result = {
-                    "candidate_id": candidate["id"],
-                    "candidate_name": candidate.get("name", ""),
-                    "company_id": company["id"],
-                    "company_name": company.get("name", ""),
-                    "score": score,
-                    "details": details
-                }
-                
-                results.append(result)
+        # Calculate title relevance
+        scores['title_relevance'], details['title_relevance'] = self._calculate_title_relevance(
+            cv_data.get('experience_details', []),
+            job_data.get('title', '')
+        )
         
-        # Trier les résultats par score décroissant
-        results.sort(key=lambda x: x["score"], reverse=True)
+        # Calculate location match
+        scores['location'], details['location_match'] = self._calculate_location_match(
+            cv_data.get('location', ''),
+            job_data.get('location', ''),
+            job_data.get('remote', False)
+        )
         
-        logger.info(f"{len(results)} matchings calculés")
-        return results
-    
-    def _calculate_skills_match(self, candidate: Dict[str, Any], 
-                               company: Dict[str, Any]) -> float:
-        """
-        Calcule le score de matching des compétences.
+        # Calculate total weighted score
+        scores['total'] = sum(scores[key] * self.weights[key] for key in self.weights)
         
-        Args:
-            candidate (Dict): Profil du candidat
-            company (Dict): Profil de l'entreprise/poste
-            
-        Returns:
-            float: Score de matching des compétences (0-1)
-        """
-        candidate_skills = set(s.lower() for s in candidate.get("skills", []))
-        required_skills = set(s.lower() for s in company.get("required_skills", []))
-        
-        if not required_skills:  # Aucune compétence requise
-            return 1.0
-        
-        # Nombre de compétences requises que le candidat possède
-        matching_skills = candidate_skills.intersection(required_skills)
-        
-        # Calcul du score (nombre de compétences correspondantes / nombre de compétences requises)
-        score = len(matching_skills) / len(required_skills)
-        
-        return score
-    
-    def _get_skills_details(self, candidate: Dict[str, Any], 
-                           company: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Fournit des détails sur le matching des compétences.
-        
-        Args:
-            candidate (Dict): Profil du candidat
-            company (Dict): Profil de l'entreprise/poste
-            
-        Returns:
-            Dict: Détails du matching des compétences
-        """
-        candidate_skills = set(s.lower() for s in candidate.get("skills", []))
-        required_skills = set(s.lower() for s in company.get("required_skills", []))
-        
-        matching_skills = candidate_skills.intersection(required_skills)
-        missing_skills = required_skills - candidate_skills
+        # Format to percentage with two decimal places
+        for key in scores:
+            scores[key] = round(scores[key] * 100, 2)
         
         return {
-            "matching_skills": list(matching_skills),
-            "missing_skills": list(missing_skills),
-            "total_required": len(required_skills),
-            "total_matching": len(matching_skills)
+            'scores': scores,
+            'details': details
         }
-    
-    def _calculate_experience_match(self, candidate: Dict[str, Any], 
-                                   company: Dict[str, Any]) -> float:
+
+    def _calculate_skills_match(
+        self, 
+        cv_skills: List[str], 
+        job_skills: List[str]
+    ) -> Tuple[float, List[str], List[str]]:
         """
-        Calcule le score de matching de l'expérience.
+        Calculate match score based on skills.
         
         Args:
-            candidate (Dict): Profil du candidat
-            company (Dict): Profil de l'entreprise/poste
+            cv_skills (list): Skills from CV
+            job_skills (list): Skills required in job
             
         Returns:
-            float: Score de matching de l'expérience (0-1)
+            tuple: (match_score, matched_skills, missing_skills)
         """
-        candidate_experience = candidate.get("experience", 0)
-        required_experience = company.get("required_experience", 0)
+        if not job_skills:
+            return 1.0, cv_skills, []
+            
+        # Normalize all skills by lowercasing
+        cv_skills_norm = [skill.lower() for skill in cv_skills]
+        job_skills_norm = [skill.lower() for skill in job_skills]
         
-        if required_experience == 0:  # Aucune expérience requise
-            return 1.0
+        # Find matched and missing skills
+        matched_skills = [skill for skill in job_skills if skill.lower() in cv_skills_norm]
+        missing_skills = [skill for skill in job_skills if skill.lower() not in cv_skills_norm]
         
-        # Si le candidat a plus d'expérience que nécessaire
-        if candidate_experience >= required_experience:
-            return 1.0
-        
-        # Sinon, calcul du ratio (avec un minimum de 0)
-        return max(0, candidate_experience / required_experience)
-    
-    def _calculate_location_match(self, candidate: Dict[str, Any], 
-                                 company: Dict[str, Any]) -> float:
+        # Calculate score
+        if len(job_skills) == 0:
+            return 1.0, matched_skills, missing_skills
+            
+        score = len(matched_skills) / len(job_skills)
+        return score, matched_skills, missing_skills
+
+    def _calculate_experience_match(
+        self, 
+        cv_experience: float, 
+        job_experience_required: float
+    ) -> Tuple[float, bool]:
         """
-        Calcule le score de matching de la localisation.
-        Version simplifiée basée sur la correspondance exacte des villes.
+        Calculate match score based on experience.
         
         Args:
-            candidate (Dict): Profil du candidat
-            company (Dict): Profil de l'entreprise/poste
+            cv_experience (float): Years of experience in CV
+            job_experience_required (float): Years of experience required in job
             
         Returns:
-            float: Score de matching de la localisation (0-1)
+            tuple: (score, is_match)
         """
-        # Version simplifiée - à remplacer par un calcul de distance réel
-        candidate_location = candidate.get("location", "").lower()
-        company_location = company.get("location", "").lower()
-        
-        # Si l'un des deux emplacements n'est pas spécifié
-        if not candidate_location or not company_location:
-            return 0.5  # Score neutre
-        
-        # Si les emplacements correspondent exactement
-        if candidate_location == company_location:
-            return 1.0
-        
-        # Vérifier si la ville correspond (première partie de l'emplacement)
-        candidate_city = candidate_location.split(",")[0].strip()
-        company_city = company_location.split(",")[0].strip()
-        
-        if candidate_city == company_city:
-            return 0.9  # Même ville, peut-être un quartier différent
-        
-        # Score par défaut pour des emplacements différents
-        return 0.3
-    
-    def _calculate_remote_match(self, candidate: Dict[str, Any], 
-                               company: Dict[str, Any]) -> float:
+        if job_experience_required <= 0:
+            return 1.0, True
+            
+        if cv_experience >= job_experience_required:
+            return 1.0, True
+            
+        # Partial matching if at least 80% of required experience
+        if cv_experience >= job_experience_required * 0.8:
+            ratio = cv_experience / job_experience_required
+            return ratio, False
+            
+        return 0.0, False
+
+    def _calculate_education_match(
+        self, 
+        cv_education: List[Dict[str, str]], 
+        job_education_required: str
+    ) -> Tuple[float, bool]:
         """
-        Calcule le score de matching des préférences de travail à distance.
+        Calculate match score based on education.
         
         Args:
-            candidate (Dict): Profil du candidat
-            company (Dict): Profil de l'entreprise/poste
+            cv_education (list): Education entries from CV
+            job_education_required (str): Education requirement from job
             
         Returns:
-            float: Score de matching du travail à distance (0-1)
+            tuple: (score, is_match)
         """
-        candidate_remote = candidate.get("remote_preference", "hybrid")
-        company_remote = company.get("remote_policy", "hybrid")
+        if not job_education_required:
+            return 1.0, True
+            
+        # Extract degrees from CV
+        cv_degrees = []
+        for edu in cv_education:
+            degree = edu.get('degree', '').lower()
+            field = edu.get('field', '').lower()
+            
+            cv_degrees.append(f"{degree} {field}".strip())
+            
+        # If no degrees found in CV
+        if not cv_degrees:
+            return 0.0, False
+            
+        # Preprocess the job education requirement
+        job_edu_proc = self.preprocess_text(job_education_required)
         
-        # Correspondance parfaite
-        if candidate_remote == company_remote:
-            return 1.0
+        # Check for matches using TF-IDF and cosine similarity
+        tfidf_vectorizer = TfidfVectorizer()
         
-        # Matrice de compatibilité
-        compatibility = {
-            # candidat: {politique entreprise: score}
-            "full": {"hybrid": 0.7, "office_only": 0.2},
-            "hybrid": {"full": 0.8, "office_only": 0.6},
-            "office": {"full": 0.3, "hybrid": 0.7}
+        # Combine all CV degrees for comparison
+        all_cv_degrees = " ".join(cv_degrees)
+        all_cv_degrees_proc = self.preprocess_text(all_cv_degrees)
+        
+        if not all_cv_degrees_proc or not job_edu_proc:
+            return 0.5, False
+            
+        try:
+            tfidf_matrix = tfidf_vectorizer.fit_transform([all_cv_degrees_proc, job_edu_proc])
+            similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+            
+            # Consider a match if similarity > 0.6
+            return similarity, similarity > 0.6
+        except:
+            logger.warning("Could not calculate education similarity, returning partial match")
+            return 0.5, False
+
+    def _calculate_title_relevance(
+        self, 
+        cv_experience_details: List[Dict[str, str]], 
+        job_title: str
+    ) -> Tuple[float, float]:
+        """
+        Calculate match score based on job title relevance to past roles.
+        
+        Args:
+            cv_experience_details (list): Work experience entries from CV
+            job_title (str): Job title
+            
+        Returns:
+            tuple: (score, relevance)
+        """
+        if not job_title or not cv_experience_details:
+            return 0.5, 0.5
+            
+        # Preprocess job title
+        job_title_proc = self.preprocess_text(job_title)
+        
+        # Get all previous titles from CV
+        cv_titles = [exp.get('title', '') for exp in cv_experience_details]
+        cv_titles_proc = [self.preprocess_text(title) for title in cv_titles if title]
+        
+        if not cv_titles_proc or not job_title_proc:
+            return 0.5, 0.5
+            
+        # Calculate similarity between the job title and each CV title
+        try:
+            tfidf_vectorizer = TfidfVectorizer()
+            all_titles = cv_titles_proc + [job_title_proc]
+            tfidf_matrix = tfidf_vectorizer.fit_transform(all_titles)
+            
+            # Calculate similarity with each previous title
+            similarities = []
+            for i in range(len(cv_titles_proc)):
+                similarity = cosine_similarity(
+                    tfidf_matrix[i:i+1], 
+                    tfidf_matrix[-1::]
+                )[0][0]
+                similarities.append(similarity)
+            
+            # Take the highest similarity as the score
+            if similarities:
+                max_similarity = max(similarities)
+                return max_similarity, max_similarity
+                
+            return 0.5, 0.5
+        except:
+            logger.warning("Could not calculate title similarity, returning partial match")
+            return 0.5, 0.5
+
+    def _calculate_location_match(
+        self, 
+        cv_location: str, 
+        job_location: str, 
+        job_is_remote: bool
+    ) -> Tuple[float, bool]:
+        """
+        Calculate match score based on location.
+        
+        Args:
+            cv_location (str): Location from CV
+            job_location (str): Location from job posting
+            job_is_remote (bool): Whether the job is remote
+            
+        Returns:
+            tuple: (score, is_match)
+        """
+        # If job is remote, location is a perfect match
+        if job_is_remote:
+            return 1.0, True
+            
+        if not cv_location or not job_location:
+            return 0.5, False
+            
+        # Normalize locations by converting to lowercase and removing common words
+        cv_loc_norm = cv_location.lower()
+        job_loc_norm = job_location.lower()
+        
+        # First check: exact match on city or country level
+        if cv_loc_norm == job_loc_norm:
+            return 1.0, True
+            
+        # Second check: city or region is contained in the other
+        if cv_loc_norm in job_loc_norm or job_loc_norm in cv_loc_norm:
+            return 0.8, True
+            
+        # Third check: Extract components and check for overlap
+        cv_loc_words = set(self.preprocess_text(cv_loc_norm).split())
+        job_loc_words = set(self.preprocess_text(job_loc_norm).split())
+        
+        overlap = cv_loc_words.intersection(job_loc_words)
+        
+        if overlap:
+            score = len(overlap) / max(len(cv_loc_words), len(job_loc_words))
+            return score, score > 0.5
+        
+        # TODO: Use Google Maps API for more accurate location matching
+        
+        return 0.0, False
+
+    def match_cv_to_job(self, cv_data: Dict[str, Any], job_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Match a CV to a job, return score and details.
+        
+        Args:
+            cv_data (dict): Structured CV data
+            job_data (dict): Structured job posting data
+            
+        Returns:
+            dict: Match results with score and details
+        """
+        logger.info(f"Matching CV to job: {job_data.get('title', 'Unknown position')}")
+        
+        match_results = self.calculate_match_score(cv_data, job_data)
+        
+        return {
+            'cv': cv_data.get('personal_info', {}).get('name', 'Anonymous Candidate'),
+            'job': job_data.get('title', 'Unknown position'),
+            'match_score': match_results['scores']['total'],
+            'match_details': match_results
         }
-        
-        # Obtenir le score de compatibilité ou 0.5 par défaut
-        return compatibility.get(candidate_remote, {}).get(company_remote, 0.5)
-    
-    def _calculate_salary_match(self, candidate: Dict[str, Any], 
-                               company: Dict[str, Any]) -> float:
+
+    def match_job_to_cv(self, job_data: Dict[str, Any], cv_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Calcule le score de matching des attentes salariales.
+        Match a job to a CV, return score and details.
         
         Args:
-            candidate (Dict): Profil du candidat
-            company (Dict): Profil de l'entreprise/poste
+            job_data (dict): Structured job posting data
+            cv_data (dict): Structured CV data
             
         Returns:
-            float: Score de matching du salaire (0-1)
+            dict: Match results with score and details
         """
-        candidate_salary = candidate.get("salary_expectation", 0)
-        company_salary_range = company.get("salary_range", {"min": 0, "max": 0})
+        logger.info(f"Matching job: {job_data.get('title', 'Unknown position')} to candidate")
         
-        min_salary = company_salary_range.get("min", 0)
-        max_salary = company_salary_range.get("max", 0)
+        match_results = self.calculate_match_score(cv_data, job_data)
         
-        # Si l'une des parties n'a pas spécifié de salaire
-        if candidate_salary == 0 or (min_salary == 0 and max_salary == 0):
-            return 0.5  # Score neutre
-        
-        # Si le salaire attendu est dans la fourchette
-        if min_salary <= candidate_salary <= max_salary:
-            return 1.0
-        
-        # Si le salaire attendu est inférieur au minimum
-        if candidate_salary < min_salary:
-            # Calculer le ratio (avec un minimum de 0.5 pour ne pas trop pénaliser)
-            return max(0.5, candidate_salary / min_salary)
-        
-        # Si le salaire attendu est supérieur au maximum
-        return max(0.2, max_salary / candidate_salary)
+        return {
+            'job': job_data.get('title', 'Unknown position'),
+            'cv': cv_data.get('personal_info', {}).get('name', 'Anonymous Candidate'),
+            'match_score': match_results['scores']['total'],
+            'match_details': match_results
+        }
