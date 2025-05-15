@@ -6,7 +6,8 @@
 import os
 import argparse
 import logging
-from app.adapters.matching_api import start_api
+import uvicorn
+from app.adapters.matching_api import create_app
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -37,8 +38,11 @@ def main():
     logger.info(f"Service de parsing de fiches de poste: {args.job_parser_url}")
     logger.info(f"Répertoire des résultats: {args.results_dir}")
     
-    # Démarrer l'API
-    start_api(host=args.host, port=args.port, debug=args.debug)
+    # Créer l'application FastAPI
+    app = create_app(args.cv_parser_url, args.job_parser_url, args.results_dir)
+    
+    # Démarrer le serveur
+    uvicorn.run(app, host=args.host, port=args.port, log_level="info" if not args.debug else "debug")
 
 if __name__ == "__main__":
     main()
