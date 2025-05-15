@@ -10,6 +10,20 @@ L'analyseur sémantique permet une comparaison plus intelligente des compétence
 - **Analyse de similarité textuelle** : détection des variations de formulation (ex: ReactJS et React.js)
 - **Support de WordNet** (optionnel) : utilisation de ressources linguistiques pour identifier les synonymes
 
+## Tests simplifiés
+
+En raison de la complexité des dépendances dans la structure du projet, nous avons ajouté un script de test indépendant qui peut être exécuté sans problèmes d'importation :
+
+```bash
+# Rendre le script exécutable
+chmod +x run-isolated-semantic-tests.sh
+
+# Exécuter les tests isolés
+./run-isolated-semantic-tests.sh
+```
+
+Ce script exécute les tests unitaires dans un environnement isolé, ce qui permet de vérifier le bon fonctionnement de l'analyseur sémantique sans dépendre de la structure complète du projet.
+
 ## Intégration dans le système
 
 L'analyseur sémantique est conçu pour être intégré au moteur de matching existant, particulièrement dans la version améliorée `EnhancedMatchingEngine`.
@@ -56,18 +70,23 @@ class EnhancedMatchingEngine:
         return self.semantic_analyzer.calculate_skills_similarity(cv_skills, job_skills)
 ```
 
-## Tests
+## Comportement de l'analyseur sémantique
 
-Pour tester l'intégration, vous pouvez exécuter les tests spécifiques à l'analyseur sémantique:
+### Fonctionnement du calcul de similarité
 
-```bash
-# Rendre les scripts exécutables
-chmod +x make-semantic-test-executable.sh
-./make-semantic-test-executable.sh
+L'analyseur sémantique utilise une approche en plusieurs étapes :
 
-# Exécuter les tests de l'analyseur sémantique
-./test-semantic-analyzer.sh
-```
+1. **Correspondance directe** : Vérification des compétences exactement identiques
+   - Si toutes les compétences du poste sont dans le CV, le score est 1.0 (correspondance parfaite)
+   
+2. **Correspondance sémantique** : Pour les compétences qui ne correspondent pas exactement
+   - Utilisation d'un dictionnaire de relations entre compétences
+   - Analyse de similarité textuelle pour les variations orthographiques
+   - Analyse via WordNet pour les synonymes (si disponible)
+
+3. **Calcul du score combiné** :
+   - En cas de correspondance partielle, la formule est : `(direct_match_score * 0.7) + (semantic_match_score * 0.3)`
+   - Cette pondération donne plus d'importance aux correspondances directes
 
 ## Performances et optimisations
 
