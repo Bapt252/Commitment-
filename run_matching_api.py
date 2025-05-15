@@ -1,48 +1,42 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+Run script for the SmartMatch API.
 
-"""Script pour démarrer l'API du service de matching SmartMatch."""
+This script sets up and runs the FastAPI application for SmartMatch.
+"""
 
 import os
-import argparse
 import logging
 import uvicorn
-from app.adapters.matching_api import create_app
+from dotenv import load_dotenv
 
-# Configuration du logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("MatchingAPI")
+# Load environment variables from .env file
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 def main():
-    """Fonction principale pour démarrer l'API."""
-    parser = argparse.ArgumentParser(description="Démarrer l'API du service de matching SmartMatch")
-    parser.add_argument("--host", default="0.0.0.0", help="Adresse d'hôte (défaut: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=5052, help="Port d'écoute (défaut: 5052)")
-    parser.add_argument("--debug", action="store_true", help="Activer le mode debug")
-    parser.add_argument("--cv-parser-url", default=os.environ.get("CV_PARSER_URL", "http://localhost:5051"), 
-                        help="URL du service de parsing de CV (défaut: http://localhost:5051)")
-    parser.add_argument("--job-parser-url", default=os.environ.get("JOB_PARSER_URL", "http://localhost:5055"), 
-                        help="URL du service de parsing de fiches de poste (défaut: http://localhost:5055)")
-    parser.add_argument("--results-dir", default=os.environ.get("MATCHING_RESULTS_DIR", "matching_results"), 
-                        help="Répertoire pour stocker les résultats (défaut: matching_results)")
+    """Run the SmartMatch API."""
+    # Get configuration from environment variables
+    host = os.environ.get("HOST", "0.0.0.0")
+    port = int(os.environ.get("PORT", "5052"))
+    reload = os.environ.get("RELOAD", "False").lower() in ("true", "1", "t")
     
-    args = parser.parse_args()
+    logger.info(f"Starting SmartMatch API on {host}:{port} (reload={reload})")
     
-    # Configurer les variables d'environnement
-    os.environ["CV_PARSER_URL"] = args.cv_parser_url
-    os.environ["JOB_PARSER_URL"] = args.job_parser_url
-    os.environ["MATCHING_RESULTS_DIR"] = args.results_dir
-    
-    logger.info(f"Démarrage de l'API SmartMatch sur {args.host}:{args.port}")
-    logger.info(f"Service de parsing de CV: {args.cv_parser_url}")
-    logger.info(f"Service de parsing de fiches de poste: {args.job_parser_url}")
-    logger.info(f"Répertoire des résultats: {args.results_dir}")
-    
-    # Créer l'application FastAPI
-    app = create_app(args.cv_parser_url, args.job_parser_url, args.results_dir)
-    
-    # Démarrer le serveur
-    uvicorn.run(app, host=args.host, port=args.port, log_level="info" if not args.debug else "debug")
+    # Start the server
+    uvicorn.run(
+        "app.adapters.matching_api:app",
+        host=host,
+        port=port,
+        reload=reload,
+        log_level="info"
+    )
 
 if __name__ == "__main__":
     main()
