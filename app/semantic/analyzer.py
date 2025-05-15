@@ -59,12 +59,10 @@ class SemanticAnalyzer:
             # Méthodologies
             "agile": ["scrum", "kanban", "lean", "xp", "extreme programming"],
             
-            # Catégories générales de développement
+            # Catégories plus générales
             "frontend": ["react", "angular", "vue", "javascript", "typescript", "html", "css"],
-            "backend": ["python", "java", "node.js", "c#", ".net", "php", "ruby"],
+            "backend": ["python", "java", "nodejs", "django", "flask", "spring"],
             "database": ["sql", "mysql", "postgresql", "mongodb", "nosql"],
-            "web": ["html", "css", "javascript", "react", "angular", "vue"],
-            "mobile": ["react native", "flutter", "swift", "kotlin", "android", "ios"],
         }
         
         return relationships
