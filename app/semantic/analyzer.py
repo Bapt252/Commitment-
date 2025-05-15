@@ -40,13 +40,13 @@ class SemanticAnalyzer:
         # Dictionnaire de base avec des groupes de compétences similaires
         relationships = {
             # Frameworks/Bibliothèques frontend
-            "react": ["reactjs", "react.js", "react native"],
-            "angular": ["angularjs", "angular.js", "angular 2+"],
-            "vue": ["vuejs", "vue.js", "vuex"],
+            "react": ["reactjs", "react.js", "react native", "frontend"],
+            "angular": ["angularjs", "angular.js", "angular 2+", "frontend"],
+            "vue": ["vuejs", "vue.js", "vuex", "frontend"],
             
             # Langages de programmation
             "python": ["django", "flask", "fastapi", "pandas", "numpy", "scikit-learn"],
-            "javascript": ["js", "typescript", "ts", "node.js", "nodejs"],
+            "javascript": ["js", "typescript", "ts", "node.js", "nodejs", "frontend"],
             "java": ["spring", "spring boot", "j2ee", "jakarta ee"],
             
             # Bases de données
@@ -58,6 +58,13 @@ class SemanticAnalyzer:
             
             # Méthodologies
             "agile": ["scrum", "kanban", "lean", "xp", "extreme programming"],
+            
+            # Catégories générales de développement
+            "frontend": ["react", "angular", "vue", "javascript", "typescript", "html", "css"],
+            "backend": ["python", "java", "node.js", "c#", ".net", "php", "ruby"],
+            "database": ["sql", "mysql", "postgresql", "mongodb", "nosql"],
+            "web": ["html", "css", "javascript", "react", "angular", "vue"],
+            "mobile": ["react native", "flutter", "swift", "kotlin", "android", "ios"],
         }
         
         return relationships
