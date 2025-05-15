@@ -45,12 +45,10 @@ class SemanticAnalyzer:
             # Méthodologies
             "agile": ["scrum", "kanban", "lean", "xp", "extreme programming"],
             
-            # Catégories générales de développement
+            # Catégories plus générales
             "frontend": ["react", "angular", "vue", "javascript", "typescript", "html", "css"],
-            "backend": ["python", "java", "node.js", "c#", ".net", "php", "ruby"],
+            "backend": ["python", "java", "nodejs", "django", "flask", "spring"],
             "database": ["sql", "mysql", "postgresql", "mongodb", "nosql"],
-            "web": ["html", "css", "javascript", "react", "angular", "vue"],
-            "mobile": ["react native", "flutter", "swift", "kotlin", "android", "ios"],
         }
         return relationships
     
@@ -143,7 +141,7 @@ class TestSemanticAnalyzer(unittest.TestCase):
         cv_skills = ["React", "MySQL", "TypeScript"]
         job_skills = ["JavaScript", "SQL", "Frontend"]
         similarity = self.analyzer.calculate_skills_similarity(cv_skills, job_skills)
-        # On s'attend à ce que TypeScript soit lié à JavaScript, et MySQL à SQL
+        # Devrait maintenant fonctionner avec les relations améliorées
         self.assertTrue(0.5 <= similarity <= 0.7)
         print("✓ Test des correspondances sémantiques réussi")
     
@@ -162,6 +160,7 @@ class TestSemanticAnalyzer(unittest.TestCase):
         self.assertTrue(self.analyzer._are_skills_related("django", "flask"))
         self.assertTrue(self.analyzer._are_skills_related("react", "frontend"))
         self.assertTrue(self.analyzer._are_skills_related("typescript", "javascript"))
+        self.assertTrue(self.analyzer._are_skills_related("mysql", "sql"))
         self.assertFalse(self.analyzer._are_skills_related("python", "react"))
         print("✓ Test des relations entre compétences réussi")
 
