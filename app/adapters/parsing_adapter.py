@@ -6,6 +6,8 @@
 import logging
 import requests
 import json
+import aiohttp
+import asyncio
 from typing import Dict, List, Any, Optional, Union
 
 # Configuration du logging
@@ -116,6 +118,94 @@ class ParsingAdapter:
         except Exception as e:
             logger.error(f"Exception lors de la récupération des fiches de poste: {e}")
             return []
+    
+    async def parse_cv(self, cv_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Envoie un CV au service de parsing et retourne le profil structuré.
+        
+        Args:
+            cv_data (Dict): Données du CV à parser
+            
+        Returns:
+            Dict: Données parsées du CV, ou None en cas d'erreur
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f"{self.cv_parser_url}/parse", json=cv_data) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    else:
+                        logger.error(f"Erreur lors du parsing du CV: {response.status}")
+                        return None
+        except Exception as e:
+            logger.error(f"Exception lors du parsing du CV: {e}")
+            return None
+    
+    async def parse_job(self, job_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Envoie une fiche de poste au service de parsing et retourne le profil de poste structuré.
+        
+        Args:
+            job_data (Dict): Données de la fiche de poste à parser
+            
+        Returns:
+            Dict: Données parsées de la fiche de poste, ou None en cas d'erreur
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f"{self.job_parser_url}/parse", json=job_data) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    else:
+                        logger.error(f"Erreur lors du parsing de la fiche de poste: {response.status}")
+                        return None
+        except Exception as e:
+            logger.error(f"Exception lors du parsing de la fiche de poste: {e}")
+            return None
+    
+    async def get_cv_data_async(self, cv_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Version asynchrone de get_cv_data.
+        
+        Args:
+            cv_id (str): Identifiant du CV
+            
+        Returns:
+            Dict: Données parsées du CV, ou None en cas d'erreur
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{self.cv_parser_url}/api/cv/{cv_id}") as response:
+                    if response.status == 200:
+                        return await response.json()
+                    else:
+                        logger.error(f"Erreur lors de la récupération du CV {cv_id}: {response.status}")
+                        return None
+        except Exception as e:
+            logger.error(f"Exception lors de la récupération du CV {cv_id}: {e}")
+            return None
+    
+    async def get_job_data_async(self, job_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Version asynchrone de get_job_data.
+        
+        Args:
+            job_id (str): Identifiant de la fiche de poste
+            
+        Returns:
+            Dict: Données parsées de la fiche de poste, ou None en cas d'erreur
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{self.job_parser_url}/api/job/{job_id}") as response:
+                    if response.status == 200:
+                        return await response.json()
+                    else:
+                        logger.error(f"Erreur lors de la récupération de la fiche de poste {job_id}: {response.status}")
+                        return None
+        except Exception as e:
+            logger.error(f"Exception lors de la récupération de la fiche de poste {job_id}: {e}")
+            return None
     
     def cv_to_candidate(self, cv_data: Dict[str, Any]) -> Dict[str, Any]:
         """
