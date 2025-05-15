@@ -6,7 +6,6 @@
 import logging
 import requests
 import json
-import aiohttp
 import asyncio
 from typing import Dict, List, Any, Optional, Union
 
@@ -33,179 +32,86 @@ class ParsingAdapter:
         self.job_parser_url = job_parser_url
         logger.info("Adaptateur de parsing initialisé avec succès")
     
-    def get_cv_data(self, cv_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Récupère les données parsées d'un CV depuis le service de parsing.
-        
-        Args:
-            cv_id (str): Identifiant du CV
-            
-        Returns:
-            Dict: Données parsées du CV, ou None en cas d'erreur
-        """
-        try:
-            url = f"{self.cv_parser_url}/api/cv/{cv_id}"
-            response = requests.get(url)
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.error(f"Erreur lors de la récupération du CV {cv_id}: {response.status_code}")
-                return None
-        except Exception as e:
-            logger.error(f"Exception lors de la récupération du CV {cv_id}: {e}")
-            return None
-    
-    def get_job_data(self, job_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Récupère les données parsées d'une fiche de poste depuis le service de parsing.
-        
-        Args:
-            job_id (str): Identifiant de la fiche de poste
-            
-        Returns:
-            Dict: Données parsées de la fiche de poste, ou None en cas d'erreur
-        """
-        try:
-            url = f"{self.job_parser_url}/api/job/{job_id}"
-            response = requests.get(url)
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.error(f"Erreur lors de la récupération de la fiche de poste {job_id}: {response.status_code}")
-                return None
-        except Exception as e:
-            logger.error(f"Exception lors de la récupération de la fiche de poste {job_id}: {e}")
-            return None
-    
-    def get_all_cvs(self) -> List[Dict[str, Any]]:
-        """
-        Récupère tous les CVs parsés depuis le service de parsing.
-        
-        Returns:
-            List[Dict]: Liste des données parsées des CVs
-        """
-        try:
-            url = f"{self.cv_parser_url}/api/cvs"
-            response = requests.get(url)
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.error(f"Erreur lors de la récupération des CVs: {response.status_code}")
-                return []
-        except Exception as e:
-            logger.error(f"Exception lors de la récupération des CVs: {e}")
-            return []
-    
-    def get_all_jobs(self) -> List[Dict[str, Any]]:
-        """
-        Récupère toutes les fiches de poste parsées depuis le service de parsing.
-        
-        Returns:
-            List[Dict]: Liste des données parsées des fiches de poste
-        """
-        try:
-            url = f"{self.job_parser_url}/api/jobs"
-            response = requests.get(url)
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.error(f"Erreur lors de la récupération des fiches de poste: {response.status_code}")
-                return []
-        except Exception as e:
-            logger.error(f"Exception lors de la récupération des fiches de poste: {e}")
-            return []
-    
     async def parse_cv(self, cv_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
-        Envoie un CV au service de parsing et retourne le profil structuré.
+        Version simplifiée: simulate parsing un CV.
         
         Args:
             cv_data (Dict): Données du CV à parser
             
         Returns:
-            Dict: Données parsées du CV, ou None en cas d'erreur
+            Dict: Données parsées simulées
         """
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(f"{self.cv_parser_url}/parse", json=cv_data) as response:
-                    if response.status == 200:
-                        return await response.json()
-                    else:
-                        logger.error(f"Erreur lors du parsing du CV: {response.status}")
-                        return None
-        except Exception as e:
-            logger.error(f"Exception lors du parsing du CV: {e}")
-            return None
+        logger.info("Simulation de parsing de CV")
+        
+        # Simuler un délai de traitement
+        await asyncio.sleep(0.5)
+        
+        # Extraire certaines informations de base
+        name = cv_data.get("name", "")
+        if not name and "personal_info" in cv_data:
+            name = cv_data["personal_info"].get("name", "")
+        
+        skills = cv_data.get("skills", [])
+        if isinstance(skills, str):
+            skills = [s.strip() for s in skills.split(",")]
+        
+        # Créer un profil parsé simulé
+        parsed_data = {
+            "id": cv_data.get("id", "cv_" + str(hash(name))[:8]),
+            "name": name,
+            "skills": skills,
+            "work_experience": cv_data.get("experience", []),
+            "address": cv_data.get("location", {}),
+            "salary_expectation": cv_data.get("salary", 0),
+            "preferences": {
+                "remote_work": cv_data.get("remote", "hybrid")
+            }
+        }
+        
+        return parsed_data
     
     async def parse_job(self, job_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
-        Envoie une fiche de poste au service de parsing et retourne le profil de poste structuré.
+        Version simplifiée: simulate parsing une fiche de poste.
         
         Args:
             job_data (Dict): Données de la fiche de poste à parser
             
         Returns:
-            Dict: Données parsées de la fiche de poste, ou None en cas d'erreur
+            Dict: Données parsées simulées
         """
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(f"{self.job_parser_url}/parse", json=job_data) as response:
-                    if response.status == 200:
-                        return await response.json()
-                    else:
-                        logger.error(f"Erreur lors du parsing de la fiche de poste: {response.status}")
-                        return None
-        except Exception as e:
-            logger.error(f"Exception lors du parsing de la fiche de poste: {e}")
-            return None
-    
-    async def get_cv_data_async(self, cv_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Version asynchrone de get_cv_data.
+        logger.info("Simulation de parsing de fiche de poste")
         
-        Args:
-            cv_id (str): Identifiant du CV
-            
-        Returns:
-            Dict: Données parsées du CV, ou None en cas d'erreur
-        """
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{self.cv_parser_url}/api/cv/{cv_id}") as response:
-                    if response.status == 200:
-                        return await response.json()
-                    else:
-                        logger.error(f"Erreur lors de la récupération du CV {cv_id}: {response.status}")
-                        return None
-        except Exception as e:
-            logger.error(f"Exception lors de la récupération du CV {cv_id}: {e}")
-            return None
-    
-    async def get_job_data_async(self, job_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Version asynchrone de get_job_data.
+        # Simuler un délai de traitement
+        await asyncio.sleep(0.5)
         
-        Args:
-            job_id (str): Identifiant de la fiche de poste
-            
-        Returns:
-            Dict: Données parsées de la fiche de poste, ou None en cas d'erreur
-        """
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{self.job_parser_url}/api/job/{job_id}") as response:
-                    if response.status == 200:
-                        return await response.json()
-                    else:
-                        logger.error(f"Erreur lors de la récupération de la fiche de poste {job_id}: {response.status}")
-                        return None
-        except Exception as e:
-            logger.error(f"Exception lors de la récupération de la fiche de poste {job_id}: {e}")
-            return None
+        # Extraire certaines informations de base
+        company_name = job_data.get("company_name", "")
+        title = job_data.get("title", "")
+        if not title and "job_info" in job_data:
+            title = job_data["job_info"].get("title", "")
+        
+        skills = job_data.get("skills", [])
+        if isinstance(skills, str):
+            skills = [s.strip() for s in skills.split(",")]
+        
+        # Créer un profil parsé simulé
+        parsed_data = {
+            "id": job_data.get("id", "job_" + str(hash(title))[:8]),
+            "title": title,
+            "company": {"name": company_name},
+            "required_skills": skills,
+            "experience_required": job_data.get("experience", 0),
+            "location": job_data.get("location", ""),
+            "salary": {
+                "min": job_data.get("salary_min", 0),
+                "max": job_data.get("salary_max", 0)
+            },
+            "remote_work": job_data.get("remote", "hybrid")
+        }
+        
+        return parsed_data
     
     def cv_to_candidate(self, cv_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -299,13 +205,7 @@ class ParsingAdapter:
         # Extraction de l'expérience requise
         required_experience = 0
         experience_text = job_data.get("experience_required", "")
-        if isinstance(experience_text, str):
-            # Extraire le nombre d'années d'expérience
-            import re
-            experience_match = re.search(r'(\d+)\s*(?:an|year)', experience_text, re.IGNORECASE)
-            if experience_match:
-                required_experience = int(experience_match.group(1))
-        elif isinstance(experience_text, (int, float)):
+        if isinstance(experience_text, (int, float)):
             required_experience = experience_text
         
         # Extraction de la localisation
@@ -348,27 +248,3 @@ class ParsingAdapter:
         }
         
         return company
-    
-    def convert_all_cvs(self) -> List[Dict[str, Any]]:
-        """
-        Convertit tous les CVs disponibles au format SmartMatch.
-        
-        Returns:
-            List[Dict]: Liste des candidats au format SmartMatch
-        """
-        cvs = self.get_all_cvs()
-        candidates = [self.cv_to_candidate(cv) for cv in cvs]
-        logger.info(f"Conversion de {len(candidates)} CVs au format SmartMatch")
-        return candidates
-    
-    def convert_all_jobs(self) -> List[Dict[str, Any]]:
-        """
-        Convertit toutes les fiches de poste disponibles au format SmartMatch.
-        
-        Returns:
-            List[Dict]: Liste des entreprises au format SmartMatch
-        """
-        jobs = self.get_all_jobs()
-        companies = [self.job_to_company(job) for job in jobs]
-        logger.info(f"Conversion de {len(companies)} fiches de poste au format SmartMatch")
-        return companies
