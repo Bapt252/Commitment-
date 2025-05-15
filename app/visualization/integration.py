@@ -4,9 +4,14 @@ Ce module permet de générer facilement des visualisations à partir des résul
 """
 
 import os
+import logging
 from typing import List, Dict, Any
 from app.smartmatch import SmartMatchEngine
 from app.visualization.match_visualizer import MatchVisualizer
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("SmartMatchVisualization")
 
 class SmartMatchWithVisualization:
     """
@@ -21,7 +26,13 @@ class SmartMatchWithVisualization:
         Args:
             output_dir (str): Répertoire où les visualisations seront générées
         """
-        self.match_engine = SmartMatchEngine()
+        try:
+            self.match_engine = SmartMatchEngine()
+            logger.info("Moteur SmartMatch initialisé avec succès")
+        except Exception as e:
+            logger.error(f"Erreur lors de l'initialisation du moteur SmartMatch: {e}")
+            raise
+            
         self.visualizer = MatchVisualizer(output_dir=output_dir)
     
     def set_weights(self, weights: Dict[str, float]):
@@ -47,8 +58,23 @@ class SmartMatchWithVisualization:
         Returns:
             dict: Informations sur les chemins des visualisations générées
         """
+        # Vérifier que les données d'entrée sont valides
+        if not candidates or not companies:
+            logger.warning("Données d'entrée vides: aucun candidat ou aucune entreprise")
+            return {
+                "match_results": [],
+                "output_paths": {},
+                "report": {}
+            }
+        
         # Effectuer le matching
-        match_results = self.match_engine.match(candidates, companies)
+        logger.info(f"Exécution du matching bidirectionnel entre {len(candidates)} candidats et {len(companies)} entreprises")
+        try:
+            match_results = self.match_engine.match(candidates, companies)
+            logger.info(f"{len(match_results)} matches trouvés")
+        except Exception as e:
+            logger.error(f"Erreur lors du matching: {e}")
+            raise
         
         # Enrichir les résultats avec les informations de localisation pour la visualisation
         for match in match_results:
@@ -59,6 +85,12 @@ class SmartMatchWithVisualization:
             # Ajouter les informations de localisation
             match["candidate_location"] = candidate.get("location", "Non spécifié")
             match["company_location"] = company.get("location", "Non spécifié")
+            
+            # S'assurer que les détails contiennent des compétences communes
+            if "details" in match and "missing_skills" in match["details"]:
+                candidate_skills = set(candidate.get("skills", []))
+                company_skills = set(company.get("required_skills", []))
+                match["details"]["matched_skills"] = list(candidate_skills.intersection(company_skills))
         
         # Générer les visualisations
         output_paths = {}
@@ -66,10 +98,12 @@ class SmartMatchWithVisualization:
         if generate_html:
             dashboard_path = self.visualizer.generate_dashboard(match_results)
             output_paths["dashboard"] = dashboard_path
+            logger.info(f"Tableau de bord HTML généré: {dashboard_path}")
         
         if export_json:
             json_path = self.visualizer.export_json(match_results)
             output_paths["json"] = json_path
+            logger.info(f"Données JSON exportées: {json_path}")
         
         # Générer le rapport statistique
         report = self.visualizer.generate_report(match_results)
@@ -91,19 +125,22 @@ class SmartMatchWithVisualization:
         Returns:
             str: Explication détaillée du matching
         """
+        if not match_result:
+            return "Aucun résultat de matching à expliquer."
+        
         explanation = f"Analyse du match entre Candidat {match_result['candidate_id']} et Entreprise {match_result['company_id']}\n"
         explanation += f"Score global: {match_result['score']:.2f} (seuil minimum: {self.match_engine.min_score_threshold})\n\n"
         
-        details = match_result["details"]
+        details = match_result.get("details", {})
         weights = self.match_engine.weights
         
         # Expliquer chaque composante
         explanation += "Détail des scores par critère:\n"
-        explanation += f"- Compétences: {details['skills_score']:.2f} (pondération: {weights['skills']:.2f})\n"
-        explanation += f"- Localisation: {details['location_score']:.2f} (pondération: {weights['location']:.2f})\n"
-        explanation += f"- Politique de télétravail: {details['remote_score']:.2f} (pondération: {weights['remote_policy']:.2f})\n"
-        explanation += f"- Expérience: {details['experience_score']:.2f} (pondération: {weights['experience']:.2f})\n"
-        explanation += f"- Salaire: {details['salary_score']:.2f} (pondération: {weights['salary']:.2f})\n\n"
+        explanation += f"- Compétences: {details.get('skills_score', 'N/A'):.2f} (pondération: {weights['skills']:.2f})\n"
+        explanation += f"- Localisation: {details.get('location_score', 'N/A'):.2f} (pondération: {weights['location']:.2f})\n"
+        explanation += f"- Politique de télétravail: {details.get('remote_score', 'N/A'):.2f} (pondération: {weights['remote_policy']:.2f})\n"
+        explanation += f"- Expérience: {details.get('experience_score', 'N/A'):.2f} (pondération: {weights['experience']:.2f})\n"
+        explanation += f"- Salaire: {details.get('salary_score', 'N/A'):.2f} (pondération: {weights['salary']:.2f})\n\n"
         
         # Compétences manquantes
         missing_skills = details.get("missing_skills", [])
@@ -113,6 +150,13 @@ class SmartMatchWithVisualization:
                 explanation += f"- {skill}\n"
         else:
             explanation += "Aucune compétence requise manquante.\n"
+        
+        # Compétences communes
+        matched_skills = details.get("matched_skills", [])
+        if matched_skills:
+            explanation += "\nCompétences communes:\n"
+            for skill in matched_skills:
+                explanation += f"- {skill}\n"
         
         # Temps de trajet
         travel_time = details.get("travel_time_minutes", "N/A")
