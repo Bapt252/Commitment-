@@ -34,9 +34,48 @@ Après avoir lancé les conteneurs, les services sont accessibles aux URLs suiva
 - **Service de parsing CV**: http://localhost:5051
 - **Service de parsing fiches de poste**: http://localhost:5055 (nouvelle version GPT)
 - **Service de matching**: http://localhost:5052
+- **Nexten SmartMatch**: http://localhost:5052 (nouveau système de matching bidirectionnel)
 - **MinIO (stockage)**: http://localhost:9000 (API) et http://localhost:9001 (Console)
 - **Redis Commander**: http://localhost:8081
 - **RQ Dashboard**: http://localhost:9181
+
+## Nouvelle fonctionnalité : Nexten SmartMatch
+
+Nous avons intégré un nouveau système de matching bidirectionnel appelé **Nexten SmartMatch**. Ce système permet de réaliser des correspondances intelligentes entre CV et fiches de poste avec un scoring détaillé.
+
+### Fonctionnalités de SmartMatch
+
+- **Matching bidirectionnel** : Faites correspondre des CV à des postes ou des postes à des CV
+- **Scoring détaillé** : Analyse de multiples critères (compétences, expérience, formation, etc.)
+- **Intégration fluide** : Utilise les services de parsing existants pour les CV et les fiches de poste
+
+Pour plus d'informations, consultez [le README de SmartMatch](README-SMARTMATCH.md).
+
+### Démarrer SmartMatch
+
+```bash
+# Installer les dépendances
+pip install -r requirements-smartmatch.txt
+
+# Configurer l'environnement
+cp .env.smartmatch.example .env
+
+# Démarrer l'API
+python run_matching_api.py
+```
+
+### Tester SmartMatch
+
+```bash
+# Tester le endpoint health
+curl http://localhost:5052/health
+
+# Tester le matching CV-Job
+curl -X POST \
+  http://localhost:5052/api/match/cv-to-job \
+  -F "cv_file=@/chemin/vers/votre/cv.pdf" \
+  -F "job_description=Description du poste..."
+```
 
 ## Nouvelle fonctionnalité : Analyse GPT des fiches de poste
 
@@ -93,6 +132,7 @@ Le projet contient plusieurs scripts utilitaires pour faciliter le développemen
 - `./curl-test-cv-parser.sh`: Script pour tester l'API de parsing de CV avec curl
 - `./curl-test-job-parser.sh`: Script pour tester l'API de parsing de fiches de poste avec curl
 - `./job-parser-service/start-gpt-api.sh`: Script pour démarrer le service d'analyse GPT des fiches de poste
+- `./run_matching_api.py`: Script pour démarrer le service Nexten SmartMatch
 
 ## Tester le service de parsing CV
 
@@ -138,6 +178,7 @@ Le projet utilise une architecture microservices avec les composants suivants :
 1. **Service de parsing CV** : Extrait les informations des CV en utilisant GPT-4o-mini
 2. **Service de parsing de fiches de poste** : Extrait les informations des offres d'emploi en utilisant GPT-3.5-turbo/GPT-4
 3. **Service de matching** : Match les CV avec les offres d'emploi
-4. **Redis** : File d'attente pour le traitement asynchrone et cache
-5. **MinIO** : Stockage des fichiers (CV et fiches de poste)
-6. **PostgreSQL** : Base de données principale
+4. **Nexten SmartMatch** : Système avancé de matching bidirectionnel entre CV et fiches de poste
+5. **Redis** : File d'attente pour le traitement asynchrone et cache
+6. **MinIO** : Stockage des fichiers (CV et fiches de poste)
+7. **PostgreSQL** : Base de données principale
