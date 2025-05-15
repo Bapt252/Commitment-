@@ -25,16 +25,32 @@ class SemanticAnalyzer:
     
     def _load_skills_relationships(self) -> Dict[str, List[str]]:
         relationships = {
-            "react": ["reactjs", "react.js", "react native"],
-            "angular": ["angularjs", "angular.js", "angular 2+"],
-            "vue": ["vuejs", "vue.js", "vuex"],
+            # Frameworks/Bibliothèques frontend
+            "react": ["reactjs", "react.js", "react native", "frontend"],
+            "angular": ["angularjs", "angular.js", "angular 2+", "frontend"],
+            "vue": ["vuejs", "vue.js", "vuex", "frontend"],
+            
+            # Langages de programmation
             "python": ["django", "flask", "fastapi", "pandas", "numpy", "scikit-learn"],
-            "javascript": ["js", "typescript", "ts", "node.js", "nodejs"],
+            "javascript": ["js", "typescript", "ts", "node.js", "nodejs", "frontend"],
             "java": ["spring", "spring boot", "j2ee", "jakarta ee"],
+            
+            # Bases de données
             "sql": ["mysql", "postgresql", "postgres", "oracle", "sql server"],
             "nosql": ["mongodb", "cassandra", "couchdb", "firebase"],
+            
+            # DevOps
             "devops": ["ci/cd", "jenkins", "docker", "kubernetes", "k8s"],
+            
+            # Méthodologies
             "agile": ["scrum", "kanban", "lean", "xp", "extreme programming"],
+            
+            # Catégories générales de développement
+            "frontend": ["react", "angular", "vue", "javascript", "typescript", "html", "css"],
+            "backend": ["python", "java", "node.js", "c#", ".net", "php", "ruby"],
+            "database": ["sql", "mysql", "postgresql", "mongodb", "nosql"],
+            "web": ["html", "css", "javascript", "react", "angular", "vue"],
+            "mobile": ["react native", "flutter", "swift", "kotlin", "android", "ios"],
         }
         return relationships
     
@@ -144,7 +160,9 @@ class TestSemanticAnalyzer(unittest.TestCase):
         """Test des relations entre compétences"""
         self.assertTrue(self.analyzer._are_skills_related("python", "django"))
         self.assertTrue(self.analyzer._are_skills_related("django", "flask"))
-        self.assertFalse(self.analyzer._are_skills_related("python", "java"))
+        self.assertTrue(self.analyzer._are_skills_related("react", "frontend"))
+        self.assertTrue(self.analyzer._are_skills_related("typescript", "javascript"))
+        self.assertFalse(self.analyzer._are_skills_related("python", "react"))
         print("✓ Test des relations entre compétences réussi")
 
 if __name__ == "__main__":
