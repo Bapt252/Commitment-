@@ -27,7 +27,7 @@ Le nouvel algorithme apporte plusieurs améliorations majeures :
 Assurez-vous d'avoir installé les dépendances nécessaires pour le module d'embeddings :
 
 ```bash
-pip install sentence-transformers scikit-learn
+pip install sentence-transformers scikit-learn pandas matplotlib tabulate
 ```
 
 ### Intégration à un projet existant
@@ -35,10 +35,10 @@ pip install sentence-transformers scikit-learn
 Pour remplacer l'algorithme existant par l'algorithme amélioré :
 
 ```python
-from app.smartmatch_enhanced import SmartMatcherEnhanced
+from app.smartmatch_enhanced import SmartMatcherEnhanced, get_enhanced_matcher
 
 # Créer une instance du matcher amélioré
-matcher = SmartMatcherEnhanced(api_key="your_google_maps_api_key")
+matcher = get_enhanced_matcher(api_key="your_google_maps_api_key")
 
 # Utiliser comme l'algorithme original
 results = matcher.calculate_match(candidate, job)
@@ -50,8 +50,11 @@ print(f"Score de compétences : {results['category_scores']['skills']}")
 Pour comparer les performances des deux algorithmes sur votre dataset :
 
 ```bash
-cd matching-service
-python test_skills_comparison.py
+# Rendre le script exécutable
+chmod +x test_skills_comparison.py
+
+# Exécuter le test
+./test_skills_comparison.py
 ```
 
 Ce script affichera un tableau comparatif des scores et générera un graphique pour visualiser les améliorations.
@@ -74,6 +77,51 @@ Les améliorations sont particulièrement notables dans les cas suivants :
 - **smartmatch_enhanced.py** - Extension de SmartMatcher intégrant l'algorithme amélioré
 - **test_skills_comparison.py** - Script pour comparer les performances des deux algorithmes
 
+## Explications techniques
+
+### Analyse sémantique des compétences
+
+L'analyse sémantique utilise des embeddings de texte pour représenter chaque compétence dans un espace vectoriel. Cela permet de calculer une similarité entre des compétences qui ne sont pas identiques textuellement mais qui sont reliées conceptuellement.
+
+Par exemple, "Machine Learning" et "ML" auront une forte similarité, tout comme "React" et "ReactJS".
+
+```python
+# Calculer la similarité sémantique (extrait du code)
+proj_embedding = self.compute_skill_embedding(proj_skill_name)
+cand_embedding = self.compute_skill_embedding(cand_skill_name)
+semantic_similarity = cosine_similarity([proj_embedding], [cand_embedding])[0][0]
+```
+
+### Taxonomie des compétences
+
+La taxonomie des compétences est une structure hiérarchique qui définit les relations entre différentes compétences. Elle est utilisée comme méthode de secours si les embeddings ne sont pas disponibles.
+
+```python
+# Extrait de la taxonomie
+taxonomy = {
+    "python": {
+        "type": "technical",
+        "parent": "programming",
+        "related": ["django", "flask", "data science", "machine learning"],
+        "children": ["django", "flask", "pandas", "numpy", "pytorch"]
+    },
+    # ...
+}
+```
+
+### Évaluation des niveaux d'expertise
+
+Le système évalue la correspondance entre les niveaux d'expertise du candidat et ceux requis par le poste :
+
+```python
+# Extrait du code d'évaluation des niveaux d'expertise
+if candidate_value >= project_value:
+    return 1.0  # Parfait si niveau candidat >= niveau requis
+else:
+    ratio = candidate_value / project_value
+    return max(0.3, ratio)  # Ratio avec minimum de 0.3
+```
+
 ## Pondérations optimisées
 
 Les pondérations appliquées aux différents facteurs ont été optimisées pour refléter leur importance relative :
@@ -85,6 +133,41 @@ Les pondérations appliquées aux différents facteurs ont été optimisées pou
 - **preferences**: 0.10
 
 Ces pondérations peuvent être personnalisées selon les besoins spécifiques de votre organisation.
+
+## Exemple de résultat détaillé
+
+L'algorithme amélioré fournit des détails plus riches sur le matching :
+
+```json
+{
+  "score": 0.85,
+  "matches": [
+    {
+      "project_skill": "Python",
+      "candidate_skill": "Python",
+      "similarity": 1.0,
+      "required": true,
+      "weight": 1.5,
+      "score": 1.5
+    },
+    ...
+  ],
+  "missing": [
+    {
+      "skill": "SQL",
+      "required": true,
+      "level": "intermédiaire"
+    }
+  ],
+  "relevant_extras": ["FastAPI", "Git"]
+}
+```
+
+## Limitations et travaux futurs
+
+- L'analyse sémantique dépend de la qualité du modèle d'embeddings
+- La taxonomie des compétences pourrait être enrichie avec plus de données
+- Les seuils de similarité pourraient être ajustés selon le domaine d'expertise
 
 ## À venir
 
