@@ -1,5 +1,4 @@
 """
-Client Google """
 Client Google Maps pour le système Nexten SmartMatch
 ---------------------------------------------------
 Calcule les temps de trajet entre les localisations des candidats 
@@ -7,7 +6,7 @@ et des entreprises
 en utilisant différents modes de transport (voiture, transports en 
 commun, etc.).
 Auteur: Claude/Anthropic
-Date: 14/05/2025
+Date: "14/05/2025"
 """
 
 import os
@@ -20,15 +19,14 @@ from math import radians, cos, sin, asin, sqrt
 GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 
 # Cache pour stocker les résultats des requêtes
-# Format: {"origin_destination": {"duration": minutes, "timestamp": 
-unix_timestamp}}
+# Format: {"origin_destination": {"duration": minutes, "timestamp": unix_timestamp}}
 LOCATION_CACHE = {}
 CACHE_EXPIRY = 7 * 24 * 60 * 60  # 7 jours en secondes
 
 def calculate_travel_time(origin, destination, mode="driving"):
     """
     Calcule le temps de trajet entre deux adresses en utilisant 
-l'API Google Maps.
+    l\'API Google Maps.
     
     Args:
         origin (str): Adresse d'origine
@@ -96,8 +94,7 @@ les arrêts
     
     # Sinon, utiliser l'API Google Maps
     try:
-        url = 
-"https://maps.googleapis.com/maps/api/distancematrix/json"
+        url = "https://maps.googleapis.com/maps/api/distancematrix/json"
         params = {
             "origins": origin,
             "destinations": destination,
@@ -113,11 +110,9 @@ les arrêts
         if data["status"] == "OK":
             # Extraire le temps de trajet et la distance
             if data["rows"][0]["elements"][0]["status"] == "OK":
-                duration_seconds = 
-data["rows"][0]["elements"][0]["duration"]["value"]
+                duration_seconds = data["rows"][0]["elements"][0]["duration"]["value"]
                 duration_minutes = duration_seconds // 60
-                distance_meters = 
-data["rows"][0]["elements"][0]["distance"]["value"]
+                distance_meters = data["rows"][0]["elements"][0]["distance"]["value"]
                 distance_km = distance_meters / 1000
                 
                 result = {
@@ -138,11 +133,9 @@ data["rows"][0]["elements"][0]["distance"]["value"]
                 return result
             else:
                 # Si le calcul a échoué, utiliser l'estimation
-                distance_km = estimate_distance(origin, 
-destination)
+                distance_km = estimate_distance(origin, destination)
                 result = {
-                    "duration": int(distance_km * 2) if mode == 
-"driving" else int(distance_km * 3),
+                    "duration": int(distance_km * 2) if mode == "driving" else int(distance_km * 3),
                     "distance": distance_km,
                     "status": "APPROXIMATION",
                     "origin": origin,
@@ -161,8 +154,7 @@ destination)
             # En cas d'erreur API, utiliser l'estimation
             distance_km = estimate_distance(origin, destination)
             result = {
-                "duration": int(distance_km * 2) if mode == 
-"driving" else int(distance_km * 3),
+                "duration": int(distance_km * 2) if mode == "driving" else int(distance_km * 3),
                 "distance": distance_km,
                 "status": "APPROXIMATION",
                 "origin": origin,
@@ -182,8 +174,7 @@ destination)
         # En cas d'erreur, utiliser l'estimation
         distance_km = estimate_distance(origin, destination)
         result = {
-            "duration": int(distance_km * 2) if mode == "driving" 
-else int(distance_km * 3),
+            "duration": int(distance_km * 2) if mode == "driving" else int(distance_km * 3),
             "distance": distance_km,
             "status": "ERROR",
             "error": str(e),
@@ -202,8 +193,7 @@ else int(distance_km * 3),
 
 def geocode_address(address):
     """
-    Convertit une adresse en coordonnées géographiques (latitude, 
-longitude)
+    Convertit une adresse en coordonnées géographiques (latitude, longitude)
     
     Args:
         address (str): Adresse à géocoder
@@ -292,16 +282,14 @@ def estimate_distance(origin, destination):
     # Calculer la distance
     return haversine(lon1, lat1, lon2, lat2)
 
-def calculate_location_score(candidate_address, job_location, 
-max_acceptable_time=120):
+def calculate_location_score(candidate_address, job_location, max_acceptable_time=120):
     """
     Calcule un score de compatibilité basé sur le temps de trajet
     
     Args:
         candidate_address (str): Adresse du candidat
         job_location (str): Localisation du poste
-        max_acceptable_time (int): Temps de trajet maximum 
-acceptable en minutes
+        max_acceptable_time (int): Temps de trajet maximum acceptable en minutes
         
     Returns:
         float: Score entre 0 et 1
@@ -366,8 +354,7 @@ def get_location_insights(candidate_address, job_location):
         description = "Trajet assez long"
     else:
         category = "Très long"
-        description = "Trajet problématique, potentiellement 
-fatiguant"
+        description = "Trajet problématique, potentiellement fatiguant"
     
     return {
         "commute_time": commute_time,
@@ -385,8 +372,7 @@ def clear_cache():
     global LOCATION_CACHE
     LOCATION_CACHE = {}
 
-# Interface simplifiée pour la compatibilité avec le reste du 
-système
+# Interface simplifiée pour la compatibilité avec le reste du système
 def calculate_commute_time(origin, destination):
     """
     Fonction simplifiée pour calculer le temps de trajet en minutes
@@ -399,26 +385,7 @@ def calculate_commute_time(origin, destination):
         int: Temps de trajet en minutes
     """
     result = calculate_travel_time(origin, destination)
-    return result["duration"]Maps 
-pour le 
-système Nexten SmartMatch
----------------------------------------------------
-Calcule les temps de trajet entre les localisations des candidats et des entreprises
-en utilisant différents modes de transport (voiture, transports en commun, etc.)
-Auteur: Claude/Anthropic
-Date: 14/05/2025
-"""
-
-import os
-import logging
-import requests
-import time
-from typing import Dict, Any, List, Optional, Tuple, Union
-from functools import lru_cache
-
-# Configuration du logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+    return result["duration"]
 
 class GoogleMapsClient:
     """
@@ -609,7 +576,7 @@ class GoogleMapsClient:
         """
         return self.get_travel_time(origin, destination, mode="bicycling")
     
-    def get_all_transit_modes(self, origin: str, destination: str) -> Dict[str, int]:
+    def get_all_transit_modes(self, origin: str, destination: str) -> dict:
         """
         Calcule les temps de trajet pour tous les modes de transport disponibles.
         
@@ -636,4 +603,43 @@ class GoogleMapsClient:
         Args:
             origin (str): Adresse de départ
             destination (str): Adresse d'arrivée
-            max
+            max_time_minutes: Temps maximum acceptable en minutes
+            preferred_mode: Mode de transport préféré
+            
+        Returns:
+            float: Score entre 0 et 1 (1 = excellent, 0 = très mauvais)
+        """
+        # Obtenir le temps de trajet
+        travel_time = self.get_travel_time(origin, destination, mode=preferred_mode)
+        
+        # Si impossible de calculer le trajet
+        if travel_time < 0:
+            return 0.0
+        
+        # Trajet très court (< 15 min): excellent
+        if travel_time <= 15:
+            return 1.0
+        
+        # Trajet raisonnable (< 30 min): très bon
+        if travel_time <= 30:
+            return 0.8
+        
+        # Trajet acceptable (< 45 min): bon
+        if travel_time <= 45:
+            return 0.6
+        
+        # Trajet long mais acceptable (< 60 min): moyen
+        if travel_time <= 60:
+            return 0.4
+            
+        # Trajet long (< 90 min): passable
+        if travel_time <= 90:
+            return 0.2
+        
+        # Trajet très long: utiliser une échelle décroissante
+        # Si le temps est égal au max, score = 0.1
+        # Si le temps > max, score tend vers 0
+        if travel_time > max_time_minutes:
+            return max(0.0, 0.1 - (0.1 * (travel_time - max_time_minutes) / max_time_minutes))
+        else:
+            return max(0.1, 0.2 - (0.1 * (travel_time - 90) / (max_time_minutes - 90)))
