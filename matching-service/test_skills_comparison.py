@@ -18,6 +18,7 @@ from typing import Dict, List, Any
 import pandas as pd
 import matplotlib.pyplot as plt
 from tabulate import tabulate
+import copy
 
 # Ajuster le chemin pour trouver les modules
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -39,8 +40,8 @@ def get_test_data():
     Returns:
         Dict: Dictionnaire contenant des candidats et des offres de test
     """
-    # Candidats avec compétences au format dictionnaire
-    candidates_dict_skills = [
+    # Candidats
+    candidates = [
         {
             "id": "c1",
             "name": "Jean Dupont",
@@ -139,8 +140,8 @@ def get_test_data():
         }
     ]
     
-    # Offres d'emploi avec compétences au format dictionnaire
-    jobs_dict_skills = [
+    # Offres d'emploi
+    jobs = [
         {
             "id": "j1",
             "title": "Développeur Python Senior",
@@ -255,28 +256,7 @@ def get_test_data():
         }
     ]
     
-    # Créer des versions avec compétences en chaînes simples pour le matcher original
-    candidates_str_skills = []
-    for candidate in candidates_dict_skills:
-        # Copier le candidat et convertir ses compétences
-        candidate_copy = candidate.copy()
-        candidate_copy["skills"] = [skill["name"] for skill in candidate["skills"]]
-        candidates_str_skills.append(candidate_copy)
-    
-    jobs_str_skills = []
-    for job in jobs_dict_skills:
-        # Copier le job et convertir ses compétences
-        job_copy = job.copy()
-        job_copy["required_skills"] = [skill["name"] for skill in job["required_skills"]]
-        job_copy["preferred_skills"] = [skill["name"] for skill in job["preferred_skills"]]
-        jobs_str_skills.append(job_copy)
-    
-    return {
-        "candidates_dict": candidates_dict_skills,
-        "jobs_dict": jobs_dict_skills,
-        "candidates_str": candidates_str_skills,
-        "jobs_str": jobs_str_skills
-    }
+    return {"candidates": candidates, "jobs": jobs}
 
 def run_comparison_test():
     """
@@ -291,38 +271,51 @@ def run_comparison_test():
     
     # Charger les données de test
     test_data = get_test_data()
-    candidates_str = test_data["candidates_str"]  # Pour l'algorithme original
-    candidates_dict = test_data["candidates_dict"]  # Pour l'algorithme amélioré
-    jobs_str = test_data["jobs_str"]  # Pour l'algorithme original
-    jobs_dict = test_data["jobs_dict"]  # Pour l'algorithme amélioré
+    candidates = test_data["candidates"]
+    jobs = test_data["jobs"]
     
     # Stocker les résultats pour comparaison
     results_original = []
     results_enhanced = []
     
     # Exécuter le matching pour chaque paire
-    for i, (candidate_str, candidate_dict) in enumerate(zip(candidates_str, candidates_dict)):
-        for j, (job_str, job_dict) in enumerate(zip(jobs_str, jobs_dict)):
-            # Matcher original avec compétences en chaînes
-            original_match = original_matcher.calculate_match(candidate_str, job_str)
+    for candidate in candidates:
+        for job in jobs:
+            # Convertir les compétences pour le matcher original
+            candidate_copy = copy.deepcopy(candidate)
+            job_copy = copy.deepcopy(job)
+            
+            # Convertir les compétences du candidat en chaînes simples pour l'algorithme original
+            if "skills" in candidate_copy and isinstance(candidate_copy["skills"], list) and len(candidate_copy["skills"]) > 0 and isinstance(candidate_copy["skills"][0], dict):
+                candidate_copy["skills"] = [skill["name"] for skill in candidate_copy["skills"]]
+            
+            # Convertir les compétences du job en chaînes simples pour l'algorithme original
+            if "required_skills" in job_copy and isinstance(job_copy["required_skills"], list) and len(job_copy["required_skills"]) > 0 and isinstance(job_copy["required_skills"][0], dict):
+                job_copy["required_skills"] = [skill["name"] for skill in job_copy["required_skills"]]
+            
+            if "preferred_skills" in job_copy and isinstance(job_copy["preferred_skills"], list) and len(job_copy["preferred_skills"]) > 0 and isinstance(job_copy["preferred_skills"][0], dict):
+                job_copy["preferred_skills"] = [skill["name"] for skill in job_copy["preferred_skills"]]
+            
+            # Matcher original avec les compétences converties
+            original_match = original_matcher.calculate_match(candidate_copy, job_copy)
             original_skill_score = original_match["category_scores"]["skills"]
             results_original.append({
-                "candidate_id": candidate_str["id"],
-                "job_id": job_str["id"],
-                "candidate_name": candidate_str["name"],
-                "job_title": job_str["title"],
+                "candidate_id": candidate["id"],
+                "job_id": job["id"],
+                "candidate_name": candidate["name"],
+                "job_title": job["title"],
                 "skill_score": original_skill_score,
                 "overall_score": original_match["overall_score"]
             })
             
-            # Matcher amélioré avec compétences en dicts
-            enhanced_match = enhanced_matcher.calculate_match(candidate_dict, job_dict)
+            # Matcher amélioré (utilise directement les dictionnaires)
+            enhanced_match = enhanced_matcher.calculate_match(candidate, job)
             enhanced_skill_score = enhanced_match["category_scores"]["skills"]
             results_enhanced.append({
-                "candidate_id": candidate_dict["id"],
-                "job_id": job_dict["id"],
-                "candidate_name": candidate_dict["name"],
-                "job_title": job_dict["title"],
+                "candidate_id": candidate["id"],
+                "job_id": job["id"],
+                "candidate_name": candidate["name"],
+                "job_title": job["title"],
                 "skill_score": enhanced_skill_score,
                 "overall_score": enhanced_match["overall_score"]
             })
@@ -351,7 +344,6 @@ def run_comparison_test():
     improvement_pct = ((avg_enhanced_skill - avg_original_skill) / avg_original_skill) * 100
     
     # Afficher les résultats
-    logger.info("\n=== RÉSULTATS DES TESTS DE COMPARAISON ===")
     logger.info(f"Score moyen des compétences (original): {avg_original_skill:.2f}")
     logger.info(f"Score moyen des compétences (amélioré): {avg_enhanced_skill:.2f}")
     logger.info(f"Amélioration moyenne: {improvement_pct:.1f}%")
@@ -428,66 +420,62 @@ def run_simplified_test():
     enhanced_matcher = SmartMatcherEnhanced()
     
     # Charger des données de test simples
-    candidates = [
-        {
-            "id": "c1",
-            "name": "Jean Dupont",
-            "skills": ["Python", "Django", "JavaScript", "React"],
-            "location": "Paris, France"
-        },
-        {
-            "id": "c2",
-            "name": "Marie Martin",
-            "skills": ["Java", "Spring", "Microservices", "Docker"],
-            "location": "Lyon, France"
-        }
-    ]
+    candidate = {
+        "id": "c1",
+        "name": "Jean Dupont",
+        "skills": ["Python", "Django", "JavaScript", "React"],
+        "location": "Paris, France",
+        "years_of_experience": 5,
+        "education_level": "master",
+        "remote_work": True,
+        "salary_expectation": 65000,
+    }
     
-    jobs = [
-        {
-            "id": "j1",
-            "title": "Développeur Python Senior",
-            "required_skills": ["Python", "Django", "SQL"],
-            "preferred_skills": ["React", "Docker"],
-            "location": "Paris, France"
-        },
-        {
-            "id": "j2",
-            "title": "Architecte Java",
-            "required_skills": ["Java", "Spring", "Microservices"],
-            "preferred_skills": ["Cloud", "DevOps"],
-            "location": "Paris, France"
-        }
-    ]
+    job = {
+        "id": "j1",
+        "title": "Développeur Python Senior",
+        "required_skills": ["Python", "Django", "SQL"],
+        "preferred_skills": ["React", "Docker"],
+        "location": "Paris, France",
+        "min_years_of_experience": 4,
+        "max_years_of_experience": 8,
+        "required_education": "bachelor",
+        "offers_remote": True,
+        "salary_range": {"min": 55000, "max": 75000},
+    }
     
-    # Exécuter quelques matchings
-    print("\nComparaison des scores pour quelques paires:")
-    print("--------------------------------------------------------")
-    print("Candidat | Offre | Score Original | Score Amélioré")
-    print("--------------------------------------------------------")
+    # Exécuter les matchings
+    original_match = original_matcher.calculate_match(candidate, job)
+    enhanced_match = enhanced_matcher.calculate_match(candidate, job)
     
-    for candidate in candidates:
-        for job in jobs:
-            # Matcher original
-            original_match = original_matcher.calculate_match(candidate, job)
-            original_skill_score = original_match["category_scores"]["skills"]
-            
-            # Matcher amélioré
-            enhanced_match = enhanced_matcher.calculate_match(candidate, job)
-            enhanced_skill_score = enhanced_match["category_scores"]["skills"]
-            
-            print(f"{candidate['name'][:10]} | {job['title'][:15]} | {original_skill_score:.2f} | {enhanced_skill_score:.2f}")
+    # Afficher les résultats
+    print(f"Score de compétences original : {original_match['category_scores']['skills']:.2f}")
+    print(f"Score de compétences amélioré : {enhanced_match['category_scores']['skills']:.2f}")
     
-    print("--------------------------------------------------------")
-    print("\nRésultat: Le score amélioré est généralement plus élevé et plus précis,")
-    print("reflétant mieux la réelle correspondance des compétences.")
+    # Calculer l'amélioration
+    improvement = enhanced_match['category_scores']['skills'] - original_match['category_scores']['skills']
+    improvement_pct = (improvement / original_match['category_scores']['skills']) * 100
+    
+    print(f"Amélioration absolue : +{improvement:.2f}")
+    print(f"Amélioration relative : +{improvement_pct:.1f}%")
+    
+    # Afficher les scores globaux
+    print(f"\nScore global original : {original_match['overall_score']:.2f}")
+    print(f"Score global amélioré : {enhanced_match['overall_score']:.2f}")
+    print(f"Amélioration du score global : +{enhanced_match['overall_score'] - original_match['overall_score']:.2f}")
 
 if __name__ == "__main__":
     try:
         # Tenter d'exécuter le test complet avec visualisation
         run_comparison_test()
-    except ImportError:
+    except ImportError as e:
         # Si pandas/matplotlib n'est pas disponible, exécuter le test simplifié
+        print(f"Erreur d'importation: {e}")
         print("Les bibliothèques pandas et matplotlib ne sont pas disponibles.")
+        print("Exécution du test simplifié sans visualisation...")
+        run_simplified_test()
+    except Exception as e:
+        # En cas d'erreur, exécuter le test simplifié
+        print(f"Erreur: {e}")
         print("Exécution du test simplifié sans visualisation...")
         run_simplified_test()
