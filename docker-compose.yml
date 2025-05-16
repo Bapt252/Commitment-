@@ -224,7 +224,7 @@ services:
     container_name: nexten-job-parser
     command: python main.py
     ports:
-      - "5053:5000"
+      - "5055:5000"
     volumes:
       - ./job-parser-service/logs:/app/logs
       - ./job-parser-service/temp:/app/temp
@@ -345,6 +345,38 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
+
+  # Service d'adaptation de données pour SmartMatch
+  data-adapter:
+    build:
+      context: ./data-adapter
+      dockerfile: Dockerfile
+    container_name: nexten-data-adapter
+    ports:
+      - "5053:5053"
+    depends_on:
+      - cv-parser
+      - job-parser
+      - matching-api
+    environment:
+      PORT: 5053
+      DEBUG: "false"
+      LOG_LEVEL: INFO
+      CV_PARSER_URL: http://cv-parser:5000
+      JOB_PARSER_URL: http://job-parser:5000
+      MATCHING_API_URL: http://matching-api:5000
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   # Worker de matching - Haute priorité
   matching-worker-high:
