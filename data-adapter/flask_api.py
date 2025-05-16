@@ -172,6 +172,105 @@ def match():
         logger.error(f"Error in match: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# Nouveaux endpoints pour l'enrichissement avec les questionnaires
+
+@data_adapter_bp.route('/enrich-cv-with-questionnaire', methods=['POST'])
+def enrich_cv_with_questionnaire():
+    """
+    Endpoint pour enrichir les données CV avec les réponses du questionnaire candidat
+    
+    Accepte les données CV et les réponses au questionnaire au format JSON
+    Retourne les données CV enrichies
+    """
+    try:
+        # Récupérer les données
+        if not request.json:
+            return jsonify({"error": "JSON data required"}), 400
+        
+        cv_data = request.json.get('cv_data', {})
+        questionnaire_data = request.json.get('questionnaire_data', {})
+        cv_id = request.json.get('cv_id')
+        
+        if not cv_data:
+            return jsonify({"error": "CV data is required"}), 400
+        
+        # Enrichir les données CV avec les réponses au questionnaire
+        enriched_cv = adapter.enrich_cv_data_with_questionnaire(cv_data, questionnaire_data, cv_id)
+        
+        return jsonify(enriched_cv), 200
+    
+    except Exception as e:
+        logger.error(f"Error in enrich-cv-with-questionnaire: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@data_adapter_bp.route('/enrich-job-with-questionnaire', methods=['POST'])
+def enrich_job_with_questionnaire():
+    """
+    Endpoint pour enrichir les données d'offre d'emploi avec les réponses du questionnaire client
+    
+    Accepte les données d'offre d'emploi et les réponses au questionnaire au format JSON
+    Retourne les données d'offre d'emploi enrichies
+    """
+    try:
+        # Récupérer les données
+        if not request.json:
+            return jsonify({"error": "JSON data required"}), 400
+        
+        job_data = request.json.get('job_data', {})
+        questionnaire_data = request.json.get('questionnaire_data', {})
+        job_id = request.json.get('job_id')
+        
+        if not job_data:
+            return jsonify({"error": "Job data is required"}), 400
+        
+        # Enrichir les données d'offre d'emploi avec les réponses au questionnaire
+        enriched_job = adapter.enrich_job_data_with_questionnaire(job_data, questionnaire_data, job_id)
+        
+        return jsonify(enriched_job), 200
+    
+    except Exception as e:
+        logger.error(f"Error in enrich-job-with-questionnaire: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@data_adapter_bp.route('/smart-match', methods=['POST'])
+def smart_match():
+    """
+    Endpoint pour effectuer un matching avancé tenant compte des données de questionnaires
+    
+    Accepte les données CV et offre d'emploi enrichies au format JSON
+    Retourne le résultat du matching avancé
+    """
+    try:
+        # Récupérer les données
+        if not request.json:
+            return jsonify({"error": "JSON data required"}), 400
+        
+        cv_data = request.json.get('cv', {})
+        job_data = request.json.get('job', {})
+        
+        if not cv_data or not job_data:
+            return jsonify({"error": "Both 'cv' and 'job' data are required"}), 400
+        
+        # Vérifier si des données de questionnaires sont incluses
+        cv_questionnaire = request.json.get('cv_questionnaire', {})
+        job_questionnaire = request.json.get('job_questionnaire', {})
+        
+        # Enrichir les données si des questionnaires sont fournis
+        if cv_questionnaire:
+            cv_data = adapter.enrich_cv_data_with_questionnaire(cv_data, cv_questionnaire)
+            
+        if job_questionnaire:
+            job_data = adapter.enrich_job_data_with_questionnaire(job_data, job_questionnaire)
+        
+        # Effectuer le matching avancé
+        match_result = adapter.enhanced_match(cv_data, job_data)
+        
+        return jsonify(match_result), 200
+    
+    except Exception as e:
+        logger.error(f"Error in smart-match: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 def simulate_match_result(cv_data: Dict[str, Any], job_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Simule un résultat de matching (à remplacer par l'appel réel à SmartMatcher)
