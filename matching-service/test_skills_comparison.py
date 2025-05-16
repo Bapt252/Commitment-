@@ -39,8 +39,8 @@ def get_test_data():
     Returns:
         Dict: Dictionnaire contenant des candidats et des offres de test
     """
-    # Candidats
-    candidates = [
+    # Candidats avec compétences au format dictionnaire
+    candidates_dict_skills = [
         {
             "id": "c1",
             "name": "Jean Dupont",
@@ -139,8 +139,8 @@ def get_test_data():
         }
     ]
     
-    # Offres d'emploi
-    jobs = [
+    # Offres d'emploi avec compétences au format dictionnaire
+    jobs_dict_skills = [
         {
             "id": "j1",
             "title": "Développeur Python Senior",
@@ -255,7 +255,28 @@ def get_test_data():
         }
     ]
     
-    return {"candidates": candidates, "jobs": jobs}
+    # Créer des versions avec compétences en chaînes simples pour le matcher original
+    candidates_str_skills = []
+    for candidate in candidates_dict_skills:
+        # Copier le candidat et convertir ses compétences
+        candidate_copy = candidate.copy()
+        candidate_copy["skills"] = [skill["name"] for skill in candidate["skills"]]
+        candidates_str_skills.append(candidate_copy)
+    
+    jobs_str_skills = []
+    for job in jobs_dict_skills:
+        # Copier le job et convertir ses compétences
+        job_copy = job.copy()
+        job_copy["required_skills"] = [skill["name"] for skill in job["required_skills"]]
+        job_copy["preferred_skills"] = [skill["name"] for skill in job["preferred_skills"]]
+        jobs_str_skills.append(job_copy)
+    
+    return {
+        "candidates_dict": candidates_dict_skills,
+        "jobs_dict": jobs_dict_skills,
+        "candidates_str": candidates_str_skills,
+        "jobs_str": jobs_str_skills
+    }
 
 def run_comparison_test():
     """
@@ -270,36 +291,38 @@ def run_comparison_test():
     
     # Charger les données de test
     test_data = get_test_data()
-    candidates = test_data["candidates"]
-    jobs = test_data["jobs"]
+    candidates_str = test_data["candidates_str"]  # Pour l'algorithme original
+    candidates_dict = test_data["candidates_dict"]  # Pour l'algorithme amélioré
+    jobs_str = test_data["jobs_str"]  # Pour l'algorithme original
+    jobs_dict = test_data["jobs_dict"]  # Pour l'algorithme amélioré
     
     # Stocker les résultats pour comparaison
     results_original = []
     results_enhanced = []
     
     # Exécuter le matching pour chaque paire
-    for candidate in candidates:
-        for job in jobs:
-            # Matcher original
-            original_match = original_matcher.calculate_match(candidate, job)
+    for i, (candidate_str, candidate_dict) in enumerate(zip(candidates_str, candidates_dict)):
+        for j, (job_str, job_dict) in enumerate(zip(jobs_str, jobs_dict)):
+            # Matcher original avec compétences en chaînes
+            original_match = original_matcher.calculate_match(candidate_str, job_str)
             original_skill_score = original_match["category_scores"]["skills"]
             results_original.append({
-                "candidate_id": candidate["id"],
-                "job_id": job["id"],
-                "candidate_name": candidate["name"],
-                "job_title": job["title"],
+                "candidate_id": candidate_str["id"],
+                "job_id": job_str["id"],
+                "candidate_name": candidate_str["name"],
+                "job_title": job_str["title"],
                 "skill_score": original_skill_score,
                 "overall_score": original_match["overall_score"]
             })
             
-            # Matcher amélioré
-            enhanced_match = enhanced_matcher.calculate_match(candidate, job)
+            # Matcher amélioré avec compétences en dicts
+            enhanced_match = enhanced_matcher.calculate_match(candidate_dict, job_dict)
             enhanced_skill_score = enhanced_match["category_scores"]["skills"]
             results_enhanced.append({
-                "candidate_id": candidate["id"],
-                "job_id": job["id"],
-                "candidate_name": candidate["name"],
-                "job_title": job["title"],
+                "candidate_id": candidate_dict["id"],
+                "job_id": job_dict["id"],
+                "candidate_name": candidate_dict["name"],
+                "job_title": job_dict["title"],
                 "skill_score": enhanced_skill_score,
                 "overall_score": enhanced_match["overall_score"]
             })
