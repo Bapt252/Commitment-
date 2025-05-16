@@ -1,0 +1,31 @@
+# Service d'adaptation de données pour SmartMatch
+smartmatch-adapter:
+  build:
+    context: ./data-adapter
+    dockerfile: Dockerfile
+  container_name: smartmatch-adapter-service
+  ports:
+    - "5053:5053"
+  depends_on:
+    - cv-parser
+    - job-parser
+    - matching-api
+  environment:
+    PORT: 5053
+    DEBUG: "false"
+    LOG_LEVEL: INFO
+    CV_PARSER_URL: http://cv-parser:5000
+    JOB_PARSER_URL: http://job-parser:5000
+    MATCHING_API_URL: http://matching-api:5000
+    GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+  networks:
+    - nexten-network
+  restart: unless-stopped
+  deploy:
+    resources:
+      limits:
+        cpus: '0.5'
+        memory: 512M
+      reservations:
+        cpus: '0.25'
+        memory: 256M
