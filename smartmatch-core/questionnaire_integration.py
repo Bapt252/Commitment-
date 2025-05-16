@@ -1,144 +1,115 @@
+# -*- coding: utf-8 -*-
 """
-Module d'intégration des questionnaires candidat et client pour SmartMatch
----------------------------------------------------------------------
-Ce module fournit les fonctions nécessaires pour transformer les données
-des questionnaires HTML en structures de données compatibles avec SmartMatch.
+Module d'intégration entre les questionnaires web et l'algorithme SmartMatch
+------------------------------------------------------------------
+Ce module fournit des fonctions pour transformer les données des 
+questionnaires HTML (candidat et client) en format compatible avec
+l'algorithme SmartMatch, permettant une intégration complète.
+
+Auteur: Claude/Anthropic
+Date: 16/05/2025
 """
 
 import re
 import json
-from typing import Dict, List, Any, Optional, Union
+import logging
+from typing import Dict, List, Any, Optional, Tuple, Union
 
-# Fonctions utilitaires d'extraction et de conversion
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def parse_salary_range(salary_str: str) -> int:
+# ======================================================================
+# Fonctions utilitaires pour l'extraction et le traitement des données
+# ======================================================================
+
+def parse_salary_range(salary_text: str) -> int:
     """
-    Extrait un montant salarial moyen à partir d'une chaîne de fourchette salariale
+    Extrait une valeur numérique à partir d'une chaîne de texte contenant une fourchette de salaire
     
     Args:
-        salary_str: Chaîne contenant la fourchette salariale (ex: "35K€ - 45K€ brut annuel")
+        salary_text: Texte représentant une fourchette salariale (ex: "35K€ - 45K€")
         
     Returns:
-        int: Montant moyen en euros (ex: 40000)
+        La moyenne de la fourchette salariale, ou 0 si impossible à extraire
     """
-    # Extraire tous les nombres
-    numbers = re.findall(r'\d+', salary_str)
-    numbers = [int(n) for n in numbers]
-    
-    if not numbers:
+    try:
+        # Supprimer tous les caractères sauf les chiffres, K, k, € et -
+        clean_text = re.sub(r'[^0-9Kk€\-]', '', salary_text)
+        
+        # Trouver toutes les valeurs numériques
+        numbers = re.findall(r'\d+[Kk]?', clean_text)
+        
+        if not numbers:
+            return 0
+        
+        # Convertir les valeurs en nombres
+        values = []
+        for num in numbers:
+            if 'k' in num.lower():
+                # Convertir les valeurs en K en milliers
+                value = int(num.lower().replace('k', '')) * 1000
+            else:
+                value = int(num)
+                # Si le nombre est petit, c'est probablement en milliers
+                if value < 1000:
+                    value *= 1000
+            values.append(value)
+        
+        # Retourner la moyenne si plusieurs valeurs, sinon la valeur unique
+        if len(values) > 1:
+            return sum(values) // len(values)
+        elif values:
+            return values[0]
+        else:
+            return 0
+    except Exception as e:
+        logger.error(f"Erreur lors du parsing de la fourchette salariale '{salary_text}': {str(e)}")
         return 0
-    
-    # Vérifier si les valeurs sont en milliers (K)
-    if 'K' in salary_str or 'k' in salary_str:
-        numbers = [n * 1000 if n < 1000 else n for n in numbers]
-    
-    # Calculer la moyenne si c'est une fourchette
-    if len(numbers) >= 2:
-        return sum(numbers[:2]) // 2
-    elif len(numbers) == 1:
-        return numbers[0]
-    
-    return 0
 
-def parse_min_salary(salary_str: str) -> int:
+def extract_location_coordinates(questionnaire_data: Dict[str, Any]) -> str:
     """
-    Extrait le montant salarial minimum à partir d'une chaîne de fourchette salariale
+    Extrait les coordonnées de localisation du questionnaire
     
     Args:
-        salary_str: Chaîne contenant la fourchette salariale (ex: "35K€ - 45K€ brut annuel")
+        questionnaire_data: Données du questionnaire
         
     Returns:
-        int: Montant minimum en euros (ex: 35000)
+        Chaîne au format "latitude,longitude" ou chaîne vide si non disponible
     """
-    # Extraire tous les nombres
-    numbers = re.findall(r'\d+', salary_str)
-    numbers = [int(n) for n in numbers if n]
+    lat = questionnaire_data.get('address-lat', '')
+    lng = questionnaire_data.get('address-lng', '')
     
-    if not numbers:
-        return 0
+    if lat and lng:
+        return f"{lat},{lng}"
     
-    # Vérifier si les valeurs sont en milliers (K)
-    if 'K' in salary_str or 'k' in salary_str:
-        numbers = [n * 1000 if n < 1000 else n for n in numbers]
+    # Chercher dans un autre format possible
+    lat = questionnaire_data.get('address_lat', '')
+    lng = questionnaire_data.get('address_lng', '')
     
-    # Retourner la valeur minimale
-    return min(numbers)
-
-def parse_max_salary(salary_str: str) -> int:
-    """
-    Extrait le montant salarial maximum à partir d'une chaîne de fourchette salariale
+    if lat and lng:
+        return f"{lat},{lng}"
     
-    Args:
-        salary_str: Chaîne contenant la fourchette salariale (ex: "35K€ - 45K€ brut annuel")
-        
-    Returns:
-        int: Montant maximum en euros (ex: 45000)
-    """
-    # Extraire tous les nombres
-    numbers = re.findall(r'\d+', salary_str)
-    numbers = [int(n) for n in numbers if n]
-    
-    if not numbers:
-        return 0
-    
-    # Vérifier si les valeurs sont en milliers (K)
-    if 'K' in salary_str or 'k' in salary_str:
-        numbers = [n * 1000 if n < 1000 else n for n in numbers]
-    
-    # Retourner la valeur maximale
-    return max(numbers)
-
-def extract_skills(skills_html: str) -> List[str]:
-    """
-    Extrait les compétences à partir du HTML des compétences du job parser
-    
-    Args:
-        skills_html: Chaîne HTML contenant les compétences sous forme de tags
-        
-    Returns:
-        List[str]: Liste des compétences extraites
-    """
-    # Supprimer les balises HTML et extraire les compétences
-    # Exemple de format: <div class="tag">Python</div><div class="tag">Django</div>
-    skills = re.findall(r'<div class="tag">(.*?)</div>', skills_html)
-    
-    # Si aucune balise trouvée, essayer de diviser la chaîne par virgule ou espace
-    if not skills and skills_html and skills_html != "Non spécifié":
-        skills = [s.strip() for s in re.split(r'[,;]\s*', skills_html) if s.strip()]
-    
-    return skills
-
-def get_experience_years(questionnaire_data: Dict[str, Any]) -> int:
-    """
-    Détermine le nombre d'années d'expérience à partir des données du questionnaire
-    
-    Args:
-        questionnaire_data: Données du questionnaire candidat
-        
-    Returns:
-        int: Nombre d'années d'expérience estimé
-    """
-    # Cette fonction serait à adapter en fonction de la structure exacte du questionnaire
-    # Comme le questionnaire candidat ne contient pas directement cette information,
-    # on pourrait la récupérer du CV ou définir une valeur par défaut
-    return 0
+    return ""
 
 def get_primary_industry(questionnaire_data: Dict[str, Any]) -> str:
     """
-    Extrait le secteur d'activité principal à partir des données du questionnaire
+    Détermine le secteur d'activité principal à partir des données du questionnaire
     
     Args:
-        questionnaire_data: Données du questionnaire candidat
+        questionnaire_data: Données du questionnaire
         
     Returns:
-        str: Secteur d'activité principal
+        Le secteur d'activité principal ou chaîne vide si non disponible
     """
-    # Vérifier si le candidat a une préférence pour un secteur
-    if questionnaire_data.get("has-sector-preference") == "yes":
-        # Récupérer le premier secteur de la liste (si format tableau)
-        sectors = questionnaire_data.get("sector-preference", [])
+    # Vérifier si un secteur préféré est spécifié
+    has_preference = questionnaire_data.get('has-sector-preference', 'no')
+    
+    if has_preference == 'yes':
+        # Récupérer les secteurs sélectionnés
+        sectors = questionnaire_data.get('sector-preference', [])
         if isinstance(sectors, list) and sectors:
-            return sectors[0]
+            return sectors[0]  # Retourner le premier secteur
         elif isinstance(sectors, str):
             return sectors
     
@@ -146,229 +117,388 @@ def get_primary_industry(questionnaire_data: Dict[str, Any]) -> str:
 
 def get_alternative_industries(questionnaire_data: Dict[str, Any]) -> List[str]:
     """
-    Extrait les secteurs d'activité alternatifs à partir des données du questionnaire
+    Récupère les secteurs d'activité alternatifs à partir des données du questionnaire
     
     Args:
-        questionnaire_data: Données du questionnaire candidat
+        questionnaire_data: Données du questionnaire
         
     Returns:
-        List[str]: Liste des secteurs d'activité alternatifs
+        Liste des secteurs d'activité alternatifs
     """
-    # Vérifier si le candidat a une préférence pour un secteur
-    if questionnaire_data.get("has-sector-preference") == "yes":
-        # Récupérer tous les secteurs sauf le premier (déjà considéré comme principal)
-        sectors = questionnaire_data.get("sector-preference", [])
-        if isinstance(sectors, list) and len(sectors) > 1:
-            return sectors[1:]
+    # Vérifier si un secteur préféré est spécifié
+    has_preference = questionnaire_data.get('has-sector-preference', 'no')
     
+    if has_preference == 'yes':
+        # Récupérer les secteurs sélectionnés
+        sectors = questionnaire_data.get('sector-preference', [])
+        if isinstance(sectors, list) and len(sectors) > 1:
+            return sectors[1:]  # Retourner tous les secteurs sauf le premier
+        
     return []
+
+def get_experience_years(questionnaire_data: Dict[str, Any]) -> int:
+    """
+    Estime le nombre d'années d'expérience à partir des données du questionnaire
+    
+    Args:
+        questionnaire_data: Données du questionnaire
+        
+    Returns:
+        Nombre estimé d'années d'expérience
+    """
+    # Cette fonction dépend de la structure du questionnaire
+    # Nous devons estimer une valeur numérique à partir d'une sélection
+    
+    # Si l'information n'est pas disponible dans le questionnaire, 
+    # nous pouvons essayer de l'extraire du CV via des champs cachés
+    years = questionnaire_data.get('years_of_experience', 0)
+    if years and isinstance(years, (int, float)):
+        return int(years)
+    
+    return 0
 
 def map_education_level(questionnaire_data: Dict[str, Any]) -> str:
     """
-    Mappe le niveau d'éducation du questionnaire au format attendu par SmartMatch
+    Mappe le niveau d'éducation du questionnaire au format utilisé par SmartMatch
     
     Args:
-        questionnaire_data: Données du questionnaire candidat
+        questionnaire_data: Données du questionnaire
         
     Returns:
-        str: Niveau d'éducation au format SmartMatch (none, high_school, associate, bachelor, master, phd)
+        Niveau d'éducation au format SmartMatch (none, high_school, associate, bachelor, master, phd)
     """
-    # Cette fonction serait à adapter en fonction de la structure exacte du questionnaire
-    # Comme le questionnaire candidat ne contient pas directement cette information,
-    # on pourrait la récupérer du CV ou définir une valeur par défaut
-    return "bachelor"
+    # Cette fonction dépend de la structure du questionnaire
+    # Si l'information n'est pas disponible dans le questionnaire, 
+    # nous pouvons essayer de l'extraire du CV via des champs cachés
+    
+    # Valeurs par défaut pour SmartMatch
+    education_map = {
+        "bac": "high_school",
+        "bac+2": "associate",
+        "bac+3": "bachelor",
+        "licence": "bachelor",
+        "bac+5": "master",
+        "master": "master",
+        "doctorat": "phd",
+        "phd": "phd"
+    }
+    
+    education = questionnaire_data.get('education_level', '').lower()
+    
+    return education_map.get(education, "bachelor")  # Par défaut, supposer un niveau licence
 
 def get_transport_preferences(questionnaire_data: Dict[str, Any]) -> Dict[str, int]:
     """
-    Extrait les préférences de transport et les temps de trajet maximum
+    Extrait les préférences de transport et les temps de trajet maximaux
     
     Args:
-        questionnaire_data: Données du questionnaire candidat
+        questionnaire_data: Données du questionnaire
         
     Returns:
-        Dict[str, int]: Dictionnaire des modes de transport avec temps maximum en minutes
+        Dictionnaire associant chaque mode de transport à un temps maximum en minutes
     """
-    preferences = {}
+    transport_prefs = {}
     
-    # Récupérer les modes de transport cochés
-    transport_methods = questionnaire_data.get("transport-method", [])
+    # Récupérer les modes de transport sélectionnés
+    transport_methods = questionnaire_data.get('transport-method', [])
     if not isinstance(transport_methods, list):
         transport_methods = [transport_methods]
     
-    # Pour chaque mode de transport, récupérer le temps de trajet maximum
+    # Pour chaque mode, récupérer le temps maximal
     for method in transport_methods:
-        time_key = f"commute-time-{method}"
-        if time_key in questionnaire_data:
-            try:
-                time_value = int(questionnaire_data[time_key])
-                preferences[method] = time_value
-            except (ValueError, TypeError):
-                pass
+        time_key = f'commute-time-{method}'
+        max_time = questionnaire_data.get(time_key, 30)  # 30 minutes par défaut
+        
+        try:
+            transport_prefs[method] = int(max_time)
+        except (ValueError, TypeError):
+            transport_prefs[method] = 30  # Valeur par défaut
     
-    return preferences
+    return transport_prefs
+
+def extract_skills(skills_text: str) -> List[str]:
+    """
+    Extrait une liste de compétences à partir d'un texte
+    
+    Args:
+        skills_text: Texte contenant des compétences
+        
+    Returns:
+        Liste des compétences extraites
+    """
+    # Si le texte est déjà une liste, le retourner directement
+    if isinstance(skills_text, list):
+        return skills_text
+    
+    # Si le texte est "Non spécifié" ou vide, retourner une liste vide
+    if not skills_text or skills_text.strip() == "Non spécifié":
+        return []
+    
+    # Essayer de séparer les compétences (virgules, points-virgules, retours à la ligne)
+    skills = re.split(r'[,;\n\r]+', skills_text)
+    
+    # Nettoyer les compétences
+    cleaned_skills = []
+    for skill in skills:
+        # Supprimer les espaces et les tags HTML
+        cleaned = re.sub(r'<[^>]+>', '', skill).strip()
+        if cleaned and cleaned not in cleaned_skills:
+            cleaned_skills.append(cleaned)
+    
+    return cleaned_skills
 
 def get_job_location(questionnaire_data: Dict[str, Any], job_data: Dict[str, Any]) -> str:
     """
-    Extrait la localisation du poste à partir des données du questionnaire et des données de job
+    Récupère la localisation du poste à partir des données du questionnaire et de la fiche de poste
     
     Args:
-        questionnaire_data: Données du questionnaire client
+        questionnaire_data: Données du questionnaire
         job_data: Données de la fiche de poste
         
     Returns:
-        str: Localisation au format "latitude,longitude" ou texte
+        Localisation du poste au format SmartMatch
     """
-    # Essayer d'abord de récupérer depuis les coordonnées cachées
-    if questionnaire_data.get("address_lat") and questionnaire_data.get("address_lng"):
-        return f"{questionnaire_data['address_lat']},{questionnaire_data['address_lng']}"
+    # Essayer d'abord de récupérer depuis la fiche de poste
+    job_location = job_data.get('job-location-value', '')
     
-    # Sinon, récupérer depuis l'adresse de l'entreprise
-    company_address = questionnaire_data.get("company-address", "")
-    if company_address:
-        return company_address
+    # Si non disponible, utiliser l'adresse de l'entreprise
+    if not job_location or job_location == "Non spécifié":
+        # Essayer d'utiliser les coordonnées si disponibles
+        location = extract_location_coordinates(questionnaire_data)
+        if location:
+            return location
+        
+        # Sinon utiliser l'adresse textuelle
+        return questionnaire_data.get('company-address', '')
     
-    # En dernier recours, utiliser la localisation de la fiche de poste
-    job_location = job_data.get("job-location-value", "")
     return job_location
 
 def is_remote_offered(job_data: Dict[str, Any]) -> bool:
     """
-    Détermine si le travail à distance est offert
+    Détermine si le travail à distance est proposé pour ce poste
     
     Args:
         job_data: Données de la fiche de poste
         
     Returns:
-        bool: True si le travail à distance est offert
+        True si le travail à distance est proposé, False sinon
     """
-    # Vérifier si le texte de localisation ou des avantages mentionne le remote
-    location = job_data.get("job-location-value", "").lower()
-    benefits = job_data.get("job-benefits-value", "").lower()
+    # Analyser la description ou les avantages pour détecter la mention du télétravail
+    benefits = job_data.get('job-benefits-value', '').lower()
+    responsibilities = job_data.get('job-responsibilities-value', '').lower()
+    contract = job_data.get('job-contract-value', '').lower()
     
-    remote_keywords = ["remote", "télétravail", "à distance", "home office", "distanciel"]
+    # Vérifier les mots-clés dans les différents champs
+    remote_keywords = ["télétravail", "remote", "à distance", "home office", "travail à domicile"]
     
-    for keyword in remote_keywords:
-        if keyword in location or keyword in benefits:
-            return True
+    for field in [benefits, responsibilities, contract]:
+        for keyword in remote_keywords:
+            if keyword in field:
+                return True
     
     return False
 
-def get_contract_type(job_data: Dict[str, Any]) -> str:
+def parse_min_salary(salary_text: str) -> int:
     """
-    Extrait le type de contrat à partir des données de la fiche de poste
+    Extrait le salaire minimum d'une fourchette salariale
     
     Args:
-        job_data: Données de la fiche de poste
+        salary_text: Texte représentant une fourchette salariale
         
     Returns:
-        str: Type de contrat (full_time, part_time, contract, intern, etc.)
+        Salaire minimum extrait ou 0 si impossible à extraire
     """
-    contract = job_data.get("job-contract-value", "").lower()
+    try:
+        # Nettoyer le texte
+        clean_text = re.sub(r'[^0-9Kk€\-]', '', salary_text)
+        
+        # Trouver toutes les valeurs numériques
+        numbers = re.findall(r'\d+[Kk]?', clean_text)
+        
+        if not numbers:
+            return 0
+        
+        # Convertir la première valeur en nombre
+        num = numbers[0]
+        if 'k' in num.lower():
+            value = int(num.lower().replace('k', '')) * 1000
+        else:
+            value = int(num)
+            # Si le nombre est petit, c'est probablement en milliers
+            if value < 1000:
+                value *= 1000
+        
+        return value
+    except Exception as e:
+        logger.error(f"Erreur lors du parsing du salaire minimum '{salary_text}': {str(e)}")
+        return 0
+
+def parse_max_salary(salary_text: str) -> int:
+    """
+    Extrait le salaire maximum d'une fourchette salariale
     
-    if "cdi" in contract:
-        return "full_time"
-    elif "cdd" in contract:
-        return "contract"
-    elif "stage" in contract or "intern" in contract:
-        return "intern"
-    elif "freelance" in contract or "indépendant" in contract:
-        return "freelance"
-    elif "temps partiel" in contract or "part time" in contract:
-        return "part_time"
-    
-    # Par défaut
-    return "full_time"
+    Args:
+        salary_text: Texte représentant une fourchette salariale
+        
+    Returns:
+        Salaire maximum extrait ou 0 si impossible à extraire
+    """
+    try:
+        # Nettoyer le texte
+        clean_text = re.sub(r'[^0-9Kk€\-]', '', salary_text)
+        
+        # Trouver toutes les valeurs numériques
+        numbers = re.findall(r'\d+[Kk]?', clean_text)
+        
+        if not numbers:
+            return 0
+        
+        # Si une seule valeur, la retourner (même min et max)
+        if len(numbers) == 1:
+            num = numbers[0]
+            if 'k' in num.lower():
+                return int(num.lower().replace('k', '')) * 1000
+            else:
+                value = int(num)
+                # Si le nombre est petit, c'est probablement en milliers
+                if value < 1000:
+                    value *= 1000
+                return value
+        
+        # Sinon, prendre la dernière valeur comme maximum
+        num = numbers[-1]
+        if 'k' in num.lower():
+            value = int(num.lower().replace('k', '')) * 1000
+        else:
+            value = int(num)
+            # Si le nombre est petit, c'est probablement en milliers
+            if value < 1000:
+                value *= 1000
+        
+        return value
+    except Exception as e:
+        logger.error(f"Erreur lors du parsing du salaire maximum '{salary_text}': {str(e)}")
+        return 0
 
 def get_min_experience(questionnaire_data: Dict[str, Any], job_data: Dict[str, Any]) -> int:
     """
-    Détermine l'expérience minimale requise
+    Détermine l'expérience minimale requise pour le poste
     
     Args:
-        questionnaire_data: Données du questionnaire client
+        questionnaire_data: Données du questionnaire
         job_data: Données de la fiche de poste
         
     Returns:
-        int: Nombre d'années d'expérience minimale
+        Nombre minimal d'années d'expérience requises
     """
-    # Vérifier d'abord dans les données du questionnaire
-    experience_required = questionnaire_data.get("experience-required", "")
+    # Récupérer l'expérience depuis la fiche de poste
+    experience_text = job_data.get('job-experience-value', '')
+    if experience_text and experience_text != "Non spécifié":
+        # Essayer d'extraire les années
+        years = re.findall(r'\d+', experience_text)
+        if years:
+            return int(years[0])  # Retourner la première valeur numérique
     
-    if experience_required == "junior":
-        return 0
-    elif experience_required == "2-3":
-        return 2
-    elif experience_required == "5-10":
-        return 5
-    elif experience_required == "10plus":
-        return 10
+    # Sinon, utiliser la sélection du questionnaire
+    experience_required = questionnaire_data.get('experience-required', '')
     
-    # Sinon, essayer d'extraire de la fiche de poste
-    experience_text = job_data.get("job-experience-value", "")
-    years = re.findall(r'(\d+)\s*(?:an|année|years)', experience_text)
-    if years:
-        return int(years[0])
+    # Mapper les valeurs du questionnaire à des nombres d'années
+    experience_map = {
+        "junior": 0,
+        "2-3": 2,
+        "5-10": 5,
+        "10plus": 10
+    }
     
-    return 0
+    return experience_map.get(experience_required, 0)
 
 def get_max_experience(questionnaire_data: Dict[str, Any], job_data: Dict[str, Any]) -> int:
     """
-    Détermine l'expérience maximale souhaitée
+    Détermine l'expérience maximale attendue pour le poste
     
     Args:
-        questionnaire_data: Données du questionnaire client
+        questionnaire_data: Données du questionnaire
         job_data: Données de la fiche de poste
         
     Returns:
-        int: Nombre d'années d'expérience maximale
+        Nombre maximal d'années d'expérience attendues (ou 100 si non spécifié)
     """
-    # Vérifier d'abord dans les données du questionnaire
-    experience_required = questionnaire_data.get("experience-required", "")
+    # Récupérer l'expérience depuis la fiche de poste
+    experience_text = job_data.get('job-experience-value', '')
+    if experience_text and experience_text != "Non spécifié":
+        # Essayer d'extraire plusieurs années
+        years = re.findall(r'\d+', experience_text)
+        if len(years) > 1:
+            return int(years[1])  # Retourner la deuxième valeur numérique
     
-    if experience_required == "junior":
-        return 2
-    elif experience_required == "2-3":
-        return 4
-    elif experience_required == "5-10":
-        return 10
-    elif experience_required == "10plus":
-        return 100  # Pas de limite supérieure spécifique
+    # Sinon, utiliser la sélection du questionnaire
+    experience_required = questionnaire_data.get('experience-required', '')
     
-    # Sinon, essayer d'extraire de la fiche de poste
-    experience_text = job_data.get("job-experience-value", "")
+    # Mapper les valeurs du questionnaire à des nombres d'années
+    experience_map = {
+        "junior": 2,
+        "2-3": 3,
+        "5-10": 10,
+        "10plus": 100  # Pas de limite supérieure
+    }
     
-    # Chercher un pattern comme "5-10 ans"
-    range_pattern = re.search(r'(\d+)\s*-\s*(\d+)\s*(?:an|année|years)', experience_text)
-    if range_pattern:
-        return int(range_pattern.group(2))
-    
-    return 100  # Valeur par défaut très élevée
+    return experience_map.get(experience_required, 100)
 
 def map_job_education(education_text: str) -> str:
     """
-    Mappe le texte du niveau d'éducation au format attendu par SmartMatch
+    Mappe le niveau d'éducation de la fiche de poste au format utilisé par SmartMatch
     
     Args:
         education_text: Texte décrivant le niveau d'éducation requis
         
     Returns:
-        str: Niveau d'éducation au format SmartMatch (none, high_school, associate, bachelor, master, phd)
+        Niveau d'éducation au format SmartMatch
     """
-    education_text = education_text.lower()
+    education_text = education_text.lower() if education_text else ""
     
-    if "bac+5" in education_text or "master" in education_text or "ingénieur" in education_text:
+    # Mapper les mots-clés courants aux niveaux d'éducation
+    if "doctorat" in education_text or "phd" in education_text or "docteur" in education_text:
+        return "phd"
+    elif "master" in education_text or "bac+5" in education_text or "bac +5" in education_text:
         return "master"
-    elif "bac+3" in education_text or "licence" in education_text or "bachelor" in education_text:
+    elif "licence" in education_text or "bachelor" in education_text or "bac+3" in education_text:
         return "bachelor"
-    elif "bac+2" in education_text or "dut" in education_text or "bts" in education_text:
+    elif "bts" in education_text or "dut" in education_text or "bac+2" in education_text:
         return "associate"
     elif "bac" in education_text or "high school" in education_text:
         return "high_school"
-    elif "phd" in education_text or "doctorat" in education_text:
-        return "phd"
-    
-    return "none"
+    else:
+        return "none"
 
-# Fonctions principales de transformation
+def get_contract_type(job_data: Dict[str, Any]) -> str:
+    """
+    Détermine le type de contrat à partir des données de la fiche de poste
+    
+    Args:
+        job_data: Données de la fiche de poste
+        
+    Returns:
+        Type de contrat au format SmartMatch (full_time, part_time, contract, internship)
+    """
+    contract_text = job_data.get('job-contract-value', '').lower()
+    
+    # Mapper les mots-clés courants aux types de contrat
+    if "cdi" in contract_text or "permanent" in contract_text:
+        return "full_time"
+    elif "cdd" in contract_text or "durée déterminée" in contract_text:
+        return "contract"
+    elif "temps partiel" in contract_text or "part time" in contract_text:
+        return "part_time"
+    elif "stage" in contract_text or "internship" in contract_text:
+        return "internship"
+    elif "freelance" in contract_text or "indépendant" in contract_text:
+        return "freelance"
+    else:
+        return "full_time"  # Par défaut
+
+# ======================================================================
+# Fonctions principales de transformation des données des questionnaires
+# ======================================================================
 
 def transform_candidate_questionnaire_to_smartmatch(questionnaire_data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -378,109 +508,63 @@ def transform_candidate_questionnaire_to_smartmatch(questionnaire_data: Dict[str
         questionnaire_data: Données du questionnaire candidat
         
     Returns:
-        Dict[str, Any]: Données au format SmartMatch
+        Dictionnaire au format compatible SmartMatch
     """
-    # Identifier si les questions sur le transport ont été répondues
-    transport_modes = questionnaire_data.get("transport-method", [])
-    if not isinstance(transport_modes, list):
-        transport_modes = [transport_modes]
-    
-    # Récupérer les préférences de transport avec temps max
-    transport_preferences = get_transport_preferences(questionnaire_data)
-    
-    # Traiter la liste des motivations
-    motivations = questionnaire_data.get("motivation-order", "")
-    if motivations and isinstance(motivations, str):
-        motivations = motivations.split(",")
-    elif not isinstance(motivations, list):
-        motivations = []
-    
-    # Valeur other_motivation
-    other_motivation = ""
-    if "other" in motivations and motivations.index("other") < 3:
-        other_motivation = questionnaire_data.get("other-motivation", "")
-    
-    # Structure des données candidat
+    # Récupérer les données de base
     candidate = {
-        "id": questionnaire_data.get("id", f"candidate-{hash(questionnaire_data.get('full-name', 'unknown'))}"),
+        "id": questionnaire_data.get("id", "unknown"),
         "name": questionnaire_data.get("full-name", ""),
-        "skills": [],  # À remplir depuis le CV
-        "location": "",  # À extraire des coordonnées d'adresse
+        "job_title": questionnaire_data.get("job-title", ""),
         
-        # Extraire depuis l'adresse si disponible
-        "location_coordinates": {
-            "lat": questionnaire_data.get("address-lat", ""),
-            "lng": questionnaire_data.get("address-lng", ""),
-            "place_id": questionnaire_data.get("address-place-id", "")
-        },
+        # Localisation
+        "location": extract_location_coordinates(questionnaire_data),
         
         # Préférences de travail
-        "remote_work": questionnaire_data.get("remote-preference", "") in ["full", "hybrid"],
+        "remote_work": questionnaire_data.get("remote-preference") in ["full", "hybrid"],
         "salary_expectation": parse_salary_range(questionnaire_data.get("salary-range", "")),
-        "job_type": "full_time",  # À déterminer selon le questionnaire
         
         # Secteurs d'intérêt
         "industry": get_primary_industry(questionnaire_data),
         "alternative_industries": get_alternative_industries(questionnaire_data),
         
-        # Préférences supplémentaires
-        "office_preference": questionnaire_data.get("office-preference", ""),
-        "availability": questionnaire_data.get("availability", ""),
-        "transport_modes": transport_modes,
-        "transport_preferences": transport_preferences,
-        "motivation_priorities": motivations,
-        "other_motivation": other_motivation,
+        # Données de base (à extraire du CV si disponible)
+        "years_of_experience": get_experience_years(questionnaire_data),
+        "education_level": map_education_level(questionnaire_data),
         
-        # Statistiques sur l'emploi actuel
-        "currently_employed": questionnaire_data.get("currently-employed", "") == "yes",
-        "notice_period": questionnaire_data.get("notice-period", "") if questionnaire_data.get("currently-employed") == "yes" else "",
-        "notice_negotiable": questionnaire_data.get("notice-negotiable", "") == "yes" if questionnaire_data.get("currently-employed") == "yes" else False,
-        "recruitment_status": questionnaire_data.get("recruitment-status", "")
+        # Préférences supplémentaires pour SmartMatch étendu
+        "office_preference": questionnaire_data.get("office-preference", ""),
+        "motivation_priorities": questionnaire_data.get("motivation-order", "").split(","),
+        "availability": questionnaire_data.get("availability", ""),
+        "transport_preferences": get_transport_preferences(questionnaire_data),
+        "structure_preference": questionnaire_data.get("structure-type", []),
+        
+        # Informations sur le statut actuel (pour les insights)
+        "currently_employed": questionnaire_data.get("currently-employed", "no") == "yes"
     }
-    
-    # Formatage final de la localisation
-    if candidate["location_coordinates"]["lat"] and candidate["location_coordinates"]["lng"]:
-        candidate["location"] = f"{candidate['location_coordinates']['lat']},{candidate['location_coordinates']['lng']}"
-    
-    # Valeurs par défaut pour les champs requis par SmartMatch
-    if not candidate["skills"]:
-        candidate["skills"] = []
-    
-    if not candidate["years_of_experience"]:
-        candidate["years_of_experience"] = 0
-    
-    if not candidate["education_level"]:
-        candidate["education_level"] = "bachelor"
     
     return candidate
 
-def transform_client_questionnaire_to_smartmatch(questionnaire_data: Dict[str, Any], job_data: Dict[str, Any]) -> Dict[str, Any]:
+def transform_client_questionnaire_to_smartmatch(
+    questionnaire_data: Dict[str, Any], 
+    job_data: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Convertit les données du questionnaire client et la fiche de poste au format compatible SmartMatch
     
     Args:
         questionnaire_data: Données du questionnaire client
-        job_data: Données de la fiche de poste extraites
+        job_data: Données extraites de la fiche de poste
         
     Returns:
-        Dict[str, Any]: Données au format SmartMatch
+        Dictionnaire au format compatible SmartMatch
     """
-    # Extraire les compétences depuis la valeur HTML
-    skills = extract_skills(job_data.get("job-skills-value", ""))
-    
-    # Séparer les compétences requises et préférées (si possible)
-    # Par défaut, toutes les compétences sont considérées comme requises
-    required_skills = skills
-    preferred_skills = []
-    
-    # Structure des données de l'offre d'emploi
     job = {
-        "id": job_data.get("id", f"job-{hash(job_data.get('job-title-value', 'unknown'))}"),
+        "id": job_data.get("id", "unknown"),
         "title": job_data.get("job-title-value", ""),
         
-        # Compétences
-        "required_skills": required_skills,
-        "preferred_skills": preferred_skills,
+        # Compétences extraites de la fiche de poste
+        "required_skills": extract_skills(job_data.get("job-skills-value", "")),
+        "preferred_skills": [],  # À extraire si différenciées
         
         # Localisation
         "location": get_job_location(questionnaire_data, job_data),
@@ -497,106 +581,163 @@ def transform_client_questionnaire_to_smartmatch(questionnaire_data: Dict[str, A
         "max_years_of_experience": get_max_experience(questionnaire_data, job_data),
         "required_education": map_job_education(job_data.get("job-education-value", "")),
         
-        # Données supplémentaires
+        # Données supplémentaires pour SmartMatch étendu
         "job_type": get_contract_type(job_data),
         "industry": questionnaire_data.get("sector-list", ""),
         "work_environment": questionnaire_data.get("work-environment", ""),
         "recruitment_delay": questionnaire_data.get("recruitment-delay", []),
-        "can_handle_notice": questionnaire_data.get("can-handle-notice", "") == "yes",
-        "notice_duration": questionnaire_data.get("notice-duration", "") if questionnaire_data.get("can-handle-notice") == "yes" else "",
-        "recruitment_context": questionnaire_data.get("recruitment-context", ""),
-        "sector_knowledge_required": questionnaire_data.get("sector-knowledge", "") == "yes",
+        "sector_knowledge_required": questionnaire_data.get("sector-knowledge", "no") == "yes",
+        "can_handle_notice": questionnaire_data.get("can-handle-notice", "no") == "yes",
+        "notice_duration": questionnaire_data.get("notice-duration", ""),
+        
+        # Informations détaillées sur le poste (pour les insights)
         "team_composition": questionnaire_data.get("team-composition", ""),
-        "evolution_perspectives": questionnaire_data.get("evolution-perspectives", "")
+        "evolution_perspectives": questionnaire_data.get("evolution-perspectives", ""),
+        "benefits": questionnaire_data.get("benefits", ""),
+        "recruitment_context": questionnaire_data.get("recruitment-context", "")
     }
+    
+    # Traitement spécial pour préparer les responsabilités et avantages
+    responsibilities = job_data.get("job-responsibilities-value", "")
+    if responsibilities and responsibilities != "Non spécifié":
+        job["responsibilities"] = responsibilities
+    
+    benefits = job_data.get("job-benefits-value", "")
+    if benefits and benefits != "Non spécifié":
+        job["benefits_description"] = benefits
     
     return job
 
-# Fonction utilitaire pour charger les données depuis le stockage de session
-def load_questionnaire_data_from_session(session_storage_key: str) -> Dict[str, Any]:
+# ======================================================================
+# Fonction d'extension de l'API SmartMatch pour l'intégration des questionnaires
+# ======================================================================
+
+def process_questionnaires(candidate_data, job_data, client_data):
     """
-    Cette fonction simule le chargement des données depuis le stockage de session
-    En pratique, cette fonction devrait être implémentée côté client ou serveur
-    selon l'architecture de l'application.
+    Traite les données des questionnaires pour le matching SmartMatch
     
     Args:
-        session_storage_key: Clé du stockage de session
+        candidate_data: Données brutes du questionnaire candidat
+        job_data: Données brutes de la fiche de poste
+        client_data: Données brutes du questionnaire client
         
     Returns:
-        Dict[str, Any]: Données du questionnaire
+        Tuple (candidate, job) au format SmartMatch
     """
-    # Ceci est une fonction dummy pour simulation
-    # En réalité, cette fonction serait implémentée dans le frontend ou backend
-    return {}
+    try:
+        # Transformer les données du candidat
+        candidate = transform_candidate_questionnaire_to_smartmatch(candidate_data)
+        
+        # Transformer les données du poste
+        job = transform_client_questionnaire_to_smartmatch(client_data, job_data)
+        
+        # Si des skills sont présentes dans le profil candidat, les utiliser
+        if "skills" in candidate_data and candidate_data["skills"]:
+            candidate["skills"] = candidate_data["skills"]
+        
+        # S'assurer que les skills sont au bon format
+        if "skills" not in candidate:
+            candidate["skills"] = []  # Valeur par défaut si non disponible
+        
+        return candidate, job
+    except Exception as e:
+        logger.error(f"Erreur lors du traitement des questionnaires: {str(e)}")
+        # Retourner des structures minimales pour éviter les erreurs
+        return {"id": "unknown", "skills": []}, {"id": "unknown", "required_skills": []}
 
-# Fonction de test/exemple
-def example_integration():
+# ======================================================================
+# Tests unitaires et exemples d'utilisation
+# ======================================================================
+
+def test_salary_parsing():
     """
-    Exemple d'utilisation des fonctions d'intégration
+    Teste la fonction de parsing des salaires
     """
-    # Exemple de données de questionnaire candidat
+    test_cases = [
+        ("35K€ - 45K€", 40000),
+        ("35 000 € - 45 000 €", 40000),
+        ("35000-45000", 40000),
+        ("35K", 35000),
+        ("35000€ annuel brut", 35000),
+        ("Salaire: 35K à 45K", 40000)
+    ]
+    
+    for text, expected in test_cases:
+        result = parse_salary_range(text)
+        print(f"Text: '{text}' -> {result} (expected {expected})")
+        assert abs(result - expected) < 1000, f"Expected {expected}, got {result}"
+
+def example_candidate_transformation():
+    """
+    Exemple de transformation des données d'un candidat
+    """
+    # Exemple de données de questionnaire
     candidate_data = {
         "full-name": "Jean Dupont",
-        "job-title": "Développeur Python",
-        "transport-method": ["public-transport", "vehicle"],
-        "commute-time-public-transport": "45",
-        "commute-time-vehicle": "30",
-        "address": "123 Rue de Paris, 75001 Paris",
+        "job-title": "Développeur Full Stack",
         "address-lat": "48.8566",
         "address-lng": "2.3522",
-        "office-preference": "no-preference",
-        "motivation-order": "remuneration,evolution,flexibility,location,other",
-        "structure-type": ["startup", "pme"],
+        "office-preference": "open-space",
+        "transport-method": ["public-transport", "bike"],
+        "commute-time-public-transport": "45",
+        "commute-time-bike": "30",
+        "salary-range": "45K€ - 55K€",
         "has-sector-preference": "yes",
-        "sector-preference": ["tech", "finance"],
-        "salary-range": "40K€ - 50K€ brut annuel",
+        "sector-preference": ["tech", "consulting"],
+        "motivation-order": "evolution,remuneration,flexibility,location,other",
         "availability": "1month",
         "currently-employed": "yes",
-        "listening-reason": "no-evolution",
-        "notice-period": "2months",
-        "notice-negotiable": "yes",
-        "recruitment-status": "in-progress"
+        "skills": ["JavaScript", "React", "Node.js", "Python", "Django"]
     }
     
+    # Transformer les données
+    smart_candidate = transform_candidate_questionnaire_to_smartmatch(candidate_data)
+    
+    # Afficher le résultat
+    print(json.dumps(smart_candidate, indent=2))
+
+def example_job_transformation():
+    """
+    Exemple de transformation des données d'un poste
+    """
     # Exemple de données de questionnaire client
     client_data = {
-        "company-name": "TechSolutions",
-        "company-address": "456 Avenue de la République, 75011 Paris",
-        "experience-required": "5-10",
-        "sector-knowledge": "yes",
+        "company-name": "TechStartup SAS",
+        "company-address": "123 Avenue de la République, 75011 Paris",
         "sector-list": "tech",
-        "work-environment": "openspace",
-        "recruitment-delay": ["1month"],
+        "work-environment": "open-space",
+        "experience-required": "5-10",
+        "sector-knowledge": "no",
         "can-handle-notice": "yes",
         "notice-duration": "2months"
     }
     
-    # Exemple de données de fiche de poste extraites
-    job_extracted_data = {
-        "job-title-value": "Développeur Python Senior",
+    # Exemple de données de fiche de poste
+    job_data = {
+        "job-title-value": "Développeur Full Stack JavaScript",
         "job-contract-value": "CDI",
-        "job-location-value": "Paris, France (Télétravail possible 2j/semaine)",
-        "job-experience-value": "5 ans minimum sur des technologies similaires",
-        "job-education-value": "Bac+5 ingénieur ou équivalent",
-        "job-salary-value": "45K€ - 55K€ selon profil",
-        "job-skills-value": "<div class=\"tag\">Python</div><div class=\"tag\">Django</div><div class=\"tag\">PostgreSQL</div><div class=\"tag\">Docker</div>",
-        "job-responsibilities-value": "Développement de nouvelles fonctionnalités, maintenance...",
-        "job-benefits-value": "Télétravail 2j/semaine, RTT, tickets restaurant"
+        "job-location-value": "Paris",
+        "job-experience-value": "Au moins 3 ans d'expérience",
+        "job-education-value": "Bac+5 ou équivalent",
+        "job-salary-value": "Entre 50K€ et 65K€ selon expérience",
+        "job-skills-value": "React, Node.js, Express, MongoDB, TypeScript, Git",
+        "job-responsibilities-value": "Développer de nouvelles fonctionnalités, Travailler en équipe agile, Possibilité de télétravail 2 jours par semaine",
+        "job-benefits-value": "Tickets restaurant, Mutuelle, RTT, Télétravail partiel"
     }
     
-    # Transformation des données
-    candidate = transform_candidate_questionnaire_to_smartmatch(candidate_data)
-    job = transform_client_questionnaire_to_smartmatch(client_data, job_extracted_data)
+    # Transformer les données
+    smart_job = transform_client_questionnaire_to_smartmatch(client_data, job_data)
     
-    # Imprimer les résultats
-    print("\n=== Données candidat transformées ===")
-    print(json.dumps(candidate, indent=2))
-    
-    print("\n=== Données job transformées ===")
-    print(json.dumps(job, indent=2))
-    
-    return candidate, job
+    # Afficher le résultat
+    print(json.dumps(smart_job, indent=2))
 
-# Code d'exécution directe
+# Point d'entrée pour les tests
 if __name__ == "__main__":
-    example_integration()
+    print("\n=== Test de parsing des salaires ===\n")
+    test_salary_parsing()
+    
+    print("\n=== Exemple de transformation des données d'un candidat ===\n")
+    example_candidate_transformation()
+    
+    print("\n=== Exemple de transformation des données d'un poste ===\n")
+    example_job_transformation()

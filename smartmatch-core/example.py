@@ -1,124 +1,133 @@
+# -*- coding: utf-8 -*-
 """
-Exemple d'utilisation de l'algorithme SmartMatch
----------------------------------------------------
-Ce script montre comment utiliser l'algorithme SmartMatch
-pour calculer la correspondance entre candidats et offres d'emploi.
+Exemple d'utilisation de SmartMatch avec intégration des questionnaires
+-----------------------------------------------------------------------
+Ce script démontre comment utiliser SmartMatch avec les données des questionnaires
+pour obtenir des résultats de matching pertinents et détaillés.
+
+Auteur: Claude/Anthropic
+Date: 16/05/2025
 """
 
 import json
 import os
-from smartmatch import SmartMatcher
+from pprint import pprint
+from questionnaire_integration import process_questionnaires
+from smartmatch_enhanced import SmartMatcherEnhanced
 
-# Initialiser le matcher
-api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
-matcher = SmartMatcher(api_key=api_key)
+# Exemple de données de questionnaire candidat
+CANDIDATE_QUESTIONNAIRE_DATA = {
+    "full-name": "Jean Dupont",
+    "job-title": "Développeur Full Stack",
+    "address-lat": "48.8566",
+    "address-lng": "2.3522",
+    "office-preference": "open-space",
+    "transport-method": ["public-transport", "bike"],
+    "commute-time-public-transport": "45",
+    "commute-time-bike": "30",
+    "salary-range": "45K€ - 55K€",
+    "has-sector-preference": "yes",
+    "sector-preference": ["tech", "consulting"],
+    "prohibited-sector": ["finance"],
+    "motivation-order": "evolution,remuneration,flexibility,location,other",
+    "availability": "1month",
+    "currently-employed": "yes",
+    "structure-type": ["startup", "pme"],
+    "skills": ["JavaScript", "React", "Node.js", "Python", "Django"]
+}
 
-# Charger des données de test
-test_data = matcher.load_test_data()
-candidates = test_data["candidates"]
-jobs = test_data["jobs"]
+# Exemple de données de questionnaire client
+CLIENT_QUESTIONNAIRE_DATA = {
+    "company-name": "TechStartup SAS",
+    "company-address": "123 Avenue de la République, 75011 Paris",
+    "sector-list": "tech",
+    "work-environment": "open-space",
+    "experience-required": "5-10",
+    "sector-knowledge": "no",
+    "can-handle-notice": "yes",
+    "notice-duration": "2months",
+    "company-size": "startup"
+}
 
-def print_match_result(result):
+# Exemple de données de fiche de poste
+JOB_DATA = {
+    "job-title-value": "Développeur Full Stack JavaScript",
+    "job-contract-value": "CDI",
+    "job-location-value": "Paris",
+    "job-experience-value": "Au moins 3 ans d'expérience",
+    "job-education-value": "Bac+5 ou équivalent",
+    "job-salary-value": "Entre 50K€ et 65K€ selon expérience",
+    "job-skills-value": "React, Node.js, Express, MongoDB, TypeScript, Git",
+    "job-responsibilities-value": "Développer de nouvelles fonctionnalités, Travailler en équipe agile, Possibilité de télétravail 2 jours par semaine",
+    "job-benefits-value": "Tickets restaurant, Mutuelle, RTT, Télétravail partiel"
+}
+
+def run_example():
     """
-    Affiche les résultats du matching de manière formatée
+    Exécute l'exemple complet de matching avec les données des questionnaires
     """
-    print(f"\n{'=' * 50}")
-    print(f"Match: Candidat {result['candidate_id']} - Offre {result['job_id']}")
+    print("\n=== Exemple d'intégration des questionnaires avec SmartMatch ===\n")
+    
+    # Étape 1: Transformer les données des questionnaires
+    print("1. Transformation des données des questionnaires...\n")
+    candidate, job = process_questionnaires(CANDIDATE_QUESTIONNAIRE_DATA, JOB_DATA, CLIENT_QUESTIONNAIRE_DATA)
+    
+    print("Données du candidat transformées :")
+    pprint(candidate)
+    print("\nDonnées du poste transformées :")
+    pprint(job)
+    
+    # Étape 2: Calculer le matching avec SmartMatcherEnhanced
+    print("\n2. Calcul du matching avec SmartMatcherEnhanced...\n")
+    
+    # Initialiser le matcher (avec ou sans clé API Google Maps)
+    api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
+    matcher = SmartMatcherEnhanced(api_key=api_key)
+    
+    # Calculer le match
+    result = matcher.calculate_match(candidate, job)
+    
+    # Afficher les résultats
+    print("Résultat du matching :")
     print(f"Score global: {result['overall_score']}")
     print("\nScores par catégorie:")
     for category, score in result["category_scores"].items():
         print(f"  - {category}: {score}")
     
-    print("\nInsights:")
-    strengths = [i for i in result["insights"] if i.get("category") == "strength"]
-    weaknesses = [i for i in result["insights"] if i.get("category") == "weakness"]
-    mismatches = [i for i in result["insights"] if i.get("category") == "mismatch"]
+    print("\nInsights générés:")
+    for insight in result["insights"]:
+        print(f"  - [{insight['category']}] {insight['message']}")
     
-    if strengths:
-        print("  Forces:")
-        for s in strengths:
-            print(f"    - {s['message']}")
+    # Étape 3: Démonstration de cas d'utilisation spécifiques
+    print("\n3. Démonstration de cas d'utilisation spécifiques...\n")
     
-    if weaknesses:
-        print("  Faiblesses:")
-        for w in weaknesses:
-            print(f"    - {w['message']}")
+    # Cas 1: Sector mismatch
+    print("Cas 1: Secteur incompatible")
+    test_job = job.copy()
+    test_job["industry"] = "finance"  # Le candidat a indiqué que finance est un secteur rédhibitoire
+    result1 = matcher.calculate_match(candidate, test_job)
+    print(f"  Score global: {result1['overall_score']}")
+    dealbreakers = [i for i in result1["insights"] if i.get("category") == "dealbreaker"]
+    if dealbreakers:
+        print(f"  Élément rédhibitoire détecté: {dealbreakers[0]['message']}")
     
-    if mismatches:
-        print("  Incompatibilités:")
-        for m in mismatches:
-            print(f"    - {m['message']}")
+    # Cas 2: Perfect match with all preferences
+    print("\nCas 2: Correspondance parfaite sur toutes les préférences")
+    perfect_job = job.copy()
+    perfect_job["required_skills"] = ["JavaScript", "React", "Node.js", "Python", "Django"]
+    perfect_job["offers_remote"] = True
+    perfect_job["evolution_perspectives"] = "Évolution rapide vers un poste de lead developer puis CTO"
+    perfect_job["benefits_description"] = "Horaires flexibles, RTT, Télétravail, Formation continue"
+    result2 = matcher.calculate_match(candidate, perfect_job)
+    print(f"  Score global: {result2['overall_score']}")
+    strengths = [i for i in result2["insights"] if i.get("category") == "strength"]
+    print(f"  Nombre de points forts: {len(strengths)}")
+    print(f"  Exemple: {strengths[0]['message']}")
     
-    print(f"{'=' * 50}\n")
-
-def main():
-    print("\n===== DÉMONSTRATION DE SMARTMATCH =====\n")
-    
-    # Exemple 1: Matching simple entre un candidat et une offre
-    print("\n1. MATCHING SIMPLE")
-    candidate = candidates[0]  # Jean Dupont
-    job = jobs[0]  # Développeur Python Senior
-    
-    result = matcher.calculate_match(candidate, job)
-    print_match_result(result)
-    
-    # Exemple 2: Trouver la meilleure offre pour un candidat
-    print("\n2. MEILLEURE OFFRE POUR UN CANDIDAT")
-    candidate = candidates[2]  # Thomas Petit
-    
-    best_job = None
-    best_score = 0
-    
-    for job in jobs:
-        result = matcher.calculate_match(candidate, job)
-        if result["overall_score"] > best_score:
-            best_score = result["overall_score"]
-            best_job = job
-            best_result = result
-    
-    if best_job:
-        print(f"Meilleure offre pour {candidate['name']}: {best_job['title']}")
-        print_match_result(best_result)
-    
-    # Exemple 3: Trouver les meilleurs candidats pour une offre
-    print("\n3. MEILLEURS CANDIDATS POUR UNE OFFRE")
-    job = jobs[1]  # Architecte Java
-    
-    results = []
-    for candidate in candidates:
-        result = matcher.calculate_match(candidate, job)
-        results.append((candidate, result))
-    
-    # Trier par score décroissant
-    results.sort(key=lambda x: x[1]["overall_score"], reverse=True)
-    
-    print(f"Meilleurs candidats pour le poste '{job['title']}':")
-    for candidate, result in results:
-        print(f"- {candidate['name']}: {result['overall_score']}")
-    
-    # Afficher le détail du meilleur candidat
-    if results:
-        print("\nDétail du meilleur candidat:")
-        print_match_result(results[0][1])
-    
-    # Exemple 4: Batch matching
-    print("\n4. BATCH MATCHING")
-    batch_results = matcher.batch_match(candidates, jobs)
-    
-    print(f"Nombre total de matchings calculés: {len(batch_results)}")
-    
-    # Trouver le meilleur match global
-    best_batch_match = max(batch_results, key=lambda x: x["overall_score"])
-    
-    print("\nMeilleur match global:")
-    best_candidate = next(c for c in candidates if c["id"] == best_batch_match["candidate_id"])
-    best_job = next(j for j in jobs if j["id"] == best_batch_match["job_id"])
-    
-    print(f"Candidat: {best_candidate['name']}")
-    print(f"Poste: {best_job['title']}")
-    print(f"Score: {best_batch_match['overall_score']}")
-    
-    print("\n===== FIN DE LA DÉMONSTRATION =====\n")
+    # Étape 4: Conclusion
+    print("\n4. Conclusion")
+    print("L'intégration des questionnaires avec SmartMatch permet une analyse plus précise")
+    print("des préférences et des contraintes, pour des matchings plus pertinents.")
 
 if __name__ == "__main__":
-    main()
+    run_example()

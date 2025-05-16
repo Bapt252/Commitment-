@@ -1,14 +1,16 @@
-# Dépendances de base
+# Dépendances principales
 numpy>=1.22.0
 scikit-learn>=1.0.0
-nltk>=3.7
 requests>=2.27.0
-pandas>=1.4.0
 
-# Pour l'analyse sémantique (optionnel mais recommandé)
+# Pour l'analyse sémantique (recommandée)
+nltk>=3.7
 sentence-transformers>=2.2.0
 
-# Pour l'API d'exemple (optionnel)
+# Pour l'API
 fastapi>=0.85.0
-uvicorn>=0.18.0
 pydantic>=1.9.0
+uvicorn>=0.18.0
+
+# Utilitaires
+python-dotenv>=0.20.0
