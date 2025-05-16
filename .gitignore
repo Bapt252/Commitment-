@@ -61,6 +61,7 @@ secrets.json
 *.cert
 auth.json
 .netrc
+app/api_keys.py  # Ignorer le fichier contenant les clés API
 
 # Environnement Python
 venv/
