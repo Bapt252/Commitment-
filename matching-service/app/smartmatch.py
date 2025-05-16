@@ -22,6 +22,12 @@ from functools import lru_cache
 import nltk
 from nltk.corpus import wordnet
 
+# Importer la clé API Google Maps (si disponible)
+try:
+    from app.api_keys import GOOGLE_MAPS_API_KEY
+except ImportError:
+    GOOGLE_MAPS_API_KEY = None
+
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -51,7 +57,8 @@ class SmartMatcher:
             use_cache (bool): Activer le cache pour les calculs de distance
             cache_size (int): Taille du cache pour les calculs de distance
         """
-        self.api_key = api_key or os.environ.get("GOOGLE_MAPS_API_KEY")
+        # Utiliser la clé API fournie, ou celle du module api_keys, ou la variable d'environnement
+        self.api_key = api_key or GOOGLE_MAPS_API_KEY or os.environ.get("GOOGLE_MAPS_API_KEY")
         if not self.api_key:
             logger.warning("Aucune clé API Google Maps fournie. Les calculs de distance seront désactivés.")
         
