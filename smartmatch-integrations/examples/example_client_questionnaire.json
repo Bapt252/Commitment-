@@ -1,0 +1,38 @@
+{
+  "company-name": "TechCorp SAS",
+  "company-address": "42 avenue des Champs-Élysées, 75008 Paris",
+  "company-address-lat": "48.8697",
+  "company-address-lng": "2.3075",
+  "company-website": "https://techcorp-example.com",
+  "company-description": "TechCorp est une entreprise de services numériques spécialisée dans le développement d'applications web et mobiles innovantes.",
+  "company-size": "pme",
+  "company-foundation-year": "2010",
+  "company-employees-count": "45",
+  
+  "recruitment-delay": "1month",
+  "can-handle-notice": "yes",
+  "notice-duration": "2months",
+  "recruitment-context": "Remplacement et croissance de l'équipe",
+  
+  "experience-required": "5-10",
+  "sector-knowledge": "no",
+  "sector-list": "tech",
+  
+  "work-environment": "open-space",
+  "team-composition": "3 développeurs backend, 2 développeurs frontend, 1 designer UI/UX et 1 product owner",
+  "evolution-perspectives": "Possibilité d'évolution vers un poste de Lead Developer ou Architecte technique dans les 2 ans à venir.",
+  
+  "salary": "45K-60K",
+  "benefits": "Télétravail 2-3j/semaine, RTT, Tickets restaurant (11€/jour), Mutuelle prise en charge à 70%, Formation continue",
+  "contract-type": "CDI",
+  
+  "tools-used": "GitHub, JIRA, Slack, AWS",
+  "methodologies": "Agile Scrum, CI/CD",
+  
+  "remote-work": "yes",
+  "remote-days": "2-3",
+  "flexible-hours": "yes",
+  
+  "international-context": "no",
+  "languages-required": "Français courant, Anglais professionnel"
+}
