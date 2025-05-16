@@ -19,34 +19,26 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# Vérifier si docker-compose est installé
-if ! command -v docker-compose &> /dev/null; then
-    echo -e "${RED}Docker Compose n'est pas installé. Veuillez l'installer avant de continuer.${NC}"
-    exit 1
-fi
-
 # Définir le répertoire du projet comme le répertoire courant
 PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$PROJECT_DIR"
 
 echo -e "${YELLOW}Démarrage du service adaptateur SmartMatch...${NC}"
 
-# Si un fichier override existe déjà, le sauvegarder
-if [ -f docker-compose.override.yml ]; then
-    echo -e "${YELLOW}Sauvegarde du fichier docker-compose.override.yml existant...${NC}"
-    mv docker-compose.override.yml docker-compose.override.yml.bak
+# Arrêter et supprimer le conteneur s'il existe déjà
+if docker ps -a | grep -q "smartmatch-adapter-service"; then
+    echo -e "${YELLOW}Arrêt et suppression du conteneur existant...${NC}"
+    docker stop smartmatch-adapter-service > /dev/null 2>&1
+    docker rm smartmatch-adapter-service > /dev/null 2>&1
 fi
 
-# Copier le fichier override de l'adaptateur
-echo -e "${YELLOW}Utilisation du fichier de configuration spécifique à l'adaptateur...${NC}"
-cp data-adapter/docker-compose.override.yml .
-
-# Construire et démarrer le service
+# Construire l'image Docker
 echo -e "${YELLOW}Construction de l'image Docker...${NC}"
-docker-compose build smartmatch-adapter
+docker build -t smartmatch-adapter ./data-adapter
 
+# Démarrer le conteneur
 echo -e "${YELLOW}Démarrage du service...${NC}"
-docker-compose up -d smartmatch-adapter
+docker run -d -p 5053:5053 --name smartmatch-adapter-service smartmatch-adapter
 
 # Vérifier si le service a démarré avec succès
 if [ $? -eq 0 ]; then
@@ -59,18 +51,28 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}- POST /api/adapter/batch-adapt-cv: Adapter plusieurs CVs${NC}"
     echo -e "${GREEN}- POST /api/adapter/batch-adapt-job: Adapter plusieurs offres d'emploi${NC}"
     echo -e "${GREEN}- POST /api/adapter/match: Adapter les données puis lancer le matching${NC}"
+    
+    # Attendre quelques secondes pour s'assurer que le service est prêt
+    sleep 2
+    
+    # Tester le point de terminaison de santé
+    echo -e "${YELLOW}Test du point de terminaison de santé...${NC}"
+    HEALTH_RESPONSE=$(curl -s http://localhost:5053/api/adapter/health)
+    if [[ $HEALTH_RESPONSE == *"\"status\":\"ok\""* ]]; then
+        echo -e "${GREEN}Le service répond correctement aux requêtes!${NC}"
+    else
+        echo -e "${RED}Le service ne répond pas correctement. Réponse: ${HEALTH_RESPONSE}${NC}"
+        echo -e "${YELLOW}Consultez les logs pour plus d'informations:${NC}"
+        echo -e "${YELLOW}docker logs smartmatch-adapter-service${NC}"
+    fi
 else
     echo -e "${RED}Erreur lors du démarrage du service.${NC}"
     echo -e "${YELLOW}Consultez les logs pour plus d'informations:${NC}"
-    echo -e "${YELLOW}docker-compose logs smartmatch-adapter${NC}"
-fi
-
-# Restaurer le fichier override original si nécessaire
-if [ -f docker-compose.override.yml.bak ]; then
-    echo -e "${YELLOW}Restauration du fichier docker-compose.override.yml original...${NC}"
-    mv docker-compose.override.yml.bak docker-compose.override.yml
+    echo -e "${YELLOW}docker logs smartmatch-adapter-service${NC}"
 fi
 
 echo -e "${BLUE}==========================================${NC}"
 echo -e "${BLUE}  Opération terminée                     ${NC}"
 echo -e "${BLUE}==========================================${NC}"
+echo -e "${YELLOW}Pour tester l'API, exécutez:${NC}"
+echo -e "${YELLOW}python data-adapter/test_api.py${NC}"
