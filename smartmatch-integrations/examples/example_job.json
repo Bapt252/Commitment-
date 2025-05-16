@@ -1,0 +1,34 @@
+{
+  "title": "Développeur Python/Django Senior",
+  "company": "TechCorp SAS",
+  "location": "Paris",
+  "contract_type": "CDI",
+  "remote_option": true,
+  "skills": ["Python", "Django", "Flask", "SQL", "Git", "Docker", "REST API"],
+  "preferred_skills": ["AWS", "React", "TypeScript"],
+  "experience": "5 ans d'expérience en développement Python",
+  "education": "Diplôme d'ingénieur ou Master en informatique",
+  "salary": "45K - 60K",
+  "responsibilities": [
+    "Développer des applications web avec Django",
+    "Maintenir les API REST existantes",
+    "Concevoir et implémenter de nouvelles fonctionnalités",
+    "Participer à la conception technique",
+    "Collaborer avec les équipes front-end et produit"
+  ],
+  "requirements": [
+    "Expérience significative avec Django",
+    "Bonne connaissance de SQL et des bases de données relationnelles",
+    "Maîtrise de Git et des méthodes de développement collaboratives",
+    "Anglais professionnel"
+  ],
+  "benefits": [
+    "Télétravail partiel (2-3 jours/semaine)",
+    "Mutuelle d'entreprise",
+    "Tickets restaurant",
+    "RTT",
+    "Participation au transport"
+  ],
+  "start_date": "Dès que possible",
+  "application_deadline": "2025-06-30"
+}
