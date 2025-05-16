@@ -5,7 +5,7 @@ Script de test pour Nexten SmartMatch
 Teste le système SmartMatch avec des données simulées et affiche les résultats.
 
 Auteur: Claude/Anthropic
-Date: 14/05/2025
+Date: 16/05/2025
 """
 
 import os
@@ -17,14 +17,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from typing import Dict, List, Any
 
-# Ajouter le répertoire parent au chemin de recherche pour l'importation
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Ajouter le répertoire courant au chemin de recherche pour l'importation
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-# Importer le SmartMatcher
+# Importer les modules
 try:
     from app.smartmatch import SmartMatcher
-except ImportError:
-    print("Erreur: Impossible d'importer SmartMatcher. Vérifiez que vous exécutez le script depuis le bon répertoire.")
+    from app.smartmatch_transport import enhance_smartmatch_with_transport
+    from app.api_keys import get_maps_api_key
+except ImportError as e:
+    print(f"Erreur: Impossible d'importer les modules. {e}")
+    print("Vérifiez que vous exécutez le script depuis le bon répertoire.")
     sys.exit(1)
 
 # Configuration du logging
@@ -34,7 +37,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def run_comprehensive_test(api_key: str = None) -> pd.DataFrame:
+def run_comprehensive_test(api_key=None):
     """
     Exécute un test complet du système SmartMatch et analyse les résultats
     
@@ -48,7 +51,11 @@ def run_comprehensive_test(api_key: str = None) -> pd.DataFrame:
     
     # Initialiser le SmartMatcher
     matcher = SmartMatcher(api_key=api_key)
-    logger.info("SmartMatcher initialisé")
+    
+    # Améliorer avec l'extension de transport
+    matcher = enhance_smartmatch_with_transport(matcher, api_key=api_key)
+    
+    logger.info("SmartMatcher initialisé et amélioré avec l'extension transport")
     
     # Charger les données de test
     test_data = matcher.load_test_data()
@@ -111,12 +118,16 @@ def run_comprehensive_test(api_key: str = None) -> pd.DataFrame:
         if match['insights']:
             print("  Insights:")
             for insight in match['insights']:
-                if insight['category'] == 'strength':
-                    print(f"  ✓ {insight['message']} ({insight['score']:.2f})")
-                elif insight['category'] == 'weakness':
-                    print(f"  ✗ {insight['message']} ({insight['score']:.2f})")
+                if 'category' in insight:
+                    category = insight['category']
+                    if category == 'strength':
+                        print(f"  ✓ {insight['message']} ({insight['score']:.2f})")
+                    elif category == 'weakness':
+                        print(f"  ✗ {insight['message']} ({insight['score']:.2f})")
+                    else:
+                        print(f"  ! {insight['message']} ({insight.get('score', 0):.2f})")
                 else:
-                    print(f"  ! {insight['message']} ({insight['score']:.2f})")
+                    print(f"  • {insight['message']}")
     
     return category_scores
 
@@ -253,8 +264,8 @@ def main():
     """
     Fonction principale exécutant le test complet et générant les visualisations
     """
-    # Vérifier si une clé API est fournie
-    api_key = os.environ.get("GOOGLE_MAPS_API_KEY", "AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8")
+    # Récupérer la clé API Google Maps
+    api_key = get_maps_api_key()
     
     # Exécuter le test complet
     try:

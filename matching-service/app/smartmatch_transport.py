@@ -3,8 +3,9 @@ Module d'extension de SmartMatch pour la prise en compte des transports en commu
 --------------------------------------------------------------------------------
 Ajoute des fonctionnalités pour améliorer le matching géographique en considérant
 différents modes de transport et les préférences des candidats.
+
 Auteur: Claude/Anthropic
-Date: 14/05/2025
+Date: 16/05/2025
 """
 
 import os
@@ -14,6 +15,7 @@ import json
 
 # Import du client Google Maps
 from app.google_maps_client import GoogleMapsClient
+from app.api_keys import get_maps_api_key
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -32,6 +34,9 @@ class CommuteMatchExtension:
         Args:
             api_key (str, optional): Clé API Google Maps
         """
+        if api_key is None:
+            api_key = get_maps_api_key()
+            
         self.maps_client = GoogleMapsClient(api_key=api_key)
         logger.info("Extension CommuteMatch initialisée")
     
@@ -205,7 +210,7 @@ class CommuteMatchExtension:
         }
 
 
-def enhance_smartmatch_with_transport(smartmatch_instance, api_key: str = None):
+def enhance_smartmatch_with_transport(smartmatch_instance, api_key=None):
     """
     Améliore une instance SmartMatch existante avec la prise en compte des transports.
     
@@ -223,38 +228,40 @@ def enhance_smartmatch_with_transport(smartmatch_instance, api_key: str = None):
     smartmatch_instance.commute_extension = extension
     
     # Stocker la fonction originale de calcul de score
-    original_calculate_location_score = getattr(smartmatch_instance, 'calculate_location_score', None)
+    original_calculate_location_match = smartmatch_instance.calculate_location_match
     
     # Définir la nouvelle fonction de calcul qui utilise l'extension
-    def enhanced_calculate_location_score(instance, candidate, company):
+    def enhanced_calculate_location_match(candidate, company):
         # Si l'original existe, l'appeler d'abord
         base_score = 0.5
-        if original_calculate_location_score:
-            try:
-                base_score = original_calculate_location_score(instance, candidate, company)
-            except Exception as e:
-                logger.warning(f"Erreur lors du calcul du score de localisation original: {e}")
+        try:
+            base_score = original_calculate_location_match(candidate, company)
+        except Exception as e:
+            logger.warning(f"Erreur lors du calcul du score de localisation original: {e}")
         
         # Calculer le score amélioré avec l'extension
         try:
-            enhanced_result = instance.commute_extension.calculate_commute_score(candidate, company)
+            # Adapter les noms de champs entre job et company
+            company_adapted = adapt_job_to_company(company)
+            
+            enhanced_result = smartmatch_instance.commute_extension.calculate_commute_score(candidate, company_adapted)
             enhanced_score = enhanced_result['score']
             
             # Combiner les scores (donner plus de poids au score amélioré)
             combined_score = 0.3 * base_score + 0.7 * enhanced_score
             
             # Ajouter les détails au résultat
-            if not hasattr(instance, 'matching_details'):
-                instance.matching_details = {}
+            if not hasattr(smartmatch_instance, 'matching_details'):
+                smartmatch_instance.matching_details = {}
             
             candidate_id = candidate.get('id', 'unknown')
             company_id = company.get('id', 'unknown')
             key = f"{candidate_id}_{company_id}"
             
-            if key not in instance.matching_details:
-                instance.matching_details[key] = {}
+            if key not in smartmatch_instance.matching_details:
+                smartmatch_instance.matching_details[key] = {}
             
-            instance.matching_details[key]['commute'] = enhanced_result['details']
+            smartmatch_instance.matching_details[key]['commute'] = enhanced_result['details']
             
             return combined_score
         
@@ -263,12 +270,56 @@ def enhance_smartmatch_with_transport(smartmatch_instance, api_key: str = None):
             return base_score
     
     # Remplacer la méthode
-    if hasattr(smartmatch_instance, 'calculate_location_score'):
-        setattr(smartmatch_instance, 'calculate_location_score', 
-                lambda candidate, company: enhanced_calculate_location_score(smartmatch_instance, candidate, company))
+    smartmatch_instance.calculate_location_match = enhanced_calculate_location_match
     
-    # Ajouter une nouvelle méthode pour générer des insights sur les trajets
-    def generate_commute_insights(instance, matches):
+    # Ajouter une méthode match pour la compatibilité avec l'extension
+    def match(candidates, companies):
+        """
+        Effectue un matching entre plusieurs candidats et entreprises
+        
+        Args:
+            candidates (List[Dict]): Liste des profils candidats
+            companies (List[Dict]): Liste des offres d'emploi/entreprises
+            
+        Returns:
+            List[Dict]: Résultats de matching
+        """
+        results = []
+        
+        for candidate in candidates:
+            for company in companies:
+                # Adapter l'entreprise au format attendu par calculate_match
+                job = adapt_company_to_job(company)
+                
+                # Calculer le match
+                match_result = smartmatch_instance.calculate_match(candidate, job)
+                
+                # Adapter le résultat pour inclure les IDs d'entreprise
+                match_result['company_id'] = company.get('id', '')
+                match_result['candidate_location'] = candidate.get('location', '')
+                match_result['company_location'] = company.get('location', '')
+                
+                results.append(match_result)
+        
+        return results
+    
+    # Ajouter la méthode match
+    smartmatch_instance.match = match
+    
+    # Stocker la fonction originale de génération d'insights
+    original_generate_insights = smartmatch_instance.generate_insights
+    
+    # Créer une nouvelle fonction compatible avec le format de l'extension
+    def generate_commute_insights(matches):
+        """
+        Génère des insights sur les trajets pour une liste de matchs
+        
+        Args:
+            matches (List[Dict]): Liste de résultats de matching
+            
+        Returns:
+            List[Dict]: Liste d'insights sur les trajets
+        """
         insights = []
         
         # Si aucun match, retourner liste vide
@@ -284,8 +335,8 @@ def enhance_smartmatch_with_transport(smartmatch_instance, api_key: str = None):
             company_id = match.get('company_id', '')
             key = f"{candidate_id}_{company_id}"
             
-            if hasattr(instance, 'matching_details') and key in instance.matching_details:
-                details = instance.matching_details[key].get('commute', {})
+            if hasattr(smartmatch_instance, 'matching_details') and key in smartmatch_instance.matching_details:
+                details = smartmatch_instance.matching_details[key].get('commute', {})
                 if 'travel_times' in details:
                     preferred_mode = details.get('preferred_mode', 'driving')
                     time = details['travel_times'].get(preferred_mode, -1)
@@ -299,7 +350,8 @@ def enhance_smartmatch_with_transport(smartmatch_instance, api_key: str = None):
             insights.append({
                 'type': 'commute',
                 'message': f"Le temps de trajet moyen pour les matchings est de {avg_time:.0f} minutes.",
-                'data': {'avg_commute_time': avg_time}
+                'data': {'avg_commute_time': avg_time},
+                'category': 'info'
             })
         
         # Analyser les modes de transport préférés
@@ -309,8 +361,8 @@ def enhance_smartmatch_with_transport(smartmatch_instance, api_key: str = None):
             company_id = match.get('company_id', '')
             key = f"{candidate_id}_{company_id}"
             
-            if hasattr(instance, 'matching_details') and key in instance.matching_details:
-                details = instance.matching_details[key].get('commute', {})
+            if hasattr(smartmatch_instance, 'matching_details') and key in smartmatch_instance.matching_details:
+                details = smartmatch_instance.matching_details[key].get('commute', {})
                 if details:
                     mode = details.get('preferred_mode', 'driving')
                     mode_counts[mode] = mode_counts.get(mode, 0) + 1
@@ -320,83 +372,119 @@ def enhance_smartmatch_with_transport(smartmatch_instance, api_key: str = None):
             insights.append({
                 'type': 'transport_mode',
                 'message': f"Le mode de transport le plus courant est {most_common_mode}.",
-                'data': {'mode_counts': mode_counts}
-            })
-        
-        # Identifier les opportunités de covoiturage
-        carpooling_opportunities = []
-        processed_companies = set()
-        
-        for i, match1 in enumerate(matches):
-            company_id1 = match1.get('company_id', '')
-            if company_id1 in processed_companies:
-                continue
-            
-            candidate_location1 = match1.get('candidate_location', '')
-            company_location1 = match1.get('company_location', '')
-            
-            same_company_candidates = []
-            
-            for j, match2 in enumerate(matches):
-                if i == j:
-                    continue
-                
-                company_id2 = match2.get('company_id', '')
-                candidate_location2 = match2.get('candidate_location', '')
-                
-                if company_id1 == company_id2 and candidate_location1 and candidate_location2:
-                    # Vérifier si les candidats sont proches
-                    try:
-                        travel_time = instance.commute_extension.maps_client.get_travel_time(
-                            candidate_location1, candidate_location2
-                        )
-                        
-                        if 0 < travel_time <= 15:  # 15 minutes max entre candidats
-                            same_company_candidates.append({
-                                'candidate_id': match2.get('candidate_id', ''),
-                                'distance_minutes': travel_time
-                            })
-                    except Exception as e:
-                        logger.error(f"Erreur lors du calcul de la distance entre candidats: {e}")
-            
-            if len(same_company_candidates) >= 2:
-                carpooling_opportunities.append({
-                    'company_id': company_id1,
-                    'company_location': company_location1,
-                    'candidates': same_company_candidates
-                })
-            
-            processed_companies.add(company_id1)
-        
-        if carpooling_opportunities:
-            insights.append({
-                'type': 'carpooling',
-                'message': f"Opportunité de covoiturage identifiée pour {len(carpooling_opportunities)} entreprises.",
-                'data': {'opportunities': carpooling_opportunities}
+                'data': {'mode_counts': mode_counts},
+                'category': 'info'
             })
         
         return insights
     
     # Ajouter la méthode au SmartMatcher
-    setattr(smartmatch_instance, 'generate_commute_insights', 
-            lambda matches: generate_commute_insights(smartmatch_instance, matches))
+    smartmatch_instance.generate_commute_insights = generate_commute_insights
     
-    # Étendre la méthode de génération d'insights si elle existe
-    original_generate_insights = getattr(smartmatch_instance, 'generate_insights', None)
-    
-    if original_generate_insights:
-        def enhanced_generate_insights(instance, matches):
-            # Appeler la méthode originale
-            insights = original_generate_insights(instance, matches)
-            
-            # Ajouter les insights de trajet
-            commute_insights = instance.generate_commute_insights(matches)
-            insights.extend(commute_insights)
-            
+    # Définir une nouvelle fonction de génération d'insights
+    def enhanced_generate_insights(*args, **kwargs):
+        """
+        Version améliorée de la fonction generate_insights qui combine les insights d'origine
+        avec les insights de trajet
+        """
+        # Déterminer le format d'appel correct
+        if len(args) >= 5:  # Format original: generate_insights(candidate, job, skill_score, location_score, ...)
+            insights = original_generate_insights(*args, **kwargs)
             return insights
-        
-        # Remplacer la méthode
-        setattr(smartmatch_instance, 'generate_insights', 
-                lambda matches: enhanced_generate_insights(smartmatch_instance, matches))
+        else:  # Format extension: generate_insights(matches)
+            matches = args[0] if args else kwargs.get('matches', [])
+            
+            # Générer des insights de trajet
+            commute_insights = smartmatch_instance.generate_commute_insights(matches)
+            
+            return commute_insights
+    
+    # Remplacer la méthode generate_insights
+    smartmatch_instance.generate_insights_extended = enhanced_generate_insights
     
     return smartmatch_instance
+
+
+def adapt_company_to_job(company):
+    """
+    Adapte une structure d'entreprise au format attendu par calculate_match
+    
+    Args:
+        company (Dict): Données de l'entreprise
+        
+    Returns:
+        Dict: Format compatible avec calculate_match
+    """
+    job = company.copy()
+    
+    # Correspondances des champs
+    if 'title' not in job and 'name' in company:
+        job['title'] = company['name']
+    
+    if 'required_skills' not in job and 'skills' in company:
+        job['required_skills'] = company['skills']
+    
+    if 'preferred_skills' not in job and 'nice_to_have_skills' in company:
+        job['preferred_skills'] = company['nice_to_have_skills']
+    
+    if 'min_years_of_experience' not in job and 'experience_required' in company:
+        job['min_years_of_experience'] = company['experience_required']
+    
+    if 'required_education' not in job and 'education_level' in company:
+        job['required_education'] = company['education_level']
+    
+    if 'offers_remote' not in job and 'remote_policy' in company:
+        job['offers_remote'] = company['remote_policy'] in ['full', 'hybrid']
+    
+    if 'salary_range' not in job and 'salary' in company:
+        salary = company['salary']
+        if isinstance(salary, dict) and 'min' in salary and 'max' in salary:
+            job['salary_range'] = salary
+        else:
+            # Estimer une fourchette basée sur une valeur unique
+            if isinstance(salary, (int, float)):
+                job['salary_range'] = {'min': int(salary * 0.9), 'max': int(salary * 1.1)}
+            else:
+                job['salary_range'] = {'min': 0, 'max': 0}
+    
+    return job
+
+
+def adapt_job_to_company(job):
+    """
+    Adapte une structure de job au format attendu par calculate_commute_score
+    
+    Args:
+        job (Dict): Données du job
+        
+    Returns:
+        Dict: Format compatible avec calculate_commute_score
+    """
+    company = job.copy()
+    
+    # Correspondances des champs
+    if 'name' not in company and 'title' in job:
+        company['name'] = job['title']
+    
+    if 'skills' not in company and 'required_skills' in job:
+        company['skills'] = job['required_skills']
+    
+    if 'nice_to_have_skills' not in company and 'preferred_skills' in job:
+        company['nice_to_have_skills'] = job['preferred_skills']
+    
+    if 'experience_required' not in company and 'min_years_of_experience' in job:
+        company['experience_required'] = job['min_years_of_experience']
+    
+    if 'education_level' not in company and 'required_education' in job:
+        company['education_level'] = job['required_education']
+    
+    if 'remote_policy' not in company and 'offers_remote' in job:
+        company['remote_policy'] = 'hybrid' if job['offers_remote'] else 'office_only'
+    
+    if 'transit_friendly' not in company:
+        company['transit_friendly'] = True  # Par défaut, considérer que l'entreprise est accessible en transport
+    
+    if 'bicycle_facilities' not in company:
+        company['bicycle_facilities'] = True  # Par défaut, considérer que l'entreprise a des installations pour vélos
+    
+    return company
