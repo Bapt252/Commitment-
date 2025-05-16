@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Client Google Maps amélioré avec mode hybride pour Nexten SmartMatch
+Client Google Maps amélioré pour Nexten SmartMatch avec gestion avancée de cache et quotas
 """
 
 import os
@@ -11,28 +11,43 @@ import json
 import time
 from typing import Dict, Optional, List, Tuple, Any
 from dotenv import load_dotenv
+import threading
+import datetime
+from app.maps_cache import MapsCache
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GoogleMapsClient:
-    """Client pour interagir avec l'API Google Maps avec mode hybride automatique"""
+    """Client pour interagir avec l'API Google Maps avec gestion de cache et quotas"""
     
-    def __init__(self, api_key=None, use_mock_mode=False, use_hybrid_mode=True):
+    def __init__(self, api_key=None, use_mock_mode=False, use_hybrid_mode=True, 
+                 redis_url=None, rate_limit=500):
         """
-        Initialise le client Google Maps
+        Initialise le client Google Maps avec gestion de cache et quotas
         
         Args:
-            api_key: Clé API Google Maps (optionnelle, pour compatibilité)
+            api_key: Clé API Google Maps (optionnelle)
             use_mock_mode (bool): Si True, utilise uniquement des données simulées
-            use_hybrid_mode (bool): Si True, bascule automatiquement entre API réelle et simulation
+            use_hybrid_mode (bool): Si True, bascule entre API réelle et simulation
+            redis_url (str): URL de connexion Redis pour le cache
+            rate_limit (int): Limite d'appels à l'API Google Maps par jour
         """
         # Charger la clé API depuis les variables d'environnement ou le paramètre
         load_dotenv()
         self.api_key = api_key or os.getenv('GOOGLE_MAPS_API_KEY')
         self.use_mock_mode = use_mock_mode
         self.use_hybrid_mode = use_hybrid_mode and not use_mock_mode  # Hybride uniquement si pas en mode simulation pur
+        
+        # Initialiser le gestionnaire de cache
+        self.cache = MapsCache(redis_url=redis_url)
+        
+        # Gestion des quotas
+        self.rate_limit = rate_limit
+        self.daily_usage = 0
+        self.usage_lock = threading.Lock()
+        self.last_reset_date = datetime.date.today()
         
         if not self.api_key and not self.use_mock_mode:
             logger.warning("⚠️ Clé API Google Maps non trouvée! Les requêtes échoueront.")
@@ -75,8 +90,30 @@ class GoogleMapsClient:
             "real_api_success": 0,
             "real_api_failure": 0,
             "mock_api_calls": 0,
-            "hybrid_fallbacks": 0
+            "cached_results": 0,
+            "hybrid_fallbacks": 0,
+            "quota_exceeded_today": False
         }
+    
+    def _check_and_update_usage(self):
+        """Vérifie et met à jour l'utilisation quotidienne de l'API"""
+        with self.usage_lock:
+            # Réinitialiser le compteur si on est un nouveau jour
+            today = datetime.date.today()
+            if today > self.last_reset_date:
+                self.daily_usage = 0
+                self.last_reset_date = today
+                self.stats["quota_exceeded_today"] = False
+                logger.info(f"Compteur d'utilisation API réinitialisé pour la journée du {today}")
+            
+            # Vérifier si le quota est dépassé
+            if self.daily_usage >= self.rate_limit:
+                self.stats["quota_exceeded_today"] = True
+                return False
+            
+            # Incrémenter le compteur
+            self.daily_usage += 1
+            return True
     
     def _load_mock_data(self) -> Dict:
         """Charge ou génère des données simulées pour le développement"""
@@ -164,7 +201,7 @@ class GoogleMapsClient:
     def get_travel_time(self, origin: str, destination: str, mode: str = "driving") -> int:
         """
         Calcule le temps de trajet entre deux adresses.
-        Version hybride qui essaie d'abord l'API puis bascule sur la simulation si nécessaire.
+        Version avec cache qui essaie d'abord le cache, puis l'API.
         
         Args:
             origin: Adresse d'origine
@@ -174,13 +211,56 @@ class GoogleMapsClient:
         Returns:
             Temps de trajet estimé en minutes, -1 en cas d'erreur
         """
+        # Vérifier d'abord le cache
+        cached_result = self.cache.get(
+            "travel_time",
+            origin=origin,
+            destination=destination,
+            mode=mode
+        )
+        
+        if cached_result is not None:
+            self.stats["cached_results"] += 1
+            logger.debug(f"Résultat trouvé en cache pour {origin} → {destination} ({mode})")
+            return cached_result
+        
         # Mode 100% simulation
         if self.use_mock_mode and not self.use_hybrid_mode:
             self.stats["mock_api_calls"] += 1
-            return self._mock_get_travel_time(origin, destination, mode)
+            time_result = self._mock_get_travel_time(origin, destination, mode)
+            
+            # Mettre en cache le résultat simulé
+            if time_result > 0:
+                self.cache.set(
+                    "travel_time",
+                    time_result,
+                    origin=origin,
+                    destination=destination,
+                    mode=mode
+                )
+            
+            return time_result
         
         # Mode API réelle ou hybride
         if self.gmaps:
+            # Vérifier les quotas
+            if not self._check_and_update_usage() and self.use_hybrid_mode:
+                logger.warning("⚠️ Quota d'API dépassé, basculement en simulation")
+                self.stats["hybrid_fallbacks"] += 1
+                time_result = self._mock_get_travel_time(origin, destination, mode)
+                
+                # Mettre en cache le résultat simulé
+                if time_result > 0:
+                    self.cache.set(
+                        "travel_time",
+                        time_result,
+                        origin=origin,
+                        destination=destination,
+                        mode=mode
+                    )
+                
+                return time_result
+            
             self.stats["real_api_calls"] += 1
             try:
                 now = int(time.time())
@@ -201,13 +281,35 @@ class GoogleMapsClient:
                     
                     if result > 0:
                         self.stats["real_api_success"] += 1
+                        
+                        # Mettre en cache le résultat
+                        self.cache.set(
+                            "travel_time",
+                            result,
+                            origin=origin,
+                            destination=destination,
+                            mode=mode
+                        )
+                        
                         return result
                     else:
                         # Résultat invalide (0 minutes)
                         if self.use_hybrid_mode:
                             logger.warning(f"⚠️ Résultat API invalide pour {origin} → {destination}, basculement en simulation")
                             self.stats["hybrid_fallbacks"] += 1
-                            return self._mock_get_travel_time(origin, destination, mode)
+                            time_result = self._mock_get_travel_time(origin, destination, mode)
+                            
+                            # Mettre en cache le résultat simulé
+                            if time_result > 0:
+                                self.cache.set(
+                                    "travel_time",
+                                    time_result,
+                                    origin=origin,
+                                    destination=destination,
+                                    mode=mode
+                                )
+                            
+                            return time_result
                         self.stats["real_api_failure"] += 1
                         return -1
                 else:
@@ -215,7 +317,19 @@ class GoogleMapsClient:
                     if self.use_hybrid_mode:
                         logger.info(f"Basculement en simulation pour {origin} → {destination} ({mode})")
                         self.stats["hybrid_fallbacks"] += 1
-                        return self._mock_get_travel_time(origin, destination, mode)
+                        time_result = self._mock_get_travel_time(origin, destination, mode)
+                        
+                        # Mettre en cache le résultat simulé
+                        if time_result > 0:
+                            self.cache.set(
+                                "travel_time",
+                                time_result,
+                                origin=origin,
+                                destination=destination,
+                                mode=mode
+                            )
+                        
+                        return time_result
                     self.stats["real_api_failure"] += 1
                     return -1
                     
@@ -224,7 +338,19 @@ class GoogleMapsClient:
                 if self.use_hybrid_mode:
                     logger.info(f"Basculement en simulation suite à une erreur pour {origin} → {destination}")
                     self.stats["hybrid_fallbacks"] += 1
-                    return self._mock_get_travel_time(origin, destination, mode)
+                    time_result = self._mock_get_travel_time(origin, destination, mode)
+                    
+                    # Mettre en cache le résultat simulé
+                    if time_result > 0:
+                        self.cache.set(
+                            "travel_time",
+                            time_result,
+                            origin=origin,
+                            destination=destination,
+                            mode=mode
+                        )
+                    
+                    return time_result
                 self.stats["real_api_failure"] += 1
                 return -1
         else:
@@ -233,7 +359,19 @@ class GoogleMapsClient:
             if self.use_hybrid_mode:
                 logger.info("Basculement en simulation car le client n'est pas initialisé")
                 self.stats["hybrid_fallbacks"] += 1
-                return self._mock_get_travel_time(origin, destination, mode)
+                time_result = self._mock_get_travel_time(origin, destination, mode)
+                
+                # Mettre en cache le résultat simulé
+                if time_result > 0:
+                    self.cache.set(
+                        "travel_time",
+                        time_result,
+                        origin=origin,
+                        destination=destination,
+                        mode=mode
+                    )
+                
+                return time_result
             self.stats["real_api_failure"] += 1
             return -1
     
@@ -263,7 +401,7 @@ class GoogleMapsClient:
     def geocode_address(self, address: str) -> Optional[Tuple[float, float]]:
         """
         Convertit une adresse en coordonnées géographiques (latitude, longitude)
-        Version hybride qui essaie d'abord l'API puis bascule sur la simulation si nécessaire.
+        Version avec cache qui essaie d'abord le cache, puis l'API.
         
         Args:
             address: Adresse à géocoder
@@ -271,13 +409,39 @@ class GoogleMapsClient:
         Returns:
             Tuple (latitude, longitude) ou None en cas d'erreur
         """
+        # Vérifier d'abord le cache
+        cached_result = self.cache.get("geocode", address=address)
+        
+        if cached_result is not None:
+            self.stats["cached_results"] += 1
+            logger.debug(f"Résultat de géocodage trouvé en cache pour {address}")
+            return tuple(cached_result)
+        
         # Mode 100% simulation
         if self.use_mock_mode and not self.use_hybrid_mode:
             self.stats["mock_api_calls"] += 1
-            return self._mock_geocode_address(address)
+            geocode_result = self._mock_geocode_address(address)
+            
+            # Mettre en cache le résultat simulé
+            if geocode_result:
+                self.cache.set("geocode", geocode_result, address=address)
+            
+            return geocode_result
         
         # Mode API réelle ou hybride
         if self.gmaps:
+            # Vérifier les quotas
+            if not self._check_and_update_usage() and self.use_hybrid_mode:
+                logger.warning("⚠️ Quota d'API dépassé, basculement en simulation pour le géocodage")
+                self.stats["hybrid_fallbacks"] += 1
+                geocode_result = self._mock_geocode_address(address)
+                
+                # Mettre en cache le résultat simulé
+                if geocode_result:
+                    self.cache.set("geocode", geocode_result, address=address)
+                
+                return geocode_result
+            
             self.stats["real_api_calls"] += 1
             try:
                 geocode_result = self.gmaps.geocode(address)
@@ -289,13 +453,24 @@ class GoogleMapsClient:
                     
                     if lat is not None and lng is not None:
                         self.stats["real_api_success"] += 1
-                        return (lat, lng)
+                        result = (lat, lng)
+                        
+                        # Mettre en cache le résultat
+                        self.cache.set("geocode", result, address=address)
+                        
+                        return result
                         
                 logger.warning(f"⚠️ Impossible de géocoder l'adresse: {address}")
                 if self.use_hybrid_mode:
                     logger.info(f"Basculement en simulation pour le géocodage de: {address}")
                     self.stats["hybrid_fallbacks"] += 1
-                    return self._mock_geocode_address(address)
+                    geocode_result = self._mock_geocode_address(address)
+                    
+                    # Mettre en cache le résultat simulé
+                    if geocode_result:
+                        self.cache.set("geocode", geocode_result, address=address)
+                    
+                    return geocode_result
                 self.stats["real_api_failure"] += 1
                 return None
                 
@@ -304,7 +479,13 @@ class GoogleMapsClient:
                 if self.use_hybrid_mode:
                     logger.info(f"Basculement en simulation pour le géocodage suite à une erreur")
                     self.stats["hybrid_fallbacks"] += 1
-                    return self._mock_geocode_address(address)
+                    geocode_result = self._mock_geocode_address(address)
+                    
+                    # Mettre en cache le résultat simulé
+                    if geocode_result:
+                        self.cache.set("geocode", geocode_result, address=address)
+                    
+                    return geocode_result
                 self.stats["real_api_failure"] += 1
                 return None
         else:
@@ -313,7 +494,13 @@ class GoogleMapsClient:
             if self.use_hybrid_mode:
                 logger.info("Basculement en simulation car le client n'est pas initialisé")
                 self.stats["hybrid_fallbacks"] += 1
-                return self._mock_geocode_address(address)
+                geocode_result = self._mock_geocode_address(address)
+                
+                # Mettre en cache le résultat simulé
+                if geocode_result:
+                    self.cache.set("geocode", geocode_result, address=address)
+                
+                return geocode_result
             self.stats["real_api_failure"] += 1
             return None
     
@@ -336,7 +523,7 @@ class GoogleMapsClient:
                            mode: str = "driving") -> Dict:
         """
         Calcule une matrice de distance entre plusieurs origines et destinations
-        Version hybride qui essaie d'abord l'API puis bascule sur la simulation si nécessaire.
+        Version avec cache qui essaie d'abord le cache, puis l'API.
         
         Args:
             origins: Liste d'adresses d'origine
@@ -346,14 +533,65 @@ class GoogleMapsClient:
         Returns:
             Dictionnaire contenant la matrice de distance et de durée
         """
+        # Créer une clé de cache composite pour la matrice
+        cache_key = f"{','.join(origins)}|{','.join(destinations)}|{mode}"
+        
+        # Vérifier d'abord le cache
+        cached_result = self.cache.get(
+            "distance_matrix",
+            origins=origins,
+            destinations=destinations,
+            mode=mode
+        )
+        
+        if cached_result is not None:
+            self.stats["cached_results"] += 1
+            logger.debug(f"Résultat de matrice de distance trouvé en cache")
+            return cached_result
+        
         # Mode 100% simulation
         if self.use_mock_mode and not self.use_hybrid_mode:
             self.stats["mock_api_calls"] += 1
-            return self._mock_get_distance_matrix(origins, destinations, mode)
+            matrix_result = self._mock_get_distance_matrix(origins, destinations, mode)
+            
+            # Mettre en cache le résultat simulé
+            self.cache.set("distance_matrix", matrix_result, 
+                           origins=origins, destinations=destinations, mode=mode)
+            
+            return matrix_result
         
         # Mode API réelle ou hybride
         if self.gmaps:
+            # Vérifier les quotas - cet appel est plus coûteux (O(n*m) entrées)
+            cost_factor = len(origins) * len(destinations)
+            can_use_api = True
+            
+            with self.usage_lock:
+                if self.daily_usage + cost_factor > self.rate_limit:
+                    if self.use_hybrid_mode:
+                        can_use_api = False
+                    else:
+                        # En mode API uniquement, on utilise quand même l'API si possible
+                        remaining = max(0, self.rate_limit - self.daily_usage)
+                        if remaining <= 0:
+                            can_use_api = False
+            
+            if not can_use_api and self.use_hybrid_mode:
+                logger.warning("⚠️ Quota d'API insuffisant pour la matrice de distance, basculement en simulation")
+                self.stats["hybrid_fallbacks"] += 1
+                matrix_result = self._mock_get_distance_matrix(origins, destinations, mode)
+                
+                # Mettre en cache le résultat simulé
+                self.cache.set("distance_matrix", matrix_result, 
+                               origins=origins, destinations=destinations, mode=mode)
+                
+                return matrix_result
+            
             self.stats["real_api_calls"] += 1
+            # Incrémenter le compteur d'utilisation
+            with self.usage_lock:
+                self.daily_usage += cost_factor
+            
             try:
                 now = int(time.time())
                 matrix = self.gmaps.distance_matrix(
@@ -367,13 +605,24 @@ class GoogleMapsClient:
                 status = matrix.get("status", "")
                 if status == "OK":
                     self.stats["real_api_success"] += 1
+                    
+                    # Mettre en cache le résultat
+                    self.cache.set("distance_matrix", matrix, 
+                                   origins=origins, destinations=destinations, mode=mode)
+                    
                     return matrix
                 else:
                     logger.warning(f"⚠️ Statut de la matrice de distance: {status}")
                     if self.use_hybrid_mode:
                         logger.info(f"Basculement en simulation pour la matrice de distance")
                         self.stats["hybrid_fallbacks"] += 1
-                        return self._mock_get_distance_matrix(origins, destinations, mode)
+                        matrix_result = self._mock_get_distance_matrix(origins, destinations, mode)
+                        
+                        # Mettre en cache le résultat simulé
+                        self.cache.set("distance_matrix", matrix_result, 
+                                      origins=origins, destinations=destinations, mode=mode)
+                        
+                        return matrix_result
                     self.stats["real_api_failure"] += 1
                     return {"error": f"Statut API: {status}"}
                 
@@ -382,7 +631,13 @@ class GoogleMapsClient:
                 if self.use_hybrid_mode:
                     logger.info(f"Basculement en simulation pour la matrice de distance suite à une erreur")
                     self.stats["hybrid_fallbacks"] += 1
-                    return self._mock_get_distance_matrix(origins, destinations, mode)
+                    matrix_result = self._mock_get_distance_matrix(origins, destinations, mode)
+                    
+                    # Mettre en cache le résultat simulé
+                    self.cache.set("distance_matrix", matrix_result, 
+                                  origins=origins, destinations=destinations, mode=mode)
+                    
+                    return matrix_result
                 self.stats["real_api_failure"] += 1
                 return {"error": str(e)}
         else:
@@ -391,7 +646,13 @@ class GoogleMapsClient:
             if self.use_hybrid_mode:
                 logger.info("Basculement en simulation car le client n'est pas initialisé")
                 self.stats["hybrid_fallbacks"] += 1
-                return self._mock_get_distance_matrix(origins, destinations, mode)
+                matrix_result = self._mock_get_distance_matrix(origins, destinations, mode)
+                
+                # Mettre en cache le résultat simulé
+                self.cache.set("distance_matrix", matrix_result, 
+                               origins=origins, destinations=destinations, mode=mode)
+                
+                return matrix_result
             self.stats["real_api_failure"] += 1
             return {"error": "Client non initialisé"}
     
@@ -445,17 +706,24 @@ class GoogleMapsClient:
         }
     
     def get_usage_stats(self) -> Dict:
-        """Renvoie les statistiques d'utilisation de l'API"""
+        """Renvoie les statistiques d'utilisation du client et du cache"""
         # Calculer des pourcentages 
         total_real_calls = self.stats["real_api_success"] + self.stats["real_api_failure"]
         success_rate = (self.stats["real_api_success"] / total_real_calls * 100) if total_real_calls > 0 else 0
         
+        # Obtenir les statistiques du cache
+        cache_stats = self.cache.get_stats()
+        
         stats = {
             **self.stats,
             "success_rate": round(success_rate, 2),
-            "total_calls": self.stats["real_api_calls"] + self.stats["mock_api_calls"],
+            "total_calls": self.stats["real_api_calls"] + self.stats["mock_api_calls"] + self.stats["cached_results"],
             "mode": "simulation" if self.use_mock_mode and not self.use_hybrid_mode else 
-                    "hybride" if self.use_hybrid_mode else "API uniquement"
+                    "hybride" if self.use_hybrid_mode else "API uniquement",
+            "daily_usage": self.daily_usage,
+            "rate_limit": self.rate_limit,
+            "rate_limit_remaining": max(0, self.rate_limit - self.daily_usage),
+            "cache": cache_stats
         }
         
         return stats
@@ -463,7 +731,7 @@ class GoogleMapsClient:
 # Test simple si exécuté directement
 if __name__ == "__main__":
     # Test avec le mode hybride
-    client_hybrid = GoogleMapsClient(use_hybrid_mode=True)
+    client_hybrid = GoogleMapsClient(use_hybrid_mode=True, rate_limit=100)
     
     print("\n=== TEST DU CLIENT HYBRIDE ===")
     
@@ -479,7 +747,17 @@ if __name__ == "__main__":
         time = client_hybrid.get_travel_time(origin, destination, mode)
         print(f"Temps de trajet en {mode} de {origin} à {destination}: {time} minutes")
     
+    # Tester le cache en refaisant une requête
+    print("\n=== TEST DU CACHE ===")
+    cached_time = client_hybrid.get_travel_time("Paris, France", "Lyon, France", "driving")
+    print(f"Temps mis en cache: {cached_time} minutes")
+    
     # Affichage des statistiques
     print("\nStatistiques d'utilisation:")
     for key, value in client_hybrid.get_usage_stats().items():
-        print(f"- {key}: {value}")
+        if isinstance(value, dict):
+            print(f"- {key}:")
+            for subkey, subvalue in value.items():
+                print(f"  - {subkey}: {subvalue}")
+        else:
+            print(f"- {key}: {value}")
