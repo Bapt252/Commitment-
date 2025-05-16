@@ -19,7 +19,7 @@ class CalculateMatchRequest(BaseModel):
     store_results: Optional[bool] = Field(False, description="Stocker les résultats en base de données")
 
 class MatchStatusUpdate(BaseModel):
-    status: str = Field(..., description="Nouveau statut du match", regex='^(pending|viewed|interested|not_interested)$')
+    status: str = Field(..., description="Nouveau statut du match", pattern='^(pending|viewed|interested|not_interested)$')
 
 @matches_bp.route('/calculate', methods=['POST'])
 @jwt_required()
