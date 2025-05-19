@@ -1,5 +1,21 @@
+# Flask version (original)
 flask==2.3.3
 flask-cors==4.0.0
+werkzeug==2.3.7
+
+# FastAPI version with metrics
+fastapi>=0.100.0
+uvicorn>=0.23.0
+python-multipart>=0.0.6
+
+# Common dependencies
 openai==1.5.0
 pypdf2==3.0.1
-werkzeug==2.3.7
+
+# Metrics and monitoring
+prometheus-client==0.18.0
+structlog==23.1.0
+
+# Utils
+python-dotenv>=1.0.0
+pydantic>=2.1.0
