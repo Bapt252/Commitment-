@@ -1,4 +1,4 @@
-# Configuration Prometheus corrigée pour le monitoring du projet Commitment
+# Configuration Prometheus étendue pour scraper tous les services avec métriques custom
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -41,51 +41,70 @@ scrape_configs:
     metrics_path: '/metrics'
 
   # Métriques Redis
-  - job_name: 'redis'
+  - job_name: 'redis-exporter'
     static_configs:
       - targets: ['redis-exporter:9121']
     scrape_interval: 15s
     metrics_path: '/metrics'
 
   # Métriques PostgreSQL
-  - job_name: 'postgres'
+  - job_name: 'postgres-exporter'
     static_configs:
       - targets: ['postgres-exporter:9187']
     scrape_interval: 15s
     metrics_path: '/metrics'
 
-  # API Backend principal
-  - job_name: 'api-backend'
+  # Services FastAPI avec métriques custom - API Gateway
+  - job_name: 'api-gateway'
     static_configs:
-      - targets: ['api:5000']
-    scrape_interval: 15s
+      - targets: ['api:5050']
+    scrape_interval: 10s
+    scrape_timeout: 5s
     metrics_path: '/metrics'
+    params:
+      module: [http_2xx]
 
-  # Service parsing CV
-  - job_name: 'cv-parser'
+  # Service parsing CV avec métriques ML
+  - job_name: 'cv-parser-service'
     static_configs:
-      - targets: ['cv-parser:5000']
-    scrape_interval: 15s
+      - targets: ['cv-parser-service:5051']
+    scrape_interval: 10s
+    scrape_timeout: 5s
     metrics_path: '/metrics'
+    params:
+      module: [http_2xx]
 
-  # Service parsing jobs
-  - job_name: 'job-parser'
+  # Service parsing jobs avec métriques ML  
+  - job_name: 'job-parser-service'
     static_configs:
-      - targets: ['job-parser:5000']
-    scrape_interval: 15s
+      - targets: ['job-parser-service:5055']
+    scrape_interval: 10s
+    scrape_timeout: 5s
     metrics_path: '/metrics'
+    params:
+      module: [http_2xx]
 
-  # Service matching
-  - job_name: 'matching-api'
+  # Service matching avec métriques business
+  - job_name: 'matching-service'
     static_configs:
-      - targets: ['matching-api:5000']
-    scrape_interval: 15s
+      - targets: ['matching-service:5052']
+    scrape_interval: 10s
+    scrape_timeout: 5s
     metrics_path: '/metrics'
+    params:
+      module: [http_2xx]
 
   # Adaptateur de données
   - job_name: 'data-adapter'
     static_configs:
       - targets: ['data-adapter:5053']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Document service
+  - job_name: 'document-service'
+    static_configs:
+      - targets: ['document-service:5054']
     scrape_interval: 15s
     metrics_path: '/metrics'
 
@@ -95,3 +114,39 @@ scrape_configs:
       - targets: ['storage:9000']
     scrape_interval: 30s
     metrics_path: '/minio/v2/metrics/cluster'
+
+  # Service Discovery pour les nouveaux services
+  - job_name: 'nexten-services-discovery'
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        port: 9090
+        refresh_interval: 30s
+    relabel_configs:
+      # Garder seulement les containers avec le label prometheus.scrape=true
+      - source_labels: [__meta_docker_container_label_prometheus_scrape]
+        action: keep
+        regex: true
+      # Utiliser le port custom si défini
+      - source_labels: [__meta_docker_container_label_prometheus_port]
+        action: replace
+        target_label: __address__
+        regex: (.+)
+        replacement: ${1}:9090
+      # Utiliser le path custom si défini
+      - source_labels: [__meta_docker_container_label_prometheus_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+        replacement: ${1}
+      # Ajouter le nom du service comme label
+      - source_labels: [__meta_docker_container_name]
+        action: replace
+        target_label: service
+        regex: /(.+)
+        replacement: ${1}
+      # Ajouter l'environnement
+      - source_labels: [__meta_docker_container_label_environment]
+        action: replace
+        target_label: environment
+        regex: (.+)
+        replacement: ${1}
