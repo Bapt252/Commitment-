@@ -1,0 +1,38 @@
+# Configuration Prometheus simplifiée pour debug
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Règles d'alerte (commentées pour debug)
+# rule_files:
+#   - "rules/*.yml"
+
+# Configuration AlertManager (commentée pour debug)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Découverte et collection des métriques
+scrape_configs:
+  # Prometheus lui-même
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Métriques système (Node Exporter)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Métriques conteneurs Docker (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
