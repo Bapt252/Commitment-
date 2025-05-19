@@ -7,6 +7,10 @@ pydantic>=2.1.0
 pydantic-settings>=2.0.0
 requests>=2.31.0
 
+# Métriques et monitoring
+prometheus-client==0.18.0
+structlog==23.1.0
+
 # Extraction de texte
 PyPDF2>=3.0.0
 pdfminer.six>=20220524
