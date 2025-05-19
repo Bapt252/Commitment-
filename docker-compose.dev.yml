@@ -1,0 +1,250 @@
+# Docker Compose pour l'environnement de développement
+version: '3.8'
+
+x-common-env: &common-env
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  MINIO_ENDPOINT: storage:9000
+  LOG_LEVEL: DEBUG
+  ENVIRONMENT: development
+
+services:
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nexten-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - nexten-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nexten-grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_ADMIN_USER=admin
+    networks:
+      - nexten-network
+    restart: unless-stopped
+
+  # Node exporter pour les métriques système
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: nexten-node-exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      - nexten-network
+
+  # Redis exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: nexten-redis-exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "9121:9121"
+    networks:
+      - nexten-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # PostgreSQL exporter
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
+    container_name: nexten-postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://postgres:postgres@postgres:5432/nexten?sslmode=disable
+    ports:
+      - "9187:9187"
+    networks:
+      - nexten-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  # ELK Stack pour les logs
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: nexten-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "cluster.routing.allocation.disk.watermark.low=85%"
+      - "cluster.routing.allocation.disk.watermark.high=90%"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: nexten-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=
+    networks:
+      - nexten-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Logstash pour le traitement des logs
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: nexten-logstash
+    volumes:
+      - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline
+      - ./monitoring/logstash/config:/usr/share/logstash/config
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    environment:
+      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+    networks:
+      - nexten-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Jaeger pour le tracing distribué
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: nexten-jaeger
+    ports:
+      - "16686:16686"  # Web UI
+      - "14268:14268"  # HTTP collector
+      - "6831:6831/udp"  # UDP agent
+      - "6832:6832/udp"  # UDP agent
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - nexten-network
+    restart: unless-stopped
+
+  # AlertManager pour les alertes
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: nexten-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager:/etc/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    networks:
+      - nexten-network
+    restart: unless-stopped
+
+  # JupyterLab pour le développement ML
+  jupyter:
+    build:
+      context: ./dev-tools/jupyter
+      dockerfile: Dockerfile
+    container_name: nexten-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./data:/home/jovyan/data
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=development
+    networks:
+      - nexten-network
+    restart: unless-stopped
+
+  # MLflow pour le tracking ML
+  mlflow:
+    image: python:3.11-slim
+    container_name: nexten-mlflow
+    ports:
+      - "5005:5000"
+    volumes:
+      - ./mlruns:/mlruns
+    working_dir: /app
+    command: |
+      sh -c "
+        pip install mlflow[extras] psycopg2-binary boto3 &&
+        mlflow server \
+          --host 0.0.0.0 \
+          --port 5000 \
+          --backend-store-uri postgresql://postgres:postgres@postgres:5432/nexten \
+          --default-artifact-root /mlruns \
+          --serve-artifacts
+      "
+    networks:
+      - nexten-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Locust pour les tests de performance
+  locust:
+    build:
+      context: ./dev-tools/locust
+      dockerfile: Dockerfile
+    container_name: nexten-locust
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./tests/performance:/mnt/locust
+    environment:
+      - LOCUST_FILE=/mnt/locust/locustfile.py
+      - LOCUST_HOST=http://api:5000
+    networks:
+      - nexten-network
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  elasticsearch-data:
+
+networks:
+  nexten-network:
+    external: true

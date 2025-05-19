@@ -1,0 +1,75 @@
+# Configuration AlertManager
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alertmanager@nexten.local'
+  smtp_auth_username: 'alertmanager@nexten.local'
+  smtp_auth_password: 'password'
+
+# Templates pour les notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Configuration des routes
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+  routes:
+    # Alertes critiques
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 5m
+    
+    # Alertes d'avertissement
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      repeat_interval: 30m
+
+# Configuration des receivers
+receivers:
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://localhost:5001/'
+        send_resolved: true
+
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'admin@nexten.local'
+        subject: '⚠️ [CRITICAL] {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Labels: {{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}{{ end }}
+          {{ end }}
+        headers:
+          Subject: '⚠️ [CRITICAL] Nexten Alert'
+    
+    webhook_configs:
+      - url: 'http://localhost:5001/critical'
+        send_resolved: true
+
+  - name: 'warning-alerts'
+    email_configs:
+      - to: 'dev@nexten.local'
+        subject: '⚠️ [WARNING] {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Labels: {{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}{{ end }}
+          {{ end }}
+
+# Configuration de l'inhibition (suppression d'alertes)
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
