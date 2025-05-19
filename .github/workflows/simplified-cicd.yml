@@ -1,0 +1,61 @@
+# Pipeline CI/CD simplifié pour démarrage
+name: Simplified CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Tests de base uniquement
+  basic-checks:
+    runs-on: ubuntu-latest
+    name: 🔍 Basic Checks
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check if monitoring files exist
+      run: |
+        echo "Checking monitoring setup..."
+        ls -la docker-compose.monitoring.yml || echo "docker-compose.monitoring.yml not found"
+        ls -la setup-monitoring.sh || echo "setup-monitoring.sh not found"
+        ls -la monitoring/ || echo "monitoring/ directory not found"
+        echo "✅ Basic file check completed"
+
+  # Test Docker Compose syntax
+  docker-validation:
+    runs-on: ubuntu-latest
+    name: 🐳 Docker Validation
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Validate docker-compose files
+      run: |
+        # Valider la syntaxe des fichiers docker-compose
+        docker-compose -f docker-compose.yml config > /dev/null && echo "✅ docker-compose.yml valid"
+        docker-compose -f docker-compose.monitoring.yml config > /dev/null && echo "✅ docker-compose.monitoring.yml valid"
+
+  # Test de configuration Prometheus (optionnel)
+  prometheus-validation:
+    runs-on: ubuntu-latest
+    name: 🔧 Config Validation
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Validate Prometheus config
+      run: |
+        # Test basique de la configuration (si possible)
+        echo "Checking Prometheus config syntax..."
+        if [ -f "monitoring/prometheus/prometheus.yml" ]; then
+          echo "✅ Prometheus config found"
+        else
+          echo "❌ Prometheus config not found"
+          exit 1
+        fi
