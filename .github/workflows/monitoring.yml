@@ -1,0 +1,194 @@
+name: Monitoring and Alerts
+
+on:
+  schedule:
+    # Chaque heure
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  # Vérification de l'état des services
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    strategy:
+      matrix:
+        environment: [staging, production]
+        
+    steps:
+    - name: Check service health
+      run: |
+        # Définir l'URL en fonction de l'environnement
+        if [ "${{ matrix.environment }}" = "staging" ]; then
+          API_URL="${{ secrets.STAGING_API_URL }}"
+        else
+          API_URL="${{ secrets.PRODUCTION_API_URL }}"
+        fi
+        
+        # Vérifier chaque service
+        services=("cv-parser" "job-parser" "matching-api" "backend")
+        
+        for service in "${services[@]}"; do
+          echo "Checking $service health..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/health" || echo "000")
+          
+          if [ "$response" != "200" ]; then
+            echo "::error::Service $service is unhealthy (HTTP $response) in ${{ matrix.environment }}"
+            exit 1
+          else
+            echo "::notice::Service $service is healthy in ${{ matrix.environment }}"
+          fi
+        done
+    
+    - name: Notify on failure
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: 'failure'
+        text: |
+          ⚠️ Service health check failed in ${{ matrix.environment }}
+          Time: ${{ github.event.head_commit.timestamp }}
+          Workflow: ${{ github.workflow }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        channel: '#alerts'
+
+  # Vérification des métriques cles
+  metrics-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install requests prometheus-api-client
+    
+    - name: Check key metrics
+      run: |
+        python scripts/check_metrics.py \
+          --prometheus-url=${{ secrets.PROMETHEUS_URL }} \
+          --alert-webhook=${{ secrets.SLACK_WEBHOOK }} \
+          --environment=production
+    
+    - name: Generate metrics report
+      run: |
+        python scripts/generate_metrics_report.py \
+          --prometheus-url=${{ secrets.PROMETHEUS_URL }} \
+          --output=metrics-report.json
+    
+    - name: Upload metrics report
+      uses: actions/upload-artifact@v3
+      with:
+        name: metrics-report-${{ github.run_id }}
+        path: metrics-report.json
+
+  # Nettoyage des anciennes images Docker
+  cleanup-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Cleanup old images
+      run: |
+        # Utiliser l'API GitHub pour supprimer les anciennes images
+        # Garder seulement les 10 dernières versions
+        services=("cv-parser-service" "job-parser-service" "matching-service" "backend" "frontend" "data-adapter")
+        
+        for service in "${services[@]}"; do
+          echo "Cleaning up $service images..."
+          
+          # Obtenir la liste des versions
+          versions=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/${{ github.repository }}%2F$service/versions" \
+            | jq -r '.[10:] | .[].id')
+          
+          # Supprimer les anciennes versions
+          for version_id in $versions; do
+            curl -X DELETE \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/${{ github.repository }}%2F$service/versions/$version_id"
+          done
+        done
+
+  # Sauvegarde des métriques importantes
+  backup-metrics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Backup Prometheus data
+      run: |
+        # Créer un snapshot Prometheus
+        curl -X POST ${{ secrets.PROMETHEUS_URL }}/api/v1/admin/tsdb/snapshot
+        
+        # Télécharger le snapshot (implémentation dépendant de votre setup)
+        # Par exemple, avec kubectl si Prometheus est sur Kubernetes
+        echo "Prometheus snapshot created"
+    
+    - name: Backup Grafana dashboards
+      run: |
+        # Exporter les dashboards Grafana
+        python scripts/backup_grafana_dashboards.py \
+          --grafana-url=${{ secrets.GRAFANA_URL }} \
+          --api-key=${{ secrets.GRAFANA_API_KEY }} \
+          --output-dir=grafana-backup
+    
+    - name: Upload backups
+      uses: actions/upload-artifact@v3
+      with:
+        name: monitoring-backup-${{ github.run_id }}
+        path: |
+          grafana-backup/
+          prometheus-snapshot.tar.gz
+        retention-days: 30
+
+  # Rapport de santé hebdomadaire
+  weekly-health-report:
+    if: github.event.schedule == '0 8 * * 1'  # Lundi à 8h
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install requests prometheus-api-client jinja2 matplotlib seaborn
+    
+    - name: Generate weekly report
+      run: |
+        python scripts/generate_weekly_report.py \
+          --prometheus-url=${{ secrets.PROMETHEUS_URL }} \
+          --grafana-url=${{ secrets.GRAFANA_URL }} \
+          --start-date=$(date -d '7 days ago' '+%Y-%m-%d') \
+          --end-date=$(date '+%Y-%m-%d') \
+          --output=weekly-report.html
+    
+    - name: Send weekly report
+      run: |
+        # Envoyer le rapport par email ou Slack
+        python scripts/send_weekly_report.py \
+          --report=weekly-report.html \
+          --slack-webhook=${{ secrets.SLACK_WEBHOOK }} \
+          --email-recipients="${{ secrets.REPORT_RECIPIENTS }}"
+    
+    - name: Upload weekly report
+      uses: actions/upload-artifact@v3
+      with:
+        name: weekly-health-report-${{ github.run_id }}
+        path: weekly-report.html
+        retention-days: 90

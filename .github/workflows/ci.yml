@@ -1,0 +1,342 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Job pour les tests et la qualité de code
+  test-and-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_nexten
+          POSTGRES_USER: postgres
+        options: >
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:alpine
+        options: >
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Nécessaire pour SonarQube
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        installer-parallel: true
+    
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+    
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+    
+    - name: Install project
+      run: poetry install --no-interaction
+    
+    # Tests de qualité de code
+    - name: Code formatting check (Black)
+      run: poetry run black --check --diff .
+    
+    - name: Import sorting check (isort)
+      run: poetry run isort --check-only --diff .
+    
+    - name: Linting (Flake8)
+      run: poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    
+    - name: Security check (Bandit)
+      run: |
+        poetry run bandit -r . -f json -o bandit-report.json || true
+        poetry run bandit -r . -f txt
+    
+    - name: Dependency security check
+      run: poetry run safety check --json --output safety-report.json || true
+    
+    # Tests unitaires
+    - name: Run unit tests
+      run: |
+        poetry run pytest tests/unit/ \
+          --cov=. \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term \
+          --junit-xml=pytest-unit.xml \
+          -v
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_nexten
+        REDIS_URL: redis://localhost:6379/0
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ENVIRONMENT: testing
+    
+    # Tests d'intégration
+    - name: Run integration tests
+      run: |
+        poetry run pytest tests/integration/ \
+          --junit-xml=pytest-integration.xml \
+          -v
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_nexten
+        REDIS_URL: redis://localhost:6379/0
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ENVIRONMENT: testing
+    
+    # Upload des rapports
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+    
+    - name: Upload test reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-reports
+        path: |
+          pytest-*.xml
+          htmlcov/
+          bandit-report.json
+          safety-report.json
+    
+    # SonarQube analysis
+    - name: SonarQube Scan
+      uses: sonarqube-action@master
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          -Dsonar.projectKey=nexten
+          -Dsonar.organization=bapt252
+          -Dsonar.sources=.
+          -Dsonar.tests=tests/
+          -Dsonar.python.coverage.reportPaths=coverage.xml
+          -Dsonar.python.xunit.reportPath=pytest-*.xml
+          -Dsonar.exclusions=**/__pycache__/**,**/.venv/**,**/node_modules/**
+
+  # Job pour construire les images Docker
+  build-images:
+    needs: test-and-quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    strategy:
+      matrix:
+        service: 
+          - cv-parser-service
+          - job-parser-service
+          - matching-service
+          - backend
+          - frontend
+          - data-adapter
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Login to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+        labels: |
+          org.opencontainers.image.title=${{ matrix.service }}
+          org.opencontainers.image.description=Nexten ${{ matrix.service }}
+          org.opencontainers.image.vendor=Nexten
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./${{ matrix.service }}
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          VCS_REF=${{ github.sha }}
+          VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+
+  # Job pour les tests de sécurité
+  security-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Docker Scout scan
+      if: github.event_name == 'pull_request'
+      uses: docker/scout-action@v1
+      with:
+        command: quickview,cves
+    
+    # Scan des secrets
+    - name: GitGuardian scan
+      uses: GitGuardian/ggshield-action@v1.25.0
+      env:
+        GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+        GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
+        GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+  # Job pour l'analyse de performance
+  performance-test:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Start services for testing
+      run: |
+        docker-compose -f docker-compose.yml up -d --wait
+        sleep 30  # Attendre que les services soient prêts
+    
+    - name: Wait for services to be healthy
+      run: |
+        for i in {1..30}; do
+          if curl -f http://localhost:5050/health; then
+            echo "Services are ready"
+            break
+          fi
+          echo "Waiting for services... ($i/30)"
+          sleep 10
+        done
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Locust
+      run: pip install locust
+    
+    - name: Run performance tests
+      run: |
+        locust \
+          -f tests/performance/locustfile.py \
+          --host=http://localhost:5050 \
+          --users=10 \
+          --spawn-rate=2 \
+          --run-time=5m \
+          --html=performance-report.html \
+          --csv=performance-stats \
+          --headless
+    
+    - name: Upload performance reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-reports
+        path: |
+          performance-report.html
+          performance-stats*.csv
+    
+    - name: Stop services
+      if: always()
+      run: docker-compose down
+
+  # Job pour la documentation
+  documentation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install mkdocs mkdocs-material mkdocstrings mkdocstrings-python
+    
+    - name: Build documentation
+      run: mkdocs build --strict
+    
+    - name: Deploy documentation
+      if: github.ref == 'refs/heads/main'
+      run: mkdocs gh-deploy --force

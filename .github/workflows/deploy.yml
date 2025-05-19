@@ -1,0 +1,304 @@
+name: Deploy to Environments
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Déploiement en staging (automatique sur main)
+  deploy-staging:
+    if: |
+      github.ref == 'refs/heads/main' || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    - name: Deploy to staging
+      run: |
+        # Mise à jour des images dans le déploiement
+        kubectl set image deployment/cv-parser cv-parser=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/cv-parser-service:${{ github.sha }}
+        kubectl set image deployment/job-parser job-parser=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/job-parser-service:${{ github.sha }}
+        kubectl set image deployment/matching-api matching-api=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/matching-service:${{ github.sha }}
+        kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+        kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+        
+        # Attendre que le déploiement soit terminé
+        kubectl rollout status deployment/cv-parser --timeout=600s
+        kubectl rollout status deployment/job-parser --timeout=600s
+        kubectl rollout status deployment/matching-api --timeout=600s
+        kubectl rollout status deployment/backend --timeout=600s
+        kubectl rollout status deployment/frontend --timeout=600s
+    
+    - name: Run health checks
+      run: |
+        # Vérifier que tous les services répondent
+        kubectl wait --for=condition=Ready pod -l app=cv-parser --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=job-parser --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=matching-api --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=backend --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=frontend --timeout=300s
+    
+    - name: Run smoke tests
+      run: |
+        # Tests de fumée rapides
+        curl -f ${{ secrets.STAGING_API_URL }}/health
+        curl -f ${{ secrets.STAGING_API_URL }}/metrics
+    
+    - name: Notify deployment status
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: |
+          Déploiement en staging: ${{ job.status }}
+          Commit: ${{ github.sha }}
+          Auteur: ${{ github.actor }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Tests d'intégration sur l'environnement de staging
+  integration-tests:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install pytest requests python-dotenv
+    
+    - name: Run integration tests
+      run: |
+        pytest tests/integration/ \
+          --base-url=${{ secrets.STAGING_API_URL }} \
+          --junit-xml=integration-results.xml \
+          -v
+      env:
+        API_BASE_URL: ${{ secrets.STAGING_API_URL }}
+        API_KEY: ${{ secrets.STAGING_API_KEY }}
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: integration-test-results
+        path: integration-results.xml
+
+  # Tests de performance sur staging
+  staging-performance-test:
+    needs: integration-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Locust
+      run: pip install locust
+    
+    - name: Run performance tests
+      run: |
+        locust \
+          -f tests/performance/staging_load_test.py \
+          --host=${{ secrets.STAGING_API_URL }} \
+          --users=20 \
+          --spawn-rate=5 \
+          --run-time=3m \
+          --html=staging-performance.html \
+          --csv=staging-performance \
+          --headless
+    
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: staging-performance-results
+        path: |
+          staging-performance.html
+          staging-performance*.csv
+
+  # Déploiement en production (sur les tags)
+  deploy-production:
+    if: |
+      startsWith(github.ref, 'refs/tags/v') || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    needs: [integration-tests, staging-performance-test]
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 45
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    # Déploiement canary (10% du trafic)
+    - name: Deploy canary
+      run: |
+        # Déployer une version canary avec 10% du trafic
+        kubectl apply -f k8s/canary-deployment.yaml
+        
+        # Mettre à jour l'image canary
+        kubectl set image deployment/cv-parser-canary cv-parser=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/cv-parser-service:${{ github.sha }}
+        kubectl set image deployment/job-parser-canary job-parser=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/job-parser-service:${{ github.sha }}
+        kubectl set image deployment/matching-api-canary matching-api=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/matching-service:${{ github.sha }}
+        kubectl set image deployment/backend-canary backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+        
+        # Attendre que le déploiement canary soit prêt
+        kubectl rollout status deployment/cv-parser-canary --timeout=600s
+        kubectl rollout status deployment/job-parser-canary --timeout=600s
+        kubectl rollout status deployment/matching-api-canary --timeout=600s
+        kubectl rollout status deployment/backend-canary --timeout=600s
+    
+    # Surveillance du canary
+    - name: Monitor canary deployment
+      run: |
+        # Attendre 5 minutes pour collecter des métriques
+        sleep 300
+        
+        # Vérifier les métriques de performance
+        python scripts/check_canary_metrics.py \
+          --prometheus-url=${{ secrets.PROMETHEUS_URL }} \
+          --threshold-error-rate=1 \
+          --threshold-latency=1000
+    
+    # Déploiement complet si le canary est stable
+    - name: Full deployment
+      run: |
+        # Déploiement complet
+        kubectl set image deployment/cv-parser cv-parser=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/cv-parser-service:${{ github.sha }}
+        kubectl set image deployment/job-parser job-parser=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/job-parser-service:${{ github.sha }}
+        kubectl set image deployment/matching-api matching-api=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/matching-service:${{ github.sha }}
+        kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+        kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+        
+        # Attendre la fin du déploiement
+        kubectl rollout status deployment/cv-parser --timeout=600s
+        kubectl rollout status deployment/job-parser --timeout=600s
+        kubectl rollout status deployment/matching-api --timeout=600s
+        kubectl rollout status deployment/backend --timeout=600s
+        kubectl rollout status deployment/frontend --timeout=600s
+        
+        # Supprimer les déploiements canary
+        kubectl delete deployment cv-parser-canary job-parser-canary matching-api-canary backend-canary
+    
+    # Vérifications post-déploiement
+    - name: Post-deployment checks
+      run: |
+        # Vérifier que tous les services répondent
+        kubectl wait --for=condition=Ready pod -l app=cv-parser --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=job-parser --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=matching-api --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=backend --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=frontend --timeout=300s
+        
+        # Tests de santé détaillés
+        curl -f ${{ secrets.PRODUCTION_API_URL }}/health
+        curl -f ${{ secrets.PRODUCTION_API_URL }}/metrics
+        
+        # Vérifier les métriques cls
+        python scripts/verify_deployment.py \
+          --api-url=${{ secrets.PRODUCTION_API_URL }} \
+          --prometheus-url=${{ secrets.PROMETHEUS_URL }}
+    
+    - name: Notify production deployment
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: |
+          Déploiement en production: ${{ job.status }}
+          Version: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Auteur: ${{ github.actor }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        channel: '#production-deployments'
+
+  # Rollback en cas de problème
+  rollback-production:
+    if: failure() && needs.deploy-production.result == 'failure'
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: Rollback deployment
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+        
+        # Rollback tous les déploiements
+        kubectl rollout undo deployment/cv-parser
+        kubectl rollout undo deployment/job-parser
+        kubectl rollout undo deployment/matching-api
+        kubectl rollout undo deployment/backend
+        kubectl rollout undo deployment/frontend
+        
+        # Attendre la fin du rollback
+        kubectl rollout status deployment/cv-parser --timeout=600s
+        kubectl rollout status deployment/job-parser --timeout=600s
+        kubectl rollout status deployment/matching-api --timeout=600s
+        kubectl rollout status deployment/backend --timeout=600s
+        kubectl rollout status deployment/frontend --timeout=600s
+    
+    - name: Notify rollback
+      uses: 8398a7/action-slack@v3
+      with:
+        status: 'warning'
+        text: |
+          ⚠️ ROLLBACK exécuté en production
+          Raison: Échec du déploiement
+          Commit: ${{ github.sha }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        channel: '#alerts'
