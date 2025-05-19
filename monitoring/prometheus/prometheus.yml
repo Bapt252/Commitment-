@@ -1,4 +1,4 @@
-# Configuration Prometheus pour le monitoring du projet Commitment
+# Configuration Prometheus corrigée pour le monitoring du projet Commitment
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -95,11 +95,3 @@ scrape_configs:
       - targets: ['storage:9000']
     scrape_interval: 30s
     metrics_path: '/minio/v2/metrics/cluster'
-
-# Configuration pour optimiser les performances
-storage:
-  tsdb:
-    block_duration: 2h
-    retention:
-      time: 30d
-      size: 15GB
