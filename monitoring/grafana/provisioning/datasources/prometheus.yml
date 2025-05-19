@@ -1,34 +1,30 @@
-# Configuration automatique des sources de données Grafana
+# Configuration automatique des datasources Grafana
 apiVersion: 1
 
+# Liste des datasources
 datasources:
+  # Prometheus principal
   - name: Prometheus
     type: prometheus
     access: proxy
-    orgId: 1
     url: http://prometheus:9090
-    basicAuth: false
     isDefault: true
-    version: 1
     editable: true
     jsonData:
-      httpMethod: POST
-      queryTimeout: 60s
-      timeInterval: 15s
-    secureJsonData: {}
+      timeInterval: "15s"
+      queryTimeout: "60s"
+      tlsSkipVerify: true
+    version: 1
 
-  - name: Elasticsearch
-    type: elasticsearch
+  # Prometheus pour les métriques temps réel
+  - name: Prometheus-Realtime
+    type: prometheus
     access: proxy
-    orgId: 1
-    url: http://elasticsearch:9200
-    database: "logstash-*"
-    basicAuth: false
-    version: 1
+    url: http://prometheus:9090
+    isDefault: false
     editable: true
     jsonData:
-      esVersion: 8
-      timeField: "@timestamp"
-      maxConcurrentShardRequests: 5
-      logMessageField: "message"
-      logLevelField: "level"
+      timeInterval: "5s"
+      queryTimeout: "30s"
+      tlsSkipVerify: true
+    version: 1
