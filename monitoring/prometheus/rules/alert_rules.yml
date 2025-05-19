@@ -1,0 +1,180 @@
+# Règles d'alertes pour les métriques business et performance
+groups:
+  - name: nexten_performance_alerts
+    rules:
+      # API Response Time
+      - alert: HighAPIResponseTime
+        expr: histogram_quantile(0.95, rate(fastapi_request_duration_seconds_bucket[5m])) > 5
+        for: 2m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High API response time detected"
+          description: "95th percentile response time is {{ $value }}s on service {{ $labels.service }}"
+
+      # Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(fastapi_requests_total{status_code!~"2..|3.."}[5m])) by (service) /
+            sum(rate(fastapi_requests_total[5m])) by (service)
+          ) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+          category: reliability
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }}% on service {{ $labels.service }}"
+
+      # ML Inference Performance
+      - alert: SlowMLInference
+        expr: histogram_quantile(0.90, rate(ml_inference_duration_seconds_bucket[5m])) > 30
+        for: 1m
+        labels:
+          severity: warning
+          category: ml_performance
+        annotations:
+          summary: "Slow ML inference detected"
+          description: "90th percentile ML inference time is {{ $value }}s for {{ $labels.model_type }}"
+
+      # ML Inference Failure Rate
+      - alert: HighMLFailureRate
+        expr: |
+          (
+            sum(rate(ml_inference_total{status="error"}[5m])) by (model_type) /
+            sum(rate(ml_inference_total[5m])) by (model_type)
+          ) * 100 > 10
+        for: 2m
+        labels:
+          severity: critical
+          category: ml_reliability
+        annotations:
+          summary: "High ML inference failure rate"
+          description: "ML failure rate is {{ $value }}% for model {{ $labels.model_type }}"
+
+      # Parsing Accuracy Drop
+      - alert: LowParsingAccuracy
+        expr: histogram_quantile(0.50, rate(parsing_accuracy_score_bucket[5m])) < 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: quality
+        annotations:
+          summary: "Low parsing accuracy detected"
+          description: "Median parsing accuracy is {{ $value }} for {{ $labels.parser_type }}"
+
+      # File Processing Issues
+      - alert: LargeFileProcessing
+        expr: histogram_quantile(0.95, rate(file_processing_size_bytes_bucket[5m])) > 50000000  # 50MB
+        for: 1m
+        labels:
+          severity: info
+          category: capacity
+        annotations:
+          summary: "Large files being processed"
+          description: "95th percentile file size is {{ $value }} bytes on {{ $labels.service }}"
+
+  - name: nexten_system_alerts
+    rules:
+      # Service Down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Service is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 2m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      # Disk Space Usage
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 85
+        for: 1m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }} mount {{ $labels.mountpoint }}"
+
+      # Container Restart
+      - alert: ContainerRestart
+        expr: increase(container_last_seen[5m]) > 1
+        for: 0m
+        labels:
+          severity: info
+          category: stability
+        annotations:
+          summary: "Container has restarted"
+          description: "Container {{ $labels.name }} has restarted {{ $value }} times in the last 5 minutes"
+
+  - name: nexten_business_alerts
+    rules:
+      # Low Matching Success Rate
+      - alert: LowMatchingSuccessRate
+        expr: histogram_quantile(0.50, rate(matching_score_distribution_bucket[5m])) < 0.6
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Low matching success rate"
+          description: "Median matching score is {{ $value }} for algorithm {{ $labels.matching_algorithm }}"
+
+      # Queue Backlog
+      - alert: HighQueueBacklog
+        expr: redis_memory_used_bytes > 100000000  # 100MB
+        for: 2m
+        labels:
+          severity: warning
+          category: capacity
+        annotations:
+          summary: "High Redis memory usage (queue backlog)"
+          description: "Redis memory usage is {{ $value }} bytes"
+
+      # Database Connection Issues
+      - alert: DatabaseConnectionIssues
+        expr: postgres_up == 0
+        for: 30s
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL connection issues"
+          description: "Cannot connect to PostgreSQL database"
+
+      # API Rate Limiting
+      - alert: HighAPIRequestRate
+        expr: sum(rate(fastapi_requests_total[1m])) by (service) > 100
+        for: 1m
+        labels:
+          severity: info
+          category: traffic
+        annotations:
+          summary: "High API request rate"
+          description: "Service {{ $labels.service }} receiving {{ $value }} requests/second"
