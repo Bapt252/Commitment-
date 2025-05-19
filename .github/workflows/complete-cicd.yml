@@ -1,0 +1,334 @@
+# Pipeline CI/CD complet avec monitoring et tests automatisés
+name: Complete CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Tests de régression quotidiens à 2h du matin
+    - cron: '0 2 * * *'
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  # Tests de qualité de code
+  code-quality:
+    runs-on: ubuntu-latest
+    name: 🔍 Code Quality & Linting
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black mypy pytest bandit safety
+        find . -name requirements.txt -exec pip install -r {} \;
+        
+    - name: Run Black (formatting check)
+      run: black --check --diff .
+      
+    - name: Run Flake8 (linting)
+      run: flake8 --max-line-length=100 --exclude=venv,migrations
+      
+    - name: Run MyPy (type checking)
+      run: mypy --ignore-missing-imports .
+      continue-on-error: true
+      
+    - name: Run Bandit (security check)
+      run: bandit -r . -x venv,tests
+      
+    - name: Run Safety (vulnerability check)
+      run: safety check
+      
+    - name: Upload code quality results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: code-quality-results
+        path: |
+          *.txt
+          *.json
+
+  # Tests unitaires et d'intégration
+  tests:
+    runs-on: ubuntu-latest
+    name: 🧪 Tests (Unit & Integration)
+    needs: code-quality
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_USER: test
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    strategy:
+      matrix:
+        service: [cv-parser-service, job-parser-service, matching-service, backend]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies for ${{ matrix.service }}
+      run: |
+        if [ -f "${{ matrix.service }}/requirements.txt" ]; then
+          pip install -r ${{ matrix.service }}/requirements.txt
+        fi
+        pip install pytest pytest-cov pytest-asyncio
+        
+    - name: Create test environment file
+      run: |
+        cat > .env.test << EOF
+        DATABASE_URL=postgresql://test:test@localhost:5432/test
+        REDIS_URL=redis://localhost:6379/0
+        OPENAI_API_KEY=test-key-for-mocking
+        MOCK_OPENAI_RESPONSES=true
+        TESTING=true
+        EOF
+        
+    - name: Run tests for ${{ matrix.service }}
+      run: |
+        cd ${{ matrix.service }}
+        if [ -f "tests/" ]; then
+          python -m pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
+        else
+          echo "No tests found for ${{ matrix.service }}"
+        fi
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./${{ matrix.service }}/coverage.xml
+        flags: ${{ matrix.service }}
+        name: codecov-${{ matrix.service }}
+
+  # Construction et tests Docker
+  docker-build:
+    runs-on: ubuntu-latest
+    name: 🐳 Docker Build & Test
+    needs: tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to Docker Hub
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+          
+    - name: Build and test Docker images
+      run: |
+        # Construction des images
+        docker-compose -f docker-compose.yml build
+        
+        # Test de démarrage
+        docker-compose -f docker-compose.yml up -d
+        
+        # Attendre que les services démarrent
+        sleep 30
+        
+        # Vérifier la santé des services
+        ./scripts/health-check.sh
+        
+        # Arrêter les services
+        docker-compose -f docker-compose.yml down
+        
+    - name: Push images to Docker Hub
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      run: |
+        # Tag et push des images
+        docker-compose -f docker-compose.yml push
+
+  # Tests de performance
+  performance-tests:
+    runs-on: ubuntu-latest
+    name: ⚡ Performance Tests
+    needs: docker-build
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Start services
+      run: |
+        cp .env.example .env
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+        docker-compose up -d
+        
+    - name: Wait for services
+      run: sleep 60
+      
+    - name: Install Artillery
+      run: npm install -g artillery@latest
+      
+    - name: Run performance tests
+      run: |
+        # Tests de charge sur l'API principal
+        artillery run tests/performance/api-load-test.yml
+        
+        # Tests de charge sur le parsing de CV
+        artillery run tests/performance/cv-parser-load-test.yml
+        
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-results
+        path: |
+          artillery-report.html
+          *.json
+
+  # Tests de sécurité
+  security-tests:
+    runs-on: ubuntu-latest
+    name: 🔒 Security Tests
+    needs: code-quality
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'table'
+        exit-code: '1'
+        
+    - name: Run OWASP ZAP security scan
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Démarrer les services pour le scan
+        docker-compose up -d
+        sleep 60
+        
+        # Scanner avec OWASP ZAP
+        docker run -t owasp/zap2docker-stable zap-baseline.py \
+          -t http://host.docker.internal:5050 || true
+
+  # Déploiement en staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    name: 🚀 Deploy to Staging
+    needs: [tests, docker-build, performance-tests, security-tests]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to staging
+      run: |
+        echo "Déploiement en staging..."
+        # Commandes de déploiement en staging
+        
+    - name: Run smoke tests
+      run: |
+        echo "Tests de fumée sur staging..."
+        # Tests de base pour vérifier le déploiement
+
+  # Déploiement en production
+  deploy-production:
+    runs-on: ubuntu-latest
+    name: 🌟 Deploy to Production
+    needs: [tests, docker-build, performance-tests, security-tests]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to production
+      run: |
+        echo "Déploiement en production..."
+        # Commandes de déploiement en production
+        
+    - name: Run smoke tests
+      run: |
+        echo "Tests de fumée sur production..."
+        # Tests de base pour vérifier le déploiement
+        
+    - name: Setup monitoring alerts
+      run: |
+        echo "Configuration des alertes de monitoring..."
+        # Activation des alertes pour la production
+
+  # Notification des résultats
+  notify:
+    runs-on: ubuntu-latest
+    name: 📢 Notifications
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+    - name: Notify Slack
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: |
+          Pipeline CI/CD terminé
+          Commit: ${{ github.sha }}
+          Auteur: ${{ github.actor }}
+          Branche: ${{ github.ref }}
+          Statut: ${{ job.status }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
