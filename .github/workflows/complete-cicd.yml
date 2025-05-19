@@ -1,14 +1,18 @@
 # Pipeline CI/CD complet avec monitoring et tests automatisés
-name: Complete CI/CD Pipeline
+# TEMPORAIREMENT DÉSACTIVÉ - Utilisez simplified-cicd.yml pour commencer
+name: Complete CI/CD Pipeline (DISABLED)
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    # Tests de régression quotidiens à 2h du matin
-    - cron: '0 2 * * *'
+# Désactivé temporairement - décommentez quand vous aurez configuré les secrets
+# on:
+#   push:
+#     branches: [ main, develop ]
+#   pull_request:
+#     branches: [ main ]
+
+# Pour réactiver :
+# 1. Configurez les secrets GitHub : DOCKER_USERNAME, DOCKER_PASSWORD, SLACK_WEBHOOK_URL
+# 2. Ajoutez les dossiers tests/ dans vos services
+# 3. Décommentez la section 'on:' ci-dessus
 
 env:
   DOCKER_BUILDKIT: 1
