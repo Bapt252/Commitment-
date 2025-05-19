@@ -1,0 +1,205 @@
+# Configuration MkDocs pour la documentation Nexten
+site_name: Nexten - Documentation de développement
+site_description: Documentation complète pour les développeurs Nexten
+site_author: Équipe Nexten
+site_url: https://bapt252.github.io/Commitment-/
+
+# Repository
+repo_name: Bapt252/Commitment-
+repo_url: https://github.com/Bapt252/Commitment-
+edit_uri: edit/main/docs/
+
+# Configuration
+theme:
+  name: material
+  language: fr
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Passer en mode sombre
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Passer en mode clair
+  
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - content.action.view
+  
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+  
+  font:
+    text: Inter
+    code: JetBrains Mono
+
+# Navigation
+nav:
+  - Accueil: index.md
+  - Guide de démarrage:
+    - Installation: development-setup.md
+    - Configuration: configuration.md
+    - Premier déploiement: getting-started.md
+  - Développement:
+    - Architecture: architecture.md
+    - APIs: api-reference.md
+    - Services ML: ml-services.md
+    - Base de données: database.md
+    - Tests: testing.md
+  - Monitoring:
+    - Vue d'ensemble: monitoring-guide.md
+    - Métriques: metrics.md
+    - Logs: logging.md
+    - Alertes: alerts.md
+    - Dashboards: dashboards.md
+  - CI/CD:
+    - Pipeline: cicd-guide.md
+    - Déploiement: deployment.md
+    - Sécurité: security.md
+  - Guides avancés:
+    - Performance: performance.md
+    - Troubleshooting: troubleshooting.md
+    - Runbooks: runbooks/
+  - Référence:
+    - Variables d'environnement: environment-variables.md
+    - Configuration Docker: docker-configuration.md
+    - Scripts utilitaires: scripts-reference.md
+
+# Extensions Markdown
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+  
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: Bapt252
+      repo: Commitment-
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Plugins
+plugins:
+  - search:
+      lang: 
+        - fr
+        - en
+  - git-revision-date-localized:
+      type: date
+      locale: fr
+  - git-authors
+  - minify:
+      minify_html: true
+  - section-index
+  - tags:
+      tags_file: tags.md
+
+# Hooks
+hooks:
+  - scripts/docs_hooks.py
+
+# Customisation CSS/JS
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Variables extra
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Bapt252/Commitment-
+    - icon: fontawesome/solid/globe
+      link: https://nexten.example.com
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX  # Remplacer par l'ID Google Analytics
+  
+  # Informations de version
+  version_warning_text: |
+    Cette version de la documentation peut être obsolète.
+    Consultez la <a href="../latest/">dernière version</a>.
+
+# Configuration du générateur
+watch:
+  - docs/
+  - mkdocs.yml
+  - scripts/
+
+# Validation stricte
+strict: true
+
+# Configuration de validation
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+    absolute_links: warn
+  links:
+    not_found: warn
+    absolute_links: warn
+    unrecognized_links: warn

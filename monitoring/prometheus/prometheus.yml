@@ -1,0 +1,109 @@
+# Configuration Prometheus pour l'environnement de développement
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'nexten-dev'
+    replica: 'prometheus-1'
+
+# Règles d'alerting
+rule_files:
+  - "rules/*.yml"
+
+# Configuration AlertManager
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Targets de scraping
+scrape_configs:
+  # FastAPI applications avec métriques
+  - job_name: 'cv-parser'
+    static_configs:
+      - targets: ['cv-parser:5000']
+    metrics_path: /metrics
+    scrape_interval: 5s
+    scrape_timeout: 5s
+    params:
+      format: ['prometheus']
+
+  - job_name: 'job-parser'
+    static_configs:
+      - targets: ['job-parser:5000']
+    metrics_path: /metrics
+    scrape_interval: 5s
+    scrape_timeout: 5s
+
+  - job_name: 'matching-api'
+    static_configs:
+      - targets: ['matching-api:5000']
+    metrics_path: /metrics
+    scrape_interval: 5s
+    scrape_timeout: 5s
+
+  - job_name: 'data-adapter'
+    static_configs:
+      - targets: ['data-adapter:5053']
+    metrics_path: /metrics
+    scrape_interval: 10s
+
+  - job_name: 'backend-api'
+    static_configs:
+      - targets: ['api:5000']
+    metrics_path: /metrics
+    scrape_interval: 5s
+
+  # Métriques système
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 5s
+
+  # Métriques Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 5s
+
+  # Métriques PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 10s
+
+  # Métriques MinIO
+  - job_name: 'minio'
+    static_configs:
+      - targets: ['storage:9000']
+    metrics_path: /minio/v2/metrics/cluster
+    scrape_interval: 15s
+
+  # Métriques Prometheus lui-même
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 5s
+
+  # Métriques Grafana
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  # Métriques Elasticsearch
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+    metrics_path: /_prometheus/metrics
+    scrape_interval: 15s
+
+# Configuration pour le scraping de métriques personnalisées
+  - job_name: 'ml-metrics'
+    static_configs:
+      - targets: ['cv-parser:5000', 'job-parser:5000', 'matching-api:5000']
+    metrics_path: /ml-metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
