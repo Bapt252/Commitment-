@@ -1,32 +1,25 @@
-# Configuration AlertManager pour le projet Commitment
+# Configuration AlertManager simplifiée et fonctionnelle
 global:
-  # Paramètres SMTP (à configurer selon vos besoins)
   smtp_smarthost: 'localhost:587'
   smtp_from: 'alertmanager@commitment.local'
-  smtp_auth_username: ''
-  smtp_auth_password: ''
   smtp_require_tls: false
 
-# Modèles d'alertes
-templates:
-  - '/etc/alertmanager/templates/*.tmpl'
-
-# Routage des alertes
+# Routage simple des alertes
 route:
-  group_by: ['alertname', 'cluster', 'service']
+  group_by: ['alertname']
   group_wait: 10s
   group_interval: 10s
   repeat_interval: 1h
   receiver: 'default-webhook'
   routes:
-    # Alertes critiques - notification immédiate
+    # Alertes critiques
     - match:
         severity: critical
       receiver: 'critical-alerts'
       group_wait: 10s
       repeat_interval: 5m
     
-    # Alertes d'avertissement - notification groupée
+    # Alertes d'avertissement
     - match:
         severity: warning
       receiver: 'warning-alerts'
@@ -35,80 +28,50 @@ route:
 
 # Destinataires des alertes
 receivers:
-  # Webhook par défaut (peut être connecté à Slack, Discord, etc.)
+  # Webhook par défaut
   - name: 'default-webhook'
     webhook_configs:
       - url: 'http://localhost:5001/alert-webhook'
         send_resolved: true
-        http_config:
-          basic_auth:
-            username: 'alert-user'
-            password: 'alert-password'
 
-  # Alertes critiques - multiple channels
+  # Alertes critiques
   - name: 'critical-alerts'
-    # Email
+    # Email simple
     email_configs:
       - to: 'admin@commitment.local'
-        subject: '🚨 ALERTE CRITIQUE: {{ .GroupLabels.alertname }}'
+        subject: '[CRITICAL] {{ .GroupLabels.alertname }}'
         body: |
           {{ range .Alerts }}
-          **Alerte:** {{ .Annotations.summary }}
-          **Description:** {{ .Annotations.description }}
-          **Sévérité:** {{ .Labels.severity }}
-          **Service:** {{ .Labels.job }}
-          **Instance:** {{ .Labels.instance }}
-          **Heure:** {{ .StartsAt }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.job }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt }}
           {{ end }}
-        headers:
-          Priority: 'high'
     
-    # Webhook pour notifications instantanées
+    # Webhook pour notifications critiques
     webhook_configs:
       - url: 'http://localhost:5001/critical-webhook'
         send_resolved: true
-        title: 'Alerte Critique - {{ .GroupLabels.alertname }}'
-        text: |
-          {{ range .Alerts }}
-          🚨 {{ .Annotations.summary }}
-          
-          📋 **Détails:**
-          - Service: {{ .Labels.job }}
-          - Instance: {{ .Labels.instance }}
-          - Sévérité: {{ .Labels.severity }}
-          
-          📝 **Description:** {{ .Annotations.description }}
-          ⏰ **Heure:** {{ .StartsAt }}
-          {{ end }}
 
   # Alertes d'avertissement
   - name: 'warning-alerts'
     email_configs:
       - to: 'team@commitment.local'
-        subject: '⚠️ ALERTE: {{ .GroupLabels.alertname }}'
+        subject: '[WARNING] {{ .GroupLabels.alertname }}'
         body: |
           {{ range .Alerts }}
-          **Alerte:** {{ .Annotations.summary }}
-          **Description:** {{ .Annotations.description }}
-          **Service:** {{ .Labels.job }}
-          **Instance:** {{ .Labels.instance }}
-          **Heure:** {{ .StartsAt }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.job }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt }}
           {{ end }}
 
-# Inhibition des alertes (évite le spam)
+# Règles d'inhibition pour éviter le spam
 inhibit_rules:
-  # Si un service est down, ne pas envoyer d'alertes sur ses métriques
   - source_match:
       severity: 'critical'
-      alertname: 'ServiceDown'
     target_match:
       severity: 'warning'
-    equal: ['instance', 'job']
-  
-  # Si le CPU est très élevé, ne pas alerter pour la mémoire
-  - source_match:
-      severity: 'critical'
-      alertname: 'HighCPUUsage'
-    target_match:
-      alertname: 'HighMemoryUsage'
-    equal: ['instance']
+    equal: ['alertname', 'instance']
