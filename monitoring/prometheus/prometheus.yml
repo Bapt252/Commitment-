@@ -1,12 +1,12 @@
-# Configuration Prometheus pour l'environnement de développement
+# Configuration Prometheus pour le monitoring du projet Commitment
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    cluster: 'nexten-dev'
-    replica: 'prometheus-1'
+    cluster: 'nexten-cluster'
+    replica: 'prometheus-01'
 
-# Règles d'alerting
+# Règles d'alerte
 rule_files:
   - "rules/*.yml"
 
@@ -17,93 +17,89 @@ alerting:
         - targets:
           - alertmanager:9093
 
-# Targets de scraping
+# Découverte et collection des métriques
 scrape_configs:
-  # FastAPI applications avec métriques
-  - job_name: 'cv-parser'
+  # Prometheus lui-même
+  - job_name: 'prometheus'
     static_configs:
-      - targets: ['cv-parser:5000']
-    metrics_path: /metrics
-    scrape_interval: 5s
-    scrape_timeout: 5s
-    params:
-      format: ['prometheus']
+      - targets: ['localhost:9090']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
 
-  - job_name: 'job-parser'
-    static_configs:
-      - targets: ['job-parser:5000']
-    metrics_path: /metrics
-    scrape_interval: 5s
-    scrape_timeout: 5s
-
-  - job_name: 'matching-api'
-    static_configs:
-      - targets: ['matching-api:5000']
-    metrics_path: /metrics
-    scrape_interval: 5s
-    scrape_timeout: 5s
-
-  - job_name: 'data-adapter'
-    static_configs:
-      - targets: ['data-adapter:5053']
-    metrics_path: /metrics
-    scrape_interval: 10s
-
-  - job_name: 'backend-api'
-    static_configs:
-      - targets: ['api:5000']
-    metrics_path: /metrics
-    scrape_interval: 5s
-
-  # Métriques système
+  # Métriques système (Node Exporter)
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
-    scrape_interval: 5s
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Métriques conteneurs Docker (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
 
   # Métriques Redis
   - job_name: 'redis'
     static_configs:
       - targets: ['redis-exporter:9121']
-    scrape_interval: 5s
+    scrape_interval: 15s
+    metrics_path: '/metrics'
 
   # Métriques PostgreSQL
   - job_name: 'postgres'
     static_configs:
       - targets: ['postgres-exporter:9187']
-    scrape_interval: 10s
+    scrape_interval: 15s
+    metrics_path: '/metrics'
 
-  # Métriques MinIO
+  # API Backend principal
+  - job_name: 'api-backend'
+    static_configs:
+      - targets: ['api:5000']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Service parsing CV
+  - job_name: 'cv-parser'
+    static_configs:
+      - targets: ['cv-parser:5000']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Service parsing jobs
+  - job_name: 'job-parser'
+    static_configs:
+      - targets: ['job-parser:5000']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Service matching
+  - job_name: 'matching-api'
+    static_configs:
+      - targets: ['matching-api:5000']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Adaptateur de données
+  - job_name: 'data-adapter'
+    static_configs:
+      - targets: ['data-adapter:5053']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # MinIO (stockage)
   - job_name: 'minio'
     static_configs:
       - targets: ['storage:9000']
-    metrics_path: /minio/v2/metrics/cluster
-    scrape_interval: 15s
-
-  # Métriques Prometheus lui-même
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-    scrape_interval: 5s
-
-  # Métriques Grafana
-  - job_name: 'grafana'
-    static_configs:
-      - targets: ['grafana:3000']
-    metrics_path: /metrics
-    scrape_interval: 15s
-
-  # Métriques Elasticsearch
-  - job_name: 'elasticsearch'
-    static_configs:
-      - targets: ['elasticsearch:9200']
-    metrics_path: /_prometheus/metrics
-    scrape_interval: 15s
-
-# Configuration pour le scraping de métriques personnalisées
-  - job_name: 'ml-metrics'
-    static_configs:
-      - targets: ['cv-parser:5000', 'job-parser:5000', 'matching-api:5000']
-    metrics_path: /ml-metrics
     scrape_interval: 30s
-    scrape_timeout: 10s
+    metrics_path: '/minio/v2/metrics/cluster'
+
+# Configuration pour optimiser les performances
+storage:
+  tsdb:
+    block_duration: 2h
+    retention:
+      time: 30d
+      size: 15GB
