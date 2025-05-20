@@ -1,0 +1,1 @@
+# Module API pour la collecte d'événements et la gestion du consentement
