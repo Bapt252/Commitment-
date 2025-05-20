@@ -171,8 +171,12 @@ class TestTrackingAdvanced(unittest.TestCase):
 
     def test_statistics_calculation_empty(self):
         """Teste le calcul des statistiques quand il n'y a pas de données."""
-        # Réinitialiser complètement la simulation pour ce test
-        self.simulation = TrackingSimulation()
+        # Réinitialiser les listes d'événements, mais garder les utilisateurs et leur consentement
+        self.simulation.events = []
+        self.simulation.match_proposals = []
+        self.simulation.match_views = []
+        self.simulation.match_decisions = []
+        self.simulation.feedback_records = []
         
         stats = self.simulation.calculate_statistics()
         
@@ -186,8 +190,12 @@ class TestTrackingAdvanced(unittest.TestCase):
 
     def test_statistics_calculation(self):
         """Teste le calcul des statistiques avec des données."""
-        # Réinitialiser complètement la simulation pour ce test
-        self.simulation = TrackingSimulation()
+        # Réinitialiser les listes d'événements, mais garder les utilisateurs et leur consentement
+        self.simulation.events = []
+        self.simulation.match_proposals = []
+        self.simulation.match_views = []
+        self.simulation.match_decisions = []
+        self.simulation.feedback_records = []
         
         if self.consented_users:
             user = self.consented_users[0]
