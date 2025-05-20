@@ -24,6 +24,13 @@ class TestTrackingAdvanced(unittest.TestCase):
         """Initialise une simulation de tracking pour chaque test."""
         self.simulation = TrackingSimulation()
         
+        # Réinitialiser les listes pour chaque test
+        self.simulation.events = []
+        self.simulation.match_proposals = []
+        self.simulation.match_views = []
+        self.simulation.match_decisions = []
+        self.simulation.feedback_records = []
+        
         # Configurer quelques utilisateurs et leur consentement
         self.users = ["user1", "user2", "user3", "user4", "user5"]
         self.consented_users = []
@@ -52,7 +59,10 @@ class TestTrackingAdvanced(unittest.TestCase):
 
     def test_event_tracking_with_consent(self):
         """Teste le tracking d'événements avec consentement."""
-        # Utiliser uniquement le premier utilisateur avec consentement pour éviter les problèmes
+        # S'assurer que les listes sont vides avant le test
+        self.assertEqual(len(self.simulation.match_proposals), 0, "La liste de propositions devrait être vide au début du test")
+        
+        # Utiliser uniquement le premier utilisateur avec consentement
         if self.consented_users:
             user = self.consented_users[0]
             match_id = random.choice(self.matches)
@@ -75,6 +85,9 @@ class TestTrackingAdvanced(unittest.TestCase):
 
     def test_event_tracking_without_consent(self):
         """Teste le tracking d'événements sans consentement."""
+        # S'assurer que les listes sont vides avant le test
+        self.assertEqual(len(self.simulation.match_proposals), 0, "La liste de propositions devrait être vide au début du test")
+        
         # Identifier les utilisateurs sans consentement
         non_consented_users = [u for u in self.users if u not in self.consented_users]
         
@@ -95,6 +108,9 @@ class TestTrackingAdvanced(unittest.TestCase):
 
     def test_match_viewing_tracking(self):
         """Teste le tracking de la visualisation de match."""
+        # S'assurer que les listes sont vides avant le test
+        self.assertEqual(len(self.simulation.match_views), 0, "La liste de visualisations devrait être vide au début du test")
+        
         if self.consented_users:
             user = self.consented_users[0]
             match_id = random.choice(self.matches)
@@ -111,6 +127,9 @@ class TestTrackingAdvanced(unittest.TestCase):
 
     def test_match_decision_tracking(self):
         """Teste le tracking des décisions de match."""
+        # S'assurer que les listes sont vides avant le test
+        self.assertEqual(len(self.simulation.match_decisions), 0, "La liste de décisions devrait être vide au début du test")
+        
         if self.consented_users:
             user = self.consented_users[0]
             match_id = random.choice(self.matches)
@@ -127,6 +146,9 @@ class TestTrackingAdvanced(unittest.TestCase):
 
     def test_feedback_tracking(self):
         """Teste le tracking des feedbacks."""
+        # S'assurer que les listes sont vides avant le test
+        self.assertEqual(len(self.simulation.feedback_records), 0, "La liste de feedbacks devrait être vide au début du test")
+        
         if self.consented_users:
             user = self.consented_users[0]
             match_id = random.choice(self.matches)
@@ -149,6 +171,9 @@ class TestTrackingAdvanced(unittest.TestCase):
 
     def test_statistics_calculation_empty(self):
         """Teste le calcul des statistiques quand il n'y a pas de données."""
+        # Réinitialiser complètement la simulation pour ce test
+        self.simulation = TrackingSimulation()
+        
         stats = self.simulation.calculate_statistics()
         
         self.assertEqual(stats["total_events"], 0)
@@ -161,6 +186,9 @@ class TestTrackingAdvanced(unittest.TestCase):
 
     def test_statistics_calculation(self):
         """Teste le calcul des statistiques avec des données."""
+        # Réinitialiser complètement la simulation pour ce test
+        self.simulation = TrackingSimulation()
+        
         if self.consented_users:
             user = self.consented_users[0]
             for _ in range(10):
