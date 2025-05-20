@@ -1,594 +1,472 @@
 """
-API for User Profiles and Behavioral Analysis
-
-This module provides API endpoints for accessing enriched user profiles,
-behavioral insights, and user segments for the Commitment platform.
-
-Part of the Session 8 implementation: Behavioral Analysis and User Profiling.
+User Profile API - Session 8
+--------------------------
+API for accessing enriched user profiles with behavioral analysis and preferences.
+Provides endpoints for retrieving and using user profile data.
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Query, Body, Path
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import Dict, List, Any, Optional, Union
-import logging
-import json
-import asyncio
-from datetime import datetime, timedelta
 import os
-import sys
+import json
+import logging
+from datetime import datetime, timedelta
+import pandas as pd
+from flask import Flask, request, jsonify
+from sqlalchemy import create_engine, text
+from functools import wraps
 
-# Add project root to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Import our analysis modules
+from analysis.behavioral_analysis import BehavioralAnalyzer
+from analysis.pattern_detection import PatternDetector
+from analysis.preference_scoring import PreferenceScorer
 
-# Import behavioral analysis modules
-from analysis.behavioral_analysis.user_clustering import UserClusteringEngine
-from analysis.behavioral_analysis.pattern_detection import PatternDetectionEngine
-from analysis.behavioral_analysis.preference_scoring import PreferenceScoringEngine
-
-# Database connection
-from database.connection import get_db_connection
-
-# Setup logging
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
-app = FastAPI(
-    title="Commitment User Profiling API",
-    description="API for accessing user behavioral analysis and profiling data",
-    version="1.0.0"
-)
+# Database connection
+DB_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/commitment')
+engine = create_engine(DB_URL)
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Initialize Flask app
+app = Flask(__name__)
 
-# Initialize engines
-user_clustering_engine = None
-pattern_detection_engine = None
-preference_scoring_engine = None
+# API key authentication
+API_KEY = os.getenv('API_KEY', 'commitment-session8-key')
 
-# Pydantic models for request/response
-class UserProfileResponse(BaseModel):
-    user_id: str
-    profile_status: str = "active"
-    cluster: Dict[str, Any] = None
-    behavioral_patterns: Dict[str, Any] = None
-    preferences: Dict[str, Any] = None
-    profile_completeness: float = 0.0
-    last_updated: str = None
-    
-class ClusterResponse(BaseModel):
-    cluster_id: int
-    name: str
-    size: int
-    percentage: float
-    features: Dict[str, Any]
-    
-class PatternResponse(BaseModel):
-    pattern_id: str
-    pattern_type: str
-    description: str
-    support: float
-    details: Dict[str, Any]
-    
-class PreferenceScoreRequest(BaseModel):
-    user_id: str
-    match_attributes: Dict[str, Any]
-    recalculate: bool = False
+def require_api_key(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        provided_key = request.headers.get('X-API-Key')
+        if provided_key and provided_key == API_KEY:
+            return f(*args, **kwargs)
+        return jsonify({'error': 'Unauthorized. Valid API key required.'}), 401
+    return decorated_function
 
-class PreferenceScoreResponse(BaseModel):
-    user_id: str
-    status: str
-    overall_score: float
-    category_scores: Dict[str, float] = None
-    timestamp: str = None
-    error: Optional[str] = None
-
-class SegmentListResponse(BaseModel):
-    total_segments: int
-    segments: List[Dict[str, Any]]
+class UserProfileAPI:
+    """API for accessing and managing user profiles."""
     
-class ErrorResponse(BaseModel):
-    error: str
-    details: Optional[Dict[str, Any]] = None
-
-# Background task to initialize engines
-@app.on_event("startup")
-async def startup_event():
-    global user_clustering_engine, pattern_detection_engine, preference_scoring_engine
-    
-    # Get database connection
-    try:
-        db_connection = get_db_connection()
-        logger.info("Database connection established")
-    except Exception as e:
-        logger.error(f"Failed to connect to database: {e}")
-        db_connection = None
-    
-    # Initialize engines with config
-    config = {
-        'clustering': {
-            'n_clusters': 5,
-            'random_state': 42,
-            'pca_components': 3,
-            'min_events_threshold': 10
-        },
-        'pattern_detection': {
-            'min_pattern_support': 0.05,
-            'min_pattern_length': 2,
-            'max_pattern_length': 10,
-            'time_window': 30
-        },
-        'preference_scoring': {
-            'explicit_weight': 0.7,
-            'implicit_weight': 0.3,
-            'recency_decay_factor': 0.1,
-            'min_interactions': 5,
-            'preference_categories': [
-                'skills', 'industry', 'job_type', 'location', 'company_size'
-            ]
-        }
-    }
-    
-    user_clustering_engine = UserClusteringEngine(db_connection, config['clustering'])
-    pattern_detection_engine = PatternDetectionEngine(db_connection, config['pattern_detection'])
-    preference_scoring_engine = PreferenceScoringEngine(db_connection, config['preference_scoring'])
-    
-    logger.info("Behavioral analysis engines initialized")
-    
-    # Pre-calculate clusters and patterns in background
-    asyncio.create_task(precalculate_analysis())
-
-async def precalculate_analysis():
-    """Background task to precalculate clusters and patterns"""
-    try:
-        # Wait a bit to ensure everything is initialized
-        await asyncio.sleep(5)
+    def __init__(self, engine):
+        """
+        Initialize the API.
         
-        # Run clustering
-        if user_clustering_engine:
-            logger.info("Starting background clustering task")
-            await asyncio.to_thread(user_clustering_engine.cluster_users, 90, 'kmeans', True)
-            logger.info("Background clustering task completed")
+        Args:
+            engine: SQLAlchemy engine for database access
+        """
+        self.engine = engine
+        self.analyzer = BehavioralAnalyzer()
+        self.detector = PatternDetector()
+        self.scorer = PreferenceScorer()
         
-        # Run pattern detection
-        if pattern_detection_engine:
-            logger.info("Starting background pattern detection task")
-            await asyncio.to_thread(pattern_detection_engine.detect_all_patterns, 90)
-            logger.info("Background pattern detection task completed")
+    def get_user_profile(self, user_id):
+        """
+        Get complete enriched profile for a user.
+        
+        Args:
+            user_id (int): User ID to retrieve profile for
             
-    except Exception as e:
-        logger.error(f"Error in background analysis task: {e}")
-
-# Dependency for checking API readiness
-async def check_engines_ready():
-    if not all([user_clustering_engine, pattern_detection_engine, preference_scoring_engine]):
-        raise HTTPException(
-            status_code=503, 
-            detail="Behavioral analysis engines not fully initialized yet"
-        )
-    return True
-
-# API Routes
-
-@app.get("/", tags=["General"])
-async def root():
-    """Root endpoint with API information"""
-    return {
-        "name": "Commitment User Profiling API",
-        "version": "1.0.0",
-        "status": "running",
-        "engines_initialized": all([
-            user_clustering_engine, 
-            pattern_detection_engine, 
-            preference_scoring_engine
-        ])
-    }
-
-@app.get("/health", tags=["General"])
-async def health_check():
-    """Health check endpoint"""
-    engines_status = {
-        "clustering_engine": user_clustering_engine is not None,
-        "pattern_engine": pattern_detection_engine is not None,
-        "preference_engine": preference_scoring_engine is not None
-    }
-    
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "engines": engines_status
-    }
-
-@app.get("/profile/{user_id}", response_model=UserProfileResponse, tags=["User Profiles"])
-async def get_user_profile(
-    user_id: str = Path(..., description="User ID to retrieve profile for"),
-    recalculate: bool = Query(False, description="Force recalculation of the profile"),
-    include_patterns: bool = Query(True, description="Include behavioral patterns"),
-    include_preferences: bool = Query(True, description="Include preference model"),
-    _: bool = Depends(check_engines_ready)
-):
-    """
-    Get a complete user profile with behavioral analysis results.
-    
-    This endpoint combines clustering, pattern detection, and preference scoring
-    to build a comprehensive user profile with behavioral insights.
-    """
-    try:
-        profile = {"user_id": user_id, "profile_status": "active"}
-        completeness_factors = []
+        Returns:
+            dict: Complete user profile
+        """
+        profile = self._get_basic_profile(user_id)
         
-        # Get user cluster
-        try:
-            cluster_info = await asyncio.to_thread(
-                user_clustering_engine.get_user_cluster, user_id, 'kmeans'
-            )
-            profile["cluster"] = cluster_info
-            completeness_factors.append(1.0 if "cluster_id" in cluster_info else 0.0)
-        except Exception as e:
-            logger.warning(f"Error getting cluster for user {user_id}: {e}")
-            profile["cluster"] = {"status": "error", "message": str(e)}
-            completeness_factors.append(0.0)
+        if not profile:
+            return None
+            
+        # Add segments
+        profile['segments'] = self._get_user_segments(user_id)
         
-        # Get behavioral patterns
-        if include_patterns:
-            try:
-                patterns = await asyncio.to_thread(
-                    pattern_detection_engine.analyze_user_patterns, user_id
-                )
-                profile["behavioral_patterns"] = patterns
-                completeness_factors.append(1.0 if "error" not in patterns else 0.0)
-            except Exception as e:
-                logger.warning(f"Error analyzing patterns for user {user_id}: {e}")
-                profile["behavioral_patterns"] = {"status": "error", "message": str(e)}
-                completeness_factors.append(0.0)
+        # Add behavioral patterns
+        profile['patterns'] = self._get_user_patterns(user_id)
         
-        # Get preference model
-        if include_preferences:
-            try:
-                preferences = await asyncio.to_thread(
-                    preference_scoring_engine.get_user_preferences, user_id, recalculate
-                )
-                profile["preferences"] = preferences
-                completeness_factors.append(1.0 if preferences.get("status") == "success" else 0.0)
-            except Exception as e:
-                logger.warning(f"Error getting preferences for user {user_id}: {e}")
-                profile["preferences"] = {"status": "error", "message": str(e)}
-                completeness_factors.append(0.0)
+        # Add preference scores
+        profile['preferences'] = self.scorer.get_user_preference_scores(user_id)
         
-        # Calculate profile completeness
-        if completeness_factors:
-            profile["profile_completeness"] = sum(completeness_factors) / len(completeness_factors)
-        
-        profile["last_updated"] = datetime.now().isoformat()
+        # Add recommendations
+        profile['recommendations'] = self.scorer.generate_recommendations(user_id)
         
         return profile
         
-    except Exception as e:
-        logger.error(f"Error generating user profile: {e}")
-        raise HTTPException(status_code=500, detail=f"Error generating user profile: {str(e)}")
-
-@app.get("/segments", response_model=SegmentListResponse, tags=["Segmentation"])
-async def list_user_segments(
-    algorithm: str = Query("kmeans", description="Clustering algorithm (kmeans or dbscan)"),
-    refresh: bool = Query(False, description="Force refresh of segments"),
-    _: bool = Depends(check_engines_ready)
-):
-    """
-    List all user segments/clusters with their characteristics.
-    """
-    try:
-        # If refresh requested, run clustering
-        if refresh:
-            await asyncio.to_thread(
-                user_clustering_engine.cluster_users, 90, algorithm, True
+    def _get_basic_profile(self, user_id):
+        """
+        Get basic profile information for a user.
+        
+        Args:
+            user_id (int): User ID
+            
+        Returns:
+            dict: Basic profile or None if not found
+        """
+        # Query user profile
+        query = """
+        SELECT 
+            p.profile_id,
+            p.user_id,
+            p.active_hours,
+            p.interaction_frequency,
+            p.session_duration,
+            p.last_active,
+            p.created_at,
+            p.updated_at,
+            u.username,
+            u.email
+        FROM 
+            user_profiles p
+        JOIN 
+            users u ON p.user_id = u.id
+        WHERE 
+            p.user_id = :user_id
+        """
+        
+        try:
+            with self.engine.connect() as conn:
+                result = conn.execute(text(query), {'user_id': user_id})
+                row = result.fetchone()
+                
+                if not row:
+                    # Try to get just the user
+                    user_query = "SELECT id, username, email FROM users WHERE id = :user_id"
+                    user_result = conn.execute(text(user_query), {'user_id': user_id})
+                    user_row = user_result.fetchone()
+                    
+                    if not user_row:
+                        return None
+                        
+                    # Return minimal profile
+                    return {
+                        'user_id': user_row[0],
+                        'username': user_row[1],
+                        'email': user_row[2],
+                        'profile_status': 'minimal'
+                    }
+                    
+                # Return full profile
+                active_hours = json.loads(row[2]) if row[2] else {}
+                
+                return {
+                    'profile_id': row[0],
+                    'user_id': row[1],
+                    'active_hours': active_hours,
+                    'interaction_frequency': float(row[3]) if row[3] is not None else 0.0,
+                    'session_duration': float(row[4]) if row[4] is not None else 0.0,
+                    'last_active': row[5].isoformat() if row[5] else None,
+                    'created_at': row[6].isoformat() if row[6] else None,
+                    'updated_at': row[7].isoformat() if row[7] else None,
+                    'username': row[8],
+                    'email': row[9],
+                    'profile_status': 'full'
+                }
+        except Exception as e:
+            logger.error(f"Error retrieving basic profile for user {user_id}: {e}")
+            return None
+            
+    def _get_user_segments(self, user_id):
+        """
+        Get segments for a user.
+        
+        Args:
+            user_id (int): User ID
+            
+        Returns:
+            list: List of user segments
+        """
+        query = """
+        SELECT 
+            m.segment_id,
+            s.name,
+            s.description,
+            m.confidence_score
+        FROM 
+            user_segment_memberships m
+        JOIN 
+            user_segments s ON m.segment_id = s.segment_id
+        WHERE 
+            m.user_id = :user_id
+        """
+        
+        try:
+            df = pd.read_sql(query, self.engine, params={'user_id': user_id})
+            
+            if df.empty:
+                return []
+                
+            return [
+                {
+                    'segment_id': int(row['segment_id']),
+                    'name': row['name'],
+                    'description': row['description'],
+                    'confidence': float(row['confidence_score'])
+                }
+                for _, row in df.iterrows()
+            ]
+        except Exception as e:
+            logger.error(f"Error retrieving segments for user {user_id}: {e}")
+            return []
+            
+    def _get_user_patterns(self, user_id):
+        """
+        Get behavioral patterns for a user.
+        
+        Args:
+            user_id (int): User ID
+            
+        Returns:
+            list: List of user patterns
+        """
+        query = """
+        SELECT 
+            up.pattern_id,
+            bp.name,
+            bp.description,
+            bp.pattern_type,
+            up.strength,
+            up.observation_count,
+            up.first_observed,
+            up.last_observed
+        FROM 
+            user_patterns up
+        JOIN 
+            behavioral_patterns bp ON up.pattern_id = bp.pattern_id
+        WHERE 
+            up.user_id = :user_id
+        ORDER BY
+            up.strength DESC
+        """
+        
+        try:
+            df = pd.read_sql(query, self.engine, params={'user_id': user_id})
+            
+            if df.empty:
+                return []
+                
+            return [
+                {
+                    'pattern_id': int(row['pattern_id']),
+                    'name': row['name'],
+                    'description': row['description'],
+                    'pattern_type': row['pattern_type'],
+                    'strength': float(row['strength']),
+                    'observation_count': int(row['observation_count']),
+                    'first_observed': row['first_observed'].isoformat() if row['first_observed'] else None,
+                    'last_observed': row['last_observed'].isoformat() if row['last_observed'] else None
+                }
+                for _, row in df.iterrows()
+            ]
+        except Exception as e:
+            logger.error(f"Error retrieving patterns for user {user_id}: {e}")
+            return []
+            
+    def get_similar_users(self, user_id, max_results=5):
+        """
+        Find users similar to the given user.
+        
+        Args:
+            user_id (int): Reference user ID
+            max_results (int): Maximum number of similar users to return
+            
+        Returns:
+            list: List of similar users
+        """
+        # Get user's segments
+        segments = self._get_user_segments(user_id)
+        
+        if not segments:
+            return []
+            
+        # Use segments to find similar users
+        segment_ids = [s['segment_id'] for s in segments]
+        segment_placeholders = ','.join(f':segment_id_{i}' for i in range(len(segment_ids)))
+        
+        query = f"""
+        SELECT 
+            m.user_id,
+            u.username,
+            COUNT(*) as segment_matches,
+            AVG(m.confidence_score) as avg_confidence
+        FROM 
+            user_segment_memberships m
+        JOIN 
+            users u ON m.user_id = u.id
+        WHERE 
+            m.segment_id IN ({segment_placeholders})
+            AND m.user_id != :user_id
+        GROUP BY 
+            m.user_id, u.username
+        ORDER BY 
+            segment_matches DESC,
+            avg_confidence DESC
+        LIMIT :max_results
+        """
+        
+        params = {'user_id': user_id, 'max_results': max_results}
+        for i, segment_id in enumerate(segment_ids):
+            params[f'segment_id_{i}'] = segment_id
+            
+        try:
+            df = pd.read_sql(query, self.engine, params=params)
+            
+            if df.empty:
+                return []
+                
+            return [
+                {
+                    'user_id': int(row['user_id']),
+                    'username': row['username'],
+                    'similarity_score': float(row['segment_matches']) / len(segments),
+                    'confidence': float(row['avg_confidence'])
+                }
+                for _, row in df.iterrows()
+            ]
+        except Exception as e:
+            logger.error(f"Error finding similar users for user {user_id}: {e}")
+            return []
+            
+    def update_user_profile(self, user_id):
+        """
+        Trigger an immediate update of a user's profile.
+        
+        Args:
+            user_id (int): User ID to update
+            
+        Returns:
+            dict: Update status
+        """
+        try:
+            # Run behavioral analysis
+            analyzer = BehavioralAnalyzer()
+            tracking_data = analyzer.get_tracking_data(
+                start_date=datetime.now() - timedelta(days=30)
             )
+            
+            if tracking_data.empty:
+                return {
+                    'status': 'warning',
+                    'message': 'No recent tracking data available for this user'
+                }
+                
+            # Filter for this user
+            user_data = tracking_data[tracking_data['user_id'] == user_id]
+            
+            if user_data.empty:
+                return {
+                    'status': 'warning',
+                    'message': 'No recent activity for this user'
+                }
+                
+            # Calculate user metrics
+            user_metrics = analyzer.calculate_user_metrics(user_data)
+            
+            if not user_metrics.empty:
+                analyzer.save_user_profiles(user_metrics)
+                
+            # Update preference scores
+            scorer = PreferenceScorer()
+            scorer.calculate_user_preferences(user_id=user_id)
+            
+            # Update patterns
+            detector = PatternDetector()
+            user_sequences = detector.get_user_sequences()
+            
+            if user_id in user_sequences:
+                patterns = detector.find_sequential_patterns({user_id: user_sequences[user_id]})
+                pattern_ids = detector.save_behavioral_patterns(patterns)
+                user_patterns = detector.find_user_patterns({user_id: user_sequences[user_id]}, patterns)
+                detector.save_user_patterns(user_patterns, pattern_ids)
+                
+            return {
+                'status': 'success',
+                'message': 'User profile updated successfully',
+                'timestamp': datetime.now().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error updating profile for user {user_id}: {e}")
+            return {
+                'status': 'error',
+                'message': f"Error updating user profile: {str(e)}"
+            }
+            
+    def run_analysis_job(self):
+        """
+        Run a complete analysis job for all users.
         
-        # Get cluster profiles
-        if algorithm not in user_clustering_engine.cluster_profiles:
-            # Run clustering if profiles not available
-            await asyncio.to_thread(
-                user_clustering_engine.cluster_users, 90, algorithm, True
-            )
-        
-        profiles = user_clustering_engine.cluster_profiles.get(algorithm, {})
-        
-        if not profiles:
-            raise HTTPException(
-                status_code=404, 
-                detail=f"No clusters found for algorithm: {algorithm}"
-            )
-        
-        segments = []
-        for cluster_id, profile in profiles.items():
-            segments.append({
-                "id": cluster_id,
-                "name": profile.get("name", f"Cluster {cluster_id}"),
-                "size": profile.get("size", 0),
-                "percentage": profile.get("percentage", 0),
-                "key_characteristics": _extract_key_characteristics(profile)
-            })
-        
-        return {
-            "total_segments": len(segments),
-            "segments": segments
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error listing user segments: {e}")
-        raise HTTPException(status_code=500, detail=f"Error listing user segments: {str(e)}")
-
-@app.get("/segments/{cluster_id}", response_model=ClusterResponse, tags=["Segmentation"])
-async def get_segment_details(
-    cluster_id: int = Path(..., description="Cluster ID to get details for"),
-    algorithm: str = Query("kmeans", description="Clustering algorithm (kmeans or dbscan)"),
-    _: bool = Depends(check_engines_ready)
-):
-    """
-    Get detailed information about a specific user segment/cluster.
-    """
-    try:
-        profiles = user_clustering_engine.cluster_profiles.get(algorithm, {})
-        
-        if not profiles:
-            raise HTTPException(
-                status_code=404, 
-                detail=f"No clusters found for algorithm: {algorithm}"
-            )
-        
-        profile = profiles.get(cluster_id)
-        
-        if not profile:
-            raise HTTPException(
-                status_code=404, 
-                detail=f"Cluster {cluster_id} not found"
-            )
-        
-        return {
-            "cluster_id": cluster_id,
-            "name": profile.get("name", f"Cluster {cluster_id}"),
-            "size": profile.get("size", 0),
-            "percentage": profile.get("percentage", 0),
-            "features": profile.get("features", {})
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error getting segment details: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting segment details: {str(e)}")
-
-@app.get("/patterns", tags=["Behavioral Patterns"])
-async def list_behavioral_patterns(
-    pattern_type: str = Query(None, description="Type of patterns to retrieve (sequential, time_based, anomalies)"),
-    min_support: float = Query(0.05, description="Minimum pattern support"),
-    _: bool = Depends(check_engines_ready)
-):
-    """
-    List detected behavioral patterns across all users.
-    """
-    try:
-        # Make sure patterns are detected
-        if not pattern_detection_engine.detected_patterns:
-            await asyncio.to_thread(
-                pattern_detection_engine.detect_all_patterns, 90
-            )
-        
-        patterns = pattern_detection_engine.detected_patterns
-        
-        # Filter by pattern type if specified
-        if pattern_type:
-            if pattern_type not in patterns:
-                raise HTTPException(
-                    status_code=404, 
-                    detail=f"No patterns found for type: {pattern_type}"
-                )
+        Returns:
+            dict: Job status
+        """
+        try:
+            # Step 1: Run behavioral analysis
+            analyzer = BehavioralAnalyzer()
+            behavior_results = analyzer.run_analysis()
+            
+            # Step 2: Run pattern detection
+            detector = PatternDetector()
+            pattern_results = detector.run_detection()
+            
+            # Step 3: Run preference scoring
+            scorer = PreferenceScorer()
+            preference_results = scorer.calculate_user_preferences()
             
             return {
-                "pattern_type": pattern_type,
-                "patterns": patterns[pattern_type]
+                'status': 'success',
+                'behavior_analysis': behavior_results,
+                'pattern_detection': pattern_results,
+                'preference_scoring': preference_results,
+                'timestamp': datetime.now().isoformat()
             }
-        
-        # Return summary of all pattern types
-        result = {}
-        for p_type, p_data in patterns.items():
-            if isinstance(p_data, list):
-                # Filter by support for list-based patterns
-                filtered_patterns = [p for p in p_data if p.get('support', 0) >= min_support]
-                result[p_type] = {
-                    "count": len(filtered_patterns),
-                    "patterns": filtered_patterns[:10]  # Return top 10
-                }
-            elif isinstance(p_data, dict):
-                result[p_type] = {
-                    "count": len(p_data),
-                    "summary": _summarize_dict_patterns(p_data, 5)
-                }
-        
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error listing behavioral patterns: {e}")
-        raise HTTPException(status_code=500, detail=f"Error listing behavioral patterns: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error running analysis job: {e}")
+            return {
+                'status': 'error',
+                'message': f"Error running analysis job: {str(e)}"
+            }
 
-@app.get("/patterns/{user_id}", tags=["Behavioral Patterns"])
-async def get_user_patterns(
-    user_id: str = Path(..., description="User ID to get patterns for"),
-    _: bool = Depends(check_engines_ready)
-):
-    """
-    Get behavioral patterns for a specific user.
-    """
-    try:
-        patterns = await asyncio.to_thread(
-            pattern_detection_engine.analyze_user_patterns, user_id
-        )
-        
-        if "error" in patterns:
-            raise HTTPException(
-                status_code=404, 
-                detail=patterns["error"]
-            )
-        
-        return patterns
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error getting user patterns: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting user patterns: {str(e)}")
 
-@app.get("/preferences/{user_id}", tags=["Preferences"])
-async def get_user_preferences(
-    user_id: str = Path(..., description="User ID to get preferences for"),
-    recalculate: bool = Query(False, description="Force recalculation of preferences"),
-    _: bool = Depends(check_engines_ready)
-):
-    """
-    Get preference model for a specific user.
-    """
-    try:
-        preferences = await asyncio.to_thread(
-            preference_scoring_engine.get_user_preferences, user_id, recalculate
-        )
-        
-        if "error" in preferences:
-            raise HTTPException(
-                status_code=404, 
-                detail=preferences["error"]
-            )
-        
-        return preferences
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error getting user preferences: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting user preferences: {str(e)}")
+# Initialize API
+api = UserProfileAPI(engine)
 
-@app.post("/preferences/score", response_model=PreferenceScoreResponse, tags=["Preferences"])
-async def score_match_preferences(
-    request: PreferenceScoreRequest,
-    _: bool = Depends(check_engines_ready)
-):
-    """
-    Score a potential match against a user's preference model.
-    """
-    try:
-        score_result = await asyncio.to_thread(
-            preference_scoring_engine.score_match_for_user,
-            request.user_id,
-            request.match_attributes,
-            request.recalculate
-        )
-        
-        return score_result
-        
-    except Exception as e:
-        logger.error(f"Error scoring match preferences: {e}")
-        raise HTTPException(status_code=500, detail=f"Error scoring match preferences: {str(e)}")
-
-@app.post("/analysis/run", tags=["Administration"])
-async def run_analysis(
-    days_lookback: int = Query(90, description="Days of data to analyze"),
-    _: bool = Depends(check_engines_ready)
-):
-    """
-    Manually trigger a full analysis run (clustering, pattern detection).
-    This is an administrative endpoint for running analysis outside the 
-    automatic schedule.
-    """
-    try:
-        # Run analysis tasks in background
-        asyncio.create_task(run_full_analysis(days_lookback))
-        
-        return {
-            "status": "analysis_started",
-            "message": "Full analysis process has been started in the background",
-            "days_lookback": days_lookback
-        }
-        
-    except Exception as e:
-        logger.error(f"Error starting analysis: {e}")
-        raise HTTPException(status_code=500, detail=f"Error starting analysis: {str(e)}")
-
-async def run_full_analysis(days_lookback: int):
-    """Background task to run full analysis"""
-    try:
-        # Run clustering
-        if user_clustering_engine:
-            logger.info(f"Starting clustering analysis with {days_lookback} days lookback")
-            await asyncio.to_thread(user_clustering_engine.cluster_users, days_lookback, 'kmeans', True)
-            logger.info("Clustering analysis completed")
-        
-        # Run pattern detection
-        if pattern_detection_engine:
-            logger.info(f"Starting pattern detection with {days_lookback} days lookback")
-            await asyncio.to_thread(pattern_detection_engine.detect_all_patterns, days_lookback)
-            logger.info("Pattern detection completed")
-            
-    except Exception as e:
-        logger.error(f"Error in full analysis task: {e}")
-
-# Helper functions
-
-def _extract_key_characteristics(profile: Dict) -> List[Dict]:
-    """Extract key characteristics from a cluster profile"""
-    key_chars = []
+@app.route('/api/profiles/user/<int:user_id>', methods=['GET'])
+@require_api_key
+def get_user_profile(user_id):
+    """API endpoint to get a user's profile."""
+    profile = api.get_user_profile(user_id)
     
-    if "features" not in profile:
-        return key_chars
+    if profile:
+        return jsonify(profile)
+    return jsonify({'error': 'User profile not found'}), 404
     
-    # Get top 5 most distinctive features
-    features = profile["features"]
+@app.route('/api/profiles/user/<int:user_id>/similar', methods=['GET'])
+@require_api_key
+def get_similar_users(user_id):
+    """API endpoint to get users similar to the specified user."""
+    max_results = request.args.get('max_results', 5, type=int)
+    similar_users = api.get_similar_users(user_id, max_results=max_results)
     
-    for feature_name, feature_stats in features.items():
-        if isinstance(feature_stats, dict) and "mean" in feature_stats:
-            key_chars.append({
-                "feature": feature_name,
-                "value": feature_stats["mean"],
-                "percentile": None  # Would calculate if we had global stats
-            })
+    return jsonify({'similar_users': similar_users})
     
-    # Sort by presumed importance and take top 5
-    key_chars.sort(key=lambda x: abs(x["value"]), reverse=True)
-    return key_chars[:5]
+@app.route('/api/profiles/user/<int:user_id>/update', methods=['POST'])
+@require_api_key
+def update_user_profile(user_id):
+    """API endpoint to trigger a profile update for a user."""
+    result = api.update_user_profile(user_id)
+    return jsonify(result)
+    
+@app.route('/api/profiles/analyze', methods=['POST'])
+@require_api_key
+def run_analysis_job():
+    """API endpoint to run a complete analysis job."""
+    result = api.run_analysis_job()
+    return jsonify(result)
+    
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint."""
+    return jsonify({
+        'status': 'ok',
+        'timestamp': datetime.now().isoformat(),
+        'service': 'user-profile-api'
+    })
 
-def _summarize_dict_patterns(patterns: Dict, limit: int) -> List[Dict]:
-    """Summarize dictionary-based patterns"""
-    summary = []
-    
-    # Take a sample of patterns
-    for key, value in list(patterns.items())[:limit]:
-        if isinstance(value, dict):
-            summary.append({
-                "id": key,
-                "type": "dict_pattern",
-                "details": {k: v for k, v in value.items() if not isinstance(v, (dict, list))}
-            })
-        else:
-            summary.append({
-                "id": key,
-                "value": str(value)[:100]  # Truncate long values
-            })
-    
-    return summary
-
-# Run app with uvicorn when module is called directly
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5060)
+    port = int(os.getenv('PORT', 5002))
+    app.run(host='0.0.0.0', port=port, debug=False)
