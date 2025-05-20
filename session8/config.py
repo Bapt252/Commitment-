@@ -1,145 +1,126 @@
-"""
-Configuration pour le module d'analyse comportementale et de profilage utilisateur.
+\"\"\"
+Configuration pour le module d'analyse comportementale et de profiling utilisateur.
 
-Ce fichier contient les paramètres de configuration pour les différents composants
-du module de profilage utilisateur de la Session 8.
-"""
+Ce fichier contient les paramètres de configuration par défaut pour tous les 
+composants du module Session 8.
+\"\"\"
 
-import os
-from typing import Dict, Any
-
-# Chemins de stockage
-STORAGE_BASE_PATH = os.environ.get("STORAGE_BASE_PATH", "./data/session8")
-PROFILES_PATH = os.path.join(STORAGE_BASE_PATH, "profiles")
-FEATURES_PATH = os.path.join(STORAGE_BASE_PATH, "features")
-PREFERENCES_PATH = os.path.join(STORAGE_BASE_PATH, "preferences")
-PATTERNS_PATH = os.path.join(STORAGE_BASE_PATH, "patterns")
-CLUSTERS_PATH = os.path.join(STORAGE_BASE_PATH, "clusters")
-VISUALIZATIONS_PATH = os.path.join(STORAGE_BASE_PATH, "visualizations")
-
-# S'assurer que les chemins existent
-for path in [PROFILES_PATH, FEATURES_PATH, PREFERENCES_PATH, PATTERNS_PATH, CLUSTERS_PATH, VISUALIZATIONS_PATH]:
-    os.makedirs(path, exist_ok=True)
-
-# Configuration de l'extraction de caractéristiques
-FEATURE_EXTRACTION_CONFIG = {
-    "time_window_days": 30,  # Période d'analyse par défaut (en jours)
-    "min_events_count": 10,  # Nombre minimum d'événements requis pour l'analyse
-    "feature_groups": ["activity", "content", "temporal", "engagement"],  # Groupes de caractéristiques à extraire
-    "use_cache": True,  # Utiliser le cache pour les caractéristiques extraites
-    "cache_ttl_hours": 24,  # Durée de vie du cache en heures
-}
-
-# Configuration du gestionnaire de profils
-PROFILE_MANAGER_CONFIG = {
-    "update_frequency_hours": 24,  # Fréquence de mise à jour des profils (en heures)
-    "auto_create_profiles": True,  # Créer automatiquement des profils pour les nouveaux utilisateurs
-    "profile_ttl_days": 90,  # Durée de vie des profils (en jours)
-    "profile_version": "1.0",  # Version du schéma de profil
-    "secure_fields": ["personal_info", "contact_details"],  # Champs sécurisés nécessitant des permissions
-}
-
-# Configuration du clustering d'utilisateurs
-USER_CLUSTERING_CONFIG = {
-    "algorithms": {
-        "kmeans": {
-            "n_clusters": 5,
-            "random_state": 42
+# Configuration par défaut pour tout le système de profilage
+default_config = {
+    # Configuration pour le FeatureExtractor
+    "feature_extractor": {
+        "max_features": 20,
+        "feature_weights": {
+            "engagement_score": 1.0,
+            "session_duration": 0.8,
+            "active_days": 0.7,
+            "click_frequency": 0.6,
+            "search_depth": 0.5,
+            "content_preference": 0.9,
+            "interaction_patterns": 0.8
         },
-        "dbscan": {
-            "eps": 0.5,
-            "min_samples": 5
+        "default_timeframe_days": 30
+    },
+    
+    # Configuration pour le ProfileManager
+    "profile_manager": {
+        "storage_path": "./data/session8/profiles",
+        "backup_enabled": True,
+        "backup_interval_hours": 24,
+        "max_profile_history": 10
+    },
+    
+    # Configuration pour le UserClustering
+    "user_clustering": {
+        "algorithm": "kmeans",
+        "n_clusters": 5,
+        "min_users_for_clustering": 10,
+        "dimensions": 2,
+        "features_to_use": [
+            "engagement_score",
+            "session_duration.avg_duration_seconds",
+            "active_days.activity_ratio",
+            "click_frequency.clicks_per_session",
+            "search_depth.unique_queries_count"
+        ],
+        "weights": {
+            "engagement_score": 1.0,
+            "session_duration.avg_duration_seconds": 0.8,
+            "active_days.activity_ratio": 0.7,
+            "click_frequency.clicks_per_session": 0.6,
+            "search_depth.unique_queries_count": 0.5
         },
-        "hierarchical": {
-            "n_clusters": 5,
-            "linkage": "ward"
+        "auto_update_interval_hours": 12
+    },
+    
+    # Configuration pour le PatternDetector
+    "pattern_detector": {
+        "min_sequence_length": 2,
+        "max_sequence_length": 5,
+        "min_sequence_support": 2,
+        "max_patterns": 20,
+        "time_window_days": 14,
+        "storage_path": "./data/session8/patterns"
+    },
+    
+    # Configuration pour le PreferenceCalculator
+    "preference_calculator": {
+        "preference_weights": {
+            "content_preferences": 0.4,
+            "interaction_preferences": 0.3,
+            "time_preferences": 0.2,
+            "feature_preferences": 0.1
+        },
+        "storage_path": "./data/session8/preferences",
+        "update_threshold_hours": 24,
+        "scoring_methods": {
+            "content_similarity": "weighted_overlap",
+            "time_similarity": "gaussian",
+            "feature_similarity": "cosine"
         }
     },
-    "default_algorithm": "kmeans",
-    "feature_scaling": "standard",  # Options: "standard", "minmax", "robust", None
-    "update_frequency_hours": 24,
-    "min_users_for_clustering": 10,
-    "dimensionality_reduction": {
-        "method": "pca",  # Options: "pca", "tsne", None
-        "n_components": 2
-    }
-}
-
-# Configuration du détecteur de patterns
-PATTERN_DETECTOR_CONFIG = {
-    "sequence_pattern_min_support": 0.1,  # Support minimum pour les patterns de séquence
-    "sequence_pattern_max_length": 5,  # Longueur maximum pour les patterns de séquence
-    "time_based_pattern_intervals": ["hourly", "daily", "weekly"],  # Intervalles pour les patterns temporels
-    "recurrent_pattern_min_occurrences": 3,  # Occurrences minimales pour les patterns récurrents
-    "correlation_threshold": 0.3,  # Seuil de corrélation entre éléments
-}
-
-# Configuration du calculateur de préférences
-PREFERENCE_CALCULATOR_CONFIG = {
-    "update_frequency_hours": 24,  # Fréquence de mise à jour des préférences (en heures)
-    "preference_categories": ["content", "interaction", "time", "feature"],  # Catégories de préférences
-    "time_window_days": 30,  # Fenêtre temporelle pour l'analyse (en jours)
-    "cache_ttl_hours": 24,  # Durée de vie du cache en heures
-}
-
-# Configuration de l'intégration avec le système de tracking
-TRACKING_INTEGRATION_CONFIG = {
-    "tracking_service_url": os.environ.get("TRACKING_SERVICE_URL", "http://localhost:8080/api/tracking"),
-    "auth_token": os.environ.get("TRACKING_AUTH_TOKEN", ""),
-    "batch_size": 100,  # Taille des lots pour les requêtes batch
-    "timeout_seconds": 30,  # Timeout pour les requêtes
-    "max_retries": 3,  # Nombre maximal de tentatives en cas d'échec
-    "retry_delay_seconds": 5,  # Délai entre les tentatives (en secondes)
-}
-
-# Configuration de l'API
-API_CONFIG = {
-    "port": int(os.environ.get("API_PORT", 5000)),
-    "host": os.environ.get("API_HOST", "0.0.0.0"),
-    "debug": os.environ.get("API_DEBUG", "False").lower() == "true",
-    "secret_key": os.environ.get("API_SECRET_KEY", "your-secret-key-here"),
-    "auth_enabled": os.environ.get("API_AUTH_ENABLED", "True").lower() == "true",
-    "cors_origins": os.environ.get("API_CORS_ORIGINS", "*").split(","),
-    "rate_limit": {
-        "enabled": True,
-        "limit": 100,  # Nombre de requêtes
-        "period": 60   # Période en secondes
-    }
-}
-
-# Configuration des visualisations
-VISUALIZATION_CONFIG = {
-    "chart_themes": ["light", "dark"],
-    "default_theme": "light",
-    "color_schemes": {
-        "categorical": ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"],
-        "sequential": ["#f7fbff", "#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#4292c6"],
-        "diverging": ["#d73027", "#f46d43", "#fdae61", "#fee090", "#e0f3f8", "#abd9e9"]
+    
+    # Configuration pour le TrackingIntegration
+    "tracking_integration": {
+        "tracking_service_url": "http://localhost:8080/api/tracking",
+        "auth_token": "",
+        "batch_size": 100,
+        "timeout_seconds": 30,
+        "max_retries": 3,
+        "retry_delay_seconds": 5,
+        "polling_interval_seconds": 300,
+        "auto_processing_enabled": True,
+        "events_cache_path": "./data/session8/tracking_cache",
+        "events_cache_enabled": True
     },
-    "default_plot_size": {
-        "width": 800,
-        "height": 600
+    
+    # Configuration pour le EnrichedProfilesAPI
+    "enriched_profiles_api": {
+        "port": 5050,
+        "host": "0.0.0.0",
+        "debug": False,
+        "secret_key": "commitment-session8-secret-key",
+        "auth_enabled": True,
+        "cors_origins": ["*"],
+        "rate_limit": {
+            "enabled": True,
+            "limit": 100,
+            "period": 60
+        }
     },
-    "interactive": True,
-    "export_formats": ["png", "svg", "pdf"]
-}
-
-# Configuration globale
-CONFIG: Dict[str, Any] = {
-    "feature_extraction": FEATURE_EXTRACTION_CONFIG,
-    "profile_manager": PROFILE_MANAGER_CONFIG,
-    "user_clustering": USER_CLUSTERING_CONFIG,
-    "pattern_detector": PATTERN_DETECTOR_CONFIG,
-    "preference_calculator": PREFERENCE_CALCULATOR_CONFIG,
-    "tracking_integration": TRACKING_INTEGRATION_CONFIG,
-    "api": API_CONFIG,
-    "visualization": VISUALIZATION_CONFIG,
-    "storage": {
-        "profiles_path": PROFILES_PATH,
-        "features_path": FEATURES_PATH,
-        "preferences_path": PREFERENCES_PATH,
-        "patterns_path": PATTERNS_PATH,
-        "clusters_path": CLUSTERS_PATH,
-        "visualizations_path": VISUALIZATIONS_PATH
+    
+    # Configuration pour le BehaviorVisualization
+    "behavior_visualization": {
+        "output_path": "./data/session8/visualizations",
+        "chart_theme": "light",
+        "color_scheme": "categorical",
+        "plot_size": {
+            "width": 800,
+            "height": 600
+        },
+        "interactive": True,
+        "export_formats": ["png", "svg", "html"],
+        "max_cache_age_hours": 24,
+        "use_cache": True
     }
 }
