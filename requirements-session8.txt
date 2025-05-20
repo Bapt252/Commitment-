@@ -1,0 +1,20 @@
+# Dépendances pour la Session 8: Analyse Comportementale et Profiling Utilisateur
+
+# Analyse de données
+pandas==2.0.1
+numpy==1.24.3
+scipy==1.11.1
+
+# Machine Learning
+scikit-learn==1.2.2
+
+# Base de données
+SQLAlchemy==2.0.15
+psycopg2-binary==2.9.6
+
+# API et serveur
+Flask==2.3.2
+gunicorn==20.1.0
+
+# Utilitaires
+python-dotenv==1.0.0
