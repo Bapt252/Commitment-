@@ -1,21 +1,18 @@
 """
 Module d'intégration avec le système de tracking existant.
 
-Ce module gère la récupération des données de tracking utilisateur pour
-le module d'analyse comportementale et de profilage.
+Ce module permet d'intégrer le système de profilage utilisateur avec le système
+de tracking existant pour récupérer les événements et mettre à jour les profils.
 """
 
-import logging
-import json
-import os
-import time
 import requests
+import json
+import logging
+import time
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
-import traceback
-
-# Import des configurations
-from session8.config import CONFIG
+import os
+import threading
 
 # Configuration du logging
 logging.basicConfig(
@@ -26,531 +23,521 @@ logger = logging.getLogger(__name__)
 
 class TrackingIntegration:
     """
-    Classe gérant l'intégration avec le système de tracking existant.
+    Intégration avec le système de tracking existant pour la collecte des données comportementales.
     """
     
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, profile_manager=None, feature_extractor=None, pattern_detector=None, 
+                 preference_calculator=None, user_clustering=None, config=None):
         """
         Initialise l'intégration avec le système de tracking.
         
         Args:
-            config: Configuration spécifique (si None, utilise CONFIG["tracking_integration"])
+            profile_manager: Gestionnaire de profils utilisateurs
+            feature_extractor: Extracteur de caractéristiques comportementales
+            pattern_detector: Détecteur de patterns comportementaux
+            preference_calculator: Calculateur de préférences
+            user_clustering: Module de clustering d'utilisateurs
+            config: Configuration de l'intégration
         """
-        self.config = config or CONFIG["tracking_integration"]
-        self.tracking_url = self.config["tracking_service_url"]
-        self.auth_token = self.config["auth_token"]
-        self.batch_size = self.config["batch_size"]
-        self.timeout = self.config["timeout_seconds"]
-        self.max_retries = self.config["max_retries"]
-        self.retry_delay = self.config["retry_delay_seconds"]
+        self.profile_manager = profile_manager
+        self.feature_extractor = feature_extractor
+        self.pattern_detector = pattern_detector
+        self.preference_calculator = preference_calculator
+        self.user_clustering = user_clustering
         
-        # Cache pour les données récupérées récemment
-        self.data_cache = {}
-        self.cache_timestamp = {}
-        
-        logger.info(f"TrackingIntegration initialized with endpoint {self.tracking_url}")
-    
-    def get_user_events(self, user_id: str, start_date: Optional[datetime] = None, 
-                       end_date: Optional[datetime] = None, event_types: Optional[List[str]] = None,
-                       use_cache: bool = True) -> List[Dict[str, Any]]:
-        """
-        Récupère les événements de tracking pour un utilisateur spécifique.
-        
-        Args:
-            user_id: Identifiant de l'utilisateur
-            start_date: Date de début pour les événements (défaut: 30 jours en arrière)
-            end_date: Date de fin pour les événements (défaut: maintenant)
-            event_types: Types d'événements à récupérer (défaut: tous)
-            use_cache: Utiliser le cache si possible
-            
-        Returns:
-            Liste des événements de tracking pour l'utilisateur
-        """
-        # Définir les dates par défaut si non spécifiées
-        if end_date is None:
-            end_date = datetime.now()
-        if start_date is None:
-            start_date = end_date - timedelta(days=30)
-        
-        # Formater les dates
-        start_str = start_date.isoformat()
-        end_str = end_date.isoformat()
-        
-        # Vérifier si les données sont en cache
-        cache_key = f"{user_id}_{start_str}_{end_str}_{'-'.join(event_types or [])}"
-        
-        if use_cache and cache_key in self.data_cache:
-            cache_time = self.cache_timestamp.get(cache_key, 0)
-            # Vérifier si le cache est encore valide (moins de 10 minutes)
-            if time.time() - cache_time < 600:
-                logger.info(f"Using cached tracking data for user {user_id}")
-                return self.data_cache[cache_key]
-        
-        try:
-            # Construire la requête
-            params = {
-                "user_id": user_id,
-                "start_date": start_str,
-                "end_date": end_str
-            }
-            
-            if event_types:
-                params["event_types"] = ",".join(event_types)
-            
-            headers = {}
-            if self.auth_token:
-                headers["Authorization"] = f"Bearer {self.auth_token}"
-            
-            # Faire la requête avec retry
-            events = self._make_request_with_retry(
-                endpoint="events",
-                params=params,
-                headers=headers
-            )
-            
-            if events:
-                # Mettre en cache les résultats
-                self.data_cache[cache_key] = events
-                self.cache_timestamp[cache_key] = time.time()
-                
-                logger.info(f"Retrieved {len(events)} tracking events for user {user_id}")
-                return events
-            else:
-                logger.warning(f"No tracking events found for user {user_id}")
-                return []
-            
-        except Exception as e:
-            logger.error(f"Error retrieving tracking events for user {user_id}: {str(e)}")
-            logger.error(traceback.format_exc())
-            
-            # Si en mode simulation, générer des données simulées
-            if self._is_simulation_mode():
-                logger.info(f"Using simulated data for user {user_id}")
-                return self._generate_simulated_events(user_id, start_date, end_date)
-            
-            return []
-    
-    def get_user_sessions(self, user_id: str, start_date: Optional[datetime] = None,
-                         end_date: Optional[datetime] = None) -> List[Dict[str, Any]]:
-        """
-        Récupère les sessions utilisateur avec leurs événements associés.
-        
-        Args:
-            user_id: Identifiant de l'utilisateur
-            start_date: Date de début (défaut: 30 jours en arrière)
-            end_date: Date de fin (défaut: maintenant)
-            
-        Returns:
-            Liste des sessions utilisateur
-        """
-        # Récupérer les événements
-        events = self.get_user_events(user_id, start_date, end_date)
-        
-        # Organiser les événements par session
-        sessions = {}
-        
-        for event in events:
-            session_id = event.get("session_id")
-            if not session_id:
-                continue
-                
-            if session_id not in sessions:
-                sessions[session_id] = {
-                    "session_id": session_id,
-                    "user_id": user_id,
-                    "start_time": event.get("timestamp"),
-                    "end_time": event.get("timestamp"),
-                    "events": []
-                }
-            
-            # Ajouter l'événement à la session
-            sessions[session_id]["events"].append(event)
-            
-            # Mettre à jour les timestamps
-            event_time = event.get("timestamp")
-            if event_time:
-                if event_time < sessions[session_id]["start_time"]:
-                    sessions[session_id]["start_time"] = event_time
-                if event_time > sessions[session_id]["end_time"]:
-                    sessions[session_id]["end_time"] = event_time
-        
-        # Calculer des statistiques pour chaque session
-        for session_id, session in sessions.items():
-            events = session["events"]
-            session["event_count"] = len(events)
-            session["event_types"] = list(set(e.get("event_type") for e in events if e.get("event_type")))
-            
-            # Calculer la durée si possible
-            try:
-                start = datetime.fromisoformat(session["start_time"])
-                end = datetime.fromisoformat(session["end_time"])
-                session["duration_seconds"] = (end - start).total_seconds()
-            except (ValueError, TypeError):
-                session["duration_seconds"] = None
-        
-        logger.info(f"Retrieved {len(sessions)} sessions for user {user_id}")
-        return list(sessions.values())
-    
-    def get_aggregate_stats(self, user_id: str, start_date: Optional[datetime] = None,
-                          end_date: Optional[datetime] = None) -> Dict[str, Any]:
-        """
-        Récupère des statistiques agrégées pour un utilisateur.
-        
-        Args:
-            user_id: Identifiant de l'utilisateur
-            start_date: Date de début (défaut: 30 jours en arrière)
-            end_date: Date de fin (défaut: maintenant)
-            
-        Returns:
-            Statistiques agrégées
-        """
-        # Récupérer les événements
-        events = self.get_user_events(user_id, start_date, end_date)
-        
-        if not events:
-            return {}
-        
-        # Agréger les statistiques
-        stats = {
-            "user_id": user_id,
-            "total_events": len(events),
-            "event_types": {},
-            "pages": {},
-            "sessions": set()
+        # Configuration par défaut
+        self.config = {
+            "tracking_service_url": "http://localhost:8080/api/tracking",
+            "auth_token": "",
+            "batch_size": 100,
+            "timeout_seconds": 30,
+            "max_retries": 3,
+            "retry_delay_seconds": 5,
+            "polling_interval_seconds": 300,  # 5 minutes
+            "auto_processing_enabled": True,
+            "events_cache_path": "./data/session8/tracking_cache",
+            "events_cache_enabled": True
         }
         
-        for event in events:
-            # Compter par type d'événement
-            event_type = event.get("event_type")
-            if event_type:
-                if event_type not in stats["event_types"]:
-                    stats["event_types"][event_type] = 0
-                stats["event_types"][event_type] += 1
-            
-            # Compter par page
-            page = event.get("page")
-            if page:
-                if page not in stats["pages"]:
-                    stats["pages"][page] = 0
-                stats["pages"][page] += 1
-            
-            # Collecter les sessions uniques
-            session_id = event.get("session_id")
-            if session_id:
-                stats["sessions"].add(session_id)
+        # Mise à jour de la configuration si fournie
+        if config:
+            self.config.update(config)
         
-        # Convertir l'ensemble de sessions en compte
-        stats["unique_sessions"] = len(stats["sessions"])
-        del stats["sessions"]
+        # S'assurer que le chemin de cache existe
+        if self.config["events_cache_enabled"]:
+            os.makedirs(self.config["events_cache_path"], exist_ok=True)
         
-        # Calculer des métriques dérivées
-        if stats["unique_sessions"] > 0:
-            stats["events_per_session"] = stats["total_events"] / stats["unique_sessions"]
+        # État de l'intégration
+        self.running = False
+        self.polling_thread = None
+        self.last_processed_timestamp = datetime.now() - timedelta(days=1)
         
-        logger.info(f"Generated aggregate stats for user {user_id}")
-        return stats
+        # Démarrer le traitement automatique si activé
+        if self.config["auto_processing_enabled"]:
+            self.start_auto_processing()
+        
+        logger.info("TrackingIntegration initialized")
     
-    def get_real_time_events(self, user_id: str, minutes: int = 30) -> List[Dict[str, Any]]:
+    def fetch_events(self, start_time: datetime, end_time: Optional[datetime] = None,
+                    event_types: Optional[List[str]] = None,
+                    user_ids: Optional[List[str]] = None,
+                    limit: int = 1000) -> List[Dict[str, Any]]:
         """
-        Récupère les événements en temps réel pour un utilisateur.
+        Récupère les événements de tracking depuis le service de tracking.
         
         Args:
-            user_id: Identifiant de l'utilisateur
-            minutes: Fenêtre temporelle en minutes (par défaut: 30 dernières minutes)
+            start_time: Timestamp de début pour la récupération des événements
+            end_time: Timestamp de fin (par défaut: maintenant)
+            event_types: Liste des types d'événements à récupérer (par défaut: tous)
+            user_ids: Liste des identifiants d'utilisateurs (par défaut: tous)
+            limit: Nombre maximum d'événements à récupérer
             
         Returns:
-            Liste des événements récents
+            Liste des événements de tracking
         """
-        end_date = datetime.now()
-        start_date = end_date - timedelta(minutes=minutes)
+        if end_time is None:
+            end_time = datetime.now()
         
-        # Récupérer les événements récents sans utiliser le cache
-        return self.get_user_events(user_id, start_date, end_date, use_cache=False)
-    
-    def get_user_activity_timeline(self, user_id: str, days: int = 30) -> Dict[str, int]:
-        """
-        Récupère la timeline d'activité d'un utilisateur sur une période donnée.
+        # Préparer les paramètres de requête
+        params = {
+            "start_time": start_time.isoformat(),
+            "end_time": end_time.isoformat(),
+            "limit": limit
+        }
         
-        Args:
-            user_id: Identifiant de l'utilisateur
-            days: Nombre de jours à analyser
-            
-        Returns:
-            Dict avec les dates comme clés et le nombre d'événements comme valeurs
-        """
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days)
+        if event_types:
+            params["event_types"] = ",".join(event_types)
         
-        # Récupérer les événements
-        events = self.get_user_events(user_id, start_date, end_date)
+        if user_ids:
+            params["user_ids"] = ",".join(user_ids)
         
-        # Initialiser la timeline avec des zéros
-        timeline = {}
-        current_date = start_date.date()
-        while current_date <= end_date.date():
-            timeline[current_date.isoformat()] = 0
-            current_date += timedelta(days=1)
+        # Préparer les headers
+        headers = {"Content-Type": "application/json"}
+        if self.config["auth_token"]:
+            headers["Authorization"] = f"Bearer {self.config['auth_token']}"
         
-        # Remplir la timeline avec les comptes d'événements
-        for event in events:
-            try:
-                timestamp = event.get("timestamp")
-                if timestamp:
-                    event_date = datetime.fromisoformat(timestamp).date().isoformat()
-                    if event_date in timeline:
-                        timeline[event_date] += 1
-            except (ValueError, TypeError):
-                continue
+        # Cache key pour les résultats
+        cache_key = f"{start_time.isoformat()}-{end_time.isoformat()}"
+        if event_types:
+            cache_key += f"-{','.join(event_types)}"
+        if user_ids:
+            cache_key += f"-{','.join(user_ids)}"
+        cache_key += f"-{limit}"
         
-        logger.info(f"Generated activity timeline for user {user_id} over {days} days")
-        return timeline
-    
-    def get_users_with_activity(self, start_date: Optional[datetime] = None,
-                              end_date: Optional[datetime] = None,
-                              min_events: int = 1) -> List[str]:
-        """
-        Récupère la liste des utilisateurs actifs pendant une période donnée.
+        # Vérifier le cache
+        if self.config["events_cache_enabled"]:
+            cached_events = self._load_from_cache(cache_key)
+            if cached_events:
+                logger.info(f"Retrieved {len(cached_events)} events from cache")
+                return cached_events
         
-        Args:
-            start_date: Date de début (défaut: 30 jours en arrière)
-            end_date: Date de fin (défaut: maintenant)
-            min_events: Nombre minimum d'événements pour considérer un utilisateur comme actif
-            
-        Returns:
-            Liste des IDs d'utilisateurs actifs
-        """
-        # Définir les dates par défaut si non spécifiées
-        if end_date is None:
-            end_date = datetime.now()
-        if start_date is None:
-            start_date = end_date - timedelta(days=30)
-        
-        # Formater les dates
-        start_str = start_date.isoformat()
-        end_str = end_date.isoformat()
-        
-        try:
-            # Construire la requête
-            params = {
-                "start_date": start_str,
-                "end_date": end_str,
-                "min_events": min_events
-            }
-            
-            headers = {}
-            if self.auth_token:
-                headers["Authorization"] = f"Bearer {self.auth_token}"
-            
-            # Faire la requête avec retry
-            active_users = self._make_request_with_retry(
-                endpoint="active_users",
-                params=params,
-                headers=headers
-            )
-            
-            if active_users:
-                logger.info(f"Retrieved {len(active_users)} active users")
-                return active_users
-            else:
-                logger.warning("No active users found")
-                return []
-            
-        except Exception as e:
-            logger.error(f"Error retrieving active users: {str(e)}")
-            logger.error(traceback.format_exc())
-            
-            # Si en mode simulation, générer des utilisateurs simulés
-            if self._is_simulation_mode():
-                logger.info("Using simulated active users")
-                return [f"user_{i}" for i in range(1, 21)]
-            
-            return []
-    
-    def register_profile_update(self, user_id: str, update_type: str, timestamp: Optional[datetime] = None) -> bool:
-        """
-        Enregistre une mise à jour de profil dans le système de tracking.
-        
-        Args:
-            user_id: Identifiant de l'utilisateur
-            update_type: Type de mise à jour (features, preferences, etc.)
-            timestamp: Horodatage de la mise à jour (défaut: maintenant)
-            
-        Returns:
-            Booléen indiquant si l'enregistrement a réussi
-        """
-        if timestamp is None:
-            timestamp = datetime.now()
-        
-        try:
-            # Construire les données à envoyer
-            data = {
-                "user_id": user_id,
-                "event_type": "profile_update",
-                "timestamp": timestamp.isoformat(),
-                "properties": {
-                    "update_type": update_type
-                }
-            }
-            
-            headers = {
-                "Content-Type": "application/json"
-            }
-            
-            if self.auth_token:
-                headers["Authorization"] = f"Bearer {self.auth_token}"
-            
-            # Faire la requête avec retry
-            result = self._make_request_with_retry(
-                endpoint="record",
-                method="POST",
-                data=json.dumps(data),
-                headers=headers
-            )
-            
-            success = result and result.get("success") == True
-            if success:
-                logger.info(f"Successfully registered profile update for user {user_id}")
-            else:
-                logger.warning(f"Failed to register profile update for user {user_id}")
-            
-            return success
-            
-        except Exception as e:
-            logger.error(f"Error registering profile update for user {user_id}: {str(e)}")
-            logger.error(traceback.format_exc())
-            return False
-    
-    def _make_request_with_retry(self, endpoint: str, method: str = "GET", params: Dict[str, Any] = None, 
-                               data: str = None, headers: Dict[str, str] = None) -> Any:
-        """
-        Effectue une requête HTTP avec mécanisme de retry.
-        
-        Args:
-            endpoint: Point de terminaison de l'API
-            method: Méthode HTTP (GET, POST, etc.)
-            params: Paramètres de requête
-            data: Données à envoyer (pour POST/PUT)
-            headers: En-têtes HTTP
-            
-        Returns:
-            Données de réponse (JSON)
-        """
-        url = f"{self.tracking_url}/{endpoint}"
+        # Effectuer la requête avec retry
+        events = []
         retry_count = 0
         
-        while retry_count < self.max_retries:
+        while retry_count < self.config["max_retries"]:
             try:
-                if method.upper() == "GET":
-                    response = requests.get(
-                        url,
-                        params=params,
-                        headers=headers,
-                        timeout=self.timeout
-                    )
-                elif method.upper() == "POST":
-                    response = requests.post(
-                        url,
-                        params=params,
-                        data=data,
-                        headers=headers,
-                        timeout=self.timeout
-                    )
+                response = requests.get(
+                    f"{self.config['tracking_service_url']}/events",
+                    params=params,
+                    headers=headers,
+                    timeout=self.config["timeout_seconds"]
+                )
+                
+                if response.status_code == 200:
+                    events = response.json().get("events", [])
+                    logger.info(f"Fetched {len(events)} tracking events")
+                    
+                    # Sauvegarder dans le cache
+                    if self.config["events_cache_enabled"] and events:
+                        self._save_to_cache(cache_key, events)
+                    
+                    return events
                 else:
-                    raise ValueError(f"Unsupported HTTP method: {method}")
-                
-                response.raise_for_status()
-                return response.json()
-                
+                    logger.error(f"Failed to fetch events: {response.status_code} - {response.text}")
             except requests.RequestException as e:
-                retry_count += 1
-                logger.warning(f"Request failed (attempt {retry_count}/{self.max_retries}): {str(e)}")
-                
-                if retry_count >= self.max_retries:
-                    raise
-                
-                time.sleep(self.retry_delay)
+                logger.error(f"Request error fetching events: {str(e)}")
+            
+            # Attendre avant de réessayer
+            retry_count += 1
+            if retry_count < self.config["max_retries"]:
+                logger.info(f"Retrying in {self.config['retry_delay_seconds']} seconds (attempt {retry_count+1}/{self.config['max_retries']})")
+                time.sleep(self.config["retry_delay_seconds"])
+        
+        # Si on arrive ici, toutes les tentatives ont échoué
+        logger.error(f"Failed to fetch events after {self.config['max_retries']} retries")
+        
+        # Si le service de tracking est indisponible, générer des données simulées
+        logger.warning("Generating mock data since tracking service is unavailable")
+        return self._generate_mock_tracking_data(start_time, end_time, user_ids, limit)
     
-    def _is_simulation_mode(self) -> bool:
+    def process_events(self, events: List[Dict[str, Any]]) -> Dict[str, int]:
         """
-        Vérifie si le module fonctionne en mode simulation.
+        Traite les événements de tracking pour mettre à jour les profils et les statistiques.
+        
+        Args:
+            events: Liste des événements de tracking à traiter
+            
+        Returns:
+            Dict contenant des statistiques sur le traitement
+        """
+        if not events:
+            logger.info("No events to process")
+            return {"processed": 0, "profiles_updated": 0, "patterns_updated": 0, "preferences_updated": 0}
+        
+        logger.info(f"Processing {len(events)} tracking events")
+        
+        # Grouper les événements par utilisateur
+        user_events = {}
+        for event in events:
+            user_id = event.get("user_id")
+            if not user_id:
+                continue
+            
+            if user_id not in user_events:
+                user_events[user_id] = []
+            
+            user_events[user_id].append(event)
+        
+        # Traiter les événements pour chaque utilisateur
+        processed_count = 0
+        profiles_updated = 0
+        patterns_updated = 0
+        preferences_updated = 0
+        
+        for user_id, user_event_list in user_events.items():
+            processed_count += len(user_event_list)
+            
+            # Extraire les caractéristiques et mettre à jour le profil
+            if self.feature_extractor and self.profile_manager:
+                try:
+                    features = self.feature_extractor.extract_features(user_id)
+                    if features:
+                        self.profile_manager.update_profile(user_id, {"features": features})
+                        profiles_updated += 1
+                except Exception as e:
+                    logger.error(f"Error updating profile for user {user_id}: {str(e)}")
+            
+            # Analyser les patterns comportementaux
+            if self.pattern_detector:
+                try:
+                    patterns = self.pattern_detector.analyze_user_patterns(user_id)
+                    if patterns:
+                        patterns_updated += 1
+                except Exception as e:
+                    logger.error(f"Error analyzing patterns for user {user_id}: {str(e)}")
+            
+            # Calculer les préférences
+            if self.preference_calculator:
+                try:
+                    preferences = self.preference_calculator.calculate_preferences(user_id)
+                    if preferences:
+                        preferences_updated += 1
+                except Exception as e:
+                    logger.error(f"Error calculating preferences for user {user_id}: {str(e)}")
+        
+        # Mettre à jour le clustering après avoir traité tous les utilisateurs
+        if self.user_clustering and profiles_updated > 0:
+            try:
+                self.user_clustering.update_clusters()
+                logger.info("User clusters updated")
+            except Exception as e:
+                logger.error(f"Error updating user clusters: {str(e)}")
+        
+        logger.info(f"Processed {processed_count} events, updated {profiles_updated} profiles, {patterns_updated} patterns, {preferences_updated} preferences")
+        
+        return {
+            "processed": processed_count,
+            "profiles_updated": profiles_updated,
+            "patterns_updated": patterns_updated,
+            "preferences_updated": preferences_updated
+        }
+    
+    def process_recent_events(self) -> Dict[str, int]:
+        """
+        Récupère et traite les événements récents depuis le dernier traitement.
         
         Returns:
-            True si en mode simulation, False sinon
+            Dict contenant des statistiques sur le traitement
         """
-        # Vérifier si le mode simulation est activé dans la config ou si l'URL est localhost
-        return self.tracking_url.startswith(("http://localhost", "http://127.0.0.1")) or "simulation" in self.tracking_url.lower()
+        now = datetime.now()
+        start_time = self.last_processed_timestamp
+        
+        logger.info(f"Processing events from {start_time} to {now}")
+        
+        # Récupérer les événements récents
+        events = self.fetch_events(start_time, now)
+        
+        # Mettre à jour le timestamp du dernier traitement
+        self.last_processed_timestamp = now
+        
+        # Traiter les événements
+        return self.process_events(events)
     
-    def _generate_simulated_events(self, user_id: str, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:
+    def start_auto_processing(self):
+        """Démarre le traitement automatique des événements en arrière-plan."""
+        if self.running:
+            logger.warning("Auto-processing already running")
+            return
+        
+        self.running = True
+        self.polling_thread = threading.Thread(target=self._auto_processing_loop)
+        self.polling_thread.daemon = True
+        self.polling_thread.start()
+        
+        logger.info(f"Started auto-processing with polling interval of {self.config['polling_interval_seconds']} seconds")
+    
+    def stop_auto_processing(self):
+        """Arrête le traitement automatique des événements."""
+        self.running = False
+        if self.polling_thread:
+            self.polling_thread.join(timeout=10)
+            logger.info("Stopped auto-processing")
+    
+    def _auto_processing_loop(self):
+        """Boucle de traitement automatique des événements."""
+        while self.running:
+            try:
+                self.process_recent_events()
+            except Exception as e:
+                logger.error(f"Error in auto-processing loop: {str(e)}")
+            
+            # Attendre l'intervalle de polling
+            for _ in range(self.config["polling_interval_seconds"]):
+                if not self.running:
+                    break
+                time.sleep(1)
+    
+    def _save_to_cache(self, key: str, events: List[Dict[str, Any]]) -> bool:
         """
-        Génère des événements de tracking simulés pour le développement.
+        Sauvegarde les événements dans le cache.
+        
+        Args:
+            key: Clé de cache
+            events: Liste des événements à sauvegarder
+            
+        Returns:
+            True si la sauvegarde a réussi, False sinon
+        """
+        if not self.config["events_cache_enabled"]:
+            return False
+        
+        # Sécuriser la clé pour l'utiliser comme nom de fichier
+        import hashlib
+        safe_key = hashlib.md5(key.encode()).hexdigest()
+        cache_file = os.path.join(self.config["events_cache_path"], f"{safe_key}.json")
+        
+        try:
+            with open(cache_file, "w") as f:
+                json.dump({
+                    "key": key,
+                    "timestamp": datetime.now().isoformat(),
+                    "events": events
+                }, f)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to save to cache: {str(e)}")
+            return False
+    
+    def _load_from_cache(self, key: str) -> Optional[List[Dict[str, Any]]]:
+        """
+        Charge les événements depuis le cache.
+        
+        Args:
+            key: Clé de cache
+            
+        Returns:
+            Liste des événements ou None si pas trouvés
+        """
+        if not self.config["events_cache_enabled"]:
+            return None
+        
+        # Sécuriser la clé pour l'utiliser comme nom de fichier
+        import hashlib
+        safe_key = hashlib.md5(key.encode()).hexdigest()
+        cache_file = os.path.join(self.config["events_cache_path"], f"{safe_key}.json")
+        
+        if not os.path.exists(cache_file):
+            return None
+        
+        try:
+            with open(cache_file, "r") as f:
+                cache_data = json.load(f)
+                
+                # Vérifier que c'est bien la bonne clé
+                if cache_data.get("key") != key:
+                    return None
+                
+                # Vérifier que le cache n'est pas trop ancien (1 heure max)
+                cache_time = datetime.fromisoformat(cache_data.get("timestamp"))
+                if datetime.now() - cache_time > timedelta(hours=1):
+                    return None
+                
+                return cache_data.get("events", [])
+        except Exception as e:
+            logger.error(f"Failed to load from cache: {str(e)}")
+            return None
+    
+    def track_event(self, user_id: str, event_type: str, properties: Dict[str, Any] = None) -> bool:
+        """
+        Envoie un événement au système de tracking.
         
         Args:
             user_id: Identifiant de l'utilisateur
-            start_date: Date de début
-            end_date: Date de fin
+            event_type: Type d'événement
+            properties: Propriétés de l'événement
+            
+        Returns:
+            True si l'événement a été envoyé avec succès, False sinon
+        """
+        if not properties:
+            properties = {}
+        
+        # Préparer l'événement
+        event = {
+            "user_id": user_id,
+            "event_type": event_type,
+            "timestamp": datetime.now().isoformat(),
+            "properties": properties
+        }
+        
+        # Préparer les headers
+        headers = {"Content-Type": "application/json"}
+        if self.config["auth_token"]:
+            headers["Authorization"] = f"Bearer {self.config['auth_token']}"
+        
+        # Envoyer l'événement avec retry
+        retry_count = 0
+        
+        while retry_count < self.config["max_retries"]:
+            try:
+                response = requests.post(
+                    f"{self.config['tracking_service_url']}/events",
+                    json=event,
+                    headers=headers,
+                    timeout=self.config["timeout_seconds"]
+                )
+                
+                if response.status_code in (200, 201, 202):
+                    logger.info(f"Tracked event {event_type} for user {user_id}")
+                    return True
+                else:
+                    logger.error(f"Failed to track event: {response.status_code} - {response.text}")
+            except requests.RequestException as e:
+                logger.error(f"Request error tracking event: {str(e)}")
+            
+            # Attendre avant de réessayer
+            retry_count += 1
+            if retry_count < self.config["max_retries"]:
+                logger.info(f"Retrying in {self.config['retry_delay_seconds']} seconds (attempt {retry_count+1}/{self.config['max_retries']})")
+                time.sleep(self.config["retry_delay_seconds"])
+        
+        # Si on arrive ici, toutes les tentatives ont échoué
+        logger.error(f"Failed to track event after {self.config['max_retries']} retries")
+        return False
+    
+    def _generate_mock_tracking_data(self, start_time: datetime, end_time: datetime, 
+                                   user_ids: Optional[List[str]] = None, 
+                                   limit: int = 1000) -> List[Dict[str, Any]]:
+        """
+        Génère des données de tracking simulées pour le développement.
+        
+        Args:
+            start_time: Timestamp de début
+            end_time: Timestamp de fin
+            user_ids: Liste des identifiants d'utilisateurs (génère des IDs aléatoires si None)
+            limit: Nombre maximum d'événements à générer
             
         Returns:
             Liste des événements simulés
         """
         import random
-        from datetime import timedelta
+        from datetime import datetime, timedelta
         
-        events = []
+        logger.info(f"Generating mock tracking data from {start_time} to {end_time}")
+        
+        # Si pas d'utilisateurs spécifiés, en générer quelques-uns
+        if not user_ids:
+            user_ids = [f"user_{i}" for i in range(1, 11)]
+        
+        # Types d'événements possibles
         event_types = ["page_view", "click", "search", "filter", "download", "apply"]
-        pages = ["/jobs", "/profile", "/dashboard", "/search", "/recommendations"]
         
-        # Générer des dates aléatoires dans la plage
-        total_seconds = int((end_date - start_date).total_seconds())
-        event_count = random.randint(50, 200)  # Nombre d'événements à générer
-        
-        for _ in range(event_count):
-            # Générer un timestamp aléatoire dans la plage
-            random_seconds = random.randint(0, total_seconds)
-            timestamp = start_date + timedelta(seconds=random_seconds)
-            
-            # Générer une session (la même pour des événements proches dans le temps)
-            session_id = f"session_{random.randint(1, 5)}"
-            
-            # Générer l'événement
+        # Générer des événements aléatoires
+        events = []
+        for _ in range(min(limit, 1000)):  # Limiter à 1000 événements max
+            user_id = random.choice(user_ids)
             event_type = random.choice(event_types)
-            page = random.choice(pages)
             
-            event = {
-                "user_id": user_id,
-                "timestamp": timestamp.isoformat(),
-                "event_type": event_type,
-                "session_id": session_id,
-                "page": page,
-                "properties": {}
-            }
+            # Timestamp aléatoire dans la plage spécifiée
+            time_range = (end_time - start_time).total_seconds()
+            random_seconds = random.randint(0, int(time_range))
+            timestamp = start_time + timedelta(seconds=random_seconds)
             
-            # Ajouter des propriétés spécifiques selon le type d'événement
-            if event_type == "click":
-                event["properties"]["element_id"] = f"element_{random.randint(1, 20)}"
-                event["properties"]["element_type"] = random.choice(["button", "link", "card"])
-                
+            # Générer des propriétés selon le type d'événement
+            properties = {}
+            
+            if event_type == "page_view":
+                pages = ["/home", "/jobs", "/profile", "/candidates", "/settings", "/stats"]
+                properties["page"] = random.choice(pages)
+                properties["referrer"] = random.choice(["direct", "search", "social", "email"])
+            
+            elif event_type == "click":
+                elements = ["button", "link", "card", "tab", "input", "dropdown"]
+                properties["element_type"] = random.choice(elements)
+                properties["element_id"] = f"el_{random.randint(1, 100)}"
+                properties["page"] = f"/page_{random.randint(1, 10)}"
+            
             elif event_type == "search":
-                event["properties"]["query"] = random.choice(["java developer", "marketing manager", "data scientist"])
-                event["properties"]["results_count"] = random.randint(0, 50)
-                
-            elif event_type == "filter":
-                filter_types = ["category", "location", "salary", "experience"]
-                filter_type = random.choice(filter_types)
-                event["properties"]["filter_type"] = filter_type
-                
-                if filter_type == "category":
-                    event["properties"]["filter_value"] = random.choice(["IT", "Marketing", "Sales"])
-                elif filter_type == "location":
-                    event["properties"]["filter_value"] = random.choice(["Paris", "Lyon", "Marseille"])
-                elif filter_type == "salary":
-                    event["properties"]["filter_value"] = random.choice(["<30k", "30-60k", ">60k"])
-                else:
-                    event["properties"]["filter_value"] = random.choice(["Junior", "Intermediate", "Senior"])
+                queries = ["python developer", "data scientist", "project manager", "UI designer", "sales manager"]
+                properties["query"] = random.choice(queries)
+                properties["results_count"] = random.randint(0, 50)
+                properties["page"] = 1
             
-            events.append(event)
+            elif event_type == "filter":
+                filter_types = ["location", "salary", "experience", "skills", "job_type"]
+                filter_type = random.choice(filter_types)
+                properties["filter_type"] = filter_type
+                
+                if filter_type == "location":
+                    locations = ["paris", "lyon", "marseille", "bordeaux", "toulouse"]
+                    properties["filter_value"] = random.choice(locations)
+                elif filter_type == "salary":
+                    properties["filter_value"] = f"{random.randint(30, 120)}k-{random.randint(45, 150)}k"
+                elif filter_type == "experience":
+                    properties["filter_value"] = random.choice(["entry", "mid", "senior", "lead", "executive"])
+                elif filter_type == "skills":
+                    skills = ["python", "javascript", "react", "data analysis", "product management"]
+                    properties["filter_value"] = random.choice(skills)
+                elif filter_type == "job_type":
+                    properties["filter_value"] = random.choice(["full-time", "part-time", "contract", "remote"])
+            
+            elif event_type == "download":
+                doc_types = ["cv", "job_description", "report", "company_profile"]
+                properties["document_type"] = random.choice(doc_types)
+                properties["document_id"] = f"doc_{random.randint(1, 100)}"
+            
+            elif event_type == "apply":
+                properties["job_id"] = f"job_{random.randint(1, 100)}"
+                properties["application_method"] = random.choice(["direct", "email", "form"])
+                
+                # Ajouter des métadonnées pour les offres d'emploi
+                categories = ["engineering", "marketing", "sales", "design", "finance"]
+                locations = ["paris", "lyon", "marseille", "bordeaux", "toulouse"]
+                properties["job_category"] = random.choice(categories)
+                properties["job_location"] = random.choice(locations)
+            
+            # Ajouter l'événement à la liste
+            events.append({
+                "user_id": user_id,
+                "event_type": event_type,
+                "timestamp": timestamp.isoformat(),
+                "properties": properties,
+                "session_id": f"session_{random.randint(1, 10)}_{user_id}"
+            })
         
-        # Trier par timestamp
+        # Trier les événements par timestamp
         events.sort(key=lambda x: x["timestamp"])
         
-        logger.info(f"Generated {len(events)} simulated events for user {user_id}")
+        logger.info(f"Generated {len(events)} mock tracking events")
         return events
