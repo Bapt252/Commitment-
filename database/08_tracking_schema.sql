@@ -240,7 +240,13 @@ WHERE session_id IS NOT NULL
 GROUP BY session_id, user_id;
 
 -- Création d'un rôle avec droits restreints pour l'API
-CREATE ROLE tracking_api WITH LOGIN PASSWORD 'changeme_in_prod';
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'tracking_api') THEN
+        CREATE ROLE tracking_api WITH LOGIN PASSWORD 'changeme_in_prod';
+    END IF;
+END
+$$;
 
 -- Octroi des droits minimum nécessaires
 GRANT USAGE ON SCHEMA tracking TO tracking_api;
