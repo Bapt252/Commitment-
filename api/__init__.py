@@ -1,0 +1,1 @@
+# API pour la collecte de données et la gestion du consentement
