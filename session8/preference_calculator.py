@@ -1,1 +1,1030 @@
-\"\"\"\nModule de calcul des scores de préférence dynamiques.\n\nCe module est responsable du calcul des scores de préférence des utilisateurs\nbasés sur leur comportement et leurs interactions avec le système.\n\"\"\"\n\nimport numpy as np\nimport pandas as pd\nfrom datetime import datetime, timedelta\nimport logging\nfrom typing import Dict, List, Any, Optional, Tuple\nimport json\nimport os\n\n# Configuration du logging\nlogging.basicConfig(\n    level=logging.INFO,\n    format=\"%(asctime)s - %(name)s - %(levelname)s - %(message)s\"\n)\nlogger = logging.getLogger(__name__)\n\nclass PreferenceCalculator:\n    \"\"\"\n    Calculateur de scores de préférence dynamiques basés sur le comportement utilisateur.\n    \"\"\"\n    \n    def __init__(self, profile_manager=None, pattern_detector=None, db_connector=None, \n                 storage_path: str = \"./preferences\"):\n        \"\"\"\n        Initialise le calculateur de préférences.\n        \n        Args:\n            profile_manager: Gestionnaire de profils utilisateurs\n            pattern_detector: Détecteur de patterns comportementaux\n            db_connector: Connecteur vers la base de données de tracking\n            storage_path: Chemin vers le dossier de stockage des préférences\n        \"\"\"\n        self.profile_manager = profile_manager\n        self.pattern_detector = pattern_detector\n        self.db_connector = db_connector\n        self.storage_path = storage_path\n        \n        # Créer le dossier de stockage s'il n'existe pas\n        os.makedirs(storage_path, exist_ok=True)\n        \n        # Définir les catégories de préférences à calculer\n        self.preference_categories = {\n            \"content_preferences\": self._calculate_content_preferences,\n            \"interaction_preferences\": self._calculate_interaction_preferences,\n            \"time_preferences\": self._calculate_time_preferences,\n            \"feature_preferences\": self._calculate_feature_preferences\n        }\n        \n        # Cache pour les préférences calculées\n        self.preferences_cache = {}\n        \n        logger.info(\"PreferenceCalculator initialized\")\n    \n    def calculate_preferences(self, user_id: str, start_date: Optional[datetime] = None, \n                             end_date: Optional[datetime] = None) -> Dict[str, Any]:\n        \"\"\"\n        Calcule les scores de préférence pour un utilisateur spécifique.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            start_date: Date de début pour l'analyse (par défaut: 30 jours en arrière)\n            end_date: Date de fin pour l'analyse (par défaut: maintenant)\n            \n        Returns:\n            Dict contenant les scores de préférence calculés\n        \"\"\"\n        logger.info(f\"Calculating preferences for user {user_id}\")\n        \n        # Définir les dates par défaut si non spécifiées\n        if end_date is None:\n            end_date = datetime.now()\n        if start_date is None:\n            start_date = end_date - timedelta(days=30)\n        \n        # Récupérer le profil et les patterns de l'utilisateur\n        profile = None\n        if self.profile_manager:\n            profile = self.profile_manager.get_profile(user_id)\n        \n        patterns = None\n        if self.pattern_detector:\n            patterns = self.pattern_detector.get_user_patterns(user_id)\n        \n        # Récupérer les données de tracking si nécessaire\n        raw_data = self._get_user_tracking_data(user_id, start_date, end_date)\n        \n        if not raw_data and not profile and not patterns:\n            logger.warning(f\"No data available for preference calculation for user {user_id}\")\n            return {}\n        \n        # Résultats globaux des préférences\n        preferences = {\n            \"user_id\": user_id,\n            \"calculation_date\": datetime.now().isoformat(),\n            \"data_start_date\": start_date.isoformat(),\n            \"data_end_date\": end_date.isoformat()\n        }\n        \n        # Calculer les différentes catégories de préférences\n        for category, calculator in self.preference_categories.items():\n            try:\n                preferences[category] = calculator(user_id, raw_data, profile, patterns)\n            except Exception as e:\n                logger.error(f\"Error calculating {category}: {str(e)}\")\n                preferences[category] = {}\n        \n        # Calculer un score global de préférence\n        preferences[\"overall_score\"] = self._calculate_overall_preference_score(preferences)\n        \n        # Sauvegarder les préférences calculées\n        self._save_preferences(user_id, preferences)\n        \n        logger.info(f\"Calculated preferences for user {user_id}\")\n        return preferences\n    \n    def get_preferences(self, user_id: str) -> Dict[str, Any]:\n        \"\"\"\n        Récupère les préférences calculées pour un utilisateur.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            \n        Returns:\n            Dict contenant les préférences calculées\n        \"\"\"\n        # Vérifier le cache d'abord\n        if user_id in self.preferences_cache:\n            logger.info(f\"Returning cached preferences for user {user_id}\")\n            return self.preferences_cache[user_id]\n        \n        # Sinon, essayer de charger depuis le stockage\n        preferences_path = os.path.join(self.storage_path, f\"user_{user_id}_preferences.json\")\n        if os.path.exists(preferences_path):\n            try:\n                with open(preferences_path, 'r') as file:\n                    preferences = json.load(file)\n                    \n                # Mettre en cache pour accès ultérieur\n                self.preferences_cache[user_id] = preferences\n                logger.info(f\"Loaded preferences from storage for user {user_id}\")\n                return preferences\n            except Exception as e:\n                logger.error(f\"Failed to load preferences from file: {str(e)}\")\n        \n        logger.warning(f\"No preferences found for user {user_id}, calculating new ones\")\n        return self.calculate_preferences(user_id)\n    \n    def get_recommendation_score(self, user_id: str, item_id: str, item_type: str) -> float:\n        \"\"\"\n        Calcule un score de recommandation pour un élément spécifique basé sur les préférences.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            item_id: Identifiant de l'élément\n            item_type: Type de l'élément (job, cv, etc.)\n            \n        Returns:\n            Score de recommandation entre 0 et 1\n        \"\"\"\n        # Récupérer les préférences de l'utilisateur\n        preferences = self.get_preferences(user_id)\n        if not preferences:\n            logger.warning(f\"No preferences available for recommendation score calculation for user {user_id}\")\n            return 0.5  # Score neutre par défaut\n        \n        # Récupérer les caractéristiques de l'élément (simulé ici)\n        item_features = self._get_item_features(item_id, item_type)\n        if not item_features:\n            logger.warning(f\"No features available for item {item_id} of type {item_type}\")\n            return 0.5  # Score neutre par défaut\n        \n        # Calculer le score de recommandation\n        content_score = self._calculate_content_similarity(\n            preferences.get(\"content_preferences\", {}),\n            item_features\n        )\n        \n        # On pourrait ajouter d'autres aspects au score ici, comme la temporalité, etc.\n        \n        logger.info(f\"Calculated recommendation score {content_score:.2f} for user {user_id} and item {item_id}\")\n        return content_score\n    \n    def _get_user_tracking_data(self, user_id: str, start_date: datetime, \n                              end_date: datetime) -> List[Dict[str, Any]]:\n        \"\"\"\n        Récupère les données de tracking pour un utilisateur spécifique.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            start_date: Date de début\n            end_date: Date de fin\n            \n        Returns:\n            Liste des événements de tracking\n        \"\"\"\n        # Si un connecteur DB est disponible, utiliser celui-ci\n        if self.db_connector:\n            try:\n                query = f\"\"\"\n                SELECT * FROM tracking_events \n                WHERE user_id = '{user_id}' \n                AND timestamp BETWEEN '{start_date.isoformat()}' AND '{end_date.isoformat()}'\n                ORDER BY timestamp ASC\n                \"\"\"\n                return self.db_connector.execute_query(query)\n            except Exception as e:\n                logger.error(f\"Error retrieving tracking data: {str(e)}\")\n                return []\n        \n        # Sinon, utiliser des données simulées pour le développement\n        return self._generate_mock_tracking_data(user_id, start_date, end_date)\n    \n    def _generate_mock_tracking_data(self, user_id: str, start_date: datetime, \n                                   end_date: datetime) -> List[Dict[str, Any]]:\n        \"\"\"\n        Génère des données de tracking simulées pour le développement.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            start_date: Date de début\n            end_date: Date de fin\n            \n        Returns:\n            Liste des événements de tracking simulés\n        \"\"\"\n        logger.info(f\"Generating mock tracking data for user {user_id}\")\n        \n        # Calculer le nombre de jours entre les dates\n        days_diff = (end_date - start_date).days\n        if days_diff <= 0:\n            days_diff = 1\n        \n        # Générer des données simulées\n        mock_data = []\n        event_types = [\"page_view\", \"click\", \"search\", \"filter\", \"download\", \"apply\"]\n        \n        # Simuler des jours actifs aléatoires\n        active_days = np.random.choice(range(days_diff), size=min(days_diff, 20), replace=False)\n        \n        # Définir certaines préférences simulées pour l'utilisateur\n        favorite_categories = np.random.choice(\n            [\"engineering\", \"marketing\", \"sales\", \"design\", \"finance\"], \n            size=np.random.randint(1, 3),\n            replace=False\n        )\n        favorite_locations = np.random.choice(\n            [\"paris\", \"lyon\", \"marseille\", \"bordeaux\", \"toulouse\"], \n            size=np.random.randint(1, 3),\n            replace=False\n        )\n        favorite_times = np.random.choice(\n            [\"morning\", \"afternoon\", \"evening\", \"night\"], \n            size=np.random.randint(1, 3),\n            replace=False\n        )\n        \n        for day_offset in active_days:\n            # Nombre d'événements par jour actif\n            events_count = np.random.randint(5, 50)\n            base_date = start_date + timedelta(days=day_offset)\n            \n            # Heure de la journée en fonction des préférences temporelles\n            if \"morning\" in favorite_times:\n                hour_range = (8, 12)\n            elif \"afternoon\" in favorite_times:\n                hour_range = (12, 18)\n            elif \"evening\" in favorite_times:\n                hour_range = (18, 22)\n            elif \"night\" in favorite_times:\n                hour_range = (22, 8)\n            else:\n                hour_range = (8, 22)\n            \n            # Générer des événements pour cette journée\n            for _ in range(events_count):\n                hour = np.random.randint(hour_range[0], hour_range[1])\n                event_time = base_date.replace(hour=hour, minute=np.random.randint(0, 60))\n                \n                # Type d'événement avec une probabilité plus élevée pour les catégories préférées\n                event_type = np.random.choice(event_types, p=[0.4, 0.3, 0.1, 0.1, 0.05, 0.05])\n                \n                event = {\n                    \"user_id\": user_id,\n                    \"timestamp\": event_time.isoformat(),\n                    \"event_type\": event_type,\n                    \"session_id\": f\"session_{day_offset}_{np.random.randint(1, 4)}\",\n                    \"page\": f\"/page/{np.random.randint(1, 20)}\",\n                    \"properties\": {}\n                }\n                \n                # Ajouter des propriétés spécifiques selon le type d'événement\n                if event_type == \"click\":\n                    event[\"properties\"][\"element_id\"] = f\"element_{np.random.randint(1, 100)}\"\n                    element_types = [\"button\", \"link\", \"card\"]\n                    event[\"properties\"][\"element_type\"] = np.random.choice(element_types)\n                    \n                elif event_type == \"search\":\n                    # Favoriser les catégories préférées dans les recherches\n                    if np.random.random() < 0.7 and favorite_categories.size > 0:\n                        category = np.random.choice(favorite_categories)\n                        event[\"properties\"][\"query\"] = f\"{category} jobs\"\n                    else:\n                        event[\"properties\"][\"query\"] = f\"query_{np.random.randint(1, 10)}\"\n                    \n                    event[\"properties\"][\"results_count\"] = np.random.randint(0, 50)\n                    \n                elif event_type == \"filter\":\n                    filter_types = [\"category\", \"location\", \"salary\", \"experience\"]\n                    filter_type = np.random.choice(filter_types)\n                    event[\"properties\"][\"filter_type\"] = filter_type\n                    \n                    if filter_type == \"category\" and np.random.random() < 0.8 and favorite_categories.size > 0:\n                        # Favoriser les catégories préférées dans les filtres\n                        event[\"properties\"][\"filter_value\"] = np.random.choice(favorite_categories)\n                    elif filter_type == \"location\" and np.random.random() < 0.8 and favorite_locations.size > 0:\n                        # Favoriser les localisations préférées\n                        event[\"properties\"][\"filter_value\"] = np.random.choice(favorite_locations)\n                    else:\n                        event[\"properties\"][\"filter_value\"] = f\"value_{np.random.randint(1, 10)}\"\n                    \n                elif event_type == \"download\":\n                    doc_types = [\"cv\", \"job\", \"report\"]\n                    event[\"properties\"][\"document_id\"] = f\"doc_{np.random.randint(1, 100)}\"\n                    event[\"properties\"][\"document_type\"] = np.random.choice(doc_types)\n                    \n                    # Ajouter des métadonnées pour les documents\n                    if event[\"properties\"][\"document_type\"] == \"job\":\n                        # Favoriser les catégories préférées\n                        if np.random.random() < 0.7 and favorite_categories.size > 0:\n                            event[\"properties\"][\"job_category\"] = np.random.choice(favorite_categories)\n                        else:\n                            event[\"properties\"][\"job_category\"] = np.random.choice(\n                                [\"engineering\", \"marketing\", \"sales\", \"design\", \"finance\"]\n                            )\n                        \n                        # Favoriser les localisations préférées\n                        if np.random.random() < 0.7 and favorite_locations.size > 0:\n                            event[\"properties\"][\"job_location\"] = np.random.choice(favorite_locations)\n                        else:\n                            event[\"properties\"][\"job_location\"] = np.random.choice(\n                                [\"paris\", \"lyon\", \"marseille\", \"bordeaux\", \"toulouse\"]\n                            )\n                    \n                elif event_type == \"apply\":\n                    application_methods = [\"direct\", \"email\", \"form\"]\n                    event[\"properties\"][\"job_id\"] = f\"job_{np.random.randint(1, 100)}\"\n                    event[\"properties\"][\"application_method\"] = np.random.choice(application_methods)\n                    \n                    # Ajouter des métadonnées pour les offres d'emploi\n                    if np.random.random() < 0.7 and favorite_categories.size > 0:\n                        event[\"properties\"][\"job_category\"] = np.random.choice(favorite_categories)\n                    else:\n                        event[\"properties\"][\"job_category\"] = np.random.choice(\n                            [\"engineering\", \"marketing\", \"sales\", \"design\", \"finance\"]\n                        )\n                    \n                    if np.random.random() < 0.7 and favorite_locations.size > 0:\n                        event[\"properties\"][\"job_location\"] = np.random.choice(favorite_locations)\n                    else:\n                        event[\"properties\"][\"job_location\"] = np.random.choice(\n                            [\"paris\", \"lyon\", \"marseille\", \"bordeaux\", \"toulouse\"]\n                        )\n                \n                mock_data.append(event)\n        \n        # Trier par timestamp\n        mock_data.sort(key=lambda x: x[\"timestamp\"])\n        logger.info(f\"Generated {len(mock_data)} mock events for user {user_id}\")\n        \n        return mock_data\n    \n    def _calculate_content_preferences(self, user_id: str, raw_data: List[Dict[str, Any]], \n                                     profile: Optional[Dict[str, Any]], \n                                     patterns: Optional[Dict[str, Any]]) -> Dict[str, Any]:\n        \"\"\"\n        Calcule les préférences de contenu basées sur les interactions.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            raw_data: Données de tracking brutes\n            profile: Profil de l'utilisateur (optionnel)\n            patterns: Patterns comportementaux détectés (optionnel)\n            \n        Returns:\n            Dict contenant les préférences de contenu calculées\n        \"\"\"\n        # Initialiser les compteurs\n        categories = {}\n        locations = {}\n        salary_ranges = {}\n        job_types = {}\n        skills = {}\n        industries = {}\n        \n        # Analyser les données de tracking\n        for event in raw_data:\n            props = event.get(\"properties\", {})\n            event_type = event.get(\"event_type\")\n            \n            # Pondérer les événements selon leur importance\n            weight = 1.0\n            if event_type == \"apply\":\n                weight = 5.0  # Les candidatures sont plus importantes\n            elif event_type == \"download\":\n                weight = 2.0  # Les téléchargements sont importants\n            elif event_type == \"search\" or event_type == \"filter\":\n                weight = 1.5  # Les recherches et filtres sont modérément importants\n            \n            # Extraire les catégories\n            if \"job_category\" in props:\n                category = props[\"job_category\"]\n                if category not in categories:\n                    categories[category] = 0\n                categories[category] += weight\n            \n            # Extraire les localisations\n            if \"job_location\" in props:\n                location = props[\"job_location\"]\n                if location not in locations:\n                    locations[location] = 0\n                locations[location] += weight\n            \n            # Extraire les plages de salaire\n            if \"salary_range\" in props:\n                salary = props[\"salary_range\"]\n                if salary not in salary_ranges:\n                    salary_ranges[salary] = 0\n                salary_ranges[salary] += weight\n            \n            # Extraire les types d'emploi\n            if \"job_type\" in props:\n                job_type = props[\"job_type\"]\n                if job_type not in job_types:\n                    job_types[job_type] = 0\n                job_types[job_type] += weight\n            \n            # Extraire les compétences\n            if \"skills\" in props and isinstance(props[\"skills\"], list):\n                for skill in props[\"skills\"]:\n                    if skill not in skills:\n                        skills[skill] = 0\n                    skills[skill] += weight\n            \n            # Extraire les industries\n            if \"industry\" in props:\n                industry = props[\"industry\"]\n                if industry not in industries:\n                    industries[industry] = 0\n                industries[industry] += weight\n            \n            # Analyser les termes de recherche\n            if event_type == \"search\" and \"query\" in props:\n                query = props[\"query\"].lower()\n                \n                # Recherche simple de mots-clés dans la requête\n                for category in [\"engineering\", \"marketing\", \"sales\", \"design\", \"finance\"]:\n                    if category in query:\n                        if category not in categories:\n                            categories[category] = 0\n                        categories[category] += weight\n                \n                for location in [\"paris\", \"lyon\", \"marseille\", \"bordeaux\", \"toulouse\"]:\n                    if location in query:\n                        if location not in locations:\n                            locations[location] = 0\n                        locations[location] += weight\n            \n            # Analyser les filtres\n            if event_type == \"filter\":\n                filter_type = props.get(\"filter_type\")\n                filter_value = props.get(\"filter_value\")\n                \n                if filter_type and filter_value:\n                    if filter_type == \"category\":\n                        if filter_value not in categories:\n                            categories[filter_value] = 0\n                        categories[filter_value] += weight\n                    elif filter_type == \"location\":\n                        if filter_value not in locations:\n                            locations[filter_value] = 0\n                        locations[filter_value] += weight\n                    elif filter_type == \"salary\":\n                        if filter_value not in salary_ranges:\n                            salary_ranges[filter_value] = 0\n                        salary_ranges[filter_value] += weight\n        \n        # Normaliser les scores\n        categories = self._normalize_scores(categories)\n        locations = self._normalize_scores(locations)\n        salary_ranges = self._normalize_scores(salary_ranges)\n        job_types = self._normalize_scores(job_types)\n        skills = self._normalize_scores(skills)\n        industries = self._normalize_scores(industries)\n        \n        # Extraire les top préférences\n        top_categories = self._extract_top_preferences(categories, 3)\n        top_locations = self._extract_top_preferences(locations, 3)\n        top_salary_ranges = self._extract_top_preferences(salary_ranges, 2)\n        top_job_types = self._extract_top_preferences(job_types, 2)\n        top_skills = self._extract_top_preferences(skills, 5)\n        top_industries = self._extract_top_preferences(industries, 3)\n        \n        return {\n            \"categories\": categories,\n            \"locations\": locations,\n            \"salary_ranges\": salary_ranges,\n            \"job_types\": job_types,\n            \"skills\": skills,\n            \"industries\": industries,\n            \"top_preferences\": {\n                \"categories\": top_categories,\n                \"locations\": top_locations,\n                \"salary_ranges\": top_salary_ranges,\n                \"job_types\": top_job_types,\n                \"skills\": top_skills,\n                \"industries\": top_industries\n            }\n        }\n    \n    def _calculate_interaction_preferences(self, user_id: str, raw_data: List[Dict[str, Any]], \n                                        profile: Optional[Dict[str, Any]], \n                                        patterns: Optional[Dict[str, Any]]) -> Dict[str, Any]:\n        \"\"\"\n        Calcule les préférences d'interaction basées sur le comportement.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            raw_data: Données de tracking brutes\n            profile: Profil de l'utilisateur (optionnel)\n            patterns: Patterns comportementaux détectés (optionnel)\n            \n        Returns:\n            Dict contenant les préférences d'interaction calculées\n        \"\"\"\n        # Initialiser les compteurs\n        element_types = {}\n        page_preferences = {}\n        action_sequences = {}\n        \n        # Analyser les données de tracking\n        for event in raw_data:\n            # Extraire les types d'éléments cliqués\n            if event.get(\"event_type\") == \"click\":\n                props = event.get(\"properties\", {})\n                element_type = props.get(\"element_type\")\n                \n                if element_type:\n                    if element_type not in element_types:\n                        element_types[element_type] = 0\n                    element_types[element_type] += 1\n            \n            # Extraire les préférences de page\n            page = event.get(\"page\")\n            if page:\n                if page not in page_preferences:\n                    page_preferences[page] = 0\n                page_preferences[page] += 1\n        \n        # Extraire les séquences d'actions si des patterns sont disponibles\n        if patterns and \"sequence_patterns\" in patterns:\n            for sequence in patterns[\"sequence_patterns\"]:\n                seq_key = \"->".join(sequence.get(\"sequence\", []))\n                if seq_key:\n                    action_sequences[seq_key] = sequence.get(\"count\", 0)\n        \n        # Normaliser les scores\n        element_types = self._normalize_scores(element_types)\n        page_preferences = self._normalize_scores(page_preferences)\n        action_sequences = self._normalize_scores(action_sequences)\n        \n        # Déterminer le mode d'interaction préféré\n        interaction_mode = \"explorer\"  # Par défaut\n        if element_types:\n            if element_types.get(\"button\", 0) > element_types.get(\"link\", 0) and element_types.get(\"button\", 0) > element_types.get(\"card\", 0):\n                interaction_mode = \"direct\"\n            elif element_types.get(\"card\", 0) > element_types.get(\"link\", 0) and element_types.get(\"card\", 0) > element_types.get(\"button\", 0):\n                interaction_mode = \"visual\"\n            elif element_types.get(\"link\", 0) > element_types.get(\"button\", 0) and element_types.get(\"link\", 0) > element_types.get(\"card\", 0):\n                interaction_mode = \"explorer\"\n        \n        # Extraire les top préférences\n        top_pages = self._extract_top_preferences(page_preferences, 5)\n        top_sequences = self._extract_top_preferences(action_sequences, 3)\n        \n        return {\n            \"element_types\": element_types,\n            \"page_preferences\": page_preferences,\n            \"action_sequences\": action_sequences,\n            \"interaction_mode\": interaction_mode,\n            \"top_preferences\": {\n                \"pages\": top_pages,\n                \"sequences\": top_sequences\n            }\n        }\n    \n    def _calculate_time_preferences(self, user_id: str, raw_data: List[Dict[str, Any]], \n                                 profile: Optional[Dict[str, Any]], \n                                 patterns: Optional[Dict[str, Any]]) -> Dict[str, Any]:\n        \"\"\"\n        Calcule les préférences temporelles basées sur les moments d'activité.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            raw_data: Données de tracking brutes\n            profile: Profil de l'utilisateur (optionnel)\n            patterns: Patterns comportementaux détectés (optionnel)\n            \n        Returns:\n            Dict contenant les préférences temporelles calculées\n        \"\"\"\n        # Initialiser les compteurs\n        hour_counts = {str(h): 0 for h in range(24)}\n        day_counts = {\n            \"Monday\": 0, \"Tuesday\": 0, \"Wednesday\": 0, \n            \"Thursday\": 0, \"Friday\": 0, \"Saturday\": 0, \"Sunday\": 0\n        }\n        \n        # Analyser les données de tracking ou utiliser les patterns existants\n        if patterns and \"time_based_patterns\" in patterns and patterns[\"time_based_patterns\"]:\n            time_patterns = patterns[\"time_based_patterns\"]\n            \n            # Extraire la distribution par heure\n            if \"hour_distribution\" in time_patterns:\n                for hour, value in time_patterns[\"hour_distribution\"].items():\n                    hour_counts[hour] = value\n            \n            # Extraire la distribution par jour\n            if \"day_distribution\" in time_patterns:\n                for day, value in time_patterns[\"day_distribution\"].items():\n                    day_counts[day] = value\n        else:\n            # Analyser les données de tracking\n            for event in raw_data:\n                try:\n                    timestamp = datetime.fromisoformat(event[\"timestamp\"])\n                    hour = str(timestamp.hour)\n                    day = [\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\", \"Sunday\"][timestamp.weekday()]\n                    \n                    hour_counts[hour] += 1\n                    day_counts[day] += 1\n                except (ValueError, KeyError):\n                    continue\n        \n        # Déterminer les périodes préférées\n        morning_score = sum(hour_counts.get(str(h), 0) for h in range(5, 12))  # 5h-12h\n        afternoon_score = sum(hour_counts.get(str(h), 0) for h in range(12, 18))  # 12h-18h\n        evening_score = sum(hour_counts.get(str(h), 0) for h in range(18, 23))  # 18h-23h\n        night_score = sum(hour_counts.get(str(h), 0) for h in [23, 0, 1, 2, 3, 4])  # 23h-5h\n        \n        # Déterminer la période préférée\n        time_of_day = \"afternoon\"  # Par défaut\n        max_score = afternoon_score\n        \n        if morning_score > max_score:\n            time_of_day = \"morning\"\n            max_score = morning_score\n        if evening_score > max_score:\n            time_of_day = \"evening\"\n            max_score = evening_score\n        if night_score > max_score:\n            time_of_day = \"night\"\n        \n        # Déterminer les jours préférés (semaine vs weekend)\n        weekday_score = sum(day_counts.get(day, 0) for day in [\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\"])\n        weekend_score = sum(day_counts.get(day, 0) for day in [\"Saturday\", \"Sunday\"])\n        \n        day_preference = \"weekday\" if weekday_score > weekend_score else \"weekend\"\n        \n        # Normaliser les scores\n        total_hour = sum(hour_counts.values())\n        normalized_hours = {hour: count / total_hour if total_hour > 0 else 0 for hour, count in hour_counts.items()}\n        \n        total_day = sum(day_counts.values())\n        normalized_days = {day: count / total_day if total_day > 0 else 0 for day, count in day_counts.items()}\n        \n        return {\n            \"hour_distribution\": normalized_hours,\n            \"day_distribution\": normalized_days,\n            \"preferred_time\": time_of_day,\n            \"preferred_days\": day_preference,\n            \"time_scores\": {\n                \"morning\": morning_score / total_hour if total_hour > 0 else 0,\n                \"afternoon\": afternoon_score / total_hour if total_hour > 0 else 0,\n                \"evening\": evening_score / total_hour if total_hour > 0 else 0,\n                \"night\": night_score / total_hour if total_hour > 0 else 0\n            },\n            \"day_scores\": {\n                \"weekday\": weekday_score / total_day if total_day > 0 else 0,\n                \"weekend\": weekend_score / total_day if total_day > 0 else 0\n            }\n        }\n    \n    def _calculate_feature_preferences(self, user_id: str, raw_data: List[Dict[str, Any]], \n                                    profile: Optional[Dict[str, Any]], \n                                    patterns: Optional[Dict[str, Any]]) -> Dict[str, Any]:\n        \"\"\"\n        Calcule les préférences pour les fonctionnalités de la plateforme.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            raw_data: Données de tracking brutes\n            profile: Profil de l'utilisateur (optionnel)\n            patterns: Patterns comportementaux détectés (optionnel)\n            \n        Returns:\n            Dict contenant les préférences de fonctionnalités calculées\n        \"\"\"\n        # Initialiser les compteurs pour les fonctionnalités\n        features = {\n            \"search\": 0,\n            \"filter\": 0,\n            \"download\": 0,\n            \"apply\": 0,\n            \"recommendations\": 0,\n            \"notifications\": 0,\n            \"messaging\": 0,\n            \"profile\": 0\n        }\n        \n        # Analyser les données de tracking\n        for event in raw_data:\n            event_type = event.get(\"event_type\")\n            page = event.get(\"page\", \"\")\n            props = event.get(\"properties\", {})\n            \n            # Compter les utilisations directes des fonctionnalités\n            if event_type in features:\n                features[event_type] += 1\n            \n            # Détecter l'utilisation indirecte via les pages visitées\n            if \"recommendations\" in page.lower():\n                features[\"recommendations\"] += 1\n            elif \"notifications\" in page.lower():\n                features[\"notifications\"] += 1\n            elif \"message\" in page.lower() or \"chat\" in page.lower():\n                features[\"messaging\"] += 1\n            elif \"profile\" in page.lower() or \"account\" in page.lower():\n                features[\"profile\"] += 1\n            \n            # Détecter l'utilisation via les clics\n            if event_type == \"click\":\n                element_id = props.get(\"element_id\", \"\")\n                if \"recommendation\" in element_id.lower():\n                    features[\"recommendations\"] += 1\n                elif \"notification\" in element_id.lower():\n                    features[\"notifications\"] += 1\n                elif \"message\" in element_id.lower() or \"chat\" in element_id.lower():\n                    features[\"messaging\"] += 1\n                elif \"profile\" in element_id.lower() or \"account\" in element_id.lower():\n                    features[\"profile\"] += 1\n        \n        # Normaliser les scores\n        features = self._normalize_scores(features)\n        \n        # Déterminer les fonctionnalités préférées\n        top_features = self._extract_top_preferences(features, 3)\n        \n        # Calculer un score de sophistication (préférence pour les fonctionnalités avancées)\n        basic_features = features.get(\"search\", 0) + features.get(\"filter\", 0)\n        advanced_features = features.get(\"recommendations\", 0) + features.get(\"messaging\", 0)\n        \n        sophistication_score = 0.5  # Score neutre par défaut\n        total_usage = basic_features + advanced_features\n        if total_usage > 0:\n            sophistication_score = advanced_features / total_usage\n        \n        return {\n            \"feature_usage\": features,\n            \"top_features\": top_features,\n            \"sophistication_score\": sophistication_score\n        }\n    \n    def _calculate_overall_preference_score(self, preferences: Dict[str, Any]) -> Dict[str, float]:\n        \"\"\"\n        Calcule un score global de préférence.\n        \n        Args:\n            preferences: Dictionnaire des préférences calculées\n            \n        Returns:\n            Dict contenant les scores globaux\n        \"\"\"\n        # Extraire les top préférences de contenu\n        content_prefs = preferences.get(\"content_preferences\", {}).get(\"top_preferences\", {})\n        \n        # Calculer le score de contenu\n        content_score = 0.0\n        if content_prefs:\n            category_weights = sum(weight for _, weight in content_prefs.get(\"categories\", {}).items())\n            location_weights = sum(weight for _, weight in content_prefs.get(\"locations\", {}).items())\n            salary_weights = sum(weight for _, weight in content_prefs.get(\"salary_ranges\", {}).items())\n            \n            content_score = (category_weights + location_weights + salary_weights) / 3.0\n        \n        # Calculer le score d'interaction\n        interaction_score = 0.0\n        interaction_prefs = preferences.get(\"interaction_preferences\", {})\n        if interaction_prefs:\n            # Utiliser le mode d'interaction comme indicateur\n            if interaction_prefs.get(\"interaction_mode\") == \"direct\":\n                interaction_score = 0.8\n            elif interaction_prefs.get(\"interaction_mode\") == \"visual\":\n                interaction_score = 0.6\n            else:\n                interaction_score = 0.4\n        \n        # Calculer le score de fonctionnalité\n        feature_score = preferences.get(\"feature_preferences\", {}).get(\"sophistication_score\", 0.5)\n        \n        # Combiner les scores\n        return {\n            \"content_score\": content_score,\n            \"interaction_score\": interaction_score,\n            \"feature_score\": feature_score,\n            \"global_score\": (content_score + interaction_score + feature_score) / 3.0\n        }\n    \n    def _normalize_scores(self, scores: Dict[str, float]) -> Dict[str, float]:\n        \"\"\"\n        Normalise les scores pour qu'ils soient entre 0 et 1.\n        \n        Args:\n            scores: Dictionnaire de scores\n            \n        Returns:\n            Dictionnaire de scores normalisés\n        \"\"\"\n        if not scores:\n            return {}\n            \n        total = sum(scores.values())\n        if total == 0:\n            return {k: 0.0 for k in scores}\n            \n        return {k: v / total for k, v in scores.items()}\n    \n    def _extract_top_preferences(self, preferences: Dict[str, float], limit: int = 3) -> Dict[str, float]:\n        \"\"\"\n        Extrait les top préférences d'un dictionnaire.\n        \n        Args:\n            preferences: Dictionnaire de préférences avec scores\n            limit: Nombre maximum de préférences à extraire\n            \n        Returns:\n            Dictionnaire des top préférences\n        \"\"\"\n        if not preferences:\n            return {}\n            \n        sorted_prefs = sorted(preferences.items(), key=lambda x: x[1], reverse=True)\n        return dict(sorted_prefs[:limit])\n    \n    def _get_item_features(self, item_id: str, item_type: str) -> Dict[str, Any]:\n        \"\"\"\n        Récupère les caractéristiques d'un élément pour le calcul de recommandation.\n        \n        Args:\n            item_id: Identifiant de l'élément\n            item_type: Type de l'élément (job, cv, etc.)\n            \n        Returns:\n            Dict contenant les caractéristiques de l'élément\n        \"\"\"\n        # Dans un environnement réel, on récupérerait les caractéristiques depuis une base de données\n        # Ici, on simule des caractéristiques pour le développement\n        \n        if item_type == \"job\":\n            # Générer des caractéristiques aléatoires pour une offre d'emploi\n            categories = [\"engineering\", \"marketing\", \"sales\", \"design\", \"finance\"]\n            locations = [\"paris\", \"lyon\", \"marseille\", \"bordeaux\", \"toulouse\"]\n            salary_ranges = [\"30-45k\", \"45-60k\", \"60-80k\", \"80-100k\", \"100k+\"]\n            job_types = [\"full-time\", \"part-time\", \"contract\", \"remote\"]\n            industries = [\"tech\", \"healthcare\", \"finance\", \"retail\", \"education\"]\n            \n            return {\n                \"id\": item_id,\n                \"type\": item_type,\n                \"category\": np.random.choice(categories),\n                \"location\": np.random.choice(locations),\n                \"salary_range\": np.random.choice(salary_ranges),\n                \"job_type\": np.random.choice(job_types),\n                \"industry\": np.random.choice(industries),\n                \"skills\": np.random.choice([\"python\", \"javascript\", \"marketing\", \"sales\", \"design\"], \n                                       size=np.random.randint(2, 5), replace=False).tolist()\n            }\n        elif item_type == \"cv\":\n            # Générer des caractéristiques aléatoires pour un CV\n            skills = [\"python\", \"javascript\", \"marketing\", \"sales\", \"design\", \"management\", \"communication\"]\n            \n            return {\n                \"id\": item_id,\n                \"type\": item_type,\n                \"skills\": np.random.choice(skills, size=np.random.randint(3, 6), replace=False).tolist(),\n                \"experience_years\": np.random.randint(1, 15),\n                \"education_level\": np.random.choice([\"bachelor\", \"master\", \"phd\"])\n            }\n        else:\n            # Type non reconnu\n            return {}\n    \n    def _calculate_content_similarity(self, user_preferences: Dict[str, Any], \n                                    item_features: Dict[str, Any]) -> float:\n        \"\"\"\n        Calcule la similarité entre les préférences de l'utilisateur et les caractéristiques d'un élément.\n        \n        Args:\n            user_preferences: Préférences de contenu de l'utilisateur\n            item_features: Caractéristiques de l'élément\n            \n        Returns:\n            Score de similarité entre 0 et 1\n        \"\"\"\n        if not user_preferences or not item_features:\n            return 0.5  # Score neutre par défaut\n        \n        # Initialiser le score\n        score = 0.0\n        count = 0\n        \n        # Vérifier la correspondance pour la catégorie\n        if \"categories\" in user_preferences and \"category\" in item_features:\n            category = item_features[\"category\"]\n            if category in user_preferences[\"categories\"]:\n                score += user_preferences[\"categories\"][category]\n                count += 1\n        \n        # Vérifier la correspondance pour la localisation\n        if \"locations\" in user_preferences and \"location\" in item_features:\n            location = item_features[\"location\"]\n            if location in user_preferences[\"locations\"]:\n                score += user_preferences[\"locations\"][location]\n                count += 1\n        \n        # Vérifier la correspondance pour la plage de salaire\n        if \"salary_ranges\" in user_preferences and \"salary_range\" in item_features:\n            salary = item_features[\"salary_range\"]\n            if salary in user_preferences[\"salary_ranges\"]:\n                score += user_preferences[\"salary_ranges\"][salary]\n                count += 1\n        \n        # Vérifier la correspondance pour le type d'emploi\n        if \"job_types\" in user_preferences and \"job_type\" in item_features:\n            job_type = item_features[\"job_type\"]\n            if job_type in user_preferences[\"job_types\"]:\n                score += user_preferences[\"job_types\"][job_type]\n                count += 1\n        \n        # Vérifier la correspondance pour l'industrie\n        if \"industries\" in user_preferences and \"industry\" in item_features:\n            industry = item_features[\"industry\"]\n            if industry in user_preferences[\"industries\"]:\n                score += user_preferences[\"industries\"][industry]\n                count += 1\n        \n        # Vérifier la correspondance pour les compétences\n        if \"skills\" in user_preferences and \"skills\" in item_features and isinstance(item_features[\"skills\"], list):\n            item_skills = set(item_features[\"skills\"])\n            skills_score = 0.0\n            skills_count = 0\n            \n            for skill, weight in user_preferences[\"skills\"].items():\n                if skill in item_skills:\n                    skills_score += weight\n                    skills_count += 1\n            \n            if skills_count > 0:\n                score += skills_score / skills_count\n                count += 1\n        \n        # Calculer le score moyen\n        if count > 0:\n            return score / count\n        else:\n            return 0.5  # Score neutre par défaut\n    \n    def _save_preferences(self, user_id: str, preferences: Dict[str, Any]) -> None:\n        \"\"\"\n        Sauvegarde les préférences calculées pour un utilisateur.\n        \n        Args:\n            user_id: Identifiant de l'utilisateur\n            preferences: Préférences calculées\n        \"\"\"\n        # Mettre en cache\n        self.preferences_cache[user_id] = preferences\n        \n        # Sauvegarder dans un fichier\n        preferences_path = os.path.join(self.storage_path, f\"user_{user_id}_preferences.json\")\n        try:\n            with open(preferences_path, 'w') as file:\n                json.dump(preferences, file, indent=2)\n            logger.info(f\"Saved preferences for user {user_id} to {preferences_path}\")\n        except Exception as e:\n            logger.error(f\"Failed to save preferences to file: {str(e)}\")\n
+"""
+Module de calcul des scores de préférence dynamiques.
+
+Ce module est responsable du calcul des scores de préférence des utilisateurs
+basés sur leur comportement et leurs interactions avec le système.
+"""
+
+import numpy as np
+import pandas as pd
+from datetime import datetime, timedelta
+import logging
+from typing import Dict, List, Any, Optional, Tuple
+import json
+import os
+
+# Configuration du logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+class PreferenceCalculator:
+    """
+    Calculateur de scores de préférence dynamiques basés sur le comportement utilisateur.
+    """
+    
+    def __init__(self, profile_manager=None, pattern_detector=None, db_connector=None, 
+                 storage_path: str = "./preferences", config=None):
+        """
+        Initialise le calculateur de préférences.
+        
+        Args:
+            profile_manager: Gestionnaire de profils utilisateurs
+            pattern_detector: Détecteur de patterns comportementaux
+            db_connector: Connecteur vers la base de données de tracking
+            storage_path: Chemin vers le dossier de stockage des préférences
+            config: Configuration supplémentaire
+        """
+        self.profile_manager = profile_manager
+        self.pattern_detector = pattern_detector
+        self.db_connector = db_connector
+        self.storage_path = storage_path
+        
+        # Configuration par défaut
+        self.config = {
+            "preference_weights": {
+                "content_preferences": 0.4,
+                "interaction_preferences": 0.3,
+                "time_preferences": 0.2,
+                "feature_preferences": 0.1
+            },
+            "update_threshold_hours": 24,
+            "scoring_methods": {
+                "content_similarity": "weighted_overlap",
+                "time_similarity": "gaussian",
+                "feature_similarity": "cosine"
+            }
+        }
+        
+        # Mise à jour de la configuration si fournie
+        if config:
+            self.config.update(config)
+        
+        # Créer le dossier de stockage s'il n'existe pas
+        os.makedirs(storage_path, exist_ok=True)
+        
+        # Définir les catégories de préférences à calculer
+        self.preference_categories = {
+            "content_preferences": self._calculate_content_preferences,
+            "interaction_preferences": self._calculate_interaction_preferences,
+            "time_preferences": self._calculate_time_preferences,
+            "feature_preferences": self._calculate_feature_preferences
+        }
+        
+        # Cache pour les préférences calculées
+        self.preferences_cache = {}
+        
+        logger.info("PreferenceCalculator initialized")
+    
+    def calculate_preferences(self, user_id: str, start_date: Optional[datetime] = None, 
+                             end_date: Optional[datetime] = None) -> Dict[str, Any]:
+        """
+        Calcule les scores de préférence pour un utilisateur spécifique.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            start_date: Date de début pour l'analyse (par défaut: 30 jours en arrière)
+            end_date: Date de fin pour l'analyse (par défaut: maintenant)
+            
+        Returns:
+            Dict contenant les scores de préférence calculés
+        """
+        logger.info(f"Calculating preferences for user {user_id}")
+        
+        # Définir les dates par défaut si non spécifiées
+        if end_date is None:
+            end_date = datetime.now()
+        if start_date is None:
+            start_date = end_date - timedelta(days=30)
+        
+        # Récupérer le profil et les patterns de l'utilisateur
+        profile = None
+        if self.profile_manager:
+            profile = self.profile_manager.get_profile(user_id)
+        
+        patterns = None
+        if self.pattern_detector:
+            patterns = self.pattern_detector.get_user_patterns(user_id)
+        
+        # Récupérer les données de tracking si nécessaire
+        raw_data = self._get_user_tracking_data(user_id, start_date, end_date)
+        
+        if not raw_data and not profile and not patterns:
+            logger.warning(f"No data available for preference calculation for user {user_id}")
+            return {}
+        
+        # Résultats globaux des préférences
+        preferences = {
+            "user_id": user_id,
+            "calculation_date": datetime.now().isoformat(),
+            "data_start_date": start_date.isoformat(),
+            "data_end_date": end_date.isoformat()
+        }
+        
+        # Calculer les différentes catégories de préférences
+        for category, calculator in self.preference_categories.items():
+            try:
+                preferences[category] = calculator(user_id, raw_data, profile, patterns)
+            except Exception as e:
+                logger.error(f"Error calculating {category}: {str(e)}")
+                preferences[category] = {}
+        
+        # Calculer un score global de préférence
+        preferences["overall_score"] = self._calculate_overall_preference_score(preferences)
+        
+        # Sauvegarder les préférences calculées
+        self._save_preferences(user_id, preferences)
+        
+        logger.info(f"Calculated preferences for user {user_id}")
+        return preferences
+    
+    def get_preferences(self, user_id: str) -> Dict[str, Any]:
+        """
+        Récupère les préférences calculées pour un utilisateur.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            
+        Returns:
+            Dict contenant les préférences calculées
+        """
+        # Vérifier le cache d'abord
+        if user_id in self.preferences_cache:
+            logger.info(f"Returning cached preferences for user {user_id}")
+            return self.preferences_cache[user_id]
+        
+        # Sinon, essayer de charger depuis le stockage
+        preferences_path = os.path.join(self.storage_path, f"user_{user_id}_preferences.json")
+        if os.path.exists(preferences_path):
+            try:
+                with open(preferences_path, 'r') as file:
+                    preferences = json.load(file)
+                    
+                # Mettre en cache pour accès ultérieur
+                self.preferences_cache[user_id] = preferences
+                logger.info(f"Loaded preferences from storage for user {user_id}")
+                return preferences
+            except Exception as e:
+                logger.error(f"Failed to load preferences from file: {str(e)}")
+        
+        logger.warning(f"No preferences found for user {user_id}, calculating new ones")
+        return self.calculate_preferences(user_id)
+    
+    def get_recommendation_score(self, user_id: str, item_id: str, item_type: str) -> float:
+        """
+        Calcule un score de recommandation pour un élément spécifique basé sur les préférences.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            item_id: Identifiant de l'élément
+            item_type: Type de l'élément (job, cv, etc.)
+            
+        Returns:
+            Score de recommandation entre 0 et 1
+        """
+        # Récupérer les préférences de l'utilisateur
+        preferences = self.get_preferences(user_id)
+        if not preferences:
+            logger.warning(f"No preferences available for recommendation score calculation for user {user_id}")
+            return 0.5  # Score neutre par défaut
+        
+        # Récupérer les caractéristiques de l'élément (simulé ici)
+        item_features = self._get_item_features(item_id, item_type)
+        if not item_features:
+            logger.warning(f"No features available for item {item_id} of type {item_type}")
+            return 0.5  # Score neutre par défaut
+        
+        # Calculer le score de recommandation
+        content_score = self._calculate_content_similarity(
+            preferences.get("content_preferences", {}),
+            item_features
+        )
+        
+        # On pourrait ajouter d'autres aspects au score ici, comme la temporalité, etc.
+        
+        logger.info(f"Calculated recommendation score {content_score:.2f} for user {user_id} and item {item_id}")
+        return content_score
+    
+    def _get_user_tracking_data(self, user_id: str, start_date: datetime, 
+                              end_date: datetime) -> List[Dict[str, Any]]:
+        """
+        Récupère les données de tracking pour un utilisateur spécifique.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            start_date: Date de début
+            end_date: Date de fin
+            
+        Returns:
+            Liste des événements de tracking
+        """
+        # Si un connecteur DB est disponible, utiliser celui-ci
+        if self.db_connector:
+            try:
+                query = f"""
+                SELECT * FROM tracking_events 
+                WHERE user_id = '{user_id}' 
+                AND timestamp BETWEEN '{start_date.isoformat()}' AND '{end_date.isoformat()}'
+                ORDER BY timestamp ASC
+                """
+                return self.db_connector.execute_query(query)
+            except Exception as e:
+                logger.error(f"Error retrieving tracking data: {str(e)}")
+                return []
+        
+        # Sinon, utiliser des données simulées pour le développement
+        return self._generate_mock_tracking_data(user_id, start_date, end_date)
+    
+    def _generate_mock_tracking_data(self, user_id: str, start_date: datetime, 
+                                   end_date: datetime) -> List[Dict[str, Any]]:
+        """
+        Génère des données de tracking simulées pour le développement.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            start_date: Date de début
+            end_date: Date de fin
+            
+        Returns:
+            Liste des événements de tracking simulés
+        """
+        logger.info(f"Generating mock tracking data for user {user_id}")
+        
+        # Calculer le nombre de jours entre les dates
+        days_diff = (end_date - start_date).days
+        if days_diff <= 0:
+            days_diff = 1
+        
+        # Générer des données simulées
+        mock_data = []
+        event_types = ["page_view", "click", "search", "filter", "download", "apply"]
+        
+        # Simuler des jours actifs aléatoires
+        active_days = np.random.choice(range(days_diff), size=min(days_diff, 20), replace=False)
+        
+        # Définir certaines préférences simulées pour l'utilisateur
+        favorite_categories = np.random.choice(
+            ["engineering", "marketing", "sales", "design", "finance"], 
+            size=np.random.randint(1, 3),
+            replace=False
+        )
+        favorite_locations = np.random.choice(
+            ["paris", "lyon", "marseille", "bordeaux", "toulouse"], 
+            size=np.random.randint(1, 3),
+            replace=False
+        )
+        favorite_times = np.random.choice(
+            ["morning", "afternoon", "evening", "night"], 
+            size=np.random.randint(1, 3),
+            replace=False
+        )
+        
+        for day_offset in active_days:
+            # Nombre d'événements par jour actif
+            events_count = np.random.randint(5, 50)
+            base_date = start_date + timedelta(days=day_offset)
+            
+            # Heure de la journée en fonction des préférences temporelles
+            if "morning" in favorite_times:
+                hour_range = (8, 12)
+            elif "afternoon" in favorite_times:
+                hour_range = (12, 18)
+            elif "evening" in favorite_times:
+                hour_range = (18, 22)
+            elif "night" in favorite_times:
+                hour_range = (22, 8)
+            else:
+                hour_range = (8, 22)
+            
+            # Générer des événements pour cette journée
+            for _ in range(events_count):
+                hour = np.random.randint(hour_range[0], hour_range[1])
+                event_time = base_date.replace(hour=hour, minute=np.random.randint(0, 60))
+                
+                # Type d'événement avec une probabilité plus élevée pour les catégories préférées
+                event_type = np.random.choice(event_types, p=[0.4, 0.3, 0.1, 0.1, 0.05, 0.05])
+                
+                event = {
+                    "user_id": user_id,
+                    "timestamp": event_time.isoformat(),
+                    "event_type": event_type,
+                    "session_id": f"session_{day_offset}_{np.random.randint(1, 4)}",
+                    "page": f"/page/{np.random.randint(1, 20)}",
+                    "properties": {}
+                }
+                
+                # Ajouter des propriétés spécifiques selon le type d'événement
+                if event_type == "click":
+                    event["properties"]["element_id"] = f"element_{np.random.randint(1, 100)}"
+                    element_types = ["button", "link", "card"]
+                    event["properties"]["element_type"] = np.random.choice(element_types)
+                    
+                elif event_type == "search":
+                    # Favoriser les catégories préférées dans les recherches
+                    if np.random.random() < 0.7 and favorite_categories.size > 0:
+                        category = np.random.choice(favorite_categories)
+                        event["properties"]["query"] = f"{category} jobs"
+                    else:
+                        event["properties"]["query"] = f"query_{np.random.randint(1, 10)}"
+                    
+                    event["properties"]["results_count"] = np.random.randint(0, 50)
+                    
+                elif event_type == "filter":
+                    filter_types = ["category", "location", "salary", "experience"]
+                    filter_type = np.random.choice(filter_types)
+                    event["properties"]["filter_type"] = filter_type
+                    
+                    if filter_type == "category" and np.random.random() < 0.8 and favorite_categories.size > 0:
+                        # Favoriser les catégories préférées dans les filtres
+                        event["properties"]["filter_value"] = np.random.choice(favorite_categories)
+                    elif filter_type == "location" and np.random.random() < 0.8 and favorite_locations.size > 0:
+                        # Favoriser les localisations préférées
+                        event["properties"]["filter_value"] = np.random.choice(favorite_locations)
+                    else:
+                        event["properties"]["filter_value"] = f"value_{np.random.randint(1, 10)}"
+                    
+                elif event_type == "download":
+                    doc_types = ["cv", "job", "report"]
+                    event["properties"]["document_id"] = f"doc_{np.random.randint(1, 100)}"
+                    event["properties"]["document_type"] = np.random.choice(doc_types)
+                    
+                    # Ajouter des métadonnées pour les documents
+                    if event["properties"]["document_type"] == "job":
+                        # Favoriser les catégories préférées
+                        if np.random.random() < 0.7 and favorite_categories.size > 0:
+                            event["properties"]["job_category"] = np.random.choice(favorite_categories)
+                        else:
+                            event["properties"]["job_category"] = np.random.choice(
+                                ["engineering", "marketing", "sales", "design", "finance"]
+                            )
+                        
+                        # Favoriser les localisations préférées
+                        if np.random.random() < 0.7 and favorite_locations.size > 0:
+                            event["properties"]["job_location"] = np.random.choice(favorite_locations)
+                        else:
+                            event["properties"]["job_location"] = np.random.choice(
+                                ["paris", "lyon", "marseille", "bordeaux", "toulouse"]
+                            )
+                    
+                elif event_type == "apply":
+                    application_methods = ["direct", "email", "form"]
+                    event["properties"]["job_id"] = f"job_{np.random.randint(1, 100)}"
+                    event["properties"]["application_method"] = np.random.choice(application_methods)
+                    
+                    # Ajouter des métadonnées pour les offres d'emploi
+                    if np.random.random() < 0.7 and favorite_categories.size > 0:
+                        event["properties"]["job_category"] = np.random.choice(favorite_categories)
+                    else:
+                        event["properties"]["job_category"] = np.random.choice(
+                            ["engineering", "marketing", "sales", "design", "finance"]
+                        )
+                    
+                    if np.random.random() < 0.7 and favorite_locations.size > 0:
+                        event["properties"]["job_location"] = np.random.choice(favorite_locations)
+                    else:
+                        event["properties"]["job_location"] = np.random.choice(
+                            ["paris", "lyon", "marseille", "bordeaux", "toulouse"]
+                        )
+                
+                mock_data.append(event)
+        
+        # Trier par timestamp
+        mock_data.sort(key=lambda x: x["timestamp"])
+        logger.info(f"Generated {len(mock_data)} mock events for user {user_id}")
+        
+        return mock_data
+    
+    def _calculate_content_preferences(self, user_id: str, raw_data: List[Dict[str, Any]], 
+                                     profile: Optional[Dict[str, Any]], 
+                                     patterns: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Calcule les préférences de contenu basées sur les interactions.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            raw_data: Données de tracking brutes
+            profile: Profil de l'utilisateur (optionnel)
+            patterns: Patterns comportementaux détectés (optionnel)
+            
+        Returns:
+            Dict contenant les préférences de contenu calculées
+        """
+        # Initialiser les compteurs
+        categories = {}
+        locations = {}
+        salary_ranges = {}
+        job_types = {}
+        skills = {}
+        industries = {}
+        
+        # Analyser les données de tracking
+        for event in raw_data:
+            props = event.get("properties", {})
+            event_type = event.get("event_type")
+            
+            # Pondérer les événements selon leur importance
+            weight = 1.0
+            if event_type == "apply":
+                weight = 5.0  # Les candidatures sont plus importantes
+            elif event_type == "download":
+                weight = 2.0  # Les téléchargements sont importants
+            elif event_type == "search" or event_type == "filter":
+                weight = 1.5  # Les recherches et filtres sont modérément importants
+            
+            # Extraire les catégories
+            if "job_category" in props:
+                category = props["job_category"]
+                if category not in categories:
+                    categories[category] = 0
+                categories[category] += weight
+            
+            # Extraire les localisations
+            if "job_location" in props:
+                location = props["job_location"]
+                if location not in locations:
+                    locations[location] = 0
+                locations[location] += weight
+            
+            # Extraire les plages de salaire
+            if "salary_range" in props:
+                salary = props["salary_range"]
+                if salary not in salary_ranges:
+                    salary_ranges[salary] = 0
+                salary_ranges[salary] += weight
+            
+            # Extraire les types d'emploi
+            if "job_type" in props:
+                job_type = props["job_type"]
+                if job_type not in job_types:
+                    job_types[job_type] = 0
+                job_types[job_type] += weight
+            
+            # Extraire les compétences
+            if "skills" in props and isinstance(props["skills"], list):
+                for skill in props["skills"]:
+                    if skill not in skills:
+                        skills[skill] = 0
+                    skills[skill] += weight
+            
+            # Extraire les industries
+            if "industry" in props:
+                industry = props["industry"]
+                if industry not in industries:
+                    industries[industry] = 0
+                industries[industry] += weight
+            
+            # Analyser les termes de recherche
+            if event_type == "search" and "query" in props:
+                query = props["query"].lower()
+                
+                # Recherche simple de mots-clés dans la requête
+                for category in ["engineering", "marketing", "sales", "design", "finance"]:
+                    if category in query:
+                        if category not in categories:
+                            categories[category] = 0
+                        categories[category] += weight
+                
+                for location in ["paris", "lyon", "marseille", "bordeaux", "toulouse"]:
+                    if location in query:
+                        if location not in locations:
+                            locations[location] = 0
+                        locations[location] += weight
+            
+            # Analyser les filtres
+            if event_type == "filter":
+                filter_type = props.get("filter_type")
+                filter_value = props.get("filter_value")
+                
+                if filter_type and filter_value:
+                    if filter_type == "category":
+                        if filter_value not in categories:
+                            categories[filter_value] = 0
+                        categories[filter_value] += weight
+                    elif filter_type == "location":
+                        if filter_value not in locations:
+                            locations[filter_value] = 0
+                        locations[filter_value] += weight
+                    elif filter_type == "salary":
+                        if filter_value not in salary_ranges:
+                            salary_ranges[filter_value] = 0
+                        salary_ranges[filter_value] += weight
+        
+        # Normaliser les scores
+        categories = self._normalize_scores(categories)
+        locations = self._normalize_scores(locations)
+        salary_ranges = self._normalize_scores(salary_ranges)
+        job_types = self._normalize_scores(job_types)
+        skills = self._normalize_scores(skills)
+        industries = self._normalize_scores(industries)
+        
+        # Extraire les top préférences
+        top_categories = self._extract_top_preferences(categories, 3)
+        top_locations = self._extract_top_preferences(locations, 3)
+        top_salary_ranges = self._extract_top_preferences(salary_ranges, 2)
+        top_job_types = self._extract_top_preferences(job_types, 2)
+        top_skills = self._extract_top_preferences(skills, 5)
+        top_industries = self._extract_top_preferences(industries, 3)
+        
+        return {
+            "categories": categories,
+            "locations": locations,
+            "salary_ranges": salary_ranges,
+            "job_types": job_types,
+            "skills": skills,
+            "industries": industries,
+            "top_preferences": {
+                "categories": top_categories,
+                "locations": top_locations,
+                "salary_ranges": top_salary_ranges,
+                "job_types": top_job_types,
+                "skills": top_skills,
+                "industries": top_industries
+            }
+        }
+    
+    def _calculate_interaction_preferences(self, user_id: str, raw_data: List[Dict[str, Any]], 
+                                        profile: Optional[Dict[str, Any]], 
+                                        patterns: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Calcule les préférences d'interaction basées sur le comportement.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            raw_data: Données de tracking brutes
+            profile: Profil de l'utilisateur (optionnel)
+            patterns: Patterns comportementaux détectés (optionnel)
+            
+        Returns:
+            Dict contenant les préférences d'interaction calculées
+        """
+        # Initialiser les compteurs
+        element_types = {}
+        page_preferences = {}
+        action_sequences = {}
+        
+        # Analyser les données de tracking
+        for event in raw_data:
+            # Extraire les types d'éléments cliqués
+            if event.get("event_type") == "click":
+                props = event.get("properties", {})
+                element_type = props.get("element_type")
+                
+                if element_type:
+                    if element_type not in element_types:
+                        element_types[element_type] = 0
+                    element_types[element_type] += 1
+            
+            # Extraire les préférences de page
+            page = event.get("page")
+            if page:
+                if page not in page_preferences:
+                    page_preferences[page] = 0
+                page_preferences[page] += 1
+        
+        # Extraire les séquences d'actions si des patterns sont disponibles
+        if patterns and "sequence_patterns" in patterns:
+            for sequence in patterns["sequence_patterns"]:
+                seq_key = "->".join(sequence.get("sequence", []))
+                if seq_key:
+                    action_sequences[seq_key] = sequence.get("count", 0)
+        
+        # Normaliser les scores
+        element_types = self._normalize_scores(element_types)
+        page_preferences = self._normalize_scores(page_preferences)
+        action_sequences = self._normalize_scores(action_sequences)
+        
+        # Déterminer le mode d'interaction préféré
+        interaction_mode = "explorer"  # Par défaut
+        if element_types:
+            if element_types.get("button", 0) > element_types.get("link", 0) and element_types.get("button", 0) > element_types.get("card", 0):
+                interaction_mode = "direct"
+            elif element_types.get("card", 0) > element_types.get("link", 0) and element_types.get("card", 0) > element_types.get("button", 0):
+                interaction_mode = "visual"
+            elif element_types.get("link", 0) > element_types.get("button", 0) and element_types.get("link", 0) > element_types.get("card", 0):
+                interaction_mode = "explorer"
+        
+        # Extraire les top préférences
+        top_pages = self._extract_top_preferences(page_preferences, 5)
+        top_sequences = self._extract_top_preferences(action_sequences, 3)
+        
+        return {
+            "element_types": element_types,
+            "page_preferences": page_preferences,
+            "action_sequences": action_sequences,
+            "interaction_mode": interaction_mode,
+            "top_preferences": {
+                "pages": top_pages,
+                "sequences": top_sequences
+            }
+        }
+    
+    def _calculate_time_preferences(self, user_id: str, raw_data: List[Dict[str, Any]], 
+                                 profile: Optional[Dict[str, Any]], 
+                                 patterns: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Calcule les préférences temporelles basées sur les moments d'activité.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            raw_data: Données de tracking brutes
+            profile: Profil de l'utilisateur (optionnel)
+            patterns: Patterns comportementaux détectés (optionnel)
+            
+        Returns:
+            Dict contenant les préférences temporelles calculées
+        """
+        # Initialiser les compteurs
+        hour_counts = {str(h): 0 for h in range(24)}
+        day_counts = {
+            "Monday": 0, "Tuesday": 0, "Wednesday": 0, 
+            "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0
+        }
+        
+        # Analyser les données de tracking ou utiliser les patterns existants
+        if patterns and "time_based_patterns" in patterns and patterns["time_based_patterns"]:
+            time_patterns = patterns["time_based_patterns"]
+            
+            # Extraire la distribution par heure
+            if "hour_distribution" in time_patterns:
+                for hour, value in time_patterns["hour_distribution"].items():
+                    hour_counts[hour] = value
+            
+            # Extraire la distribution par jour
+            if "day_distribution" in time_patterns:
+                for day, value in time_patterns["day_distribution"].items():
+                    day_counts[day] = value
+        else:
+            # Analyser les données de tracking
+            for event in raw_data:
+                try:
+                    timestamp = datetime.fromisoformat(event["timestamp"])
+                    hour = str(timestamp.hour)
+                    day = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][timestamp.weekday()]
+                    
+                    hour_counts[hour] += 1
+                    day_counts[day] += 1
+                except (ValueError, KeyError):
+                    continue
+        
+        # Déterminer les périodes préférées
+        morning_score = sum(hour_counts.get(str(h), 0) for h in range(5, 12))  # 5h-12h
+        afternoon_score = sum(hour_counts.get(str(h), 0) for h in range(12, 18))  # 12h-18h
+        evening_score = sum(hour_counts.get(str(h), 0) for h in range(18, 23))  # 18h-23h
+        night_score = sum(hour_counts.get(str(h), 0) for h in [23, 0, 1, 2, 3, 4])  # 23h-5h
+        
+        # Déterminer la période préférée
+        time_of_day = "afternoon"  # Par défaut
+        max_score = afternoon_score
+        
+        if morning_score > max_score:
+            time_of_day = "morning"
+            max_score = morning_score
+        if evening_score > max_score:
+            time_of_day = "evening"
+            max_score = evening_score
+        if night_score > max_score:
+            time_of_day = "night"
+        
+        # Déterminer les jours préférés (semaine vs weekend)
+        weekday_score = sum(day_counts.get(day, 0) for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+        weekend_score = sum(day_counts.get(day, 0) for day in ["Saturday", "Sunday"])
+        
+        day_preference = "weekday" if weekday_score > weekend_score else "weekend"
+        
+        # Normaliser les scores
+        total_hour = sum(hour_counts.values())
+        normalized_hours = {hour: count / total_hour if total_hour > 0 else 0 for hour, count in hour_counts.items()}
+        
+        total_day = sum(day_counts.values())
+        normalized_days = {day: count / total_day if total_day > 0 else 0 for day, count in day_counts.items()}
+        
+        return {
+            "hour_distribution": normalized_hours,
+            "day_distribution": normalized_days,
+            "preferred_time": time_of_day,
+            "preferred_days": day_preference,
+            "time_scores": {
+                "morning": morning_score / total_hour if total_hour > 0 else 0,
+                "afternoon": afternoon_score / total_hour if total_hour > 0 else 0,
+                "evening": evening_score / total_hour if total_hour > 0 else 0,
+                "night": night_score / total_hour if total_hour > 0 else 0
+            },
+            "day_scores": {
+                "weekday": weekday_score / total_day if total_day > 0 else 0,
+                "weekend": weekend_score / total_day if total_day > 0 else 0
+            }
+        }
+    
+    def _calculate_feature_preferences(self, user_id: str, raw_data: List[Dict[str, Any]], 
+                                    profile: Optional[Dict[str, Any]], 
+                                    patterns: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Calcule les préférences pour les fonctionnalités de la plateforme.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            raw_data: Données de tracking brutes
+            profile: Profil de l'utilisateur (optionnel)
+            patterns: Patterns comportementaux détectés (optionnel)
+            
+        Returns:
+            Dict contenant les préférences de fonctionnalités calculées
+        """
+        # Initialiser les compteurs pour les fonctionnalités
+        features = {
+            "search": 0,
+            "filter": 0,
+            "download": 0,
+            "apply": 0,
+            "recommendations": 0,
+            "notifications": 0,
+            "messaging": 0,
+            "profile": 0
+        }
+        
+        # Analyser les données de tracking
+        for event in raw_data:
+            event_type = event.get("event_type")
+            page = event.get("page", "")
+            props = event.get("properties", {})
+            
+            # Compter les utilisations directes des fonctionnalités
+            if event_type in features:
+                features[event_type] += 1
+            
+            # Détecter l'utilisation indirecte via les pages visitées
+            if "recommendations" in page.lower():
+                features["recommendations"] += 1
+            elif "notifications" in page.lower():
+                features["notifications"] += 1
+            elif "message" in page.lower() or "chat" in page.lower():
+                features["messaging"] += 1
+            elif "profile" in page.lower() or "account" in page.lower():
+                features["profile"] += 1
+            
+            # Détecter l'utilisation via les clics
+            if event_type == "click":
+                element_id = props.get("element_id", "")
+                if "recommendation" in element_id.lower():
+                    features["recommendations"] += 1
+                elif "notification" in element_id.lower():
+                    features["notifications"] += 1
+                elif "message" in element_id.lower() or "chat" in element_id.lower():
+                    features["messaging"] += 1
+                elif "profile" in element_id.lower() or "account" in element_id.lower():
+                    features["profile"] += 1
+        
+        # Normaliser les scores
+        features = self._normalize_scores(features)
+        
+        # Déterminer les fonctionnalités préférées
+        top_features = self._extract_top_preferences(features, 3)
+        
+        # Calculer un score de sophistication (préférence pour les fonctionnalités avancées)
+        basic_features = features.get("search", 0) + features.get("filter", 0)
+        advanced_features = features.get("recommendations", 0) + features.get("messaging", 0)
+        
+        sophistication_score = 0.5  # Score neutre par défaut
+        total_usage = basic_features + advanced_features
+        if total_usage > 0:
+            sophistication_score = advanced_features / total_usage
+        
+        return {
+            "feature_usage": features,
+            "top_features": top_features,
+            "sophistication_score": sophistication_score
+        }
+    
+    def _calculate_overall_preference_score(self, preferences: Dict[str, Any]) -> Dict[str, float]:
+        """
+        Calcule un score global de préférence.
+        
+        Args:
+            preferences: Dictionnaire des préférences calculées
+            
+        Returns:
+            Dict contenant les scores globaux
+        """
+        # Extraire les top préférences de contenu
+        content_prefs = preferences.get("content_preferences", {}).get("top_preferences", {})
+        
+        # Calculer le score de contenu
+        content_score = 0.0
+        if content_prefs:
+            category_weights = sum(weight for _, weight in content_prefs.get("categories", {}).items())
+            location_weights = sum(weight for _, weight in content_prefs.get("locations", {}).items())
+            salary_weights = sum(weight for _, weight in content_prefs.get("salary_ranges", {}).items())
+            
+            content_score = (category_weights + location_weights + salary_weights) / 3.0
+        
+        # Calculer le score d'interaction
+        interaction_score = 0.0
+        interaction_prefs = preferences.get("interaction_preferences", {})
+        if interaction_prefs:
+            # Utiliser le mode d'interaction comme indicateur
+            if interaction_prefs.get("interaction_mode") == "direct":
+                interaction_score = 0.8
+            elif interaction_prefs.get("interaction_mode") == "visual":
+                interaction_score = 0.6
+            else:
+                interaction_score = 0.4
+        
+        # Calculer le score de fonctionnalité
+        feature_score = preferences.get("feature_preferences", {}).get("sophistication_score", 0.5)
+        
+        # Utiliser les poids de préférence de la configuration
+        pref_weights = self.config["preference_weights"]
+        global_score = (
+            content_score * pref_weights["content_preferences"] + 
+            interaction_score * pref_weights["interaction_preferences"] + 
+            feature_score * pref_weights["feature_preferences"]
+        ) / (pref_weights["content_preferences"] + pref_weights["interaction_preferences"] + pref_weights["feature_preferences"])
+        
+        # Combiner les scores
+        return {
+            "content_score": content_score,
+            "interaction_score": interaction_score,
+            "feature_score": feature_score,
+            "global_score": global_score
+        }
+    
+    def _normalize_scores(self, scores: Dict[str, float]) -> Dict[str, float]:
+        """
+        Normalise les scores pour qu'ils soient entre 0 et 1.
+        
+        Args:
+            scores: Dictionnaire de scores
+            
+        Returns:
+            Dictionnaire de scores normalisés
+        """
+        if not scores:
+            return {}
+            
+        total = sum(scores.values())
+        if total == 0:
+            return {k: 0.0 for k in scores}
+            
+        return {k: v / total for k, v in scores.items()}
+    
+    def _extract_top_preferences(self, preferences: Dict[str, float], limit: int = 3) -> Dict[str, float]:
+        """
+        Extrait les top préférences d'un dictionnaire.
+        
+        Args:
+            preferences: Dictionnaire de préférences avec scores
+            limit: Nombre maximum de préférences à extraire
+            
+        Returns:
+            Dictionnaire des top préférences
+        """
+        if not preferences:
+            return {}
+            
+        sorted_prefs = sorted(preferences.items(), key=lambda x: x[1], reverse=True)
+        return dict(sorted_prefs[:limit])
+    
+    def _get_item_features(self, item_id: str, item_type: str) -> Dict[str, Any]:
+        """
+        Récupère les caractéristiques d'un élément pour le calcul de recommandation.
+        
+        Args:
+            item_id: Identifiant de l'élément
+            item_type: Type de l'élément (job, cv, etc.)
+            
+        Returns:
+            Dict contenant les caractéristiques de l'élément
+        """
+        # Dans un environnement réel, on récupérerait les caractéristiques depuis une base de données
+        # Ici, on simule des caractéristiques pour le développement
+        
+        if item_type == "job":
+            # Générer des caractéristiques aléatoires pour une offre d'emploi
+            categories = ["engineering", "marketing", "sales", "design", "finance"]
+            locations = ["paris", "lyon", "marseille", "bordeaux", "toulouse"]
+            salary_ranges = ["30-45k", "45-60k", "60-80k", "80-100k", "100k+"]
+            job_types = ["full-time", "part-time", "contract", "remote"]
+            industries = ["tech", "healthcare", "finance", "retail", "education"]
+            
+            return {
+                "id": item_id,
+                "type": item_type,
+                "category": np.random.choice(categories),
+                "location": np.random.choice(locations),
+                "salary_range": np.random.choice(salary_ranges),
+                "job_type": np.random.choice(job_types),
+                "industry": np.random.choice(industries),
+                "skills": np.random.choice(["python", "javascript", "marketing", "sales", "design"], 
+                                       size=np.random.randint(2, 5), replace=False).tolist()
+            }
+        elif item_type == "cv":
+            # Générer des caractéristiques aléatoires pour un CV
+            skills = ["python", "javascript", "marketing", "sales", "design", "management", "communication"]
+            
+            return {
+                "id": item_id,
+                "type": item_type,
+                "skills": np.random.choice(skills, size=np.random.randint(3, 6), replace=False).tolist(),
+                "experience_years": np.random.randint(1, 15),
+                "education_level": np.random.choice(["bachelor", "master", "phd"])
+            }
+        else:
+            # Type non reconnu
+            return {}
+    
+    def _calculate_content_similarity(self, user_preferences: Dict[str, Any], 
+                                    item_features: Dict[str, Any]) -> float:
+        """
+        Calcule la similarité entre les préférences de l'utilisateur et les caractéristiques d'un élément.
+        
+        Args:
+            user_preferences: Préférences de contenu de l'utilisateur
+            item_features: Caractéristiques de l'élément
+            
+        Returns:
+            Score de similarité entre 0 et 1
+        """
+        if not user_preferences or not item_features:
+            return 0.5  # Score neutre par défaut
+        
+        # Initialiser le score
+        score = 0.0
+        count = 0
+        
+        # Vérifier la correspondance pour la catégorie
+        if "categories" in user_preferences and "category" in item_features:
+            category = item_features["category"]
+            if category in user_preferences["categories"]:
+                score += user_preferences["categories"][category]
+                count += 1
+        
+        # Vérifier la correspondance pour la localisation
+        if "locations" in user_preferences and "location" in item_features:
+            location = item_features["location"]
+            if location in user_preferences["locations"]:
+                score += user_preferences["locations"][location]
+                count += 1
+        
+        # Vérifier la correspondance pour la plage de salaire
+        if "salary_ranges" in user_preferences and "salary_range" in item_features:
+            salary = item_features["salary_range"]
+            if salary in user_preferences["salary_ranges"]:
+                score += user_preferences["salary_ranges"][salary]
+                count += 1
+        
+        # Vérifier la correspondance pour le type d'emploi
+        if "job_types" in user_preferences and "job_type" in item_features:
+            job_type = item_features["job_type"]
+            if job_type in user_preferences["job_types"]:
+                score += user_preferences["job_types"][job_type]
+                count += 1
+        
+        # Vérifier la correspondance pour l'industrie
+        if "industries" in user_preferences and "industry" in item_features:
+            industry = item_features["industry"]
+            if industry in user_preferences["industries"]:
+                score += user_preferences["industries"][industry]
+                count += 1
+        
+        # Vérifier la correspondance pour les compétences
+        if "skills" in user_preferences and "skills" in item_features and isinstance(item_features["skills"], list):
+            item_skills = set(item_features["skills"])
+            skills_score = 0.0
+            skills_count = 0
+            
+            for skill, weight in user_preferences["skills"].items():
+                if skill in item_skills:
+                    skills_score += weight
+                    skills_count += 1
+            
+            if skills_count > 0:
+                score += skills_score / skills_count
+                count += 1
+        
+        # Calculer le score moyen
+        if count > 0:
+            return score / count
+        else:
+            return 0.5  # Score neutre par défaut
+    
+    def _save_preferences(self, user_id: str, preferences: Dict[str, Any]) -> None:
+        """
+        Sauvegarde les préférences calculées pour un utilisateur.
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+            preferences: Préférences calculées
+        """
+        # Mettre en cache
+        self.preferences_cache[user_id] = preferences
+        
+        # Sauvegarder dans un fichier
+        preferences_path = os.path.join(self.storage_path, f"user_{user_id}_preferences.json")
+        try:
+            with open(preferences_path, 'w') as file:
+                json.dump(preferences, file, indent=2)
+            logger.info(f"Saved preferences for user {user_id} to {preferences_path}")
+        except Exception as e:
+            logger.error(f"Failed to save preferences to file: {str(e)}")
