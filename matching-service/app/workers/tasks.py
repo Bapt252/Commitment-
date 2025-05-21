@@ -19,7 +19,7 @@ from app.core.notification import send_webhook_notification
 # Configuration du logger
 logger = logging.getLogger(__name__)
 
-async def calculate_matching_score_task(candidate_id: int, job_id: int, db: Any, openai_client: Any) -> Dict[str, Any]:
+async def calculate_matching_score_task(candidate_id: int, job_id: int, db: Any, openai_client: Any, user_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Tâche RQ pour calculer le score de matching entre un candidat et une offre
     
@@ -28,6 +28,7 @@ async def calculate_matching_score_task(candidate_id: int, job_id: int, db: Any,
         job_id: ID de l'offre d'emploi
         db: Connexion à la base de données
         openai_client: Client OpenAI configuré
+        user_id: ID de l'utilisateur demandant le matching (pour personnalisation)
         
     Returns:
         dict: Résultat du matching
@@ -38,7 +39,7 @@ async def calculate_matching_score_task(candidate_id: int, job_id: int, db: Any,
         logger.info(f"Début du calcul de matching pour candidat={candidate_id}, job={job_id}")
         
         # Processus complet avec les 3 phases
-        result = await nexten_matching_process(candidate_id, job_id, db, openai_client)
+        result = await nexten_matching_process(candidate_id, job_id, db, openai_client, user_id)
         
         # Mise à jour des métadonnées du job
         if job:
@@ -86,7 +87,7 @@ async def calculate_matching_score_task(candidate_id: int, job_id: int, db: Any,
         # Relancer l'exception pour que la tâche soit marquée comme échouée
         raise
 
-async def calculate_bulk_matching_task(candidate_id: int, job_ids: List[int], db: Any, openai_client: Any, min_score: float = 0.3) -> List[Dict[str, Any]]:
+async def calculate_bulk_matching_task(candidate_id: int, job_ids: List[int], db: Any, openai_client: Any, min_score: float = 0.3, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Tâche RQ pour calculer le matching entre un candidat et plusieurs offres
     
@@ -96,6 +97,7 @@ async def calculate_bulk_matching_task(candidate_id: int, job_ids: List[int], db
         db: Connexion à la base de données
         openai_client: Client OpenAI configuré
         min_score: Score minimum pour inclure un match
+        user_id: ID de l'utilisateur demandant le matching (pour personnalisation)
         
     Returns:
         list: Liste des résultats de matching triés par score
@@ -106,7 +108,7 @@ async def calculate_bulk_matching_task(candidate_id: int, job_ids: List[int], db
         logger.info(f"Début du calcul de matching en masse pour candidat={candidate_id}, {len(job_ids)} jobs")
         
         # Processus de matching en masse
-        results = await bulk_matching_process(candidate_id, job_ids, db, openai_client, min_score)
+        results = await bulk_matching_process(candidate_id, job_ids, db, openai_client, min_score, user_id)
         
         # Mise à jour des métadonnées du job
         if job:
@@ -151,7 +153,7 @@ async def calculate_bulk_matching_task(candidate_id: int, job_ids: List[int], db
         # Relancer l'exception pour que la tâche soit marquée comme échouée
         raise
 
-async def find_candidates_for_job_task(job_id: int, candidate_ids: List[int], db: Any, openai_client: Any, limit: int = 10) -> List[Dict[str, Any]]:
+async def find_candidates_for_job_task(job_id: int, candidate_ids: List[int], db: Any, openai_client: Any, limit: int = 10, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Tâche RQ pour trouver les meilleurs candidats pour une offre d'emploi
     
@@ -161,6 +163,7 @@ async def find_candidates_for_job_task(job_id: int, candidate_ids: List[int], db
         db: Connexion à la base de données
         openai_client: Client OpenAI configuré
         limit: Nombre maximum de résultats à retourner
+        user_id: ID de l'utilisateur demandant le matching (pour personnalisation)
         
     Returns:
         list: Liste des candidats correspondants triés par score
@@ -171,7 +174,7 @@ async def find_candidates_for_job_task(job_id: int, candidate_ids: List[int], db
         logger.info(f"Début de la recherche de candidats pour job={job_id}, {len(candidate_ids)} candidats")
         
         # Processus de matching pour trouver les meilleurs candidats
-        results = await job_candidates_matching_process(job_id, candidate_ids, db, openai_client, limit)
+        results = await job_candidates_matching_process(job_id, candidate_ids, db, openai_client, limit, user_id)
         
         # Mise à jour des métadonnées du job
         if job:
@@ -216,7 +219,7 @@ async def find_candidates_for_job_task(job_id: int, candidate_ids: List[int], db
         # Relancer l'exception pour que la tâche soit marquée comme échouée
         raise
 
-async def process_cv_and_match_task(candidate_id: int, cv_file_path: str, job_ids: List[int], db: Any, openai_client: Any) -> Dict[str, Any]:
+async def process_cv_and_match_task(candidate_id: int, cv_file_path: str, job_ids: List[int], db: Any, openai_client: Any, user_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Tâche RQ qui combine le parsing d'un CV et le matching avec plusieurs offres
     
@@ -226,6 +229,7 @@ async def process_cv_and_match_task(candidate_id: int, cv_file_path: str, job_id
         job_ids: Liste des IDs d'offres d'emploi à matcher
         db: Connexion à la base de données
         openai_client: Client OpenAI configuré
+        user_id: ID de l'utilisateur demandant le matching (pour personnalisation)
         
     Returns:
         dict: Résultats du parsing et du matching
@@ -243,7 +247,7 @@ async def process_cv_and_match_task(candidate_id: int, cv_file_path: str, job_id
         await db.update_candidate_cv_data(candidate_id, cv_data)
         
         # 3. Matching avec les offres spécifiées
-        results = await bulk_matching_process(candidate_id, job_ids, db, openai_client)
+        results = await bulk_matching_process(candidate_id, job_ids, db, openai_client, user_id=user_id)
         
         # Mise à jour des métadonnées du job
         if job:
