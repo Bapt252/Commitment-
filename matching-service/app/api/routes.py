@@ -30,7 +30,8 @@ async def queue_matching(
     db: Session = Depends(get_db),
     redis: Redis = Depends(get_redis),
     priority: QueuePriority = Query(QueuePriority.STANDARD),
-    depends_on: Optional[str] = Query(None, description="ID du job dont ce job dépend")
+    depends_on: Optional[str] = Query(None, description="ID du job dont ce job dépend"),
+    user_id: Optional[str] = Query(None, description="ID de l'utilisateur demandant le matching")
 ):
     """
     Met en file d'attente un calcul de matching entre un candidat et une offre d'emploi
@@ -39,6 +40,7 @@ async def queue_matching(
         matching_request: Requête de matching
         priority: Priorité de la file d'attente
         depends_on: ID du job dont ce job dépend (ex: parsing de CV)
+        user_id: ID de l'utilisateur demandant le matching (pour personnalisation)
     
     Returns:
         MatchingResponse: Réponse avec l'ID du job et le statut
@@ -50,12 +52,14 @@ async def queue_matching(
         redis,
         calculate_matching_score_task,
         args=(matching_request.candidate_id, matching_request.job_id),
+        kwargs={"user_id": user_id},
         queue_name=priority,
         job_depends_on=depends_on,
         meta={
             "candidate_id": matching_request.candidate_id,
             "job_id": matching_request.job_id,
-            "webhook_url": matching_request.webhook_url
+            "webhook_url": matching_request.webhook_url,
+            "user_id": user_id
         }
     )
     
@@ -71,7 +75,8 @@ async def queue_matching_bulk(
     bulk_request: MatchingBulkRequest,
     db: Session = Depends(get_db),
     redis: Redis = Depends(get_redis),
-    priority: QueuePriority = Query(QueuePriority.BULK)
+    priority: QueuePriority = Query(QueuePriority.BULK),
+    user_id: Optional[str] = Query(None, description="ID de l'utilisateur demandant le matching")
 ):
     """
     Met en file d'attente plusieurs calculs de matching pour un candidat contre plusieurs offres
@@ -79,6 +84,7 @@ async def queue_matching_bulk(
     Args:
         bulk_request: Requête de matching en masse
         priority: Priorité de la file d'attente
+        user_id: ID de l'utilisateur demandant le matching (pour personnalisation)
     
     Returns:
         List[MatchingResponse]: Liste des réponses avec IDs de jobs et statuts
@@ -90,11 +96,13 @@ async def queue_matching_bulk(
             redis,
             calculate_matching_score_task,
             args=(bulk_request.candidate_id, job_id),
+            kwargs={"user_id": user_id},
             queue_name=priority,
             meta={
                 "candidate_id": bulk_request.candidate_id,
                 "job_id": job_id,
-                "webhook_url": bulk_request.webhook_url
+                "webhook_url": bulk_request.webhook_url,
+                "user_id": user_id
             }
         )
         
@@ -158,3 +166,49 @@ async def get_job_status_route(
         job_id=job_id,
         status=status
     )
+
+@router.post("/record-feedback")
+async def record_feedback(
+    user_id: str = Query(..., description="ID de l'utilisateur"),
+    job_id: Optional[int] = Query(None, description="ID de l'offre d'emploi"),
+    candidate_id: Optional[int] = Query(None, description="ID du candidat"),
+    action: str = Query(..., description="Type d'action (like, dislike, etc.)"),
+    context: Dict[str, Any] = Body({}, description="Contexte du feedback")
+):
+    """
+    Enregistre un feedback utilisateur pour améliorer les recommandations futures
+    
+    Args:
+        user_id: ID de l'utilisateur
+        job_id: ID de l'offre d'emploi (optionnel)
+        candidate_id: ID du candidat (optionnel)
+        action: Type d'action (like, dislike, bookmark, apply, ignore)
+        context: Contexte du feedback (source, position, etc.)
+    
+    Returns:
+        Dict: Résultat de l'opération
+    """
+    if not job_id and not candidate_id:
+        raise HTTPException(status_code=400, detail="Au moins un job_id ou candidate_id doit être fourni")
+    
+    try:
+        from app.services.personalization_client import PersonalizationClient
+        
+        # Envoyer le feedback au service de personnalisation
+        personalization_client = PersonalizationClient()
+        success = personalization_client.record_feedback(
+            user_id=user_id,
+            job_id=job_id,
+            candidate_id=candidate_id,
+            action=action,
+            context=context
+        )
+        
+        if success:
+            return {"status": "success", "message": "Feedback enregistré avec succès"}
+        else:
+            return {"status": "warning", "message": "Impossible d'enregistrer le feedback"}
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de l'enregistrement du feedback: {str(e)}", exc_info=True)
+        return {"status": "error", "message": "Erreur serveur lors de l'enregistrement du feedback"}
