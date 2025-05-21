@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  feedback-service-simple:
+    build:
+      context: ./feedback_service
+      dockerfile: Dockerfile.simple
+    container_name: nexten-feedback-simple
+    ports:
+      - "5058:5058"
+    environment:
+      DEBUG: "true"
+      PORT: 5058
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge

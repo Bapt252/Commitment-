@@ -5,7 +5,7 @@
 echo "Starting User Profile API service..."
 
 # Set environment variables
-export PORT=5002
+export PORT=4242
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/commitment}"
 export API_KEY="${API_KEY:-commitment-session8-key}"
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"

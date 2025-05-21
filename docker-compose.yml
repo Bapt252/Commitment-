@@ -108,6 +108,8 @@ services:
       CV_PARSER_SERVICE_URL: http://cv-parser:5000
       JOB_PARSER_SERVICE_URL: http://job-parser:5000
       MATCHING_SERVICE_URL: http://matching-api:5000
+      USER_BEHAVIOR_SERVICE_URL: http://user-behavior-api:5000
+      FEEDBACK_SERVICE_URL: http://feedback-service:5000
       PORT: 5000
     networks:
       - nexten-network
@@ -126,6 +128,87 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
+
+  # Service d'analyse comportementale et profiling utilisateur
+  user-behavior-api:
+    build:
+      context: ./user_behavior
+      dockerfile: Dockerfile
+    container_name: nexten-user-behavior
+    ports:
+      - "5057:5000"  # Changé de 5054 à 5057
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      PORT: 5000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+      FLASK_APP: user_behavior.api.app  # Ajouté pour clarifier le point d'entrée
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+          
+  # Service de feedback et d'apprentissage continu
+  feedback-service:
+    build:
+      context: ./feedback_service
+      dockerfile: Dockerfile
+    container_name: nexten-feedback
+    ports:
+      - "5058:5058"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user-behavior-api:
+        condition: service_started
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      PORT: 5058
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+      FLASK_APP: feedback_service.api.app
+      USER_BEHAVIOR_SERVICE_URL: http://user-behavior-api:5000
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5058/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   # Service API de parsing CV - FastAPI
   cv-parser:

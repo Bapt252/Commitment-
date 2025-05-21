@@ -34,9 +34,55 @@ Après avoir lancé les conteneurs, les services sont accessibles aux URLs suiva
 - **Service de parsing CV**: http://localhost:5051
 - **Service de parsing fiches de poste**: http://localhost:5055 (nouvelle version GPT)
 - **Service de matching**: http://localhost:5052
+- **Service d'analyse comportementale**: http://localhost:5054 (nouveau)
 - **MinIO (stockage)**: http://localhost:9000 (API) et http://localhost:9001 (Console)
 - **Redis Commander**: http://localhost:8081
 - **RQ Dashboard**: http://localhost:9181
+
+## Nouvelle fonctionnalité : Analyse comportementale et profiling utilisateur
+
+Nous avons ajouté un nouveau service pour l'analyse comportementale et le profiling utilisateur. Ce service permet de :
+
+- Créer des profils utilisateur enrichis basés sur leur comportement
+- Segmenter automatiquement les utilisateurs via des algorithmes de clustering
+- Détecter les patterns comportementaux récurrents
+- Calculer des scores de préférence dynamiques pour personnaliser l'expérience
+
+### Démarrer le service d'analyse comportementale
+
+```bash
+# Rendre le script de démarrage exécutable
+chmod +x start-user-behavior.sh
+
+# Démarrer le service
+./start-user-behavior.sh
+```
+
+### Utiliser l'API d'analyse comportementale
+
+```bash
+# Vérifier que le service est actif
+curl http://localhost:5054/health
+
+# Créer un profil utilisateur
+curl -X POST http://localhost:5054/api/profiles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user123",
+    "name": "John Doe",
+    "interactions": [
+      {
+        "user_id": "user123",
+        "action_type": "view_job",
+        "timestamp": "2025-05-20T10:00:00Z",
+        "item_id": "job-123",
+        "job_category": "Development"
+      }
+    ]
+  }'
+```
+
+Pour plus de détails, consultez le [Guide d'utilisation de l'analyse comportementale](user-behavior-guide.md).
 
 ## Nouvelle fonctionnalité : Analyse GPT des fiches de poste
 
@@ -93,6 +139,7 @@ Le projet contient plusieurs scripts utilitaires pour faciliter le développemen
 - `./curl-test-cv-parser.sh`: Script pour tester l'API de parsing de CV avec curl
 - `./curl-test-job-parser.sh`: Script pour tester l'API de parsing de fiches de poste avec curl
 - `./job-parser-service/start-gpt-api.sh`: Script pour démarrer le service d'analyse GPT des fiches de poste
+- `./start-user-behavior.sh`: Script pour démarrer le service d'analyse comportementale
 
 ## Tester le service de parsing CV
 
@@ -138,6 +185,7 @@ Le projet utilise une architecture microservices avec les composants suivants :
 1. **Service de parsing CV** : Extrait les informations des CV en utilisant GPT-4o-mini
 2. **Service de parsing de fiches de poste** : Extrait les informations des offres d'emploi en utilisant GPT-3.5-turbo/GPT-4
 3. **Service de matching** : Match les CV avec les offres d'emploi
-4. **Redis** : File d'attente pour le traitement asynchrone et cache
-5. **MinIO** : Stockage des fichiers (CV et fiches de poste)
-6. **PostgreSQL** : Base de données principale
+4. **Service d'analyse comportementale** : Crée des profils utilisateur enrichis et analyse le comportement
+5. **Redis** : File d'attente pour le traitement asynchrone et cache
+6. **MinIO** : Stockage des fichiers (CV et fiches de poste)
+7. **PostgreSQL** : Base de données principale
