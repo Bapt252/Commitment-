@@ -41,6 +41,18 @@ if [ -z "$OPENAI" ]; then
   echo "OPENAI=$OPENAI" >> .env
 fi
 
+# Arrêter les services existants qui pourraient causer des conflits de port
+echo -e "${YELLOW}[INFO] Arrêt des services existants qui pourraient causer des conflits...${NC}"
+docker-compose down || true
+
+# Démarrage des services principaux via Docker Compose
+echo -e "${YELLOW}[INFO] Démarrage des services principaux via Docker Compose...${NC}"
+docker-compose up -d
+
+# Attendre que les services soient prêts
+echo -e "${YELLOW}[INFO] Attente du démarrage complet des services...${NC}"
+sleep 10
+
 # Fonction pour vérifier l'état d'un service
 check_service() {
   local service_url=$1
@@ -57,44 +69,39 @@ check_service() {
     fi
     
     retry_count=$((retry_count+1))
-    echo -e "${YELLOW}[INFO] Tentative $retry_count/$max_retries... Attente de 5 secondes.${NC}"
-    sleep 5
+    if [ $retry_count -lt $max_retries ]; then
+      echo -e "${YELLOW}[INFO] Tentative $retry_count/$max_retries... Attente de 5 secondes.${NC}"
+      sleep 5
+    fi
   done
   
   echo -e "${RED}[ERROR] Le service $service_name n'a pas démarré correctement après $max_retries tentatives.${NC}"
   return 1
 }
 
-# Démarrage des services principaux via Docker Compose
-echo -e "${YELLOW}[INFO] Démarrage des services principaux via Docker Compose...${NC}"
-docker-compose up -d || (echo -e "${RED}[ERROR] Échec du démarrage des services Docker${NC}" && exit 1)
+# Vérifier les services principaux
+check_service "http://localhost:5051" "Parsing CV" 5 || true
+check_service "http://localhost:5055" "Parsing Fiches de Poste" 5 || true
+check_service "http://localhost:5052" "Matching" 5 || true
+check_service "http://localhost:5060" "Personnalisation" 5 || true
+check_service "http://localhost:5057" "Analyse Comportementale" 5 || true
 
-# Attendre que les services soient prêts
-echo -e "${YELLOW}[INFO] Attente du démarrage complet des services...${NC}"
-sleep 10
+# Afficher l'état des services Docker
+echo -e "${YELLOW}[INFO] État des services Docker:${NC}"
+docker-compose ps
 
-# Vérifier les services critiques
-check_service "http://localhost:5051" "Parsing CV" 5
-check_service "http://localhost:5055" "Parsing Fiches de Poste" 5
-check_service "http://localhost:5052" "Matching" 5
+# Afficher les logs des services qui n'ont pas démarré correctement
+if ! check_service "http://localhost:5060" "Personnalisation" 1; then
+  echo -e "${YELLOW}[INFO] Logs du service de personnalisation:${NC}"
+  docker logs nexten-personalization
+fi
 
-# Démarrage des services supplémentaires
-echo -e "${YELLOW}[INFO] Démarrage du service d'analyse comportementale...${NC}"
-chmod +x start-user-behavior.sh
-./start-user-behavior.sh &
+if ! check_service "http://localhost:5057" "Analyse Comportementale" 1; then
+  echo -e "${YELLOW}[INFO] Logs du service d'analyse comportementale:${NC}"
+  docker logs nexten-user-behavior
+fi
 
-echo -e "${YELLOW}[INFO] Démarrage du service de personnalisation...${NC}"
-chmod +x personalization-service/start-personalization.sh
-cd personalization-service
-./start-personalization.sh &
-cd ..
-
-# Vérifier les services supplémentaires
-sleep 10
-check_service "http://localhost:5054" "Analyse Comportementale" 3
-check_service "http://localhost:5060" "Personnalisation" 3
-
-echo -e "${GREEN}[SUCCESS] Tous les services Commitment sont démarrés et prêts!${NC}"
+echo -e "${GREEN}[SUCCESS] Configuration de démarrage de Commitment terminée!${NC}"
 echo ""
 echo -e "${BLUE}=== Services disponibles ===${NC}"
 echo -e "Frontend: ${GREEN}http://localhost:3000${NC}"
@@ -102,7 +109,7 @@ echo -e "API principale: ${GREEN}http://localhost:5050${NC}"
 echo -e "Service de parsing CV: ${GREEN}http://localhost:5051${NC}"
 echo -e "Service de parsing fiches de poste: ${GREEN}http://localhost:5055${NC}"
 echo -e "Service de matching: ${GREEN}http://localhost:5052${NC}"
-echo -e "Service d'analyse comportementale: ${GREEN}http://localhost:5054${NC}"
+echo -e "Service d'analyse comportementale: ${GREEN}http://localhost:5057${NC}"
 echo -e "Service de personnalisation: ${GREEN}http://localhost:5060${NC}"
 echo -e "MinIO (stockage): ${GREEN}http://localhost:9000${NC} (API) et ${GREEN}http://localhost:9001${NC} (Console)"
 echo -e "Redis Commander: ${GREEN}http://localhost:8081${NC}"
