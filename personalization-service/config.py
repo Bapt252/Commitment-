@@ -29,6 +29,7 @@ DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@postgre
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 REDIS_DB = int(os.getenv('REDIS_DB', 0))
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', None)
 
 # Configuration des services externes
 MATCHING_SERVICE_URL = os.getenv('MATCHING_SERVICE_URL', 'http://matching-api:5000')
@@ -49,7 +50,7 @@ TEMPORAL_DRIFT_HALF_LIFE_DAYS = int(os.getenv('TEMPORAL_DRIFT_HALF_LIFE_DAYS', 3
 
 # Configuration du format de journalisation
 if LOG_FORMAT == 'json':
-    LOG_FORMATTER = logging.Formatter('{\'timestamp\': \'%(asctime)s\', \'level\': \'%(levelname)s\', \'module\': \'%(name)s\', \'message\': \'%(message)s\'}')
+    LOG_FORMATTER = logging.Formatter('{\\'timestamp\\': \\'%(asctime)s\\', \\'level\\': \\'%(levelname)s\\', \\'module\\': \\'%(name)s\\', \\'message\\': \\'%(message)s\\'}')
 else:
     LOG_FORMATTER = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
