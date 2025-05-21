@@ -35,9 +35,59 @@ Après avoir lancé les conteneurs, les services sont accessibles aux URLs suiva
 - **Service de parsing fiches de poste**: http://localhost:5055 (nouvelle version GPT)
 - **Service de matching**: http://localhost:5052
 - **Service d'analyse comportementale**: http://localhost:5054 (nouveau)
+- **Service de personnalisation**: http://localhost:5060 (nouveau)
 - **MinIO (stockage)**: http://localhost:9000 (API) et http://localhost:9001 (Console)
 - **Redis Commander**: http://localhost:8081
 - **RQ Dashboard**: http://localhost:9181
+
+## Nouvelle fonctionnalité : Service de personnalisation
+
+Nous avons ajouté un nouveau service de personnalisation qui permet d'adapter les résultats de matching et de recherche en fonction des préférences et du comportement des utilisateurs. Ce service intègre plusieurs fonctionnalités avancées :
+
+- Personnalisation des poids de matching (compétences, expérience, éducation, certifications)
+- Filtrage collaboratif basé sur les préférences d'utilisateurs similaires
+- Gestion du démarrage à froid pour les nouveaux utilisateurs
+- Adaptation aux évolutions des préférences (dérive temporelle)
+- Tests A/B intégrés pour évaluer différentes stratégies de personnalisation
+
+### Démarrer le service de personnalisation
+
+```bash
+# Rendre le script de démarrage exécutable
+chmod +x start-personalization.sh
+
+# Démarrer le service
+./start-personalization.sh
+```
+
+### Tester le service de personnalisation
+
+Pour tester les fonctionnalités de personnalisation :
+
+```bash
+# Vérifier que le service est actif
+curl http://localhost:5060/health
+
+# Créer des préférences utilisateur
+curl -X POST http://localhost:5060/api/v1/preferences \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user123",
+    "preferences": {
+      "job_type": ["CDI", "Freelance"],
+      "location": ["Paris", "Remote"],
+      "skills": ["Python", "JavaScript"],
+      "weights": {
+        "skills": 0.5,
+        "experience": 0.3,
+        "education": 0.1,
+        "certifications": 0.1
+      }
+    }
+  }'
+```
+
+Pour plus de détails, consultez le [Guide de test du service de personnalisation](personalization-service/TESTING.md).
 
 ## Nouvelle fonctionnalité : Analyse comportementale et profiling utilisateur
 
@@ -140,6 +190,8 @@ Le projet contient plusieurs scripts utilitaires pour faciliter le développemen
 - `./curl-test-job-parser.sh`: Script pour tester l'API de parsing de fiches de poste avec curl
 - `./job-parser-service/start-gpt-api.sh`: Script pour démarrer le service d'analyse GPT des fiches de poste
 - `./start-user-behavior.sh`: Script pour démarrer le service d'analyse comportementale
+- `./start-personalization.sh`: Script pour démarrer le service de personnalisation
+- `./test-personalization.sh`: Script pour tester le service de personnalisation
 
 ## Tester le service de parsing CV
 
@@ -157,27 +209,6 @@ curl -X POST \
   -F "force_refresh=false"
 ```
 
-## Tester le service d'analyse GPT des fiches de poste
-
-Pour tester manuellement le service d'analyse GPT des fiches de poste:
-
-```bash
-# Tester le endpoint health
-curl http://localhost:5055/health
-
-# Tester l'analyse par texte
-curl -X POST \
-  http://localhost:5055/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"text":"Fiche de poste: Développeur Full Stack..."}'
-
-# Tester l'analyse par fichier
-curl -X POST \
-  http://localhost:5055/analyze-file \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@/chemin/vers/votre/fiche_poste.pdf"
-```
-
 ## Architecture
 
 Le projet utilise une architecture microservices avec les composants suivants :
@@ -186,6 +217,7 @@ Le projet utilise une architecture microservices avec les composants suivants :
 2. **Service de parsing de fiches de poste** : Extrait les informations des offres d'emploi en utilisant GPT-3.5-turbo/GPT-4
 3. **Service de matching** : Match les CV avec les offres d'emploi
 4. **Service d'analyse comportementale** : Crée des profils utilisateur enrichis et analyse le comportement
-5. **Redis** : File d'attente pour le traitement asynchrone et cache
-6. **MinIO** : Stockage des fichiers (CV et fiches de poste)
-7. **PostgreSQL** : Base de données principale
+5. **Service de personnalisation** : Adapte les résultats selon les préférences utilisateur
+6. **Redis** : File d'attente pour le traitement asynchrone et cache
+7. **MinIO** : Stockage des fichiers (CV et fiches de poste)
+8. **PostgreSQL** : Base de données principale
