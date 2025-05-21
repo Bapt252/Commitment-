@@ -12,5 +12,5 @@ COPY . .
 # Port par défaut
 EXPOSE 5000
 
-# Commande de démarrage directe avec wsgi.py
-CMD ["python", "wsgi.py"]
+# Commande de démarrage avec le nouveau script
+CMD ["python", "run.py"]
