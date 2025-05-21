@@ -6,16 +6,31 @@ echo "Arrêt des services de feedback existants (s'ils sont en cours d'exécutio
 docker stop nexten-feedback nexten-feedback-simple 2>/dev/null || true
 docker rm nexten-feedback nexten-feedback-simple 2>/dev/null || true
 
+# Vérifier si le réseau nexten-network existe, sinon le créer
+if ! docker network ls | grep -q nexten-network; then
+    echo "Création du réseau nexten-network..."
+    docker network create nexten-network || echo "Impossible de créer le réseau, utilisation du réseau par défaut"
+fi
+
 echo "Construction de l'image Docker simplifiée..."
 docker build -t feedback-service-simple -f feedback_service/Dockerfile.simple feedback_service/
 
 echo "Démarrage du service de feedback simplifié..."
-docker run -d --name nexten-feedback-simple \
-  --network nexten-network \
-  -p 5058:5058 \
-  -e DEBUG=true \
-  -e PORT=5058 \
-  feedback-service-simple
+# Si le réseau nexten-network existe, l'utiliser, sinon utiliser le réseau bridge par défaut
+if docker network ls | grep -q nexten-network; then
+    docker run -d --name nexten-feedback-simple \
+      --network nexten-network \
+      -p 5058:5058 \
+      -e DEBUG=true \
+      -e PORT=5058 \
+      feedback-service-simple
+else
+    docker run -d --name nexten-feedback-simple \
+      -p 5058:5058 \
+      -e DEBUG=true \
+      -e PORT=5058 \
+      feedback-service-simple
+fi
 
 echo "Attendez quelques secondes que le service démarre..."
 sleep 3
