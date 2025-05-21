@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS cold_start_parameters (
 CREATE OR REPLACE VIEW user_personalization_profile AS
 SELECT 
     u.id AS user_id,
-    u.username,
+    u.name,
     jsonb_object_agg(pa.attribute_name, COALESCE(uaw.weight, pa.default_weight)) AS attribute_weights,
     jsonb_object_agg(pc.category_name, COALESCE(ucm.modifier, pc.default_modifier)) AS category_modifiers
 FROM 
@@ -167,7 +167,7 @@ CROSS JOIN personalization_categories pc
 LEFT JOIN user_attribute_weights uaw ON u.id = uaw.user_id AND pa.id = uaw.attribute_id
 LEFT JOIN user_category_modifiers ucm ON u.id = ucm.user_id AND pc.id = ucm.category_id
 GROUP BY 
-    u.id, u.username;
+    u.id, u.name;
 
 -- Fonction pour initialiser les poids par défaut pour un nouvel utilisateur
 CREATE OR REPLACE FUNCTION initialize_user_personalization()
