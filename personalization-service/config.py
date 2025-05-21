@@ -50,7 +50,7 @@ TEMPORAL_DRIFT_HALF_LIFE_DAYS = int(os.getenv('TEMPORAL_DRIFT_HALF_LIFE_DAYS', 3
 
 # Configuration du format de journalisation
 if LOG_FORMAT == 'json':
-    LOG_FORMATTER = logging.Formatter('{\\'timestamp\\': \\'%(asctime)s\\', \\'level\\': \\'%(levelname)s\\', \\'module\\': \\'%(name)s\\', \\'message\\': \\'%(message)s\\'}')
+    LOG_FORMATTER = logging.Formatter(r'{"timestamp": "%(asctime)s", "level": "%(levelname)s", "module": "%(name)s", "message": "%(message)s"}')
 else:
     LOG_FORMATTER = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
