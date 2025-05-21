@@ -3,11 +3,11 @@ from datetime import datetime
 import logging
 import json
 import uuid
-from feedback_service.models.feedback import (
+from models.feedback import (
     FeedbackSource, FeedbackType, FeedbackAnalyzer, 
     FeedbackCollector, SatisfactionPredictor
 )
-from feedback_service.db.repository import FeedbackRepository
+from db.repository import FeedbackRepository
 
 logger = logging.getLogger(__name__)
 feedback_api = Blueprint('feedback_api', __name__)
