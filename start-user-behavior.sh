@@ -25,10 +25,10 @@ echo "Attendez quelques secondes que le service démarre..."
 sleep 5
 
 # Vérifier que le service est actif
-if curl -s http://localhost:5054/health | grep -q "healthy"; then
-    echo "Le service d'analyse comportementale est démarré et accessible à l'adresse: http://localhost:5054"
-    echo "API disponible à: http://localhost:5054/api"
-    echo "Vérifiez la santé du service: curl http://localhost:5054/health"
+if curl -s http://localhost:5057/health | grep -q "healthy"; then
+    echo "Le service d'analyse comportementale est démarré et accessible à l'adresse: http://localhost:5057"
+    echo "API disponible à: http://localhost:5057/api"
+    echo "Vérifiez la santé du service: curl http://localhost:5057/health"
     echo "Documentation API et exemples: voir user-behavior-guide.md"
 else
     echo "Le service ne semble pas avoir démarré correctement. Vérifiez les logs:"
