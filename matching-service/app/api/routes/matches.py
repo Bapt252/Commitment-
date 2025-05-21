@@ -5,6 +5,12 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 from app.core.matching import calculate_match, get_matches_for_job, get_matches_for_candidate
+from app.services.personalized_matching import (
+    calculate_personalized_match, 
+    get_personalized_matches_for_job, 
+    get_personalized_matches_for_candidate,
+    record_match_interaction
+)
 from app.models.match import Match
 from app.utils.db import get_db_connection, setup_audit_context
 
@@ -17,6 +23,7 @@ class CalculateMatchRequest(BaseModel):
     candidate_id: Optional[int] = Field(None, description="ID du candidat")
     algorithm_id: Optional[int] = Field(None, description="ID de l'algorithme à utiliser")
     store_results: Optional[bool] = Field(False, description="Stocker les résultats en base de données")
+    personalized: Optional[bool] = Field(True, description="Appliquer la personnalisation")
 
 class MatchStatusUpdate(BaseModel):
     status: str = Field(..., description="Nouveau statut du match", pattern='^(pending|viewed|interested|not_interested)$')
@@ -30,6 +37,7 @@ def calculate_match_score(body: CalculateMatchRequest):
     candidate_id = body.candidate_id
     algorithm_id = body.algorithm_id
     store_results = body.store_results
+    personalized = body.personalized
     
     if not job_id and not candidate_id:
         return jsonify({"error": "Either job_id or candidate_id is required"}), 400
@@ -44,7 +52,10 @@ def calculate_match_score(body: CalculateMatchRequest):
         
         if job_id and not candidate_id:
             # Calculer le matching pour tous les candidats éligibles pour ce job
-            matches = get_matches_for_job(conn, job_id, algorithm_id, limit=50)
+            if personalized:
+                matches = get_personalized_matches_for_job(conn, job_id, user_id, algorithm_id, limit=50)
+            else:
+                matches = get_matches_for_job(conn, job_id, algorithm_id, limit=50)
             
             # Optionnel: stocker ces matches en base
             if store_results:
@@ -60,12 +71,16 @@ def calculate_match_score(body: CalculateMatchRequest):
             return jsonify({
                 "job_id": job_id,
                 "matches": matches,
-                "count": len(matches)
+                "count": len(matches),
+                "personalized": personalized
             })
             
         elif candidate_id and not job_id:
             # Calculer le matching pour ce candidat avec tous les jobs ouverts
-            matches = get_matches_for_candidate(conn, candidate_id, algorithm_id, limit=50)
+            if personalized:
+                matches = get_personalized_matches_for_candidate(conn, candidate_id, user_id, algorithm_id, limit=50)
+            else:
+                matches = get_matches_for_candidate(conn, candidate_id, algorithm_id, limit=50)
             
             # Optionnel: stocker ces matches en base
             if store_results:
@@ -81,12 +96,16 @@ def calculate_match_score(body: CalculateMatchRequest):
             return jsonify({
                 "candidate_id": candidate_id,
                 "matches": matches,
-                "count": len(matches)
+                "count": len(matches),
+                "personalized": personalized
             })
             
         else:
             # Calculer un seul match spécifique
-            match_result = calculate_match(conn, candidate_id, job_id, algorithm_id)
+            if personalized:
+                match_result = calculate_personalized_match(conn, candidate_id, job_id, user_id, algorithm_id)
+            else:
+                match_result = calculate_match(conn, candidate_id, job_id, algorithm_id)
             
             # Stocker le résultat si demandé
             if store_results:
@@ -111,6 +130,7 @@ def get_job_matches(job_id):
     offset = request.args.get('offset', default=0, type=int)
     status = request.args.get('status', default=None, type=str)
     min_score = request.args.get('min_score', default=0, type=float)
+    personalized = request.args.get('personalized', default='true', type=str).lower() == 'true'
     
     conn = get_db_connection()
     try:
@@ -181,11 +201,25 @@ def get_job_matches(job_id):
             "candidate_name": f"{match[8]} {match[9]}"
         } for match in matches]
         
+        # Si personnalisation demandée, réordonner les résultats
+        if personalized and formatted_matches:
+            # Enregistrer que l'utilisateur a consulté cette liste
+            record_match_interaction(
+                user_id=user_id,
+                job_id=job_id,
+                action="view_candidates_list",
+                context={"count": len(formatted_matches), "filters": {"status": status, "min_score": min_score}}
+            )
+            
+            # Note: Dans un cas réel, nous pourrions appeler le service de personnalisation 
+            # pour réordonner ces résultats, mais ici nous les utilisons déjà triés par score
+        
         return jsonify({
             "job_id": job_id,
             "matches": formatted_matches,
             "count": len(formatted_matches),
-            "total": total_count
+            "total": total_count,
+            "personalized": personalized
         })
     finally:
         conn.close()
@@ -198,6 +232,7 @@ def get_candidate_matches(candidate_id):
     offset = request.args.get('offset', default=0, type=int)
     status = request.args.get('status', default=None, type=str)
     min_score = request.args.get('min_score', default=0, type=float)
+    personalized = request.args.get('personalized', default='true', type=str).lower() == 'true'
     
     conn = get_db_connection()
     try:
@@ -266,11 +301,25 @@ def get_candidate_matches(candidate_id):
             "company_name": match[9]
         } for match in matches]
         
+        # Si personnalisation demandée, réordonner les résultats
+        if personalized and formatted_matches:
+            # Enregistrer que l'utilisateur a consulté cette liste
+            record_match_interaction(
+                user_id=user_id,
+                candidate_id=candidate_id,
+                action="view_jobs_list",
+                context={"count": len(formatted_matches), "filters": {"status": status, "min_score": min_score}}
+            )
+            
+            # Note: Dans un cas réel, nous pourrions appeler le service de personnalisation 
+            # pour réordonner ces résultats, mais ici nous les utilisons déjà triés par score
+        
         return jsonify({
             "candidate_id": candidate_id,
             "matches": formatted_matches,
             "count": len(formatted_matches),
-            "total": total_count
+            "total": total_count,
+            "personalized": personalized
         })
     finally:
         conn.close()
@@ -346,6 +395,14 @@ def get_match(match_id):
             }
         }
         
+        # Enregistrer la consultation du match
+        record_match_interaction(
+            user_id=user_id,
+            job_id=match[2],
+            candidate_id=match[1],
+            action="view_match_details"
+        )
+        
         return jsonify(formatted_match)
     finally:
         conn.close()
@@ -414,6 +471,15 @@ def update_match_status(match_id: int, body: MatchStatusUpdate):
         """
         conn.execute(update_query, (new_status, match_id))
         conn.commit()
+        
+        # Enregistrer l'action pour le système de personnalisation
+        record_match_interaction(
+            user_id=user_id,
+            job_id=job_id,
+            candidate_id=candidate_id,
+            action=f"status_{new_status}",
+            context={"previous_status": current_status}
+        )
         
         return jsonify({
             "id": match_id,
