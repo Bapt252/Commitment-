@@ -20,21 +20,21 @@ docker-compose up -d
 ./start-user-behavior.sh
 ```
 
-Le service est accessible à l'adresse : http://localhost:5054
+Le service est accessible à l'adresse : http://localhost:5057
 
 ## 3. Endpoints API
 
 ### Vérification de santé
 
 ```bash
-curl http://localhost:5054/health
+curl http://localhost:5057/health
 ```
 
 ### Gestion des profils utilisateur
 
 **Créer/mettre à jour un profil**
 ```bash
-curl -X POST http://localhost:5054/api/profiles \
+curl -X POST http://localhost:5057/api/profiles \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "user123",
@@ -54,19 +54,19 @@ curl -X POST http://localhost:5054/api/profiles \
 
 **Récupérer tous les profils**
 ```bash
-curl http://localhost:5054/api/profiles
+curl http://localhost:5057/api/profiles
 ```
 
 **Récupérer un profil spécifique**
 ```bash
-curl http://localhost:5054/api/profiles?user_id=user123
+curl http://localhost:5057/api/profiles?user_id=user123
 ```
 
 ### Clustering utilisateur
 
 **Créer des clusters**
 ```bash
-curl -X POST http://localhost:5054/api/clusters \
+curl -X POST http://localhost:5057/api/clusters \
   -H "Content-Type: application/json" \
   -d '{
     "n_clusters": 3
@@ -75,14 +75,14 @@ curl -X POST http://localhost:5054/api/clusters \
 
 **Récupérer les clusters**
 ```bash
-curl http://localhost:5054/api/clusters
+curl http://localhost:5057/api/clusters
 ```
 
 ### Détection de patterns comportementaux
 
 **Détecter les patterns**
 ```bash
-curl -X POST http://localhost:5054/api/patterns \
+curl -X POST http://localhost:5057/api/patterns \
   -H "Content-Type: application/json" \
   -d '{
     "actions": [
@@ -112,19 +112,19 @@ curl -X POST http://localhost:5054/api/patterns \
 
 **Récupérer les patterns**
 ```bash
-curl http://localhost:5054/api/patterns
+curl http://localhost:5057/api/patterns
 ```
 
 **Récupérer les patterns d'un utilisateur spécifique**
 ```bash
-curl http://localhost:5054/api/patterns?user_id=user123
+curl http://localhost:5057/api/patterns?user_id=user123
 ```
 
 ### Scores de préférence
 
 **Calculer les scores**
 ```bash
-curl -X POST http://localhost:5054/api/preference-scores \
+curl -X POST http://localhost:5057/api/preference-scores \
   -H "Content-Type: application/json" \
   -d '{
     "actions": [
@@ -158,18 +158,18 @@ curl -X POST http://localhost:5054/api/preference-scores \
 
 **Récupérer les scores**
 ```bash
-curl http://localhost:5054/api/preference-scores
+curl http://localhost:5057/api/preference-scores
 ```
 
 **Récupérer les scores d'un utilisateur spécifique**
 ```bash
-curl http://localhost:5054/api/preference-scores?user_id=user123
+curl http://localhost:5057/api/preference-scores?user_id=user123
 ```
 
 ### Ajout d'interactions et mise à jour globale
 
 ```bash
-curl -X POST http://localhost:5054/api/interactions \
+curl -X POST http://localhost:5057/api/interactions \
   -H "Content-Type: application/json" \
   -d '{
     "interactions": [
