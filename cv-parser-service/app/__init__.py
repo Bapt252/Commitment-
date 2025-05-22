@@ -9,9 +9,6 @@ import logging
 from app.core.config import settings
 from app.core.logging import setup_logging
 
-# Import des métriques Prometheus
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-
 # Setup logging
 logger = setup_logging()
 
@@ -51,7 +48,12 @@ async def health_check():
 @app.get("/metrics")
 async def metrics():
     """Expose les métriques Prometheus"""
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    try:
+        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    except ImportError:
+        # Si prometheus_client n'est pas installé, retourner un placeholder
+        return Response("# Prometheus metrics not available\n", media_type="text/plain")
 
 # Initialisation de l'application
 @app.on_event("startup")
