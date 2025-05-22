@@ -11,6 +11,9 @@ requests>=2.31.0
 prometheus-client==0.18.0
 structlog==23.1.0
 
+# Fichiers asynchrones (AJOUT MANQUANT)
+aiofiles>=23.1.0
+
 # Extraction de texte
 PyPDF2>=3.0.0
 pdfminer.six>=20220524
