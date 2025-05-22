@@ -1,10 +1,13 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 import redis
 import json
 from datetime import datetime
 import logging
 import os
+
+# Import des métriques Prometheus
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 app = Flask(__name__)
 CORS(app)
@@ -58,6 +61,11 @@ def health_check():
             'status': 'unhealthy',
             'error': str(e)
         }), 500
+
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    """Endpoint pour exposer les métriques Prometheus"""
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 @app.route('/api/feedback', methods=['POST'])
 def collect_feedback():
