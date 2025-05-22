@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Session A3 - Phase 0 : Performance Profiling & Baseline
-# Durée : 45min
-# Objectif : Établir métriques baseline et identifier bottlenecks
+# Session A3 - Phase 0: Baseline Profiling
+# Mesures initiales de performance avant optimisation
 
 set -euo pipefail
 
@@ -11,29 +10,22 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-RESULTS_DIR="./performance-optimization/session-a3/baseline-results-${TIMESTAMP}"
-DOCKER_COMPOSE_FILE="docker-compose.yml"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASELINE_DIR="${SCRIPT_DIR}/baseline-${TIMESTAMP}"
 
-# URLs des services
-API_BASE="http://localhost:5050"
-CV_PARSER="http://localhost:5051"
-JOB_PARSER="http://localhost:5055"
-MATCHING_API="http://localhost:5052"
-PERSONALIZATION="http://localhost:5060"
-USER_BEHAVIOR="http://localhost:5057"
-
-echo -e "${BLUE}🎯 Session A3 - Phase 0 : Performance Profiling & Baseline${NC}"
-echo -e "${BLUE}⏱️  Durée estimée : 45 minutes${NC}"
-echo -e "${BLUE}📊 Résultats : ${RESULTS_DIR}${NC}"
+echo -e "${CYAN}🎯 SESSION A3 - PHASE 0 : BASELINE PROFILING${NC}"
+echo -e "${CYAN}⏱️  Durée : 15 minutes${NC}"
+echo -e "${CYAN}🎯 Objectif : Mesures initiales avant optimisation${NC}"
+echo -e "${CYAN}📊 Résultats : ${BASELINE_DIR}${NC}"
 echo ""
 
-# Créer le répertoire de résultats
-mkdir -p "$RESULTS_DIR"
-cd "$RESULTS_DIR"
+# Créer le répertoire de baseline
+mkdir -p "$BASELINE_DIR"
 
 # Fonction pour logger avec timestamp
 log() {
@@ -44,373 +36,370 @@ error() {
     echo -e "${RED}[$(date +'%H:%M:%S')] ERROR: $1${NC}"
 }
 
-warning() {
-    echo -e "${YELLOW}[$(date +'%H:%M:%S')] WARNING: $1${NC}"
+success() {
+    echo -e "${CYAN}[$(date +'%H:%M:%S')] SUCCESS: $1${NC}"
 }
 
-# 1. ÉTABLIR MÉTRIQUES BASELINE ACTUELLES
-log "📊 1. Établissement des métriques baseline..."
+# 1. PROFILING DES SERVICES
+log "🔍 1. Profiling des services HTTP..."
 
-# Vérifier que les services sont en cours d'exécution
-log "🔍 Vérification des services actifs..."
 {
-    echo "=== SERVICES STATUS ==="
+    echo "=== SERVICES BASELINE PROFILING ==="
     echo "Timestamp: $(date)"
     echo ""
     
-    # Vérifier Docker Compose
-    if docker-compose -f "../../../${DOCKER_COMPOSE_FILE}" ps > services_status.txt 2>&1; then
-        echo "✅ Docker Compose status OK"
-        cat services_status.txt
-    else
-        echo "❌ Docker Compose not running"
-        cat services_status.txt
-    fi
-    echo ""
-} > baseline_services.log
-
-# Test de connectivité des services
-log "🌐 Test de connectivité des endpoints..."
-{
-    echo "=== ENDPOINTS CONNECTIVITY ==="
-    echo "Timestamp: $(date)"
-    echo ""
-    
-    endpoints=(
-        "$API_BASE/health:API-Principal"
-        "$CV_PARSER/health:CV-Parser"
-        "$JOB_PARSER/health:Job-Parser"
-        "$MATCHING_API/health:Matching-API"
-        "$PERSONALIZATION/health:Personalization"
-        "$USER_BEHAVIOR/health:User-Behavior"
+    # Services à tester
+    services=(
+        "http://localhost:5050/health:API-Principal"
+        "http://localhost:5051/health:CV-Parser"
+        "http://localhost:5055/health:Job-Parser"
+        "http://localhost:5052/health:Matching-API"
+        "http://localhost:5060/health:Personalization"
+        "http://localhost:5057/health:User-Behavior"
     )
     
-    for endpoint in "${endpoints[@]}"; do
-        url=$(echo "$endpoint" | cut -d: -f1)
-        name=$(echo "$endpoint" | cut -d: -f2)
+    echo "--- SERVICES AVAILABILITY ---"
+    available_services=0
+    total_services=${#services[@]}
+    
+    for service in "${services[@]}"; do
+        url=$(echo "$service" | cut -d: -f1-2)
+        name=$(echo "$service" | cut -d: -f3)
         
-        if response=$(curl -s -w "%{http_code}:%{time_total}" "$url" 2>/dev/null); then
-            http_code=$(echo "$response" | cut -d: -f1)
-            time_total=$(echo "$response" | cut -d: -f2)
-            
-            if [ "$http_code" = "200" ]; then
-                echo "✅ $name - HTTP $http_code - ${time_total}s"
-            else
-                echo "❌ $name - HTTP $http_code - ${time_total}s"
-            fi
+        if curl -s -f "$url" --max-time 5 >/dev/null 2>&1; then
+            echo "✅ $name - Available"
+            available_services=$((available_services + 1))
         else
-            echo "❌ $name - Connection failed"
+            echo "❌ $name - Not available"
         fi
     done
+    
     echo ""
-} > baseline_connectivity.log
+    echo "Services ready: $available_services/$total_services"
+    
+    echo ""
+    echo "--- RESPONSE TIME BASELINE ---"
+    
+    for service in "${services[@]}"; do
+        url=$(echo "$service" | cut -d: -f1-2)
+        name=$(echo "$service" | cut -d: -f3)
+        
+        echo "Testing $name response times:"
+        
+        total_time=0
+        successful_requests=0
+        
+        for i in {1..10}; do
+            response_time=$(curl -w "%{time_total}" -s -o /dev/null "$url" --max-time 10 2>/dev/null || echo "0")
+            if [ "$response_time" != "0" ]; then
+                echo "  Request $i: ${response_time}s"
+                total_time=$(echo "$total_time + $response_time" | bc -l 2>/dev/null || echo "$total_time")
+                successful_requests=$((successful_requests + 1))
+            else
+                echo "  Request $i: FAILED"
+            fi
+        done
+        
+        if [ "$successful_requests" -gt 0 ]; then
+            avg_time=$(echo "scale=4; $total_time / $successful_requests" | bc -l 2>/dev/null || echo "N/A")
+            echo "  Average: ${avg_time}s ($successful_requests/10 successful)"
+        else
+            echo "  Average: N/A (all requests failed)"
+        fi
+        echo ""
+    done
+    
+} > "$BASELINE_DIR/services_baseline.log"
 
-# Métriques de latence par endpoint
-log "⚡ Mesure de latence des endpoints critiques..."
+# 2. PROFILING DATABASE
+log "🗄️ 2. Profiling PostgreSQL..."
+
 {
-    echo "=== BASELINE LATENCY METRICS ==="
+    echo "=== DATABASE BASELINE PROFILING ==="
     echo "Timestamp: $(date)"
     echo ""
     
-    # Test latence /health endpoints (5 requêtes par endpoint)
-    for i in {1..5}; do
-        echo "--- Test Round $i ---"
+    if docker exec nexten-postgres psql -U postgres -d nexten -c "SELECT 1;" >/dev/null 2>&1; then
+        echo "✅ PostgreSQL connection successful"
+        echo ""
         
-        # API Principal /health
-        if response=$(curl -s -w "%{time_total},%{time_connect},%{time_starttransfer}" "$API_BASE/health" -o /dev/null 2>/dev/null); then
-            echo "API-Health: $response"
-        fi
-        
-        # CV Parser /health  
-        if response=$(curl -s -w "%{time_total},%{time_connect},%{time_starttransfer}" "$CV_PARSER/health" -o /dev/null 2>/dev/null); then
-            echo "CV-Parser-Health: $response"
-        fi
-        
-        # Job Parser /health
-        if response=$(curl -s -w "%{time_total},%{time_connect},%{time_starttransfer}" "$JOB_PARSER/health" -o /dev/null 2>/dev/null); then
-            echo "Job-Parser-Health: $response"
-        fi
-        
-        sleep 1
-    done
-    echo ""
-} > baseline_latency.log
-
-# 2. IDENTIFIER LES VRAIS BOTTLENECKS
-log "🔍 2. Identification des bottlenecks..."
-
-# PostgreSQL - Queries lentes
-log "🗄️ Analyse PostgreSQL..."
-{
-    echo "=== POSTGRESQL PERFORMANCE ANALYSIS ==="
-    echo "Timestamp: $(date)"
-    echo ""
-    
-    # Connexion à PostgreSQL pour analyser les requêtes lentes
-    if docker exec nexten-postgres psql -U postgres -d nexten -c "SELECT version();" >/dev/null 2>&1; then
-        echo "✅ PostgreSQL connection OK"
-        
-        # Activer pg_stat_statements si pas déjà fait
-        echo "--- Enabling pg_stat_statements ---"
-        docker exec nexten-postgres psql -U postgres -d nexten -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" 2>/dev/null || true
-        
-        # Requêtes les plus lentes
-        echo "--- TOP 10 SLOWEST QUERIES ---"
+        echo "--- DATABASE SIZE ---"
         docker exec nexten-postgres psql -U postgres -d nexten -c "
         SELECT 
-            round(mean_exec_time::numeric, 2) as avg_time_ms,
-            round(total_exec_time::numeric, 2) as total_time_ms,
-            calls,
-            round((total_exec_time/calls)::numeric, 2) as avg_per_call_ms,
-            substring(query, 1, 100) as query_snippet
-        FROM pg_stat_statements 
-        WHERE calls > 0
-        ORDER BY mean_exec_time DESC 
-        LIMIT 10;" 2>/dev/null || echo "pg_stat_statements not available yet"
+            pg_size_pretty(pg_database_size('nexten')) as database_size;
+        " 2>/dev/null || echo "Size query failed"
         
-        # Statistiques générales de la DB
-        echo "--- DATABASE STATS ---"
+        echo ""
+        echo "--- CACHE STATISTICS ---"
         docker exec nexten-postgres psql -U postgres -d nexten -c "
         SELECT 
             datname,
+            blks_read,
+            blks_hit,
+            round((blks_hit::float/(blks_hit+blks_read+1))*100, 2) as cache_hit_ratio_pct
+        FROM pg_stat_database 
+        WHERE datname = 'nexten';
+        " 2>/dev/null || echo "Cache stats not available"
+        
+        echo ""
+        echo "--- CONNECTION STATISTICS ---"
+        docker exec nexten-postgres psql -U postgres -d nexten -c "
+        SELECT 
             numbackends as active_connections,
             xact_commit,
             xact_rollback,
-            blks_read,
-            blks_hit,
-            round((blks_hit::float/(blks_hit+blks_read))*100, 2) as cache_hit_ratio
+            conflicts,
+            temp_files,
+            temp_bytes
         FROM pg_stat_database 
-        WHERE datname = 'nexten';" 2>/dev/null
+        WHERE datname = 'nexten';
+        " 2>/dev/null || echo "Connection stats not available"
+        
+        echo ""
+        echo "--- TABLE STATISTICS ---"
+        docker exec nexten-postgres psql -U postgres -d nexten -c "
+        SELECT 
+            schemaname,
+            tablename,
+            n_tup_ins as inserts,
+            n_tup_upd as updates,
+            n_tup_del as deletes,
+            n_live_tup as live_tuples
+        FROM pg_stat_user_tables 
+        ORDER BY n_live_tup DESC 
+        LIMIT 10;
+        " 2>/dev/null || echo "Table stats not available"
         
     else
         echo "❌ Cannot connect to PostgreSQL"
     fi
-    echo ""
-} > baseline_postgresql.log
+    
+} > "$BASELINE_DIR/database_baseline.log"
 
-# Redis - Analyse du cache
-log "🚀 Analyse Redis..."
+# 3. PROFILING REDIS
+log "🚀 3. Profiling Redis..."
+
 {
-    echo "=== REDIS PERFORMANCE ANALYSIS ==="
+    echo "=== REDIS BASELINE PROFILING ==="
     echo "Timestamp: $(date)"
     echo ""
     
     if docker exec nexten-redis redis-cli ping >/dev/null 2>&1; then
-        echo "✅ Redis connection OK"
+        echo "✅ Redis connection successful"
+        echo ""
         
-        # Statistiques Redis
         echo "--- REDIS INFO ---"
-        docker exec nexten-redis redis-cli info memory
-        echo ""
-        docker exec nexten-redis redis-cli info stats
-        echo ""
-        docker exec nexten-redis redis-cli info clients
-        echo ""
+        docker exec nexten-redis redis-cli INFO server | head -10
         
-        # Nombre de clés par base
-        echo "--- KEYS COUNT ---"
-        for db in {0..15}; do
-            keys_count=$(docker exec nexten-redis redis-cli -n $db dbsize 2>/dev/null || echo "0")
-            if [ "$keys_count" != "0" ]; then
-                echo "DB $db: $keys_count keys"
-            fi
-        done
+        echo ""
+        echo "--- MEMORY USAGE ---"
+        docker exec nexten-redis redis-cli INFO memory | grep -E "(used_memory_human|used_memory_peak_human|maxmemory_human)"
+        
+        echo ""
+        echo "--- KEYSPACE STATISTICS ---"
+        docker exec nexten-redis redis-cli INFO keyspace
+        
+        echo ""
+        echo "--- HIT/MISS STATISTICS ---"
+        docker exec nexten-redis redis-cli INFO stats | grep -E "(keyspace_hits|keyspace_misses)"
+        
+        # Calculer le hit rate actuel
+        hits=$(docker exec nexten-redis redis-cli INFO stats | grep keyspace_hits | cut -d: -f2 | tr -d '\r')
+        misses=$(docker exec nexten-redis redis-cli INFO stats | grep keyspace_misses | cut -d: -f2 | tr -d '\r')
+        
+        if [ -n "$hits" ] && [ -n "$misses" ] && [ "$hits" -gt 0 ] && [ "$misses" -gt 0 ]; then
+            total=$((hits + misses))
+            hit_rate=$(echo "scale=2; $hits * 100 / $total" | bc -l 2>/dev/null || echo "0")
+            echo ""
+            echo "--- CALCULATED HIT RATE ---"
+            echo "Current Hit Rate: ${hit_rate}%"
+            echo "Hits: $hits"
+            echo "Misses: $misses"
+            echo "Total: $total"
+        else
+            echo ""
+            echo "--- HIT RATE ---"
+            echo "Insufficient data for hit rate calculation"
+            echo "Hits: ${hits:-0}"
+            echo "Misses: ${misses:-0}"
+        fi
+        
+        echo ""
+        echo "--- CLIENT CONNECTIONS ---"
+        docker exec nexten-redis redis-cli INFO clients
         
     else
         echo "❌ Cannot connect to Redis"
     fi
-    echo ""
-} > baseline_redis.log
+    
+} > "$BASELINE_DIR/redis_baseline.log"
 
-# Docker - Usage des ressources
-log "🐳 Analyse Docker ressources..."
+# 4. PROFILING CONTAINERS
+log "🐳 4. Profiling Docker containers..."
+
 {
-    echo "=== DOCKER RESOURCES USAGE ==="
+    echo "=== DOCKER CONTAINERS BASELINE ==="
     echo "Timestamp: $(date)"
     echo ""
     
-    # Stats des containers
-    echo "--- CONTAINER STATS ---"
-    docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
+    echo "--- RUNNING CONTAINERS ---"
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(nexten|commitment)" || echo "No relevant containers found"
+    
+    echo ""
+    echo "--- CONTAINER RESOURCE USAGE ---"
+    docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}" | head -10
+    
+    echo ""
+    echo "--- DOCKER IMAGES SIZE ---"
+    echo "All images:"
+    docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | head -15
+    
+    echo ""
+    echo "Commitment-related images:"
+    docker images | grep -E "(nexten|commitment)" || echo "No commitment-specific images found"
+    
+    echo ""
+    echo "--- DOCKER SYSTEM INFO ---"
+    docker system df
+    
+} > "$BASELINE_DIR/docker_baseline.log"
+
+# 5. SYSTÈME & RESSOURCES
+log "⚡ 5. Profiling système et ressources..."
+
+{
+    echo "=== SYSTEM RESOURCES BASELINE ==="
+    echo "Timestamp: $(date)"
     echo ""
     
-    # Taille des images
-    echo "--- IMAGES SIZE ---"
-    docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | grep -E "(nexten|commitment)" || echo "No commitment images found"
-    echo ""
+    echo "--- SYSTEM INFO ---"
+    echo "OS: $(uname -s)"
+    echo "Kernel: $(uname -r)"
+    echo "Architecture: $(uname -m)"
     
-    # Volumes usage
-    echo "--- VOLUMES SIZE ---"
-    docker system df -v
     echo ""
-} > baseline_docker.log
-
-# 3. SETUP OUTILS DE BENCHMARKING
-log "🔧 3. Setup des outils de benchmarking..."
-
-# Installation d'Apache Bench si nécessaire
-if ! command -v ab &> /dev/null; then
-    warning "Apache Bench (ab) not found. Installing..."
-    if command -v apt-get &> /dev/null; then
-        sudo apt-get update && sudo apt-get install -y apache2-utils
-    elif command -v yum &> /dev/null; then
-        sudo yum install -y httpd-tools
-    elif command -v brew &> /dev/null; then
-        brew install httpd
-    else
-        error "Cannot install Apache Bench. Please install manually."
+    echo "--- CPU INFO ---"
+    if command -v nproc >/dev/null 2>&1; then
+        echo "CPU Cores: $(nproc)"
     fi
-fi
-
-# Test Apache Bench simple
-log "🚀 Test Apache Bench baseline..."
-{
-    echo "=== APACHE BENCH BASELINE TESTS ==="
-    echo "Timestamp: $(date)"
+    
+    if [ -f /proc/loadavg ]; then
+        echo "Load Average: $(cat /proc/loadavg)"
+    fi
+    
     echo ""
+    echo "--- MEMORY INFO ---"
+    if command -v free >/dev/null 2>&1; then
+        free -h
+    elif [ -f /proc/meminfo ]; then
+        grep -E "(MemTotal|MemAvailable|MemFree)" /proc/meminfo
+    fi
     
-    # Test de charge léger sur /health endpoints
-    endpoints_ab=(
-        "$API_BASE/health:API-Health"
-        "$CV_PARSER/health:CV-Health"
-        "$JOB_PARSER/health:Job-Health"
-    )
+    echo ""
+    echo "--- DISK USAGE ---"
+    df -h | head -10
     
-    for endpoint in "${endpoints_ab[@]}"; do
-        url=$(echo "$endpoint" | cut -d: -f1)
-        name=$(echo "$endpoint" | cut -d: -f2)
-        
-        echo "--- $name Benchmark (10 requests, concurrency 2) ---"
-        if ab -n 10 -c 2 "$url" 2>/dev/null | grep -E "(Requests per second|Time per request|Transfer rate|Connection Times)"; then
-            echo "✅ $name benchmark completed"
-        else
-            echo "❌ $name benchmark failed"
-        fi
-        echo ""
-    done
-} > baseline_benchmark.log
+    echo ""
+    echo "--- NETWORK INTERFACES ---"
+    if command -v ip >/dev/null 2>&1; then
+        ip addr show | grep -E "(inet|UP)"
+    elif command -v ifconfig >/dev/null 2>&1; then
+        ifconfig | grep -E "(inet|UP)"
+    fi
+    
+} > "$BASELINE_DIR/system_baseline.log"
 
-# 4. GÉNÉRATION DU RAPPORT DE BASELINE
-log "📋 4. Génération du rapport de baseline..."
+# 6. RAPPORT DE BASELINE
+log "📊 6. Génération du rapport de baseline..."
 
 {
-    echo "# SESSION A3 - BASELINE PERFORMANCE REPORT"
-    echo "================================="
+    echo "# SESSION A3 - BASELINE PROFILING REPORT"
+    echo "======================================="
     echo ""
     echo "**Generated:** $(date)"
-    echo "**Duration:** Phase 0 - 45 minutes"
-    echo "**Objective:** Establish baseline metrics and identify bottlenecks"
+    echo "**Purpose:** Initial performance measurements before Session A3 optimizations"
+    echo "**Philosophy:** \"Measure first, optimize second, validate always\""
     echo ""
     
-    echo "## 🎯 TARGET METRICS (Session A3)"
-    echo "- Database: -40% query time, +30% throughput"
-    echo "- Redis: +50% hit rate, -30% memory usage"  
-    echo "- Containers: -30% image size, -20% runtime resources"
-    echo "- Code: -25% response time critical paths"
+    echo "## 📊 BASELINE MEASUREMENTS SUMMARY"
     echo ""
     
-    echo "## 📊 BASELINE METRICS"
-    echo ""
-    
-    echo "### Services Connectivity"
-    if [ -f "baseline_connectivity.log" ]; then
-        grep -E "(✅|❌)" baseline_connectivity.log | head -10
+    # Services summary
+    if [ -f "$BASELINE_DIR/services_baseline.log" ]; then
+        available=$(grep "Services ready:" "$BASELINE_DIR/services_baseline.log" | cut -d: -f2 | tr -d ' ')
+        echo "### Services Availability: $available"
+        echo ""
     fi
-    echo ""
     
-    echo "### Average Response Times (Health Endpoints)"
-    if [ -f "baseline_latency.log" ]; then
-        echo "```"
-        grep -E "(API-Health|CV-Parser-Health|Job-Parser-Health)" baseline_latency.log | \
-        awk -F: '{print $1 ": " $2 "s"}' | head -15
-        echo "```"
+    # Database summary
+    if [ -f "$BASELINE_DIR/database_baseline.log" ]; then
+        echo "### Database Status"
+        if grep -q "✅ PostgreSQL connection successful" "$BASELINE_DIR/database_baseline.log"; then
+            echo "- ✅ PostgreSQL: Connected and accessible"
+            
+            # Cache hit ratio
+            cache_hit=$(grep "cache_hit_ratio_pct" "$BASELINE_DIR/database_baseline.log" | grep -o '[0-9.]*' | head -1)
+            if [ -n "$cache_hit" ]; then
+                echo "- Cache Hit Ratio: ${cache_hit}%"
+            fi
+        else
+            echo "- ❌ PostgreSQL: Not accessible"
+        fi
+        echo ""
     fi
-    echo ""
     
-    echo "### PostgreSQL Performance"
-    if [ -f "baseline_postgresql.log" ]; then
-        echo "```"
-        grep -A 5 "cache_hit_ratio" baseline_postgresql.log || echo "No PostgreSQL stats available"
-        echo "```"
+    # Redis summary
+    if [ -f "$BASELINE_DIR/redis_baseline.log" ]; then
+        echo "### Redis Status"
+        if grep -q "✅ Redis connection successful" "$BASELINE_DIR/redis_baseline.log"; then
+            echo "- ✅ Redis: Connected and accessible"
+            
+            # Hit rate
+            hit_rate=$(grep "Current Hit Rate:" "$BASELINE_DIR/redis_baseline.log" | grep -o '[0-9.]*' | head -1)
+            if [ -n "$hit_rate" ]; then
+                echo "- Hit Rate: ${hit_rate}%"
+            fi
+        else
+            echo "- ❌ Redis: Not accessible"
+        fi
+        echo ""
     fi
+    
+    echo "## 🎯 SESSION A3 OPTIMIZATION TARGETS"
+    echo ""
+    echo "Based on baseline measurements, Session A3 will target:"
+    echo "- **Database:** -40% query time, +30% throughput, >90% cache hit ratio"
+    echo "- **Redis:** +50% hit rate, -30% memory usage"
+    echo "- **Containers:** -30% image size, -20% runtime resources"
+    echo "- **Services:** -25% response time, improved async patterns"
     echo ""
     
-    echo "### Redis Performance"
-    if [ -f "baseline_redis.log" ]; then
-        echo "```"
-        grep -E "(used_memory_human|keyspace_hits|keyspace_misses)" baseline_redis.log | head -10
-        echo "```"
-    fi
+    echo "## 📁 BASELINE DATA LOCATION"
     echo ""
-    
-    echo "### Docker Resources"
-    if [ -f "baseline_docker.log" ]; then
-        echo "```"
-        grep -A 10 "CONTAINER STATS" baseline_docker.log | head -15
-        echo "```"
-    fi
+    echo "All baseline measurements are stored in:"
+    echo "- \`services_baseline.log\` - HTTP services performance"
+    echo "- \`database_baseline.log\` - PostgreSQL metrics"
+    echo "- \`redis_baseline.log\` - Redis cache performance"
+    echo "- \`docker_baseline.log\` - Container resource usage"
+    echo "- \`system_baseline.log\` - System resources"
     echo ""
-    
-    echo "## 🔍 IDENTIFIED BOTTLENECKS"
-    echo ""
-    echo "### Critical Issues to Address:"
-    echo "1. **Database Optimization Needed**"
-    echo "   - Slow queries analysis required"
-    echo "   - Index optimization opportunities"
-    echo "   - Connection pooling tuning"
-    echo ""
-    echo "2. **Redis Cache Optimization**"
-    echo "   - Hit rate improvement needed"
-    echo "   - Memory usage optimization"
-    echo "   - Pipeline operations implementation"
-    echo ""
-    echo "3. **Container Resource Optimization**"
-    echo "   - Image size reduction opportunities"
-    echo "   - Resource limits fine-tuning"
-    echo "   - Multi-stage build optimization"
-    echo ""
-    echo "4. **Application Performance**"
-    echo "   - Async operations optimization"
-    echo "   - Memory leak investigation"
-    echo "   - Critical path optimization"
-    echo ""
-    
-    echo "## 📈 NEXT STEPS"
-    echo ""
-    echo "### Phase 1: Database Optimization (90min)"
-    echo "- Run \`./database-optimization.sh\`"
-    echo "- Target: -40% query time, +30% throughput"
-    echo ""
-    echo "### Phase 2: Redis Optimization (75min)"
-    echo "- Run \`./redis-optimization.sh\`"
-    echo "- Target: +50% hit rate, -30% memory usage"
-    echo ""
-    echo "### Phase 3: Container Optimization (75min)"
-    echo "- Run \`./docker-optimization.sh\`"
-    echo "- Target: -30% image size, -20% runtime resources"
-    echo ""
-    echo "### Phase 4: Code Optimization (45min)"
-    echo "- Run \`./code-optimization.sh\`"
-    echo "- Target: -25% response time critical paths"
-    echo ""
-    
     echo "---"
-    echo "*Report generated by Session A3 Performance Optimization Framework*"
+    echo "**Baseline profiling completed at $(date)**"
+    echo "*Ready to proceed with Session A3 optimization phases*"
     
-} > baseline_report.md
+} > "$BASELINE_DIR/baseline_report.md"
 
-# Copier le rapport dans le répertoire parent pour visibilité
-cp baseline_report.md "../baseline_report_${TIMESTAMP}.md"
-
-log "✅ Baseline profiling completed!"
-log "📋 Report: baseline_report.md"
-log "📁 Detailed logs: ${RESULTS_DIR}/"
-log ""
-log "🚀 Ready for Phase 1: Database Optimization"
-log "   Run: ./database-optimization.sh"
+success "✅ Baseline profiling completed!"
+success "📋 Baseline report: $BASELINE_DIR/baseline_report.md"
+success "📊 All baseline measurements captured"
+success "🎯 Ready for Session A3 optimization phases"
+success "📁 Data location: ${BASELINE_DIR}/"
 
 echo ""
-echo -e "${GREEN}🎉 SESSION A3 - PHASE 0 COMPLETED!${NC}"
-echo -e "${BLUE}📊 Baseline established with measurable metrics${NC}"
-echo -e "${BLUE}🔍 Bottlenecks identified across all layers${NC}"
-echo -e "${BLUE}⚡ Ready for performance optimization phases${NC}"
+echo -e "${CYAN}🎉 SESSION A3 PHASE 0 COMPLETED!${NC}"
+echo -e "${CYAN}⏱️  Baseline profiling finished${NC}"
+echo -e "${CYAN}📊 Performance measurements captured${NC}"
+echo -e "${CYAN}🚀 Ready to proceed with optimizations${NC}"
+echo ""
+echo -e "${GREEN}Next step: Run database optimization${NC}"
+echo -e "${GREEN}Command: ./database-optimization.sh${NC}"
