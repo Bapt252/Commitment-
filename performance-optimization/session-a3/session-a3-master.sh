@@ -211,63 +211,6 @@ show_global_status() {
     echo ""
 }
 
-# Fonction pour le monitoring en temps réel
-start_monitoring() {
-    log "INFO" "Démarrage du monitoring temps réel..."
-    
-    # Créer un script de monitoring en arrière-plan
-    cat > "$SESSION_DIR/monitor-realtime.sh" << 'EOF'
-#!/bin/bash
-# Monitoring temps réel Session A3
-
-while true; do
-    clear
-    echo "╔══════════════════════════════════════════════════════════════════════════════╗"
-    echo "║                    SESSION A3 - MONITORING TEMPS RÉEL                       ║"
-    echo "╚══════════════════════════════════════════════════════════════════════════════╝"
-    echo ""
-    echo "🕐 $(date)"
-    echo ""
-    
-    echo "📊 SERVICES STATUS:"
-    echo "───────────────────"
-    docker-compose ps 2>/dev/null | head -10 || echo "Docker Compose non disponible"
-    echo ""
-    
-    echo "💾 UTILISATION RESSOURCES:"
-    echo "─────────────────────────"
-    docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}" 2>/dev/null | head -8 || echo "Docker stats non disponible"
-    echo ""
-    
-    echo "🗄️ DATABASE STATUS:"
-    echo "──────────────────"
-    if docker exec nexten-postgres psql -U postgres -d nexten -c "SELECT 'Database OK' as status;" 2>/dev/null | grep -q "Database OK"; then
-        echo "✅ PostgreSQL: OK"
-    else
-        echo "❌ PostgreSQL: Non disponible"
-    fi
-    
-    echo ""
-    echo "🚀 REDIS STATUS:"
-    echo "───────────────"
-    if docker exec nexten-redis redis-cli ping 2>/dev/null | grep -q "PONG"; then
-        echo "✅ Redis: OK"
-        memory=$(docker exec nexten-redis redis-cli INFO memory 2>/dev/null | grep used_memory_human | cut -d: -f2 | tr -d '\r')
-        echo "📊 Memory: $memory"
-    else
-        echo "❌ Redis: Non disponible"
-    fi
-    
-    echo ""
-    echo "Press Ctrl+C to stop monitoring"
-    sleep 10
-done
-EOF
-    
-    chmod +x "$SESSION_DIR/monitor-realtime.sh"
-    log "INFO" "✅ Monitoring script créé: $SESSION_DIR/monitor-realtime.sh"
-}
-
 # Fonction principale
 main() {
     # Enregistrer le début de session
@@ -301,9 +244,6 @@ main() {
         log "INFO" "Session annulée par l'utilisateur"
         exit 0
     fi
-    
-    # Démarrer le monitoring
-    start_monitoring
     
     # Session start time
     local session_start=$(date +%s)
@@ -385,7 +325,7 @@ main() {
     echo "   docker-compose -f docker-compose.optimized.yml up -d"
     echo ""
     echo "2. 📊 Monitoring continu:"
-    echo "   ./performance-optimization/session-a3/monitor-realtime.sh"
+    echo "   ./performance-optimization/session-a3/monitor-performance.sh"
     echo ""
     echo "3. 📈 Rapports disponibles dans:"
     echo "   ./performance-optimization/session-a3/final-report/"
@@ -401,7 +341,7 @@ main() {
 }
 
 # Gestion des signaux (Ctrl+C)
-trap 'echo -e "\n${RED}Session interrompue par l'utilisateur${NC}"; exit 1' INT
+trap 'echo -e "\n${RED}Session interrompue par l utilisateur${NC}"; exit 1' INT
 
 # Point d'entrée principal
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
