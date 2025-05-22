@@ -1,159 +1,125 @@
-# 🚀 COMMITMENT- PROMETHEUS CONFIGURATION
-# Session A2 - Monitoring tous les 21 services
-
+# Configuration Prometheus pour Commitment- Platform
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
-  external_labels:
-    monitor: 'commitment-monitor'
-    environment: 'production'
 
-# 🚨 RÈGLES D'ALERTING
+scrape_configs:
+  # ===== INFRASTRUCTURE MONITORING =====
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['nexten-node-exporter:9100']
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['nexten-cadvisor:8080']
+
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['nexten-postgres-exporter:9187']
+
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['nexten-redis-exporter:9121']
+
+  # ===== APPLICATION SERVICES (MÉTRIQUES NATIVES) =====
+  
+  # CV Parser Service - Port 5051 avec métriques Prometheus
+  - job_name: 'cv-parser-service'
+    static_configs:
+      - targets: ['host.docker.internal:5051']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Personalization Service - Port 5060 avec métriques Prometheus  
+  - job_name: 'personalization-service'
+    static_configs:
+      - targets: ['host.docker.internal:5060']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Matching API - Port 5052
+  - job_name: 'matching-api'
+    static_configs:
+      - targets: ['host.docker.internal:5052']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Job Parser Service - Port 5055
+  - job_name: 'job-parser-service'
+    static_configs:
+      - targets: ['host.docker.internal:5055']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # User Behavior API - Port 5057
+  - job_name: 'user-behavior-api'
+    static_configs:
+      - targets: ['host.docker.internal:5057']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Feedback Service - Port 5058
+  - job_name: 'feedback-service'
+    static_configs:
+      - targets: ['host.docker.internal:5058']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Data Adapter - Port 5053
+  - job_name: 'data-adapter'
+    static_configs:
+      - targets: ['host.docker.internal:5053']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # ===== FRONTEND & STORAGE =====
+  
+  # Frontend Next.js - Port 3000
+  - job_name: 'frontend'
+    static_configs:
+      - targets: ['host.docker.internal:3000']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  # MinIO Storage - Port 9000
+  - job_name: 'minio'
+    static_configs:
+      - targets: ['host.docker.internal:9000']
+    metrics_path: /minio/v2/metrics/cluster
+    scrape_interval: 30s
+
+  # ===== HEALTH CHECK MONITORING =====
+  
+  # Health checks pour tous les services
+  - job_name: 'services-health'
+    static_configs:
+      - targets: 
+        - host.docker.internal:5051  # CV Parser
+        - host.docker.internal:5060  # Personalization
+        - host.docker.internal:5052  # Matching API
+        - host.docker.internal:3000  # Frontend
+        - host.docker.internal:9000  # MinIO
+    metrics_path: /health
+    scrape_interval: 30s
+
 rule_files:
-  - "alert-rules.yml"
+  # - "first_rules.yml"
+  # - "second_rules.yml"
 
-# 🔔 ALERTMANAGER
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          - alertmanager:9093
-
-# 📊 SCRAPE CONFIGURATIONS
-scrape_configs:
-  # ===== INFRASTRUCTURE =====
-  
-  # Prometheus lui-même
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-    scrape_interval: 15s
-    metrics_path: /metrics
-
-  # Node Exporter (métriques système)
-  - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['node-exporter:9100']
-    scrape_interval: 15s
-
-  # cAdvisor (métriques conteneurs)
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['cadvisor:8080']
-    scrape_interval: 15s
-
-  # Redis Exporter
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis-exporter:9121']
-    scrape_interval: 15s
-
-  # PostgreSQL Exporter
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['postgres-exporter:9187']
-    scrape_interval: 15s
-
-  # ===== SERVICES APPLICATIFS =====
-
-  # API Principal (backend)
-  - job_name: 'nexten-api'
-    static_configs:
-      - targets: ['api:5000']
-    metrics_path: /health
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # CV Parser Service ⭐ (Service critique - latence 1.9ms)
-  - job_name: 'cv-parser-service'
-    static_configs:
-      - targets: ['cv-parser:5000']
-    metrics_path: /health
-    scrape_interval: 5s  # Plus fréquent car critique
-    scrape_timeout: 3s
-
-  # Job Parser Service
-  - job_name: 'job-parser-service'
-    static_configs:
-      - targets: ['job-parser:5000']
-    metrics_path: /health
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # Matching API ⭐ (Service critique)
-  - job_name: 'matching-api'
-    static_configs:
-      - targets: ['matching-api:5000']
-    metrics_path: /health
-    scrape_interval: 5s  # Plus fréquent car critique
-    scrape_timeout: 3s
-
-  # Personalization Service ⭐ (Service critique - latence 1.8ms)
-  - job_name: 'personalization-service'
-    static_configs:
-      - targets: ['personalization-service:5060']
-    metrics_path: /health
-    scrape_interval: 5s  # Plus fréquent car critique
-    scrape_timeout: 3s
-
-  # Data Adapter Service
-  - job_name: 'data-adapter'
-    static_configs:
-      - targets: ['data-adapter:5053']
-    metrics_path: /health
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # User Behavior Service
-  - job_name: 'user-behavior-service'
-    static_configs:
-      - targets: ['user-behavior-api:5000']
-    metrics_path: /health
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # Feedback Service
-  - job_name: 'feedback-service'
-    static_configs:
-      - targets: ['feedback-service:5058']
-    metrics_path: /health
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # ===== STORAGE & CACHE =====
-
-  # MinIO Storage
-  - job_name: 'minio'
-    static_configs:
-      - targets: ['storage:9000']
-    metrics_path: /minio/v2/metrics/cluster
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # ===== MONITORING TOOLS =====
-
-  # Redis Commander
-  - job_name: 'redis-commander'
-    static_configs:
-      - targets: ['redis-commander:8081']
-    metrics_path: /health
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # RQ Dashboard
-  - job_name: 'rq-dashboard'
-    static_configs:
-      - targets: ['rq-dashboard:9181']
-    metrics_path: /health
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # ===== FRONTEND =====
-
-  # Next.js Frontend ⭐ (latence 53ms)
-  - job_name: 'frontend'
-    static_configs:
-      - targets: ['frontend:3000']
-    metrics_path: /api/health  # Next.js health endpoint
-    scrape_interval: 15s
-    scrape_timeout: 10s
+          - nexten-alertmanager:9093
