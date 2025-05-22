@@ -1,54 +1,65 @@
-# Extension du docker-compose principal avec Prometheus et Grafana
-# Utilisation: docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+# 🚀 COMMITMENT- MONITORING STACK
+# Session A2 - Monitoring Production
+version: '3.8'
 
 services:
-  # Prometheus - Collecte des métriques
+  # 📊 PROMETHEUS - Collecte de métriques
   prometheus:
     image: prom/prometheus:latest
     container_name: nexten-prometheus
     ports:
       - "9090:9090"
     volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./monitoring/prometheus/rules:/etc/prometheus/rules
+      - ./monitoring/prometheus:/etc/prometheus
       - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
       - '--web.enable-lifecycle'
-      - '--web.external-url=http://localhost:9090'
-      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-admin-api'
     networks:
       - nexten-network
+      - monitoring-network
     restart: unless-stopped
     depends_on:
-      - cadvisor
       - node-exporter
+      - cadvisor
     deploy:
       resources:
         limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
           cpus: '0.5'
           memory: 512M
 
-  # Grafana - Visualisation des métriques
+  # 📈 GRAFANA - Dashboards et visualisation
   grafana:
     image: grafana/grafana:latest
     container_name: nexten-grafana
     ports:
-      - "3001:3000"
+      - "3001:3000"  # Port 3001 pour éviter conflit avec frontend
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_SECURITY_ADMIN_PASSWORD=commitment2025
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+      - GF_ALERTING_ENABLED=true
+      - GF_UNIFIED_ALERTING_ENABLED=true
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=smtp.gmail.com:587
+      - GF_SMTP_USER=${SMTP_USER:-admin@commitment.com}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - GF_SMTP_FROM_ADDRESS=${SMTP_USER:-admin@commitment.com}
     networks:
       - nexten-network
+      - monitoring-network
     restart: unless-stopped
     depends_on:
       - prometheus
@@ -58,71 +69,97 @@ services:
           cpus: '0.5'
           memory: 512M
 
-  # Node Exporter - Métriques système
+  # 🖥️ NODE EXPORTER - Métriques système
   node-exporter:
     image: prom/node-exporter:latest
     container_name: nexten-node-exporter
     ports:
       - "9100:9100"
     volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
+      - '/proc:/host/proc:ro'
+      - '/sys:/host/sys:ro'
+      - '/:/rootfs:ro'
     command:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.systemd'
+      - '--collector.processes'
     networks:
-      - nexten-network
+      - monitoring-network
     restart: unless-stopped
     deploy:
       resources:
         limits:
-          cpus: '0.1'
+          cpus: '0.25'
           memory: 128M
 
-  # CAdvisor - Métriques des conteneurs Docker
+  # 🐳 CADVISOR - Métriques conteneurs
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: nexten-cadvisor
     ports:
       - "8080:8080"
     volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
+      - '/:/rootfs:ro'
+      - '/var/run:/var/run:rw'
+      - '/sys:/sys:ro'
+      - '/var/lib/docker/:/var/lib/docker:ro'
+      - '/dev/disk/:/dev/disk:ro'
     privileged: true
+    devices:
+      - '/dev/kmsg'
     networks:
-      - nexten-network
+      - monitoring-network
     restart: unless-stopped
     deploy:
       resources:
         limits:
-          cpus: '0.2'
-          memory: 256M
+          cpus: '0.5'
+          memory: 512M
 
-  # Redis Exporter - Métriques Redis
+  # 🚨 ALERTMANAGER - Gestion des alertes
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: nexten-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager:/etc/alertmanager
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+      - '--cluster.advertise-address=0.0.0.0:9093'
+    networks:
+      - monitoring-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  # 📊 REDIS EXPORTER - Métriques Redis
   redis-exporter:
     image: oliver006/redis_exporter:latest
     container_name: nexten-redis-exporter
     ports:
       - "9121:9121"
     environment:
-      - REDIS_ADDR=redis://redis:6379
-    depends_on:
-      - redis
+      - REDIS_ADDR=redis:6379
     networks:
       - nexten-network
+      - monitoring-network
     restart: unless-stopped
     deploy:
       resources:
         limits:
           cpus: '0.1'
-          memory: 128M
+          memory: 64M
 
-  # Postgres Exporter - Métriques PostgreSQL
+  # 🐘 POSTGRES EXPORTER - Métriques PostgreSQL
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
     container_name: nexten-postgres-exporter
@@ -130,42 +167,22 @@ services:
       - "9187:9187"
     environment:
       - DATA_SOURCE_NAME=postgresql://postgres:postgres@postgres:5432/nexten?sslmode=disable
-    depends_on:
-      - postgres
     networks:
       - nexten-network
+      - monitoring-network
     restart: unless-stopped
     deploy:
       resources:
         limits:
           cpus: '0.1'
-          memory: 128M
+          memory: 64M
 
-  # AlertManager - Gestion des alertes
-  alertmanager:
-    image: prom/alertmanager:latest
-    container_name: nexten-alertmanager
-    ports:
-      - "9093:9093"
-    volumes:
-      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-      - alertmanager-data:/alertmanager
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-      - '--web.external-url=http://localhost:9093'
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    depends_on:
-      - prometheus
-    deploy:
-      resources:
-        limits:
-          cpus: '0.2'
-          memory: 256M
+networks:
+  nexten-network:
+    external: true
+  monitoring-network:
+    driver: bridge
 
-# Extension des volumes existants
 volumes:
   prometheus-data:
   grafana-data:

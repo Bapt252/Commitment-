@@ -22,7 +22,8 @@ cp .env.example .env
 # Éditer .env et ajouter votre clé API OpenAI
 
 # Lancer tous les services
-docker-compose up -d
+chmod +x start-all-services.sh
+./start-all-services.sh
 ```
 
 ## Accès aux services
@@ -34,14 +35,71 @@ Après avoir lancé les conteneurs, les services sont accessibles aux URLs suiva
 - **Service de parsing CV**: http://localhost:5051
 - **Service de parsing fiches de poste**: http://localhost:5055 (nouvelle version GPT)
 - **Service de matching**: http://localhost:5052
-- **Service d'analyse comportementale**: http://localhost:5054 (nouveau)
+- **Service d'analyse comportementale**: http://localhost:5057
+- **Service de personnalisation**: http://localhost:5060 (nouveau)
 - **MinIO (stockage)**: http://localhost:9000 (API) et http://localhost:9001 (Console)
 - **Redis Commander**: http://localhost:8081
 - **RQ Dashboard**: http://localhost:9181
 
+## Nouvelle fonctionnalité : Personnalisation du matching
+
+Nous avons ajouté un nouveau service de personnalisation qui adapte les résultats de matching en fonction des préférences et du comportement des utilisateurs. Ce service permet de :
+
+- Personnaliser les poids de matching pour chaque utilisateur
+- Réordonner les résultats de recherche selon les préférences individuelles
+- Gérer les feedbacks utilisateur pour améliorer les recommandations
+- Détecter les changements de préférences au fil du temps
+- Résoudre le problème du démarrage à froid pour les nouveaux utilisateurs
+
+### Démarrer le service de personnalisation
+
+Le service est normalement démarré avec les autres services via le script `start-all-services.sh`, mais vous pouvez le démarrer individuellement :
+
+```bash
+# Rendre le script exécutable
+chmod +x personalization-service/start-personalization.sh
+
+# Démarrer le service
+cd personalization-service
+./start-personalization.sh
+```
+
+### Tester le service de personnalisation
+
+```bash
+# Rendre le script de test exécutable
+chmod +x personalization-service/test-personalization.sh
+
+# Exécuter les tests
+./test-personalization.sh
+```
+
+### Utiliser l'API de personnalisation
+
+```bash
+# Vérifier que le service est actif
+curl http://localhost:5060/health
+
+# Obtenir des poids de matching personnalisés
+curl -X POST http://localhost:5060/api/v1/personalize/matching \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user123",
+    "job_id": 456,
+    "original_weights": {
+      "skills": 0.4,
+      "experience": 0.3,
+      "education": 0.2,
+      "certifications": 0.1
+    }
+  }'
+```
+
+Pour plus de détails, consultez le [Guide de test du service de personnalisation](personalization-service/TEST-GUIDE.md).
+
 ## Nouvelle fonctionnalité : Analyse comportementale et profiling utilisateur
 
-Nous avons ajouté un nouveau service pour l'analyse comportementale et le profiling utilisateur. Ce service permet de :
+Nous avons ajouté un service pour l'analyse comportementale et le profiling utilisateur. Ce service permet de :
 
 - Créer des profils utilisateur enrichis basés sur leur comportement
 - Segmenter automatiquement les utilisateurs via des algorithmes de clustering
@@ -51,21 +109,17 @@ Nous avons ajouté un nouveau service pour l'analyse comportementale et le profi
 ### Démarrer le service d'analyse comportementale
 
 ```bash
-# Rendre le script de démarrage exécutable
-chmod +x start-user-behavior.sh
-
-# Démarrer le service
-./start-user-behavior.sh
+# Le service est normalement démarré via Docker Compose avec le script start-all-services.sh
 ```
 
 ### Utiliser l'API d'analyse comportementale
 
 ```bash
 # Vérifier que le service est actif
-curl http://localhost:5054/health
+curl http://localhost:5057/health
 
 # Créer un profil utilisateur
-curl -X POST http://localhost:5054/api/profiles \
+curl -X POST http://localhost:5057/api/profiles \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "user123",
@@ -134,12 +188,14 @@ https://bapt252.github.io/Commitment-/templates/client-questionnaire.html?apiUrl
 
 Le projet contient plusieurs scripts utilitaires pour faciliter le développement:
 
+- `./start-all-services.sh`: Script pour démarrer tous les services (recommandé)
 - `./build_all.sh`: Script pour reconstruire tous les services
 - `./restart-cv-parser.sh`: Script pour redémarrer uniquement le service cv-parser
 - `./curl-test-cv-parser.sh`: Script pour tester l'API de parsing de CV avec curl
 - `./curl-test-job-parser.sh`: Script pour tester l'API de parsing de fiches de poste avec curl
 - `./job-parser-service/start-gpt-api.sh`: Script pour démarrer le service d'analyse GPT des fiches de poste
-- `./start-user-behavior.sh`: Script pour démarrer le service d'analyse comportementale
+- `./personalization-service/start-personalization.sh`: Script pour démarrer le service de personnalisation
+- `./personalization-service/test-personalization.sh`: Script pour tester le service de personnalisation
 
 ## Tester le service de parsing CV
 
@@ -186,6 +242,40 @@ Le projet utilise une architecture microservices avec les composants suivants :
 2. **Service de parsing de fiches de poste** : Extrait les informations des offres d'emploi en utilisant GPT-3.5-turbo/GPT-4
 3. **Service de matching** : Match les CV avec les offres d'emploi
 4. **Service d'analyse comportementale** : Crée des profils utilisateur enrichis et analyse le comportement
-5. **Redis** : File d'attente pour le traitement asynchrone et cache
-6. **MinIO** : Stockage des fichiers (CV et fiches de poste)
-7. **PostgreSQL** : Base de données principale
+5. **Service de personnalisation** : Adapte les résultats selon les préférences utilisateur
+6. **Redis** : File d'attente pour le traitement asynchrone et cache
+7. **MinIO** : Stockage des fichiers (CV et fiches de poste)
+8. **PostgreSQL** : Base de données principale
+
+## Résolution des problèmes courants
+
+### Problèmes de ports utilisés
+
+Si vous rencontrez des erreurs indiquant que des ports sont déjà utilisés, vous pouvez :
+
+```bash
+# Arrêter tous les conteneurs Docker en cours d'exécution
+docker-compose down
+
+# Identifier les processus qui utilisent les ports
+lsof -i :5060  # Pour le service de personnalisation
+lsof -i :5057  # Pour le service d'analyse comportementale
+
+# Arrêter les processus identifiés
+kill <PID>
+```
+
+### Problèmes de connexion à Redis
+
+Si le service de personnalisation ne peut pas se connecter à Redis :
+
+```bash
+# Vérifier que le conteneur Redis est en cours d'exécution
+docker ps | grep redis
+
+# Vérifier les logs du conteneur Redis
+docker logs nexten-redis
+
+# Tester la connexion à Redis manuellement
+docker exec -it nexten-redis redis-cli ping
+```

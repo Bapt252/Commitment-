@@ -110,6 +110,7 @@ services:
       MATCHING_SERVICE_URL: http://matching-api:5000
       USER_BEHAVIOR_SERVICE_URL: http://user-behavior-api:5000
       FEEDBACK_SERVICE_URL: http://feedback-service:5000
+      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
       PORT: 5000
     networks:
       - nexten-network
@@ -414,6 +415,7 @@ services:
       REDIS_JOB_TIMEOUT: 3600
       REDIS_JOB_TTL: 86400
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
+      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json
@@ -428,6 +430,48 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
+
+  # Service de personnalisation
+  personalization-service:
+    build:
+      context: ./personalization-service
+      dockerfile: Dockerfile
+    container_name: nexten-personalization
+    ports:
+      - "5060:5060"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      PORT: 5060
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+      MATCHING_SERVICE_URL: http://matching-api:5000
+      AB_TESTING_ENABLED: "true"
+      COLLABORATIVE_FILTER_ENABLED: "true"
+      TEMPORAL_DRIFT_ENABLED: "true"
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5060/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   # Service d'adaptation de données pour SmartMatch
   data-adapter:
@@ -482,6 +526,7 @@ services:
       REDIS_JOB_TIMEOUT: 3600
       REDIS_JOB_TTL: 86400
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
+      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json
@@ -519,6 +564,7 @@ services:
       REDIS_JOB_TIMEOUT: 3600
       REDIS_JOB_TTL: 86400
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
+      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json
@@ -556,6 +602,7 @@ services:
       REDIS_JOB_TIMEOUT: 3600
       REDIS_JOB_TTL: 86400
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
+      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
       MAX_RETRIES: 3
       LOG_LEVEL: INFO
       LOG_FORMAT: json

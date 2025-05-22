@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     MINIO_ENDPOINT: str = os.environ.get('MINIO_ENDPOINT') or 'localhost:9000'
     MINIO_ACCESS_KEY: str = os.environ.get('MINIO_ACCESS_KEY') or 'minioadmin'
     MINIO_SECRET_KEY: str = os.environ.get('MINIO_SECRET_KEY') or 'minioadmin'
+    MINIO_BUCKET_NAME: str = os.environ.get('MINIO_BUCKET_NAME') or 'job-documents'
     MINIO_SECURE: bool = os.environ.get('MINIO_SECURE', '').lower() == 'true'
     
     # Configuration de l'API
