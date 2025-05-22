@@ -1,13 +1,16 @@
 # CV Parser Service - Application FastAPI
 
 # Import des librairies
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 # Import des modules internes
 from app.core.config import settings
 from app.core.logging import setup_logging
+
+# Import des métriques Prometheus
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 # Setup logging
 logger = setup_logging()
@@ -43,6 +46,12 @@ app.include_router(direct_router, prefix="/api")
 async def health_check():
     """Endpoint de vérification de la santé du service"""
     return {"status": "healthy", "service": "cv-parser"}
+
+# Endpoint pour les métriques Prometheus
+@app.get("/metrics")
+async def metrics():
+    """Expose les métriques Prometheus"""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 # Initialisation de l'application
 @app.on_event("startup")
