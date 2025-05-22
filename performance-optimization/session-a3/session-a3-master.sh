@@ -85,7 +85,7 @@ check_prerequisites() {
     # Apache Bench pour les tests de charge
     if ! command -v ab &> /dev/null; then
         log "WARN" "Apache Bench (ab) non trouvé, installation recommandée"
-        log "INFO" "Installation: apt-get install apache2-utils (Ubuntu/Debian)"
+        log "INFO" "Installation: brew install httpd (macOS) ou apt-get install apache2-utils (Ubuntu/Debian)"
     else
         log "INFO" "✅ Apache Bench disponible"
     fi
