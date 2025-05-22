@@ -16,7 +16,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-MONITORING_DIR="./performance-optimization/session-a3/monitoring"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MONITORING_DIR="$SCRIPT_DIR/monitoring"
 LOG_FILE="$MONITORING_DIR/monitoring-${TIMESTAMP}.log"
 
 # URLs des services
