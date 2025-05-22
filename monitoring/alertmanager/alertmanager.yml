@@ -1,77 +1,155 @@
-# Configuration AlertManager simplifiée et fonctionnelle
-global:
-  smtp_smarthost: 'localhost:587'
-  smtp_from: 'alertmanager@commitment.local'
-  smtp_require_tls: false
+# 🔔 COMMITMENT- ALERTMANAGER CONFIGURATION
+# Session A2 - Notifications automatiques
 
-# Routage simple des alertes
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'commitment-alerts@gmail.com'
+  smtp_auth_username: 'commitment-alerts@gmail.com'
+  smtp_auth_password: 'your-app-password'
+  smtp_require_tls: true
+
+# 📨 TEMPLATES
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# ⚡ ROUTES ET GROUPEMENTS
 route:
-  group_by: ['alertname']
-  group_wait: 10s
-  group_interval: 10s
-  repeat_interval: 1h
-  receiver: 'default-webhook'
+  group_by: ['alertname', 'severity', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  receiver: 'default-receiver'
+  
   routes:
-    # Alertes critiques
+    # 🔥 ALERTES CRITIQUES - Notification immédiate
     - match:
         severity: critical
       receiver: 'critical-alerts'
       group_wait: 10s
       repeat_interval: 5m
-    
-    # Alertes d'avertissement
+      
+    # ⚠️ ALERTES WARNING - Notification différée
     - match:
         severity: warning
       receiver: 'warning-alerts'
-      group_wait: 30s
+      group_wait: 2m
       repeat_interval: 30m
+      
+    # 🚀 SERVICES CRITIQUES - Canal dédié
+    - match_re:
+        service: (cv-parser|personalization|matching|frontend)
+      receiver: 'critical-services'
+      group_wait: 15s
+      repeat_interval: 10m
 
-# Destinataires des alertes
+# 📢 RECEIVERS - Canaux de notification
 receivers:
-  # Webhook par défaut
-  - name: 'default-webhook'
-    webhook_configs:
-      - url: 'http://localhost:5001/alert-webhook'
-        send_resolved: true
-
-  # Alertes critiques
-  - name: 'critical-alerts'
-    # Email simple
+  # 📧 DEFAULT - Notifications basiques
+  - name: 'default-receiver'
     email_configs:
-      - to: 'admin@commitment.local'
-        subject: '[CRITICAL] {{ .GroupLabels.alertname }}'
+      - to: 'admin@commitment.com'
+        subject: '[COMMITMENT] {{ .GroupLabels.alertname }} - {{ .Status | toUpper }}'
         body: |
+          🚨 **ALERT COMMITMENT-**
+          
+          **Statut:** {{ .Status | toUpper }}
+          **Nombre d'alertes:** {{ len .Alerts }}
+          
           {{ range .Alerts }}
-          Alert: {{ .Annotations.summary }}
-          Description: {{ .Annotations.description }}
-          Service: {{ .Labels.job }}
-          Instance: {{ .Labels.instance }}
-          Time: {{ .StartsAt }}
+          ---
+          **Service:** {{ .Labels.service }}
+          **Alerte:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Déclenchée:** {{ .StartsAt }}
           {{ end }}
-    
-    # Webhook pour notifications critiques
-    webhook_configs:
-      - url: 'http://localhost:5001/critical-webhook'
-        send_resolved: true
+          
+          🔗 [Grafana Dashboard](http://localhost:3001)
+          🔗 [Prometheus](http://localhost:9090)
 
-  # Alertes d'avertissement
+  # 🔥 CRITIQUE - Multi-canal + escalation
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'admin@commitment.com,devops@commitment.com'
+        subject: '🔥 [CRITICAL] {{ .GroupLabels.alertname }} - ACTION REQUIRED'
+        body: |
+          ⚠️ **ALERTE CRITIQUE COMMITMENT-**
+          
+          🚨 **INTERVENTION IMMÉDIATE REQUISE**
+          
+          {{ range .Alerts }}
+          **🎯 Service:** {{ .Labels.service }}
+          **🔥 Problème:** {{ .Annotations.summary }}
+          **📋 Détails:** {{ .Annotations.description }}
+          **⏰ Déclenchée:** {{ .StartsAt }}
+          {{ end }}
+          
+          **Actions à prendre:**
+          1. Vérifier les dashboards Grafana
+          2. Consulter les logs des services
+          3. Redémarrer si nécessaire
+          
+          🔗 [Dashboard Système](http://localhost:3001/d/system)
+          🔗 [Logs Services](http://localhost:3001/d/logs)
+        headers:
+          Priority: 'urgent'
+
+  # ⚠️ WARNING - Notifications groupées
   - name: 'warning-alerts'
     email_configs:
-      - to: 'team@commitment.local'
-        subject: '[WARNING] {{ .GroupLabels.alertname }}'
+      - to: 'admin@commitment.com'
+        subject: '⚠️ [WARNING] {{ .GroupLabels.alertname }}'
         body: |
+          ⚠️ **ALERTE WARNING COMMITMENT-**
+          
           {{ range .Alerts }}
-          Alert: {{ .Annotations.summary }}
-          Description: {{ .Annotations.description }}
-          Service: {{ .Labels.job }}
-          Instance: {{ .Labels.instance }}
-          Time: {{ .StartsAt }}
+          **Service:** {{ .Labels.service }}
+          **Problème:** {{ .Annotations.summary }}
+          **Détails:** {{ .Annotations.description }}
+          **Depuis:** {{ .StartsAt }}
           {{ end }}
+          
+          📊 Surveillance recommandée
+          🔗 [Grafana](http://localhost:3001)
 
-# Règles d'inhibition pour éviter le spam
+  # 🚀 SERVICES CRITIQUES - Canal spécialisé
+  - name: 'critical-services'
+    email_configs:
+      - to: 'admin@commitment.com,backend-team@commitment.com'
+        subject: '🚀 [SERVICE CRITICAL] {{ .GroupLabels.service }} - {{ .GroupLabels.alertname }}'
+        body: |
+          🚀 **SERVICE CRITIQUE IMPACTÉ**
+          
+          **⚡ Service:** {{ .GroupLabels.service }}
+          **📊 Performances Session A1:**
+          - CV Parser: 1.9ms latence ✅
+          - Personalization: 1.8ms latence ✅
+          - Frontend: 53ms ✅
+          
+          {{ range .Alerts }}
+          **🔴 Problème actuel:** {{ .Annotations.summary }}
+          **📋 Détails:** {{ .Annotations.description }}
+          **⏰ Heure:** {{ .StartsAt }}
+          {{ end }}
+          
+          **🛠️ Actions prioritaires:**
+          1. Vérifier le service {{ .GroupLabels.service }}
+          2. Consulter les métriques de performance
+          3. Comparer avec les benchmarks Session A1
+          
+          🔗 [Dashboard {{ .GroupLabels.service }}](http://localhost:3001/d/{{ .GroupLabels.service }})
+
+# 🚫 INHIBIT RULES - Éviter le spam
 inhibit_rules:
+  # Si un service est down, pas besoin d'alerter sur sa latence
   - source_match:
-      severity: 'critical'
+      alertname: 'ServiceDown'
     target_match:
-      severity: 'warning'
-    equal: ['alertname', 'instance']
+      alertname: 'HighLatency'
+    equal: ['service']
+    
+  # Si le système a peu de RAM, les services peuvent être lents
+  - source_match:
+      alertname: 'HighMemoryUsage'
+    target_match_re:
+      alertname: '.*HighLatency'
+    equal: ['instance']

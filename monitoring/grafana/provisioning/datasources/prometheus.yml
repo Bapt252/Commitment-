@@ -1,9 +1,6 @@
-# Configuration automatique des datasources Grafana
 apiVersion: 1
 
-# Liste des datasources
 datasources:
-  # Prometheus principal
   - name: Prometheus
     type: prometheus
     access: proxy
@@ -12,19 +9,4 @@ datasources:
     editable: true
     jsonData:
       timeInterval: "15s"
-      queryTimeout: "60s"
-      tlsSkipVerify: true
-    version: 1
-
-  # Prometheus pour les métriques temps réel
-  - name: Prometheus-Realtime
-    type: prometheus
-    access: proxy
-    url: http://prometheus:9090
-    isDefault: false
-    editable: true
-    jsonData:
-      timeInterval: "5s"
-      queryTimeout: "30s"
-      tlsSkipVerify: true
-    version: 1
+      httpMethod: "POST"

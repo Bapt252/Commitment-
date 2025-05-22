@@ -1,0 +1,139 @@
+# 🚨 COMMITMENT- ALERT RULES
+# Session A2 - Alerting automatique production
+
+groups:
+  # ===== SYSTÈME & INFRASTRUCTURE =====
+  - name: system.rules
+    rules:
+      # 🔥 RAM CRITIQUE (Seuil Session A1: 84% actuel)
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 2m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "🔥 CRITIQUE: Utilisation RAM > 85%"
+          description: "RAM utilisée: {{ $value }}% (Seuil critique dépassé depuis Session A1: 84%)"
+
+      # ⚠️ CPU ÉLEVÉ (Seuil Session A1: 8.2% actuel)
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "⚠️ CPU élevé > 80%"
+          description: "CPU utilisé: {{ $value }}% sur {{ $labels.instance }}"
+
+      # 💿 DISQUE PLEIN
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "💿 CRITIQUE: Disque plein > 90%"
+          description: "Disque {{ $labels.mountpoint }} utilisé: {{ $value }}%"
+
+  # ===== SERVICES CRITIQUES =====
+  - name: critical_services.rules
+    rules:
+      # 🚀 CV PARSER - Service critique (Session A1: 1.9ms latence)
+      - alert: CVParserDown
+        expr: up{job="cv-parser-service"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: cv-parser
+        annotations:
+          summary: "🚀 CRITIQUE: CV Parser hors service"
+          description: "Le service CV Parser (port 5051) est inaccessible depuis 30s"
+
+      # 🎯 PERSONALIZATION - Service critique (Session A1: 1.8ms latence)
+      - alert: PersonalizationDown
+        expr: up{job="personalization-service"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: personalization
+        annotations:
+          summary: "🎯 CRITIQUE: Service Personalization hors service"
+          description: "Le service Personalization (port 5060) est inaccessible"
+
+      # 🔍 MATCHING API - Service critique
+      - alert: MatchingAPIDown
+        expr: up{job="matching-api"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: matching
+        annotations:
+          summary: "🔍 CRITIQUE: Matching API hors service"
+          description: "Le service Matching API (port 5052) est inaccessible"
+
+      # 🌐 FRONTEND - Performance (Session A1: 53ms)
+      - alert: FrontendDown
+        expr: up{job="frontend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: frontend
+        annotations:
+          summary: "🌐 CRITIQUE: Frontend hors service"
+          description: "Le frontend Next.js (port 3000) est inaccessible"
+
+  # ===== SERVICES EN CORRECTION =====
+  - name: fixing_services.rules
+    rules:
+      # 🔧 JOB PARSER - En cours de correction
+      - alert: JobParserStillDown
+        expr: up{job="job-parser-service"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: job-parser
+        annotations:
+          summary: "🔧 Job Parser toujours hors service"
+          description: "Service Job Parser (port 5055) en cours de correction depuis Session A1"
+
+  # ===== INFRASTRUCTURE DONNÉES =====
+  - name: data_infrastructure.rules
+    rules:
+      # 🗃️ POSTGRESQL
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "🗃️ CRITIQUE: PostgreSQL hors service"
+          description: "Base de données PostgreSQL inaccessible"
+
+      # 🔴 REDIS
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cache
+        annotations:
+          summary: "🔴 CRITIQUE: Redis hors service"
+          description: "Cache Redis inaccessible - Impact sur tous les services"
+
+  # ===== MÉTRIQUES MÉTIER =====
+  - name: business_metrics.rules
+    rules:
+      # 📈 TAUX D'ERREUR
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: application
+        annotations:
+          summary: "📈 Taux d'erreur élevé"
+          description: "Taux d'erreur 5xx: {{ $value }}% sur {{ $labels.job }}"
