@@ -1,0 +1,66 @@
+# Intégration SuperSmartMatch dans l'infrastructure Nexten existante
+# À ajouter au docker-compose.yml principal
+
+version: '3.8'
+
+services:
+  # Service SuperSmartMatch - Service unifié de matching
+  super-smart-match:
+    build:
+      context: ./super-smart-match-service
+      dockerfile: Dockerfile
+    container_name: nexten-super-smart-match
+    ports:
+      - "5070:5070"
+    environment:
+      - ENVIRONMENT=production
+      - PORT=5070
+      - HOST=0.0.0.0
+      - LOG_LEVEL=INFO
+      # Connexion aux services existants
+      - REDIS_URL=redis://nexten-redis:6379/0
+      - DATABASE_URL=postgresql://nexten_user:nexten_password@nexten-postgres:5432/nexten_db
+      # APIs des autres services pour fallback
+      - CV_PARSER_URL=http://nexten-cv-parser:5051
+      - JOB_PARSER_URL=http://nexten-job-parser:5055  
+      - MATCHING_SERVICE_URL=http://nexten-matching:5052
+      - PERSONALIZATION_URL=http://nexten-personalization:5060
+    volumes:
+      # Logs partagés
+      - ./logs:/app/logs
+      # Accès aux algorithmes du répertoire parent
+      - ./matching_engine.py:/app/matching_engine.py:ro
+      - ./enhanced_matching_engine.py:/app/enhanced_matching_engine.py:ro
+      - ./my_matching_engine.py:/app/my_matching_engine.py:ro
+      - ./compare_algorithms.py:/app/compare_algorithms.py:ro
+    networks:
+      - nexten-network
+    depends_on:
+      - nexten-redis
+      - nexten-postgres
+      # Dépendances optionnelles vers les autres services
+      - nexten-cv-parser
+      - nexten-job-parser
+      - nexten-matching
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5070/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.supersmartmatch.rule=Host(`api.nexten.local`) && PathPrefix(`/supersmartmatch`)"
+      - "traefik.http.routers.supersmartmatch.tls=true"
+      - "traefik.http.services.supersmartmatch.loadbalancer.server.port=5070"
+      - "com.nexten.service=super-smart-match"
+      - "com.nexten.version=1.0.0"
+      - "com.nexten.description=Service unifié de matching intelligent"
+
+# Extension des réseaux existants
+networks:
+  nexten-network:
+    external: true
+    
+# Note: Utilise les volumes Redis et PostgreSQL existants
