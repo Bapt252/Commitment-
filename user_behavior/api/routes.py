@@ -249,3 +249,8 @@ def add_interactions():
         'updated_patterns': list(user_patterns.keys()),
         'updated_scores': list(preference_scores.keys())
     }), 200
+
+@behavior_api.route('/health', methods=['GET'])
+def health_check():
+    """Endpoint de vérification de santé."""
+    return {'status': 'healthy', 'service': 'user-behavior-api'}
