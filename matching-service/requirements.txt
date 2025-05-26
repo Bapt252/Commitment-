@@ -46,7 +46,7 @@ tenacity==8.2.3
 jsonschema==4.19.1
 orjson==3.9.9
 python-jose==3.3.0
-functools32==3.2.3.post2  # Pour le support de lru_cache
+# functools32 supprimé - lru_cache est natif en Python 3.11
 
 # OpenAI API - version rétrocompatible
 openai==0.28.1
