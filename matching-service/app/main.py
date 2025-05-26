@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 
 from app.core.logging import setup_logging
 from app.core.database import get_db, init_db
-from app.api.routes import router as api_router
+from app.api import routes  # Import du module routes.py directement
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -44,8 +44,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inclusion des routes API
-app.include_router(api_router, prefix="/api/v1")
+# Inclusion des routes API - utiliser le router du module routes.py
+app.include_router(routes.router, prefix="/api/v1")
 
 @app.get("/health")
 async def health_check():
