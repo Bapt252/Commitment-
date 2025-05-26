@@ -306,7 +306,7 @@ class ImprovedMatchingEngine:
             
             # Normalisation des adresses
             origin_lower = origin.lower().strip()
-            dest_lower = destination.lower().strip()
+            destination_lower = destination.lower().strip()
             
             # Cas spéciaux : même ville
             cities_match = [
@@ -318,7 +318,7 @@ class ImprovedMatchingEngine:
             ]
             
             for city1, city2 in cities_match:
-                if city1 in origin_lower and city2 in dest_lower:
+                if city1 in origin_lower and city2 in destination_lower:
                     return random.randint(15, 30)  # Temps intra-urbain
             
             # Détection arrondissements parisiens
@@ -330,7 +330,7 @@ class ImprovedMatchingEngine:
                 return None
             
             origin_arr = extract_arrondissement(origin)
-            dest_arr = extract_arrondissement(dest)
+            dest_arr = extract_arrondissement(destination)
             
             if origin_arr and dest_arr:
                 # Calcul basé sur la distance entre arrondissements
@@ -349,7 +349,7 @@ class ImprovedMatchingEngine:
             ]
             
             for origins, dests, (min_time, max_time) in inter_city_patterns:
-                if any(o in origin_lower for o in origins) and any(d in dest_lower for d in dests):
+                if any(o in origin_lower for o in origins) and any(d in destination_lower for d in dests):
                     return random.randint(min_time, max_time)
             
             # Cas par défaut : simulation générique
