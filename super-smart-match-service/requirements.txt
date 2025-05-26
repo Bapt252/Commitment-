@@ -1,0 +1,41 @@
+# SuperSmartMatch Service Requirements
+
+# FastAPI et serveur
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+starlette==0.27.0
+
+# Validation des données
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Utilitaires
+requests==2.31.0
+python-multipart==0.0.6
+
+# Gestion des dates
+python-dateutil==2.8.2
+
+# Logging et monitoring
+loguru==0.7.2
+
+# Mathématiques et calculs
+numpy==1.25.2
+scipy==1.11.4
+
+# Cache et stockage
+redis==5.0.1
+
+# Tests
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+
+# Développement
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# Documentation
+mkdocs==1.5.3
+mkdocs-material==9.4.8
