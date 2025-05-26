@@ -57,8 +57,9 @@ WORKDIR /app
 # Copier le code de l'application
 COPY --chown=appuser:appuser . .
 
-# Précharger les modèles sentence-transformers
-RUN python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
+# Précharger les modèles sentence-transformers - DÉSACTIVÉ pour éviter les timeouts
+# Les modèles seront téléchargés au premier usage au runtime
+# RUN python -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2'); print('Modèle sentence-transformers préchargé')"
 
 # Télécharger les données NLTK nécessaires
 RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); print('Données NLTK téléchargées')"
