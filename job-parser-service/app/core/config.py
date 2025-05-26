@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     
     # Configuration du service
     UPLOAD_FOLDER: str = "uploads"
+    TEMP_DIR: str = os.environ.get('TEMP_DIR') or 'temp'  # AJOUTÉ - répertoire temporaire
     MAX_CONTENT_LENGTH: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_EXTENSIONS: set = {'pdf', 'doc', 'docx', 'txt', 'rtf'}
     
