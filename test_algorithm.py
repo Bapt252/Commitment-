@@ -245,7 +245,8 @@ async def test_algorithm_comparison():
         "detailed_results": results
     }
 
-if __name__ == "__main__":
+def run_server():
+    """Lance le serveur de test"""
     print("🚀 Démarrage de l'API de test pour l'algorithme de matching")
     print("📋 Endpoints disponibles:")
     print("   • http://localhost:8000/")
@@ -254,4 +255,7 @@ if __name__ == "__main__":
     print("   • http://localhost:8000/docs (documentation interactive)")
     print("\n🔥 Lancement du serveur...")
     
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+if __name__ == "__main__":
+    run_server()
