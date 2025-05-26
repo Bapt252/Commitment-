@@ -106,7 +106,13 @@ class Settings(BaseSettings):
     MINIO_ENDPOINT: str = os.environ.get('MINIO_ENDPOINT') or 'localhost:9000'
     MINIO_ACCESS_KEY: str = os.environ.get('MINIO_ACCESS_KEY') or 'minioadmin'
     MINIO_SECRET_KEY: str = os.environ.get('MINIO_SECRET_KEY') or 'minioadmin'
+    MINIO_BUCKET_NAME: str = os.environ.get('MINIO_BUCKET_NAME') or 'job-documents'
     MINIO_SECURE: bool = os.environ.get('MINIO_SECURE', '').lower() == 'true'
+    
+    # Configuration stockage - PROPRIÉTÉS MANQUANTES AJOUTÉES
+    USE_MINIO_FOR_FILES: bool = os.environ.get('USE_MINIO_FOR_FILES', 'true').lower() == 'true'
+    STORE_RESULTS_IN_REDIS: bool = os.environ.get('STORE_RESULTS_IN_REDIS', 'true').lower() == 'true'
+    REDIS_RESULT_TTL: int = int(os.environ.get('REDIS_RESULT_TTL') or 3600)
     
     # Configuration de l'API
     API_V1_STR: str = "/api"
@@ -114,6 +120,7 @@ class Settings(BaseSettings):
     
     # Configuration du service
     UPLOAD_FOLDER: str = "uploads"
+    TEMP_DIR: str = os.environ.get('TEMP_DIR') or 'temp'  # AJOUTÉ
     MAX_CONTENT_LENGTH: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_EXTENSIONS: set = {'pdf', 'doc', 'docx', 'txt', 'rtf'}
     
