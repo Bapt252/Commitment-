@@ -1,0 +1,255 @@
+# Configuration de production pour SuperSmartMatch
+# Fichier: super-smart-match-service/config/production.yml
+
+# Configuration du service
+service:
+  name: "SuperSmartMatch"
+  version: "1.0.0"
+  environment: "production"
+  debug: false
+
+# Configuration des algorithmes
+algorithms:
+  # Timeouts par algorithme (en secondes)
+  timeouts:
+    original: 10
+    enhanced: 30
+    semantic: 45
+    smart-match: 25
+    custom: 20
+    hybrid: 60
+  
+  # Nombre maximum de jobs par algorithme
+  max_jobs:
+    original: 10000
+    enhanced: 5000
+    semantic: 1000
+    smart-match: 3000
+    custom: 2000
+    hybrid: 1000
+  
+  # Configuration de la sélection automatique
+  auto_selection:
+    enabled: true
+    fallback_algorithm: "original"
+    confidence_threshold: 70
+    
+    # Règles de sélection par volume
+    volume_rules:
+      small:
+        max_jobs: 50
+        preferred: ["enhanced", "semantic", "smart-match"]
+      medium:
+        max_jobs: 500
+        preferred: ["enhanced", "hybrid", "smart-match"]
+      large:
+        max_jobs: 2000
+        preferred: ["original", "enhanced"]
+      very_large:
+        max_jobs: 999999
+        preferred: ["original"]
+    
+    # Règles par expérience candidat
+    experience_rules:
+      junior:
+        max_years: 2
+        preferred: ["smart-match", "enhanced"]
+      mid:
+        max_years: 5
+        preferred: ["enhanced", "hybrid", "semantic"]
+      senior:
+        max_years: 10
+        preferred: ["enhanced", "semantic", "hybrid"]
+      expert:
+        max_years: 999
+        preferred: ["semantic", "hybrid", "enhanced"]
+
+# Configuration du cache
+cache:
+  enabled: true
+  type: "redis"  # ou "memory"
+  ttl: 300  # 5 minutes
+  max_size: 1000
+  
+  # Configuration Redis
+  redis:
+    url: "redis://nexten-redis:6379/3"
+    encoding: "utf-8"
+    decode_responses: true
+    socket_timeout: 5
+    socket_connect_timeout: 5
+    retry_on_timeout: true
+    max_connections: 50
+
+# Configuration des performances
+performance:
+  # Limite de requêtes concurrentes
+  max_concurrent_requests: 100
+  
+  # Timeout global
+  request_timeout: 60
+  
+  # Taille maximum des données
+  max_candidate_skills: 100
+  max_jobs_per_request: 1000
+  max_request_size_mb: 10
+  
+  # Pool de workers
+  worker_processes: 4
+  worker_connections: 1000
+
+# Configuration des logs
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # Fichiers de logs
+  files:
+    main: "/app/logs/supersmartmatch.log"
+    access: "/app/logs/access.log"
+    error: "/app/logs/error.log"
+    performance: "/app/logs/performance.log"
+  
+  # Rotation des logs
+  rotation:
+    max_size: "100MB"
+    backup_count: 10
+    
+  # Logs structurés (JSON)
+  structured: true
+  
+  # Logs par algorithme
+  algorithm_logs: true
+
+# Configuration du monitoring
+monitoring:
+  enabled: true
+  
+  # Métriques Prometheus
+  prometheus:
+    enabled: true
+    port: 8000
+    path: "/metrics"
+  
+  # Health checks
+  health_check:
+    enabled: true
+    interval: 30
+    timeout: 10
+    
+  # Alertes
+  alerts:
+    error_rate_threshold: 0.05  # 5%
+    response_time_threshold: 2.0  # 2 secondes
+    memory_threshold: 0.8  # 80%
+    cpu_threshold: 0.8  # 80%
+
+# Configuration de sécurité
+security:
+  # Rate limiting
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+    burst: 10
+    
+  # CORS
+  cors:
+    enabled: true
+    origins:
+      - "http://localhost:3000"
+      - "https://nexten.local"
+      - "https://app.nexten.com"
+    methods: ["GET", "POST", "OPTIONS"]
+    headers: ["Content-Type", "Authorization"]
+    
+  # Headers de sécurité
+  security_headers:
+    enabled: true
+    hsts: true
+    content_type_nosniff: true
+    frame_deny: true
+    xss_protection: true
+
+# Configuration de la base de données (optionnelle)
+database:
+  enabled: false
+  url: "postgresql://nexten:password@nexten-postgres:5432/nexten"
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 30
+  pool_recycle: 3600
+
+# Configuration des notifications (optionnelles)
+notifications:
+  enabled: false
+  
+  # Webhook pour les erreurs
+  webhook:
+    url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    events: ["error", "performance_degradation"]
+    
+  # Email
+  email:
+    smtp_host: "smtp.nexten.com"
+    smtp_port: 587
+    username: "noreply@nexten.com"
+    recipients: ["admin@nexten.com"]
+
+# Configuration des features flags
+feature_flags:
+  # Nouvelles fonctionnalités
+  experimental_algorithms: false
+  advanced_caching: true
+  machine_learning_selection: false
+  
+  # Debug et développement
+  detailed_logging: false
+  performance_profiling: false
+  algorithm_comparison_mode: false
+
+# Configuration des limites
+limits:
+  # Limites par utilisateur (si authentification)
+  per_user:
+    requests_per_hour: 1000
+    max_concurrent: 5
+    
+  # Limites globales
+  global:
+    max_daily_requests: 100000
+    max_concurrent_users: 1000
+    
+  # Limites de ressources
+  resources:
+    max_memory_mb: 512
+    max_cpu_percent: 80
+    max_disk_usage_mb: 1000
+
+# Configuration de l'intégration
+integration:
+  # Services Nexten existants
+  services:
+    cv_parser:
+      enabled: true
+      url: "http://nexten-cv-parser:5051"
+      timeout: 30
+      
+    job_parser:
+      enabled: true
+      url: "http://nexten-job-parser:5055"
+      timeout: 30
+      
+    personalization:
+      enabled: true
+      url: "http://nexten-personalization:5060"
+      timeout: 15
+  
+  # APIs externes
+  external:
+    google_maps:
+      enabled: false
+      api_key: "${GOOGLE_MAPS_API_KEY}"
+      
+    openai:
+      enabled: false
+      api_key: "${OPENAI_API_KEY}"
