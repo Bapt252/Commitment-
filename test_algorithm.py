@@ -249,13 +249,13 @@ def run_server():
     """Lance le serveur de test"""
     print("🚀 Démarrage de l'API de test pour l'algorithme de matching")
     print("📋 Endpoints disponibles:")
-    print("   • http://localhost:8000/")
-    print("   • http://localhost:8000/health")
-    print("   • http://localhost:8000/test-simple")
-    print("   • http://localhost:8000/docs (documentation interactive)")
-    print("\n🔥 Lancement du serveur...")
+    print("   • http://localhost:8001/")
+    print("   • http://localhost:8001/health")
+    print("   • http://localhost:8001/test-simple")
+    print("   • http://localhost:8001/docs (documentation interactive)")
+    print("\n🔥 Lancement du serveur sur le port 8001...")
     
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
 
 if __name__ == "__main__":
     run_server()
