@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     MINIO_BUCKET_NAME: str = "matching-results"
     MINIO_SECURE: bool = False
     
+    # Google Maps API
+    GOOGLE_MAPS_API_KEY: str = ""
+    
     # Queues
     QUEUE_NAMES: List[str] = [
         QueuePriority.HIGH,
