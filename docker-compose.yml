@@ -85,6 +85,59 @@ services:
           cpus: '0.5'
           memory: 512M
 
+  # ========================================
+  # 🚀 SUPERSMARTMATCH - SERVICE UNIFIÉ 🚀
+  # ========================================
+  supersmartmatch:
+    build:
+      context: ./super-smart-match-service
+      dockerfile: Dockerfile
+    container_name: nexten-supersmartmatch
+    ports:
+      - "5070:5070"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      PORT: 5070
+      HOST: 0.0.0.0
+      ENVIRONMENT: production
+      REDIS_URL: redis://redis:6379/0
+      LOG_LEVEL: INFO
+      # URLs des autres services (pour les algorithmes qui en ont besoin)
+      CV_PARSER_SERVICE_URL: http://cv-parser:5000
+      JOB_PARSER_SERVICE_URL: http://job-parser:5000
+      MATCHING_SERVICE_URL: http://matching-api:5000
+      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
+    volumes:
+      - ./super-smart-match-service/logs:/app/logs
+      # Accès aux algorithmes existants
+      - ./matching_engine.py:/app/matching_engine.py:ro
+      - ./enhanced_matching_engine.py:/app/enhanced_matching_engine.py:ro
+      - ./my_matching_engine.py:/app/my_matching_engine.py:ro
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5070/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "com.nexten.service=supersmartmatch"
+      - "com.nexten.version=1.0.0"
+      - "com.nexten.description=Service unifié de matching - Regroupe TOUS les algorithmes"
+
   api:
     build:
       context: ./backend
@@ -99,6 +152,8 @@ services:
         condition: service_healthy
       storage:
         condition: service_healthy
+      supersmartmatch:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
       REDIS_URL: redis://redis:6379/0
@@ -108,6 +163,8 @@ services:
       CV_PARSER_SERVICE_URL: http://cv-parser:5000
       JOB_PARSER_SERVICE_URL: http://job-parser:5000
       MATCHING_SERVICE_URL: http://matching-api:5000
+      # 🚀 NOUVELLE URL UNIFIÉE
+      SUPERSMARTMATCH_SERVICE_URL: http://supersmartmatch:5070
       USER_BEHAVIOR_SERVICE_URL: http://user-behavior-api:5000
       FEEDBACK_SERVICE_URL: http://feedback-service:5000
       PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
@@ -485,6 +542,7 @@ services:
       - cv-parser
       - job-parser
       - matching-api
+      - supersmartmatch
     environment:
       PORT: 5053
       DEBUG: "false"
@@ -492,6 +550,8 @@ services:
       CV_PARSER_URL: http://cv-parser:5000
       JOB_PARSER_URL: http://job-parser:5000
       MATCHING_API_URL: http://matching-api:5000
+      # 🚀 NOUVELLE INTÉGRATION
+      SUPERSMARTMATCH_URL: http://supersmartmatch:5070
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     networks:
       - nexten-network
@@ -667,9 +727,12 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:5050
+      # 🚀 NOUVELLE VARIABLE POUR SUPERSMARTMATCH
+      - NEXT_PUBLIC_SUPERSMARTMATCH_URL=http://localhost:5070
       - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-}
     depends_on:
       - api
+      - supersmartmatch
     networks:
       - nexten-network
     restart: unless-stopped
