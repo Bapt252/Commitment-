@@ -16,11 +16,14 @@ pypdf2==3.0.1
 redis>=4.0.0
 hiredis>=2.0.0
 
-# Redis Queue (missing dependency)
+# Redis Queue
 rq>=1.15.0
 
 # MinIO for object storage
 minio>=7.0.0
+
+# File type validation
+python-magic>=0.4.27
 
 # Monitoring and logging
 prometheus-client==0.18.0
