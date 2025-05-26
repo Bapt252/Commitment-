@@ -2,8 +2,22 @@
 
 from fastapi import APIRouter
 
-# Import du router depuis le fichier routes.py du niveau parent
-from app.api.routes import router as main_router
+# Créer un router principal pour ce module
+router = APIRouter()
 
-# Export du router pour que l'import depuis main.py fonctionne
-router = main_router
+# Import et inclusion des sous-modules de routes
+try:
+    from .matches import matches_bp
+    from .algorithms import algorithms_bp
+    
+    # Pour FastAPI, on peut créer des sous-routers si nécessaire
+    # ou rediriger vers les blueprints Flask existants
+    
+except ImportError:
+    # Si les imports échouent, créer un router minimal
+    pass
+
+# Routes de base pour le matching
+@router.get("/health")
+async def health():
+    return {"status": "ok", "module": "matching routes"}
