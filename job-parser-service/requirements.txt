@@ -1,37 +1,35 @@
-# Flask version (original)
+# Core Flask/FastAPI requirements
 flask==2.3.3
 flask-cors==4.0.0
 werkzeug==2.3.7
 
-# FastAPI version with metrics
+# FastAPI and ASGI
 fastapi>=0.100.0
 uvicorn>=0.23.0
 python-multipart>=0.0.6
 
-# Common dependencies
+# OpenAI integration
 openai==1.5.0
 pypdf2==3.0.1
 
-# Redis for queue management
+# Cache and storage
 redis>=4.0.0
 hiredis>=2.0.0
 
-# MinIO for file storage
+# MinIO for object storage
 minio>=7.0.0
 
-# Metrics and monitoring
+# Monitoring and logging
 prometheus-client==0.18.0
 structlog==23.1.0
 
-# Utils
+# Configuration and environment
 python-dotenv>=1.0.0
 pydantic>=2.1.0
 pydantic-settings>=2.0.0
 
-# Additional dependencies for parsing
+# Document processing
 python-docx>=0.8.11
 striprtf>=0.0.22
 pytesseract>=0.3.10
-pdf2image>=3.1.0
-pdfplumber>=0.9.0
-pdfminer.six>=20220524
+pdf2image>=1.16.0
