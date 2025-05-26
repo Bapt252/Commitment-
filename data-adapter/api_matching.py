@@ -25,11 +25,22 @@ from datetime import datetime
 import uuid
 
 # Import de votre adaptateur
-from data_adapter import (
-    CommitmentDataAdapter, 
-    create_matching_response, 
-    create_error_response
-)
+try:
+    from data_adapter import (
+        CommitmentDataAdapter, 
+        create_matching_response, 
+        create_error_response
+    )
+except ImportError:
+    # Fallback pour les tests
+    import sys
+    import os
+    sys.path.append(os.path.dirname(__file__))
+    from data_adapter import (
+        CommitmentDataAdapter, 
+        create_matching_response, 
+        create_error_response
+    )
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
