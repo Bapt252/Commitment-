@@ -8,6 +8,9 @@ fastapi>=0.100.0
 uvicorn>=0.23.0
 python-multipart>=0.0.6
 
+# HTTP requests
+requests>=2.31.0
+
 # OpenAI integration
 openai==1.5.0
 pypdf2==3.0.1
