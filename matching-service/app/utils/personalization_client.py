@@ -35,7 +35,7 @@ class PersonalizationClient:
         self.session = requests.Session()
         logger.info(f"PersonalizationClient initialisé avec l'URL: {self.base_url}")
     
-    @retry_with_backoff(max_retries=3, backoff_in_seconds=1)
+    @retry_with_backoff(max_retries=3, delay=1)
     def get_personalized_weights(self, user_id: str, job_id: Optional[int] = None, 
                                 candidate_id: Optional[int] = None, 
                                 original_weights: Optional[Dict[str, float]] = None) -> Dict[str, float]:
@@ -83,7 +83,7 @@ class PersonalizationClient:
             logger.info("Utilisation des poids par défaut")
             return original_weights
     
-    @retry_with_backoff(max_retries=3, backoff_in_seconds=1)
+    @retry_with_backoff(max_retries=3, delay=1)
     def personalize_results(self, user_id: str, results: List[Dict[str, Any]], 
                            search_query: Optional[str] = None, 
                            context: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
@@ -126,7 +126,7 @@ class PersonalizationClient:
             logger.info("Utilisation des résultats non personnalisés")
             return results
     
-    @retry_with_backoff(max_retries=3, backoff_in_seconds=1)
+    @retry_with_backoff(max_retries=3, delay=1)
     def record_feedback(self, user_id: str, feedback_data: Dict[str, Any]) -> bool:
         """
         Enregistre un feedback utilisateur pour améliorer la personnalisation.
@@ -153,7 +153,7 @@ class PersonalizationClient:
             logger.error(f"Erreur lors de l'enregistrement du feedback: {str(e)}")
             return False
     
-    @retry_with_backoff(max_retries=3, backoff_in_seconds=1)
+    @retry_with_backoff(max_retries=3, delay=1)
     def get_user_preferences(self, user_id: str) -> Dict[str, Any]:
         """
         Récupère les préférences d'un utilisateur.
