@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Exposer le port
-EXPOSE 5055
+EXPOSE 5000
 
 # Commande de démarrage
-CMD ["python", "job_parser_api.py"]
+CMD ["python", "app.py"]
