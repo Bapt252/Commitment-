@@ -3,14 +3,14 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Installer les dépendances
-COPY backend/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier le code source
-COPY backend/ .
+COPY . .
 
 # Exposer le port
-EXPOSE 5055
+EXPOSE 5000
 
 # Commande de démarrage
-CMD ["python", "job_parser_api.py"]
+CMD ["python", "app.py"]

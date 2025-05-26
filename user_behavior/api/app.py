@@ -1,5 +1,5 @@
 from flask import Flask
-from user_behavior.api.routes import behavior_api
+from api.routes import behavior_api
 import logging
 import os
 
