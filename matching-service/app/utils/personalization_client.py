@@ -14,7 +14,7 @@ import json
 import requests
 import logging
 from typing import Dict, List, Any, Optional
-from app.utils.resilience import retry_with_backoff
+from app.core.resilience import retry_with_backoff
 from app.utils.cache import cache_result
 
 # Configuration du logger
