@@ -374,6 +374,7 @@ def index():
         'status': 'running',
         'version': '2.3 - SuperSmartMatch Intelligence + Analytics',
         'description': 'Matching intelligent avec pourcentages côté entreprise et analytics',
+        'port': 5063,  # NOUVEAU PORT SÉCURISÉ
         'modes': {
             'candidate_to_jobs': 'Matching candidat vers emplois',
             'company_to_candidates': 'Matching entreprise vers candidats (avec SuperSmartMatch!)'
@@ -403,6 +404,7 @@ def health():
     
     return jsonify({
         'status': 'healthy',
+        'port': 5063,  # NOUVEAU PORT SÉCURISÉ
         'legacy_algorithms_loaded': len(service.algorithms),
         'new_algorithms_loaded': len(service.new_algorithms),
         'company_algorithms_loaded': len(service.reverse_algorithms),
@@ -777,9 +779,10 @@ def get_test_data():
     })
 
 if __name__ == '__main__':
-    port = 5061
-    logger.info(f"🚀 Démarrage SuperSmartMatch v2.3 avec ANALYTICS sur le port {port}")
+    port = 5063  # NOUVEAU PORT SÉCURISÉ - Évite le conflit avec le port 5061
+    logger.info(f"🚀 Démarrage SuperSmartMatch v2.3 avec ANALYTICS sur le port {port} (NOUVEAU PORT SÉCURISÉ)")
     logger.info("🎯 Nouveau: SuperSmartMatch avec pourcentages détaillés + Analytics")
     logger.info("📊 Endpoints analytics: /api/analytics et /api/analytics/summary")
     logger.info("🧠 Fonctionnalités: raisonnement intelligent, suivi performances, optimisation")
+    logger.info(f"🔗 URL: http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=False)
