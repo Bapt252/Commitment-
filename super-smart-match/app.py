@@ -41,6 +41,14 @@ class SuperSmartMatch:
         except ImportError:
             logger.warning("⚠️ Algorithme enhanced non disponible")
         
+        # NOUVEAU : Charger l'algorithme avancé
+        try:
+            from matching_engine_advanced import advanced_match_candidate_with_jobs
+            self.algorithms['advanced'] = advanced_match_candidate_with_jobs
+            logger.info("✅ Algorithme ADVANCED chargé (avec temps trajet et pondération intelligente)")
+        except ImportError:
+            logger.warning("⚠️ Algorithme advanced non disponible")
+        
         logger.info(f"📊 {len(self.algorithms)} algorithmes chargés")
     
     def simple_matching(self, cv_data, questionnaire_data, job_data):
@@ -65,11 +73,13 @@ class SuperSmartMatch:
         return results
     
     def match(self, cv_data, questionnaire_data, job_data, algorithm="auto", limit=10):
-        """Méthode principale"""
+        """Méthode principale avec sélection automatique améliorée"""
         try:
-            # Sélection de l'algorithme
+            # Sélection de l'algorithme avec priorité au nouveau moteur avancé
             if algorithm == "auto":
-                if 'enhanced' in self.algorithms:
+                if 'advanced' in self.algorithms:
+                    algorithm = 'advanced'  # NOUVEAU : Prioriser advanced
+                elif 'enhanced' in self.algorithms:
                     algorithm = 'enhanced'
                 elif 'original' in self.algorithms:
                     algorithm = 'original'
@@ -101,7 +111,8 @@ class SuperSmartMatch:
                 'algorithm_used': 'fallback',
                 'total_results': len(results),
                 'results': results[:limit] if limit > 0 else results,
-                'fallback_used': True
+                'fallback_used': True,
+                'error': str(e)
             }
 
 # Instance globale
@@ -112,7 +123,8 @@ def index():
     return jsonify({
         'service': 'SuperSmartMatch',
         'status': 'running',
-        'algorithms': list(service.algorithms.keys())
+        'algorithms': list(service.algorithms.keys()),
+        'version': '2.0 - Advanced Matching with Travel Time'
     })
 
 @app.route('/api/health')
@@ -120,14 +132,50 @@ def health():
     return jsonify({
         'status': 'healthy',
         'algorithms_loaded': len(service.algorithms),
-        'available_algorithms': list(service.algorithms.keys())
+        'available_algorithms': list(service.algorithms.keys()),
+        'features': [
+            'Travel time calculation',
+            'Intelligent weighting',
+            'Detailed explanations',
+            'Contract type matching (CDI/CDD/INTERIM)',
+            'Salary optimization',
+            'Transport mode support'
+        ]
     })
 
 @app.route('/api/algorithms')
 def algorithms():
+    algorithms_info = {}
+    for name in service.algorithms.keys():
+        if name == 'advanced':
+            algorithms_info[name] = {
+                'status': 'available',
+                'features': ['travel_time', 'intelligent_weighting', 'explanations'],
+                'description': 'Moteur avancé avec calcul temps trajet et pondération intelligente'
+            }
+        elif name == 'enhanced':
+            algorithms_info[name] = {
+                'status': 'available', 
+                'features': ['enhanced_scoring'],
+                'description': 'Moteur amélioré avec scoring détaillé'
+            }
+        elif name == 'original':
+            algorithms_info[name] = {
+                'status': 'available',
+                'features': ['basic_matching'],
+                'description': 'Moteur de base du projet'
+            }
+        else:
+            algorithms_info[name] = {
+                'status': 'available',
+                'features': ['fallback'],
+                'description': 'Algorithme simple de secours'
+            }
+    
     return jsonify({
-        'algorithms': {name: {'status': 'available'} for name in service.algorithms.keys()},
-        'total_count': len(service.algorithms)
+        'algorithms': algorithms_info,
+        'total_count': len(service.algorithms),
+        'recommended': 'advanced'
     })
 
 @app.route('/api/match', methods=['POST'])
@@ -150,9 +198,65 @@ def match():
         return jsonify(result)
         
     except Exception as e:
+        logger.error(f"Erreur API: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/test-data')
+def get_test_data():
+    """Endpoint pour récupérer des données de test réalistes"""
+    return jsonify({
+        'cv_data_example': {
+            'competences': ['Python', 'Django', 'PostgreSQL', 'React'],
+            'annees_experience': 5,
+            'niveau_etudes': 'Master',
+            'derniere_fonction': 'Développeur Full Stack',
+            'secteur_activite': 'FinTech'
+        },
+        'questionnaire_data_example': {
+            'adresse': 'Paris 15ème',
+            'salaire_souhaite': 55000,
+            'types_contrat': ['CDI'],
+            'mode_transport': 'metro',
+            'temps_trajet_max': 45,
+            'date_disponibilite': '2025-06-01',
+            'raison_changement': 'evolution',  # Pour pondération intelligente
+            'priorite': 'equilibre',
+            'objectif': 'competences'
+        },
+        'job_data_example': [
+            {
+                'id': 'job-001',
+                'titre': 'Développeur Python Senior',
+                'entreprise': 'TechCorp',
+                'competences': ['Python', 'Django', 'PostgreSQL'],
+                'localisation': 'Paris 8ème',
+                'type_contrat': 'CDI',
+                'salaire_min': 50000,
+                'salaire_max': 65000,
+                'experience_requise': 3,
+                'date_debut_souhaitee': '2025-06-15',
+                'teletravail_possible': False,
+                'description': 'Développement applications web'
+            },
+            {
+                'id': 'job-002', 
+                'titre': 'Full Stack Developer',
+                'entreprise': 'StartupInc',
+                'competences': ['Python', 'React', 'MySQL'],
+                'localisation': 'Levallois-Perret',
+                'type_contrat': 'CDI',
+                'salaire_min': 45000,
+                'salaire_max': 55000,
+                'experience_requise': 4,
+                'date_debut_souhaitee': '2025-07-01',
+                'teletravail_possible': True,
+                'politique_remote': 'Télétravail 2j/semaine'
+            }
+        ]
+    })
+
 if __name__ == '__main__':
-    port = 5060
-    logger.info(f"🚀 Démarrage sur le port {port}")
+    port = 5061  # Port 5061 pour éviter les conflits
+    logger.info(f"🚀 Démarrage SuperSmartMatch v2.0 sur le port {port}")
+    logger.info("🎯 Nouvelles fonctionnalités: temps de trajet, pondération intelligente")
     app.run(host='0.0.0.0', port=port, debug=False)

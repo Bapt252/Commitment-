@@ -6,13 +6,13 @@ sleep 2
 
 # Test de santé
 echo "1️⃣ Health check..."
-curl -s http://localhost:5060/api/health | python3 -m json.tool 2>/dev/null || echo "Service non accessible - vérifiez qu'il est démarré"
+curl -s http://localhost:5061/api/health | python3 -m json.tool 2>/dev/null || echo "Service non accessible - vérifiez qu'il est démarré"
 
 echo -e "\n2️⃣ Liste des algorithmes..."
-curl -s http://localhost:5060/api/algorithms | python3 -m json.tool 2>/dev/null || echo "Erreur récupération algorithmes"
+curl -s http://localhost:5061/api/algorithms | python3 -m json.tool 2>/dev/null || echo "Erreur récupération algorithmes"
 
 echo -e "\n3️⃣ Test de matching..."
-curl -s -X POST http://localhost:5060/api/match \
+curl -s -X POST http://localhost:5061/api/match \
   -H "Content-Type: application/json" \
   -d '{
     "cv_data": {
@@ -42,7 +42,7 @@ curl -s -X POST http://localhost:5060/api/match \
   }' | python3 -m json.tool 2>/dev/null || echo "Erreur test matching"
 
 echo -e "\n4️⃣ Test avec algorithme spécifique..."
-curl -s -X POST http://localhost:5060/api/match \
+curl -s -X POST http://localhost:5061/api/match \
   -H "Content-Type: application/json" \
   -d '{
     "cv_data": {"competences": ["Python"]},

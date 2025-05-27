@@ -17,11 +17,11 @@ fi
 
 export PYTHONPATH="$(pwd)/..:$PYTHONPATH"
 
-echo "🌐 Service disponible sur http://localhost:5060"
+echo "🌐 Service disponible sur http://localhost:5061"
 echo "📊 Endpoints:"
-echo "   - Health: http://localhost:5060/api/health"
-echo "   - Algorithmes: http://localhost:5060/api/algorithms"
-echo "   - Matching: http://localhost:5060/api/match"
+echo "   - Health: http://localhost:5061/api/health"
+echo "   - Algorithmes: http://localhost:5061/api/algorithms"
+echo "   - Matching: http://localhost:5061/api/match"
 echo ""
 
 python3 app.py
