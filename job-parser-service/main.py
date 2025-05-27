@@ -35,9 +35,9 @@ if __name__ == "__main__":
     
     logger.info(f"Configuration: host={host}, port={port}, reload={reload}")
     
-    # Lancement du serveur
+    # Lancement du serveur - Correction : app:app au lieu de app.main:app
     uvicorn.run(
-        "app.main:app",
+        "app:app",
         host=host,
         port=port,
         reload=reload,

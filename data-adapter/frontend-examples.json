@@ -1,0 +1,359 @@
+{
+  "description": "Exemples de JSON que votre frontend doit envoyer à l'API de matching",
+  "version": "1.0.0",
+  
+  "cv_data_example": {
+    "description": "Format JSON attendu pour les données CV parsées",
+    "example": {
+      "nom": "Dupont",
+      "prenom": "Marie",
+      "email": "marie.dupont@email.com",
+      "telephone": "06 12 34 56 78",
+      "adresse": "12 rue de la Paix, 75001 Paris",
+      "poste": "Développeuse Full Stack Senior",
+      "competences": [
+        "Python",
+        "JavaScript", 
+        "React",
+        "Django",
+        "PostgreSQL",
+        "Docker",
+        "AWS",
+        "Git"
+      ],
+      "logiciels": [
+        "VS Code",
+        "PyCharm", 
+        "Figma",
+        "Jira",
+        "Slack"
+      ],
+      "formation": "Master en Informatique - EPITECH Paris",
+      "experience": "7 ans d'expérience en développement web full stack",
+      "langues": [
+        "Français (natif)",
+        "Anglais (courant)", 
+        "Espagnol (intermédiaire)"
+      ],
+      "soft_skills": [
+        "Leadership",
+        "Communication",
+        "Travail d'équipe",
+        "Résolution de problèmes",
+        "Autonomie"
+      ]
+    },
+    "required_fields": [
+      "competences"
+    ],
+    "optional_fields": [
+      "nom", "prenom", "email", "telephone", "adresse", "poste", 
+      "logiciels", "formation", "experience", "langues", "soft_skills"
+    ]
+  },
+
+  "questionnaire_data_example": {
+    "description": "Format JSON attendu pour les données du questionnaire candidat",
+    "example": {
+      "adresse": "12 rue de la Paix, 75001 Paris",
+      "temps_trajet_max": 45,
+      "fourchette_salaire": "55k-70k",
+      "types_contrat": [
+        "CDI",
+        "Freelance"
+      ],
+      "disponibilite": "15/08/2025",
+      "secteurs_interesse": [
+        "tech",
+        "fintech", 
+        "e-commerce",
+        "startups"
+      ],
+      "teletravail": true,
+      "mobilite": true,
+      "preferences_environnement": "startup",
+      "motivations": [
+        "évolution",
+        "rémunération", 
+        "flexibilité",
+        "projets innovants"
+      ]
+    },
+    "field_descriptions": {
+      "adresse": "Adresse complète du candidat",
+      "temps_trajet_max": "Temps de trajet maximum accepté en minutes",
+      "fourchette_salaire": "Fourchette de salaire attendue (formats acceptés: '50k-60k', '45000-55000', '50k')",
+      "types_contrat": "Types de contrats recherchés ['CDI', 'CDD', 'Freelance', 'Stage', 'Alternance']",
+      "disponibilite": "Date de disponibilité au format DD/MM/YYYY",
+      "secteurs_interesse": "Secteurs d'activité d'intérêt",
+      "teletravail": "Préférence pour le télétravail (boolean)",
+      "mobilite": "Mobilité géographique (boolean)"
+    }
+  },
+
+  "job_data_example": {
+    "description": "Format JSON attendu pour UNE offre d'emploi parsée",
+    "example": {
+      "id": "job_001",
+      "titre": "Développeur Full Stack Senior",
+      "entreprise": "TechCorp France",
+      "localisation": "Paris 8ème arrondissement",
+      "description": "Rejoignez notre équipe de développement pour créer des applications web innovantes dans un environnement agile.",
+      "competences": [
+        "Python",
+        "Django",
+        "React", 
+        "TypeScript",
+        "PostgreSQL",
+        "Docker",
+        "AWS",
+        "Git"
+      ],
+      "experience": "5-7 ans d'expérience en développement web",
+      "formation": "Bac+5 en informatique ou équivalent",
+      "type_contrat": "CDI",
+      "salaire": "58k-70k",
+      "date_debut": "01/09/2025",
+      "avantages": [
+        "Télétravail 3 jours par semaine",
+        "Mutuelle d'entreprise",
+        "RTT supplémentaires",
+        "Formation continue",
+        "Prime de performance"
+      ],
+      "secteur": "tech"
+    },
+    "required_fields": [
+      "titre",
+      "competences"
+    ],
+    "optional_fields": [
+      "id", "entreprise", "localisation", "description", "experience",
+      "formation", "type_contrat", "salaire", "date_debut", "avantages", "secteur"
+    ]
+  },
+
+  "jobs_array_example": {
+    "description": "Format JSON pour envoyer plusieurs offres d'emploi",
+    "example": [
+      {
+        "id": "job_001",
+        "titre": "Développeur Full Stack Senior",
+        "entreprise": "TechCorp",
+        "localisation": "Paris",
+        "competences": ["Python", "React", "PostgreSQL"],
+        "salaire": "58k-70k",
+        "type_contrat": "CDI"
+      },
+      {
+        "id": "job_002", 
+        "titre": "Lead Developer Python",
+        "entreprise": "FinanceApp",
+        "localisation": "La Défense",
+        "competences": ["Python", "FastAPI", "MongoDB", "AWS"],
+        "salaire": "70k-85k",
+        "type_contrat": "CDI"
+      },
+      {
+        "id": "job_003",
+        "titre": "Frontend Developer React",
+        "entreprise": "StartupXYZ",
+        "localisation": "Paris 11ème",
+        "competences": ["JavaScript", "React", "TypeScript"],
+        "salaire": "45k-55k", 
+        "type_contrat": "CDI"
+      }
+    ]
+  },
+
+  "complete_matching_request_example": {
+    "description": "Requête complète pour lancer un matching",
+    "endpoint": "POST /api/matching/complete",
+    "example": {
+      "cv_data": {
+        "nom": "Dupont",
+        "prenom": "Marie", 
+        "email": "marie.dupont@email.com",
+        "competences": ["Python", "React", "Django", "PostgreSQL"],
+        "experience": "6 ans d'expérience"
+      },
+      "questionnaire_data": {
+        "adresse": "Paris",
+        "temps_trajet_max": 45,
+        "fourchette_salaire": "55k-65k",
+        "types_contrat": ["CDI"]
+      },
+      "jobs_data": [
+        {
+          "id": "job_001",
+          "titre": "Développeur Full Stack",
+          "entreprise": "TechCorp",
+          "competences": ["Python", "Django", "React"],
+          "salaire": "60k"
+        }
+      ],
+      "options": {
+        "limit": 10,
+        "min_score": 40
+      }
+    }
+  },
+
+  "matching_response_example": {
+    "description": "Format de réponse attendu de l'API de matching",
+    "example": {
+      "success": true,
+      "timestamp": "2025-05-26T14:30:00.000Z",
+      "statistics": {
+        "total": 5,
+        "moyenne_score": 72.4,
+        "score_max": 89,
+        "score_min": 45,
+        "scores_par_tranche": {
+          "excellent": 2,
+          "bon": 2,
+          "moyen": 1,
+          "faible": 0
+        }
+      },
+      "results": [
+        {
+          "id": "job_001",
+          "titre": "Développeur Full Stack Senior",
+          "entreprise": "TechCorp",
+          "localisation": "Paris 8ème",
+          "matching_score": 89,
+          "matching_details": {
+            "skills": 92,
+            "location": 85,
+            "experience": 88,
+            "salary": 95,
+            "contract": 100,
+            "date": 90
+          },
+          "description": "Rejoignez notre équipe de développement...",
+          "competences": ["Python", "Django", "React"],
+          "salaire": "58k-70k",
+          "type_contrat": "CDI"
+        },
+        {
+          "id": "job_002",
+          "titre": "Lead Developer Python", 
+          "entreprise": "FinanceApp",
+          "localisation": "La Défense",
+          "matching_score": 78,
+          "matching_details": {
+            "skills": 85,
+            "location": 70,
+            "experience": 80,
+            "salary": 88,
+            "contract": 100,
+            "date": 85
+          },
+          "description": "Pilotez le développement...",
+          "competences": ["Python", "FastAPI", "MongoDB"],
+          "salaire": "70k-85k",
+          "type_contrat": "CDI"
+        }
+      ],
+      "count": 2
+    }
+  },
+
+  "error_response_example": {
+    "description": "Format de réponse en cas d'erreur",
+    "example": {
+      "success": false,
+      "timestamp": "2025-05-26T14:30:00.000Z",
+      "error": {
+        "code": "MISSING_CV_DATA",
+        "message": "Les données CV sont manquantes ou invalides"
+      }
+    },
+    "common_error_codes": {
+      "MISSING_CV_DATA": "Données CV manquantes ou invalides",
+      "MISSING_QUESTIONNAIRE_DATA": "Données questionnaire manquantes",
+      "MISSING_JOBS_DATA": "Aucune offre d'emploi fournie",
+      "INVALID_SKILLS_FORMAT": "Format des compétences invalide",
+      "PROCESSING_ERROR": "Erreur interne lors du traitement",
+      "MATCHING_ENGINE_ERROR": "Erreur du moteur de matching"
+    }
+  },
+
+  "validation_rules": {
+    "description": "Règles de validation pour les données d'entrée",
+    "cv_data": {
+      "competences": {
+        "type": "array",
+        "required": true,
+        "min_items": 1,
+        "description": "Au moins une compétence requise"
+      },
+      "email": {
+        "type": "string", 
+        "format": "email",
+        "required": false
+      },
+      "experience": {
+        "type": "string",
+        "description": "Texte libre décrivant l'expérience"
+      }
+    },
+    "questionnaire_data": {
+      "temps_trajet_max": {
+        "type": "integer",
+        "minimum": 5,
+        "maximum": 180,
+        "default": 60
+      },
+      "fourchette_salaire": {
+        "type": "string",
+        "pattern": "^\\d+[kK]?(-\\d+[kK]?)?$",
+        "examples": ["45k", "45k-55k", "45000-55000"]
+      },
+      "types_contrat": {
+        "type": "array",
+        "items": {
+          "enum": ["CDI", "CDD", "Freelance", "Stage", "Alternance", "Interim"]
+        }
+      }
+    },
+    "job_data": {
+      "titre": {
+        "type": "string",
+        "required": true,
+        "min_length": 3
+      },
+      "competences": {
+        "type": "array",
+        "required": true,
+        "min_items": 1
+      },
+      "salaire": {
+        "type": "string",
+        "pattern": "^\\d+[kK]?(-\\d+[kK]?)?$"
+      }
+    }
+  },
+
+  "frontend_integration_tips": {
+    "description": "Conseils pour l'intégration frontend",
+    "content_type": "application/json",
+    "endpoints": {
+      "health_check": "GET /health",
+      "single_matching": "POST /api/matching/single", 
+      "batch_matching": "POST /api/matching/batch",
+      "complete_matching": "POST /api/matching/complete"
+    },
+    "error_handling": {
+      "timeout": "Définir un timeout de 30 secondes minimum",
+      "retry": "Implémenter un retry avec backoff exponentiel",
+      "validation": "Valider les données côté frontend avant envoi"
+    },
+    "performance": {
+      "pagination": "Limiter le nombre d'offres par requête (max 100)",
+      "caching": "Mettre en cache les résultats côté frontend",
+      "async": "Utiliser des requêtes asynchrones pour les gros volumes"
+    }
+  }
+}

@@ -2,15 +2,17 @@
 job_parser_gpt.py
 API service for GPT-based job posting parsing
 
-This module provides a Flask API endpoint for parsing job postings with the GPT model.
+This module provides a FastAPI APIRouter endpoint for parsing job postings with the GPT model.
 """
 
 import os
 import json
 import logging
 import tempfile
-from flask import Flask, request, jsonify, Blueprint
-from flask_cors import CORS
+from fastapi import APIRouter, HTTPException, Form, File, UploadFile, Depends
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional, List
 import openai
 
 # Configure logging
@@ -18,8 +20,8 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Initialize Blueprint for job parser GPT API
-job_parser_gpt_bp = Blueprint('job_parser_gpt', __name__)
+# Initialize APIRouter for job parser GPT API
+job_parser_gpt_bp = APIRouter()
 
 # Get API key from environment variables
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
@@ -28,13 +30,33 @@ GPT_MODEL = os.environ.get('GPT_MODEL', 'gpt-3.5-turbo')
 # Configure OpenAI
 openai.api_key = OPENAI_API_KEY
 
-@job_parser_gpt_bp.route('/health-check', methods=['GET'])
-def health_check():
-    """Health check endpoint to verify API availability"""
-    return jsonify({"status": "ok", "message": "Job Parser GPT API is running"}), 200
+# Pydantic models for response
+class JobParsingResult(BaseModel):
+    title: str
+    company: str
+    location: str
+    contract_type: str
+    skills: List[str]
+    experience: str
+    education: str
+    salary: str
+    responsibilities: List[str]
+    benefits: List[str]
 
-@job_parser_gpt_bp.route('/parse-job-gpt', methods=['POST'])
-def parse_job_with_gpt():
+class HealthResponse(BaseModel):
+    status: str
+    message: str
+
+@job_parser_gpt_bp.get('/health-check', response_model=HealthResponse)
+async def health_check():
+    """Health check endpoint to verify API availability"""
+    return HealthResponse(status="ok", message="Job Parser GPT API is running")
+
+@job_parser_gpt_bp.post('/parse-job-gpt')
+async def parse_job_with_gpt(
+    file: Optional[UploadFile] = File(None),
+    text: Optional[str] = Form(None)
+):
     """
     Parse job posting with GPT
     
@@ -45,32 +67,27 @@ def parse_job_with_gpt():
         job_text = ""
         
         # Check if request has file or text
-        if 'file' in request.files:
-            file = request.files['file']
-            # Create temporary file to store uploaded content
-            with tempfile.NamedTemporaryFile(delete=False) as temp:
-                file.save(temp.name)
-                with open(temp.name, 'r', encoding='utf-8', errors='ignore') as f:
-                    job_text = f.read()
-                os.unlink(temp.name)  # Clean up temp file
-        elif 'text' in request.form:
-            job_text = request.form['text']
+        if file:
+            content = await file.read()
+            job_text = content.decode('utf-8', errors='ignore')
+        elif text:
+            job_text = text
         else:
-            return jsonify({"error": "No file or text provided"}), 400
+            raise HTTPException(status_code=400, detail="No file or text provided")
         
         # Log info about the request
         logger.info(f"Received job parsing request: {len(job_text)} characters")
         
         # Call GPT API to parse the job posting
-        result = call_gpt_for_parsing(job_text)
+        result = await call_gpt_for_parsing(job_text)
         
-        return jsonify(result), 200
+        return JSONResponse(content=result)
     
     except Exception as e:
         logger.error(f"Error in parse_job_with_gpt: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-def call_gpt_for_parsing(job_text):
+async def call_gpt_for_parsing(job_text: str) -> dict:
     """
     Call GPT API to parse job posting
     
@@ -150,18 +167,6 @@ def call_gpt_for_parsing(job_text):
         logger.error(f"Error calling GPT API: {str(e)}")
         return {"error": str(e), "title": "API Error"}
 
-def register_job_parser_gpt(app):
-    """Register the job parser GPT blueprint with the app"""
-    app.register_blueprint(job_parser_gpt_bp, url_prefix='/api')
-    CORS(app)  # Enable CORS for all routes
-    logger.info("Registered Job Parser GPT API endpoints")
-    
-    # Check if API key is configured
-    if not OPENAI_API_KEY:
-        logger.warning("OPENAI_API_KEY not set. GPT parsing will not work.")
-
-# For direct execution testing
-if __name__ == "__main__":
-    app = Flask(__name__)
-    register_job_parser_gpt(app)
-    app.run(debug=True, port=5055)
+# Check if API key is configured when module is imported
+if not OPENAI_API_KEY:
+    logger.warning("OPENAI_API_KEY not set. GPT parsing will not work.")

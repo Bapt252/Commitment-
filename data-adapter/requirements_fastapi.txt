@@ -1,0 +1,30 @@
+# Nouvelles dépendances pour l'intégration data adapter
+# À ajouter aux requirements.txt existants
+
+# FastAPI et serveur ASGI
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+
+# Validation des données
+pydantic>=2.5.0
+
+# Gestion des dates et temps
+python-dateutil>=2.8.2
+
+# Support JSON avancé
+orjson>=3.9.0
+
+# Pour les tests et développement
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0  # Pour tester les endpoints FastAPI
+
+# Cache et performance (optionnel)
+redis>=5.0.0
+aioredis>=2.0.0
+
+# Monitoring et métriques (optionnel)
+prometheus-client>=0.19.0
+
+# Variables d'environnement
+python-dotenv>=1.0.0

@@ -39,12 +39,18 @@ class Settings(BaseSettings):
     MINIO_BUCKET_NAME: str = os.environ.get('MINIO_BUCKET_NAME') or 'job-documents'
     MINIO_SECURE: bool = os.environ.get('MINIO_SECURE', '').lower() == 'true'
     
+    # Configuration stockage - AJOUTÉ POUR CORRIGER L'ERREUR
+    USE_MINIO_FOR_FILES: bool = os.environ.get('USE_MINIO_FOR_FILES', 'true').lower() == 'true'
+    STORE_RESULTS_IN_REDIS: bool = os.environ.get('STORE_RESULTS_IN_REDIS', 'true').lower() == 'true'
+    REDIS_RESULT_TTL: int = int(os.environ.get('REDIS_RESULT_TTL') or 3600)
+    
     # Configuration de l'API
     API_V1_STR: str = "/api"
     SERVICE_NAME: str = "job-parser-service"
     
     # Configuration du service
     UPLOAD_FOLDER: str = "uploads"
+    TEMP_DIR: str = os.environ.get('TEMP_DIR') or 'temp'  # AJOUTÉ - répertoire temporaire
     MAX_CONTENT_LENGTH: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_EXTENSIONS: set = {'pdf', 'doc', 'docx', 'txt', 'rtf'}
     

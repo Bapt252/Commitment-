@@ -1,10 +1,10 @@
 from flask import Blueprint, jsonify, request
 from datetime import datetime
 import logging
-from user_behavior.profiles.profile_builder import UserProfileBuilder
-from user_behavior.clustering.kmeans_clustering import UserClusterer
-from user_behavior.patterns.sequence_detection import PatternDetector
-from user_behavior.scoring.preference_calculator import PreferenceScoreCalculator
+from profiles.profile_builder import UserProfileBuilder
+from clustering.kmeans_clustering import UserClusterer
+from patterns.sequence_detection import PatternDetector
+from scoring.preference_calculator import PreferenceScoreCalculator
 
 logger = logging.getLogger(__name__)
 behavior_api = Blueprint('behavior_api', __name__)
@@ -249,3 +249,8 @@ def add_interactions():
         'updated_patterns': list(user_patterns.keys()),
         'updated_scores': list(preference_scores.keys())
     }), 200
+
+@behavior_api.route('/health', methods=['GET'])
+def health_check():
+    """Endpoint de vérification de santé."""
+    return {'status': 'healthy', 'service': 'user-behavior-api'}

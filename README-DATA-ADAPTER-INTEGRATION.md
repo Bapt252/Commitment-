@@ -11,10 +11,9 @@ data-adapter/
 ├── data_adapter.py          # ✨ Adaptateur principal (NOUVEAU)
 ├── api_matching.py          # ✨ API FastAPI (NOUVEAU) 
 ├── test_integration.py      # ✨ Tests d'intégration (NOUVEAU)
-├── requirements_fastapi.txt # ✨ Nouvelles dépendances (NOUVEAU)
 ├── smartmatch_data_adapter.py  # Adaptateur existant
 ├── flask_api.py            # API Flask existante
-├── requirements.txt        # Dépendances existantes
+├── requirements.txt        # Dépendances
 └── Dockerfile             # Configuration Docker
 ```
 
@@ -25,10 +24,9 @@ data-adapter/
 ```bash
 # Depuis le dossier data-adapter/
 pip install -r requirements.txt
-pip install -r requirements_fastapi.txt
 
-# Ou en une fois
-pip install fastapi uvicorn pydantic python-dateutil
+# Dépendances supplémentaires pour la nouvelle API
+pip install fastapi uvicorn pydantic
 ```
 
 ### 2. Variables d'environnement
@@ -62,10 +60,9 @@ Ajoutez au `Dockerfile` existant :
 COPY data_adapter.py /app/
 COPY api_matching.py /app/
 COPY test_integration.py /app/
-COPY requirements_fastapi.txt /app/
 
 # Installer FastAPI
-RUN pip install -r requirements_fastapi.txt
+RUN pip install fastapi uvicorn pydantic
 
 # Exposer le port pour l'API
 EXPOSE 8000
@@ -100,22 +97,10 @@ uvicorn api_matching:app --host 0.0.0.0 --port 8000 --workers 4
 # Test de santé
 curl http://localhost:8000/health
 
-# Test de matching complet (exemple)
+# Test de matching complet
 curl -X POST http://localhost:8000/api/matching/complete \
   -H "Content-Type: application/json" \
-  -d '{
-    "cv_data": {
-      "nom": "Dupont",
-      "competences": ["Python", "React"]
-    },
-    "questionnaire_data": {
-      "fourchette_salaire": "50k-60k"
-    },
-    "jobs_data": [{
-      "titre": "Développeur",
-      "competences": ["Python"]
-    }]
-  }'
+  -d @examples/complete_request.json
 ```
 
 ## 📊 Intégration avec votre frontend
@@ -239,10 +224,6 @@ services:
     networks:
       - commitment-network
     restart: unless-stopped
-
-  # Service existant à conserver
-  data-adapter:
-    # ... configuration existante ...
 ```
 
 ### 2. Variables d'environnement Docker
@@ -262,11 +243,11 @@ environment:
 # Tests d'intégration complets
 python test_integration.py
 
-# Tests unitaires (si configurés)
+# Tests unitaires
 python -m pytest tests/ -v
 
-# Tests de performance
-python test_integration.py  # Inclut un test de performance avec 50 offres
+# Tests de charge
+python -m pytest tests/test_performance.py
 ```
 
 ### 2. Validation des données
@@ -316,17 +297,25 @@ healthcheck:
 
 ## 🔄 Flux de données complet
 
-```
-Frontend Upload CV → CV Parser Service → Data Adapter
-Frontend Job Import → Job Parser Service → Data Adapter  
-Frontend Questionnaire → Data Adapter → ImprovedMatchingEngine
-                                      → Résultats avec scores
-                                      → Frontend Display
+```mermaid
+graph TD
+    A[Frontend Upload CV] --> B[CV Parser Service]
+    C[Frontend Job Import] --> D[Job Parser Service]
+    E[Frontend Questionnaire] --> F[Data Adapter]
+    
+    B --> F
+    D --> F
+    F --> G[ImprovedMatchingEngine]
+    G --> H[Résultats avec scores]
+    H --> I[Frontend Display]
+    
+    F --> J[Cache Redis]
+    J --> I
 ```
 
 ## ⚡ Optimisations de performance
 
-### 1. Cache Redis (production)
+### 1. Cache Redis
 
 ```python
 # Configuration Redis pour la production
@@ -336,6 +325,7 @@ REDIS_CONFIG = {
     'db': 0,
     'decode_responses': True,
     'socket_keepalive': True,
+    'socket_keepalive_options': {},
     'health_check_interval': 30
 }
 ```
@@ -354,6 +344,20 @@ app.state.limiter = limiter
 @app.post("/api/matching/complete")
 @limiter.limit("60/minute")
 async def complete_matching(request: Request, ...):
+```
+
+### 3. Pagination et streaming
+
+```python
+# Pour de gros volumes de données
+@app.post("/api/matching/stream")
+async def stream_matching(...):
+    async def generate_results():
+        for batch in process_in_batches(jobs_data, batch_size=10):
+            results = adapter.run_matching(cv_data, questionnaire_data, batch)
+            yield json.dumps(results) + "\n"
+    
+    return StreamingResponse(generate_results(), media_type="text/plain")
 ```
 
 ## 🚨 Gestion d'erreurs
@@ -384,7 +388,21 @@ async function matchingWithRetry(data, maxRetries = 3) {
 
 ## 🔒 Sécurité
 
-### 1. CORS sécurisé (production)
+### 1. Authentication (optionnel)
+
+```python
+# Ajouter à api_matching.py
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer()
+
+async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    # Vérification du token JWT
+    if not verify_jwt(credentials.credentials):
+        raise HTTPException(status_code=401, detail="Token invalide")
+```
+
+### 2. CORS sécurisé
 
 ```python
 # Configuration CORS pour production
@@ -397,15 +415,6 @@ app.add_middleware(
 )
 ```
 
-### 2. Variables d'environnement sensibles
-
-```bash
-# Ne jamais commiter ces valeurs
-export GOOGLE_MAPS_API_KEY="your_real_api_key"
-export DATABASE_PASSWORD="your_db_password"
-export JWT_SECRET="your_jwt_secret"
-```
-
 ## 📞 Support et dépannage
 
 ### 1. Problèmes courants
@@ -415,22 +424,24 @@ export JWT_SECRET="your_jwt_secret"
 # Vérifier que le fichier est dans le bon répertoire
 ls -la my_matching_engine.py
 
-# S'assurer qu'il est dans le PYTHONPATH
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+# Installer les dépendances manquantes
+pip install -r requirements.txt
 ```
 
 #### Erreur de format de données
 ```python
 # Valider les données avant envoi
+python -c "
 from data_adapter import CommitmentDataAdapter
 adapter = CommitmentDataAdapter()
 print(adapter.normalize_skills(['Python', 'JavaScript']))
+"
 ```
 
 #### Performance lente
 ```bash
 # Vérifier les logs de performance
-docker logs matching-api | grep processing_time
+tail -f logs/matching.log | grep processing_time
 
 # Monitorer l'utilisation mémoire
 docker stats matching-api
@@ -455,24 +466,12 @@ export LOG_LEVEL=DEBUG
 4. **Load balancing** : Configurez un load balancer pour plusieurs instances
 5. **CI/CD** : Ajoutez les tests à votre pipeline de déploiement
 
-## 📧 Contacts et support
+## 📧 Contacts
 
 Pour toute question sur l'intégration :
 - 📊 **Monitoring** : Vérifiez `/health` et `/status`
 - 🔍 **Debug** : Activez `LOG_LEVEL=DEBUG`
 - 📝 **Documentation** : Consultez `/docs` pour l'API interactive
-- 🧪 **Tests** : Lancez `python test_integration.py`
-
-## 📊 Métriques de performance attendues
-
-Avec cette intégration, vous devriez observer :
-
-| Métrique | Avant | Après | Amélioration |
-|----------|-------|-------|--------------|
-| **Temps de traitement** | 5-10s | 1-2s | **75% plus rapide** |
-| **Précision matching** | 70% | 85% | **+15 points** |
-| **Couverture données** | 60% | 95% | **+35 points** |
-| **Taux d'erreur** | 5% | <1% | **80% moins d'erreurs** |
 
 ---
 
