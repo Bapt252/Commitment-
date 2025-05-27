@@ -3,6 +3,7 @@
 import os
 import sys
 import logging
+import time
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -22,7 +23,19 @@ class SuperSmartMatch:
         self.algorithms = {}
         self.reverse_algorithms = {}
         self.new_algorithms = {}  # Nouveaux algorithmes avec classes
+        self.analytics = None  # Analytics system
         self.load_algorithms()
+        self.load_analytics()
+    
+    def load_analytics(self):
+        """Charge le système d'analytics"""
+        try:
+            from analytics import SuperSmartMatchAnalytics
+            self.analytics = SuperSmartMatchAnalytics()
+            logger.info("✅ Système d'analytics chargé")
+        except ImportError as e:
+            logger.warning(f"⚠️ Analytics non disponible: {e}")
+            self.analytics = None
     
     def load_algorithms(self):
         # Anciens algorithmes candidat → jobs (compatibilité)
@@ -127,7 +140,9 @@ class SuperSmartMatch:
         return results
     
     def match(self, cv_data, questionnaire_data, job_data, algorithm="auto", limit=10):
-        """Méthode matching candidat → jobs avec support des nouveaux algorithmes"""
+        """Méthode matching candidat → jobs avec support des nouveaux algorithmes et analytics"""
+        start_time = time.time()
+        
         try:
             # Déterminer l'algorithme à utiliser
             if algorithm == "auto":
@@ -179,31 +194,53 @@ class SuperSmartMatch:
             if limit > 0 and algorithm_type != "new_class":  # Les nouvelles classes gèrent déjà la limite
                 results = results[:limit]
             
+            # Analytics
+            execution_time = time.time() - start_time
+            if self.analytics:
+                input_data = {
+                    'cv_data': cv_data,
+                    'questionnaire_data': questionnaire_data,
+                    'job_data': job_data
+                }
+                self.analytics.log_matching_session(
+                    "candidate_to_jobs", 
+                    algorithm, 
+                    input_data, 
+                    results, 
+                    execution_time
+                )
+            
             return {
                 'success': True,
                 'matching_mode': 'candidate_to_jobs',
                 'algorithm_used': algorithm,
                 'algorithm_type': algorithm_type,
                 'total_results': len(results),
+                'execution_time': execution_time,
                 'results': results
             }
             
         except Exception as e:
             logger.error(f"Erreur matching candidat: {e}")
             results = self.simple_matching(cv_data, questionnaire_data, job_data)
+            execution_time = time.time() - start_time
+            
             return {
                 'success': True,
                 'matching_mode': 'candidate_to_jobs',
                 'algorithm_used': 'fallback',
                 'algorithm_type': 'fallback',
                 'total_results': len(results),
+                'execution_time': execution_time,
                 'results': results[:limit] if limit > 0 else results,
                 'fallback_used': True,
                 'error': str(e)
             }
     
     def reverse_match(self, job_data, candidates_data, algorithm="auto", limit=10):
-        """NOUVEAU : Méthode matching entreprise → candidats avec SuperSmartMatch"""
+        """NOUVEAU : Méthode matching entreprise → candidats avec SuperSmartMatch et analytics"""
+        start_time = time.time()
+        
         try:
             # Déterminer l'algorithme à utiliser
             if algorithm == "auto":
@@ -280,6 +317,21 @@ class SuperSmartMatch:
                 if limit > 0:
                     results = results[:limit]
             
+            # Analytics
+            execution_time = time.time() - start_time
+            if self.analytics:
+                input_data = {
+                    'job_data': job_data,
+                    'candidates_data': candidates_data
+                }
+                self.analytics.log_matching_session(
+                    "company_to_candidates", 
+                    algorithm, 
+                    input_data, 
+                    results, 
+                    execution_time
+                )
+            
             return {
                 'success': True,
                 'matching_mode': 'company_to_candidates',
@@ -291,18 +343,22 @@ class SuperSmartMatch:
                     'entreprise': job_data.get('entreprise', 'Entreprise non spécifiée')
                 },
                 'total_results': len(results),
+                'execution_time': execution_time,
                 'results': results
             }
             
         except Exception as e:
             logger.error(f"Erreur matching entreprise: {e}")
             results = self.simple_reverse_matching(job_data, candidates_data)
+            execution_time = time.time() - start_time
+            
             return {
                 'success': True,
                 'matching_mode': 'company_to_candidates',
                 'algorithm_used': 'reverse_fallback',
                 'algorithm_type': 'fallback',
                 'total_results': len(results),
+                'execution_time': execution_time,
                 'results': results[:limit] if limit > 0 else results,
                 'fallback_used': True,
                 'error': str(e)
@@ -316,8 +372,8 @@ def index():
     return jsonify({
         'service': 'SuperSmartMatch',
         'status': 'running',
-        'version': '2.2 - SuperSmartMatch Intelligence',
-        'description': 'Matching intelligent avec pourcentages côté entreprise',
+        'version': '2.3 - SuperSmartMatch Intelligence + Analytics',
+        'description': 'Matching intelligent avec pourcentages côté entreprise et analytics',
         'modes': {
             'candidate_to_jobs': 'Matching candidat vers emplois',
             'company_to_candidates': 'Matching entreprise vers candidats (avec SuperSmartMatch!)'
@@ -327,6 +383,7 @@ def index():
             'new_class_algorithms': list(service.new_algorithms.keys()),
             'company_algorithms': list(service.reverse_algorithms.keys())
         },
+        'analytics_enabled': service.analytics is not None,
         'supersmartmatch_features': [
             '🎯 Pourcentages détaillés par critère côté entreprise',
             '📍 Localisation avec temps de trajet',
@@ -335,7 +392,8 @@ def index():
             '🔧 Compétences (techniques, langues, logiciels)',
             '🧠 Raisonnement intelligent (évolution, stabilité, innovation)',
             '⚠️ Analyse des risques et opportunités',
-            '👤 Profil candidat pour recruteur'
+            '👤 Profil candidat pour recruteur',
+            '📊 Analytics et suivi des performances'
         ]
     })
 
@@ -349,6 +407,7 @@ def health():
         'new_algorithms_loaded': len(service.new_algorithms),
         'company_algorithms_loaded': len(service.reverse_algorithms),
         'supersmartmatch_available': supersmartmatch_loaded,
+        'analytics_enabled': service.analytics is not None,
         'available_algorithms': {
             'legacy_candidate': list(service.algorithms.keys()),
             'new_candidate': list(service.new_algorithms.keys()),
@@ -361,6 +420,7 @@ def health():
             'Travel time calculation',
             'Risk and opportunity analysis',
             'Detailed scoring breakdown',
+            'Performance analytics and monitoring',
             'Contract type matching (CDI/CDD/INTERIM)',
             'Salary optimization from company perspective',
             'Skills analysis (technical, languages, software)',
@@ -453,7 +513,8 @@ def algorithms():
                 'location_travel_time',
                 'salary_budget_compatibility',
                 'skills_breakdown',
-                'candidate_profiling'
+                'candidate_profiling',
+                'performance_analytics'
             ],
             'description': '🚀 SuperSmartMatch - Matching intelligent côté entreprise avec pourcentages détaillés'
         }
@@ -463,15 +524,80 @@ def algorithms():
         'new_candidate_algorithms': new_candidate_algorithms,
         'company_algorithms': company_algorithms,
         'total_count': len(service.algorithms) + len(service.new_algorithms) + len(service.reverse_algorithms),
+        'analytics_enabled': service.analytics is not None,
         'recommended': {
             'candidate_to_jobs': 'supersmartmatch' if 'supersmartmatch' in service.new_algorithms else 'advanced',
             'company_to_candidates': 'supersmartmatch' if 'supersmartmatch' in service.new_algorithms else 'reverse_advanced'
         }
     })
 
+@app.route('/api/analytics', methods=['GET'])
+def get_analytics():
+    """
+    NOUVEAU : Endpoint pour récupérer les statistiques d'utilisation
+    
+    Query params:
+    - days: nombre de jours à analyser (défaut: 7)
+    """
+    if not service.analytics:
+        return jsonify({'error': 'Analytics non disponible'}), 503
+    
+    days = request.args.get('days', 7, type=int)
+    
+    try:
+        stats = service.analytics.get_statistics(days)
+        return jsonify({
+            'success': True,
+            'analytics': stats,
+            'generated_at': time.time()
+        })
+    except Exception as e:
+        logger.error(f"Erreur analytics: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/summary', methods=['GET'])
+def get_analytics_summary():
+    """
+    NOUVEAU : Résumé rapide des analytics
+    """
+    if not service.analytics:
+        return jsonify({'error': 'Analytics non disponible'}), 503
+    
+    try:
+        # Statistiques des 24 dernières heures
+        last_24h = service.analytics.get_statistics(1)
+        # Statistiques des 7 derniers jours
+        last_7d = service.analytics.get_statistics(7)
+        
+        summary = {
+            'last_24h': {
+                'sessions': last_24h.get('total_sessions', 0),
+                'avg_score': last_24h.get('performance_trends', {}).get('avg_matching_score', 0),
+                'intelligence_usage': last_24h.get('intelligence_effectiveness', {}).get('intelligence_usage_rate', 0)
+            },
+            'last_7d': {
+                'sessions': last_7d.get('total_sessions', 0),
+                'avg_score': last_7d.get('performance_trends', {}).get('avg_matching_score', 0),
+                'top_algorithm': max(last_7d.get('algorithms_usage', {}).items(), key=lambda x: x[1])[0] if last_7d.get('algorithms_usage') else 'unknown'
+            },
+            'supersmartmatch_performance': {
+                'available': 'supersmartmatch' in service.new_algorithms,
+                'recommended_usage': '100% pour matching côté entreprise'
+            }
+        }
+        
+        return jsonify({
+            'success': True,
+            'summary': summary
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur analytics summary: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/match', methods=['POST'])
 def match():
-    """Endpoint existant : matching candidat → jobs"""
+    """Endpoint existant : matching candidat → jobs avec analytics"""
     try:
         data = request.get_json()
         if not data:
@@ -495,7 +621,7 @@ def match():
 
 @app.route('/api/match-candidates', methods=['POST'])
 def match_candidates():
-    """NOUVEAU : Endpoint matching entreprise → candidats avec SuperSmartMatch"""
+    """NOUVEAU : Endpoint matching entreprise → candidats avec SuperSmartMatch et analytics"""
     try:
         data = request.get_json()
         if not data:
@@ -652,7 +778,8 @@ def get_test_data():
 
 if __name__ == '__main__':
     port = 5061
-    logger.info(f"🚀 Démarrage SuperSmartMatch v2.2 avec INTELLIGENCE CÔTÉ ENTREPRISE sur le port {port}")
-    logger.info("🎯 Nouveau: SuperSmartMatch avec pourcentages détaillés pour recruteurs")
-    logger.info("🧠 Fonctionnalités: raisonnement intelligent, analyse risques, profils candidats")
+    logger.info(f"🚀 Démarrage SuperSmartMatch v2.3 avec ANALYTICS sur le port {port}")
+    logger.info("🎯 Nouveau: SuperSmartMatch avec pourcentages détaillés + Analytics")
+    logger.info("📊 Endpoints analytics: /api/analytics et /api/analytics/summary")
+    logger.info("🧠 Fonctionnalités: raisonnement intelligent, suivi performances, optimisation")
     app.run(host='0.0.0.0', port=port, debug=False)
