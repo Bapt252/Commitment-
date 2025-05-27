@@ -21,10 +21,11 @@ class SuperSmartMatch:
     def __init__(self):
         self.algorithms = {}
         self.reverse_algorithms = {}
+        self.new_algorithms = {}  # Nouveaux algorithmes avec classes
         self.load_algorithms()
     
     def load_algorithms(self):
-        # Algorithmes candidat → jobs
+        # Anciens algorithmes candidat → jobs (compatibilité)
         self.algorithms['fallback'] = self.simple_matching
         
         try:
@@ -48,7 +49,29 @@ class SuperSmartMatch:
         except ImportError:
             logger.warning("⚠️ Algorithme advanced non disponible")
         
-        # NOUVEAU : Algorithmes entreprise → candidats
+        # NOUVEAU : Chargement des algorithmes basés classes
+        try:
+            from algorithms.smart_match import SmartMatchAlgorithm
+            self.new_algorithms['smart_match'] = SmartMatchAlgorithm()
+            logger.info("✅ Algorithme SMART MATCH (classe) chargé")
+        except ImportError:
+            logger.warning("⚠️ SmartMatchAlgorithm non disponible")
+        
+        try:
+            from algorithms.enhanced import EnhancedAlgorithm
+            self.new_algorithms['enhanced_class'] = EnhancedAlgorithm()
+            logger.info("✅ Algorithme ENHANCED (classe) chargé")
+        except ImportError:
+            logger.warning("⚠️ EnhancedAlgorithm non disponible")
+            
+        try:
+            from algorithms.supersmartmatch import SuperSmartMatchAlgorithm
+            self.new_algorithms['supersmartmatch'] = SuperSmartMatchAlgorithm()
+            logger.info("✅ 🚀 Algorithme SUPERSMARTMATCH chargé - Matching côté entreprise!")
+        except ImportError as e:
+            logger.warning(f"⚠️ SuperSmartMatchAlgorithm non disponible: {e}")
+        
+        # Anciens algorithmes entreprise → candidats
         self.reverse_algorithms['reverse_fallback'] = self.simple_reverse_matching
         
         try:
@@ -58,7 +81,7 @@ class SuperSmartMatch:
         except ImportError:
             logger.warning("⚠️ Algorithme reverse non disponible")
         
-        logger.info(f"📊 {len(self.algorithms)} algorithmes candidat, {len(self.reverse_algorithms)} algorithmes entreprise")
+        logger.info(f"📊 {len(self.algorithms)} anciens algorithmes, {len(self.new_algorithms)} nouveaux algorithmes, {len(self.reverse_algorithms)} algorithmes entreprise")
     
     def simple_matching(self, cv_data, questionnaire_data, job_data):
         """Algorithme simple candidat → jobs"""
@@ -104,10 +127,17 @@ class SuperSmartMatch:
         return results
     
     def match(self, cv_data, questionnaire_data, job_data, algorithm="auto", limit=10):
-        """Méthode matching candidat → jobs"""
+        """Méthode matching candidat → jobs avec support des nouveaux algorithmes"""
         try:
+            # Déterminer l'algorithme à utiliser
             if algorithm == "auto":
-                if 'advanced' in self.algorithms:
+                if 'supersmartmatch' in self.new_algorithms:
+                    algorithm = 'supersmartmatch'
+                elif 'enhanced_class' in self.new_algorithms:
+                    algorithm = 'enhanced_class'
+                elif 'smart_match' in self.new_algorithms:
+                    algorithm = 'smart_match'
+                elif 'advanced' in self.algorithms:
                     algorithm = 'advanced'
                 elif 'enhanced' in self.algorithms:
                     algorithm = 'enhanced'
@@ -116,18 +146,44 @@ class SuperSmartMatch:
                 else:
                     algorithm = 'fallback'
             
-            if algorithm not in self.algorithms:
+            # Exécuter avec les nouveaux algorithmes (classes)
+            if algorithm in self.new_algorithms:
+                algo_instance = self.new_algorithms[algorithm]
+                
+                # Combiner cv_data et questionnaire_data pour les nouvelles classes
+                combined_candidate = {**cv_data, **questionnaire_data}
+                
+                # Vérifier si l'algorithme supporte ces données
+                if hasattr(algo_instance, 'supports') and not algo_instance.supports(combined_candidate, job_data):
+                    # Fallback vers un autre algorithme
+                    algorithm = 'fallback'
+                    results = self.algorithms[algorithm](cv_data, questionnaire_data, job_data)
+                else:
+                    # Utiliser le nouvel algorithme
+                    results = algo_instance.match_candidate_with_jobs(combined_candidate, job_data, limit)
+                
+                algorithm_type = "new_class"
+            
+            # Exécuter avec les anciens algorithmes (fonctions)
+            elif algorithm in self.algorithms:
+                results = self.algorithms[algorithm](cv_data, questionnaire_data, job_data)
+                algorithm_type = "legacy_function"
+            
+            else:
+                # Fallback
                 algorithm = 'fallback'
+                results = self.simple_matching(cv_data, questionnaire_data, job_data)
+                algorithm_type = "fallback"
             
-            results = self.algorithms[algorithm](cv_data, questionnaire_data, job_data)
-            
-            if limit > 0:
+            # Limiter les résultats
+            if limit > 0 and algorithm_type != "new_class":  # Les nouvelles classes gèrent déjà la limite
                 results = results[:limit]
             
             return {
                 'success': True,
                 'matching_mode': 'candidate_to_jobs',
                 'algorithm_used': algorithm,
+                'algorithm_type': algorithm_type,
                 'total_results': len(results),
                 'results': results
             }
@@ -139,6 +195,7 @@ class SuperSmartMatch:
                 'success': True,
                 'matching_mode': 'candidate_to_jobs',
                 'algorithm_used': 'fallback',
+                'algorithm_type': 'fallback',
                 'total_results': len(results),
                 'results': results[:limit] if limit > 0 else results,
                 'fallback_used': True,
@@ -146,29 +203,88 @@ class SuperSmartMatch:
             }
     
     def reverse_match(self, job_data, candidates_data, algorithm="auto", limit=10):
-        """NOUVEAU : Méthode matching entreprise → candidats"""
+        """NOUVEAU : Méthode matching entreprise → candidats avec SuperSmartMatch"""
         try:
+            # Déterminer l'algorithme à utiliser
             if algorithm == "auto":
-                if 'reverse_advanced' in self.reverse_algorithms:
+                if 'supersmartmatch' in self.new_algorithms:
+                    algorithm = 'supersmartmatch'
+                elif 'reverse_advanced' in self.reverse_algorithms:
                     algorithm = 'reverse_advanced'
                 else:
                     algorithm = 'reverse_fallback'
             
-            if algorithm not in self.reverse_algorithms:
-                algorithm = 'reverse_fallback'
+            # Utiliser SuperSmartMatch pour le matching côté entreprise
+            if algorithm == 'supersmartmatch' and 'supersmartmatch' in self.new_algorithms:
+                algo_instance = self.new_algorithms['supersmartmatch']
+                
+                # SuperSmartMatch traite candidat par candidat
+                results = []
+                for candidate in candidates_data:
+                    # Combiner cv_data et questionnaire_data
+                    combined_candidate = {}
+                    if 'cv_data' in candidate:
+                        combined_candidate.update(candidate['cv_data'])
+                    if 'questionnaire_data' in candidate:
+                        combined_candidate.update(candidate['questionnaire_data'])
+                    
+                    # Utiliser SuperSmartMatch avec un seul "job" mais traiter comme candidat
+                    candidate_results = algo_instance.match_candidate_with_jobs(
+                        combined_candidate, [job_data], 1
+                    )
+                    
+                    if candidate_results:
+                        # Transformer le résultat pour le candidat
+                        result = candidate_results[0]
+                        candidate_result = {
+                            'candidate_id': candidate.get('candidate_id', 'unknown'),
+                            'cv_data': candidate.get('cv_data', {}),
+                            'questionnaire_data': candidate.get('questionnaire_data', {}),
+                            'matching_score_entreprise': result.get('matching_score_entreprise', result.get('matching_score', 0)),
+                            'scores_detailles': result.get('scores_detailles', {}),
+                            'intelligence': result.get('intelligence', {}),
+                            'explications_entreprise': result.get('explications_entreprise', {}),
+                            'analyse_risques': result.get('analyse_risques', {}),
+                            'profil_candidat': result.get('profil_candidat', {}),
+                            **candidate  # Données originales du candidat
+                        }
+                        results.append(candidate_result)
+                
+                # Trier par score côté entreprise
+                results.sort(key=lambda x: x.get('matching_score_entreprise', 0), reverse=True)
+                
+                # Limiter les résultats
+                if limit > 0:
+                    results = results[:limit]
+                
+                algorithm_type = "supersmartmatch"
             
-            if algorithm == 'reverse_advanced':
-                results = self.reverse_algorithms[algorithm](job_data, candidates_data, limit)
+            # Utiliser les anciens algorithmes
+            elif algorithm in self.reverse_algorithms:
+                if algorithm == 'reverse_advanced':
+                    results = self.reverse_algorithms[algorithm](job_data, candidates_data, limit)
+                else:
+                    results = self.reverse_algorithms[algorithm](job_data, candidates_data)
+                
+                algorithm_type = "legacy_reverse"
+                
+                if limit > 0 and algorithm == 'reverse_fallback':
+                    results = results[:limit]
+            
             else:
-                results = self.reverse_algorithms[algorithm](job_data, candidates_data)
-            
-            if limit > 0 and algorithm == 'reverse_fallback':
-                results = results[:limit]
+                # Fallback
+                algorithm = 'reverse_fallback'
+                results = self.simple_reverse_matching(job_data, candidates_data)
+                algorithm_type = "fallback"
+                
+                if limit > 0:
+                    results = results[:limit]
             
             return {
                 'success': True,
                 'matching_mode': 'company_to_candidates',
                 'algorithm_used': algorithm,
+                'algorithm_type': algorithm_type,
                 'job_analyzed': {
                     'id': job_data.get('id', 'unknown'),
                     'titre': job_data.get('titre', 'Poste sans titre'),
@@ -185,6 +301,7 @@ class SuperSmartMatch:
                 'success': True,
                 'matching_mode': 'company_to_candidates',
                 'algorithm_used': 'reverse_fallback',
+                'algorithm_type': 'fallback',
                 'total_results': len(results),
                 'results': results[:limit] if limit > 0 else results,
                 'fallback_used': True,
@@ -199,91 +316,156 @@ def index():
     return jsonify({
         'service': 'SuperSmartMatch',
         'status': 'running',
-        'version': '2.1 - Bidirectional Matching',
+        'version': '2.2 - SuperSmartMatch Intelligence',
+        'description': 'Matching intelligent avec pourcentages côté entreprise',
         'modes': {
             'candidate_to_jobs': 'Matching candidat vers emplois',
-            'company_to_candidates': 'Matching entreprise vers candidats'
+            'company_to_candidates': 'Matching entreprise vers candidats (avec SuperSmartMatch!)'
         },
         'algorithms': {
-            'candidate_algorithms': list(service.algorithms.keys()),
+            'legacy_algorithms': list(service.algorithms.keys()),
+            'new_class_algorithms': list(service.new_algorithms.keys()),
             'company_algorithms': list(service.reverse_algorithms.keys())
-        }
+        },
+        'supersmartmatch_features': [
+            '🎯 Pourcentages détaillés par critère côté entreprise',
+            '📍 Localisation avec temps de trajet',
+            '💼 Expérience avec analyse surqualification', 
+            '💰 Rémunération compatible budget entreprise',
+            '🔧 Compétences (techniques, langues, logiciels)',
+            '🧠 Raisonnement intelligent (évolution, stabilité, innovation)',
+            '⚠️ Analyse des risques et opportunités',
+            '👤 Profil candidat pour recruteur'
+        ]
     })
 
 @app.route('/api/health')
 def health():
+    supersmartmatch_loaded = 'supersmartmatch' in service.new_algorithms
+    
     return jsonify({
         'status': 'healthy',
-        'candidate_algorithms_loaded': len(service.algorithms),
+        'legacy_algorithms_loaded': len(service.algorithms),
+        'new_algorithms_loaded': len(service.new_algorithms),
         'company_algorithms_loaded': len(service.reverse_algorithms),
+        'supersmartmatch_available': supersmartmatch_loaded,
         'available_algorithms': {
-            'candidate_to_jobs': list(service.algorithms.keys()),
-            'company_to_candidates': list(service.reverse_algorithms.keys())
+            'legacy_candidate': list(service.algorithms.keys()),
+            'new_candidate': list(service.new_algorithms.keys()),
+            'company_matching': list(service.reverse_algorithms.keys()) + (['supersmartmatch'] if supersmartmatch_loaded else [])
         },
         'features': [
             'Bidirectional matching (candidate ↔ company)',
+            'SuperSmartMatch with company-side percentages',
+            'Intelligent reasoning (evolution, stability, innovation)',
             'Travel time calculation',
-            'Intelligent weighting',
-            'Detailed explanations',
+            'Risk and opportunity analysis',
+            'Detailed scoring breakdown',
             'Contract type matching (CDI/CDD/INTERIM)',
-            'Salary optimization',
-            'Transport mode support',
-            'Career goals alignment',
-            'Adaptability scoring'
+            'Salary optimization from company perspective',
+            'Skills analysis (technical, languages, software)',
+            'Candidate profiling for recruiters'
         ]
     })
 
 @app.route('/api/algorithms')
 def algorithms():
+    # Algorithmes candidat (anciens)
     candidate_algorithms = {}
     for name in service.algorithms.keys():
         if name == 'advanced':
             candidate_algorithms[name] = {
+                'type': 'legacy_function',
                 'status': 'available',
                 'features': ['travel_time', 'intelligent_weighting', 'explanations'],
                 'description': 'Moteur avancé candidat vers jobs'
             }
         elif name == 'enhanced':
             candidate_algorithms[name] = {
+                'type': 'legacy_function',
                 'status': 'available', 
                 'features': ['enhanced_scoring'],
                 'description': 'Moteur amélioré candidat vers jobs'
             }
         elif name == 'original':
             candidate_algorithms[name] = {
+                'type': 'legacy_function',
                 'status': 'available',
                 'features': ['basic_matching'],
                 'description': 'Moteur de base candidat vers jobs'
             }
         else:
             candidate_algorithms[name] = {
+                'type': 'legacy_function',
                 'status': 'available',
                 'features': ['fallback'],
                 'description': 'Algorithme simple candidat vers jobs'
             }
     
+    # Nouveaux algorithmes candidat (classes)
+    new_candidate_algorithms = {}
+    for name, instance in service.new_algorithms.items():
+        if hasattr(instance, 'get_algorithm_info'):
+            info = instance.get_algorithm_info()
+            new_candidate_algorithms[name] = {
+                'type': 'new_class',
+                'status': 'available',
+                'version': info.get('version', '1.0'),
+                'capabilities': info.get('capabilities', {}),
+                'description': info.get('description', f'Algorithme {name}'),
+                'features': info.get('features', [])
+            }
+        else:
+            new_candidate_algorithms[name] = {
+                'type': 'new_class',
+                'status': 'available',
+                'description': f'Algorithme nouvelle génération {name}'
+            }
+    
+    # Algorithmes entreprise
     company_algorithms = {}
     for name in service.reverse_algorithms.keys():
         if name == 'reverse_advanced':
             company_algorithms[name] = {
+                'type': 'legacy_reverse',
                 'status': 'available',
                 'features': ['intelligent_company_weighting', 'career_goals_matching', 'adaptability_scoring'],
                 'description': 'Moteur avancé entreprise vers candidats'
             }
         else:
             company_algorithms[name] = {
+                'type': 'legacy_reverse',
                 'status': 'available',
                 'features': ['fallback'],
                 'description': 'Algorithme simple entreprise vers candidats'
             }
     
+    # Ajouter SuperSmartMatch pour entreprise
+    if 'supersmartmatch' in service.new_algorithms:
+        company_algorithms['supersmartmatch'] = {
+            'type': 'supersmartmatch',
+            'status': 'available',
+            'features': [
+                'company_side_percentages',
+                'intelligent_reasoning',
+                'detailed_scoring',
+                'risk_analysis',
+                'location_travel_time',
+                'salary_budget_compatibility',
+                'skills_breakdown',
+                'candidate_profiling'
+            ],
+            'description': '🚀 SuperSmartMatch - Matching intelligent côté entreprise avec pourcentages détaillés'
+        }
+    
     return jsonify({
-        'candidate_algorithms': candidate_algorithms,
+        'legacy_candidate_algorithms': candidate_algorithms,
+        'new_candidate_algorithms': new_candidate_algorithms,
         'company_algorithms': company_algorithms,
-        'total_count': len(service.algorithms) + len(service.reverse_algorithms),
+        'total_count': len(service.algorithms) + len(service.new_algorithms) + len(service.reverse_algorithms),
         'recommended': {
-            'candidate_to_jobs': 'advanced',
-            'company_to_candidates': 'reverse_advanced'
+            'candidate_to_jobs': 'supersmartmatch' if 'supersmartmatch' in service.new_algorithms else 'advanced',
+            'company_to_candidates': 'supersmartmatch' if 'supersmartmatch' in service.new_algorithms else 'reverse_advanced'
         }
     })
 
@@ -313,7 +495,7 @@ def match():
 
 @app.route('/api/match-candidates', methods=['POST'])
 def match_candidates():
-    """NOUVEAU : Endpoint matching entreprise → candidats"""
+    """NOUVEAU : Endpoint matching entreprise → candidats avec SuperSmartMatch"""
     try:
         data = request.get_json()
         if not data:
@@ -339,26 +521,33 @@ def match_candidates():
 
 @app.route('/api/test-data')
 def get_test_data():
-    """Données de test pour les deux modes"""
+    """Données de test pour les deux modes avec exemples SuperSmartMatch"""
     return jsonify({
         'candidate_to_jobs_example': {
             'cv_data': {
-                'competences': ['Python', 'Django', 'PostgreSQL', 'React'],
+                'competences': ['Python', 'Django', 'PostgreSQL', 'React', 'AWS'],
                 'annees_experience': 5,
                 'niveau_etudes': 'Master',
                 'derniere_fonction': 'Développeur Full Stack',
-                'secteur_activite': 'FinTech'
+                'secteur_activite': 'FinTech',
+                'soft_skills': ['leadership', 'communication', 'autonomie'],
+                'langues': ['Français', 'Anglais'],
+                'logiciels': ['Git', 'Docker', 'Jenkins']
             },
             'questionnaire_data': {
                 'adresse': 'Paris 15ème',
                 'salaire_souhaite': 55000,
                 'types_contrat': ['CDI'],
-                'mode_transport': 'metro',
-                'temps_trajet_max': 45,
-                'date_disponibilite': '2025-06-01',
-                'raison_changement': 'evolution',
-                'priorite': 'equilibre',
-                'objectif': 'competences'
+                'mobilite': 'moyenne',
+                'criteres_importants': {
+                    'evolution_rapide': True,
+                    'culture_importante': True
+                },
+                'objectifs_carriere': {
+                    'evolution_rapide': True,
+                    'ambitions': ['technique', 'management']
+                },
+                'valeurs_importantes': ['innovation', 'teamwork']
             },
             'job_data': [
                 {
@@ -368,16 +557,17 @@ def get_test_data():
                     'competences': ['Python', 'Django', 'PostgreSQL'],
                     'localisation': 'Paris 8ème',
                     'type_contrat': 'CDI',
-                    'salaire_min': 50000,
-                    'salaire_max': 65000,
+                    'salaire': '50-65K€',
                     'experience_requise': 3,
-                    'date_debut_souhaitee': '2025-06-15',
-                    'teletravail_possible': False,
-                    'description': 'Développement applications web'
+                    'perspectives_evolution': True,
+                    'culture_entreprise': {
+                        'valeurs': ['innovation', 'collaboration']
+                    },
+                    'politique_remote': 'télétravail partiel'
                 }
             ]
         },
-        'company_to_candidates_example': {
+        'company_to_candidates_supersmartmatch_example': {
             'job_data': {
                 'id': 'startup-lead-001',
                 'titre': 'Lead Developer',
@@ -385,12 +575,19 @@ def get_test_data():
                 'competences': ['Python', 'Django', 'React', 'AWS'],
                 'localisation': 'Paris 2ème',
                 'type_contrat': 'CDI',
-                'salaire_min': 65000,
-                'salaire_max': 80000,
+                'budget_max': 80000,
+                'salaire': '65-80K€',
                 'experience_requise': 5,
-                'teletravail_possible': True,
-                'type_entreprise': 'startup',
+                'perspectives_evolution': True,
                 'niveau_poste': 'senior',
+                'type_entreprise': 'startup',
+                'culture_entreprise': {
+                    'valeurs': ['innovation', 'agilité', 'autonomie']
+                },
+                'responsabilites': 'management équipe',
+                'langues_requises': ['Français', 'Anglais'],
+                'logiciels_requis': ['Git', 'AWS', 'Docker'],
+                'politique_remote': 'télétravail possible',
                 'description': 'Lead une équipe de 4 développeurs, architecture technique, évolution vers CTO possible'
             },
             'candidates_data': [
@@ -401,18 +598,26 @@ def get_test_data():
                         'competences': ['Python', 'Django', 'PostgreSQL', 'AWS'],
                         'annees_experience': 6,
                         'niveau_etudes': 'Master',
-                        'derniere_fonction': 'Senior Developer'
+                        'derniere_fonction': 'Senior Developer',
+                        'soft_skills': ['leadership', 'innovation'],
+                        'langues': ['Français', 'Anglais', 'Espagnol'],
+                        'logiciels': ['Git', 'Docker', 'AWS', 'Jenkins']
                     },
                     'questionnaire_data': {
                         'adresse': 'Paris 11ème',
                         'salaire_souhaite': 70000,
-                        'types_contrat': ['CDI'],
-                        'mode_transport': 'metro',
-                        'temps_trajet_max': 60,
-                        'objectif': 'evolution',
-                        'niveau_ambition': 'élevé',
-                        'mobilite': 'moyen',
-                        'accepte_teletravail': True
+                        'contrats_recherches': ['CDI'],
+                        'mobilite': 'élevée',
+                        'criteres_importants': {
+                            'evolution_rapide': True,
+                            'responsabilites_importantes': True
+                        },
+                        'objectifs_carriere': {
+                            'evolution_rapide': True,
+                            'ambitions': ['management', 'technique']
+                        },
+                        'valeurs_importantes': ['innovation', 'autonomie'],
+                        'disponibilite': 'immédiate'
                     }
                 },
                 {
@@ -421,15 +626,24 @@ def get_test_data():
                         'nom': 'Jean Martin',
                         'competences': ['JavaScript', 'React', 'Node.js'],
                         'annees_experience': 3,
-                        'niveau_etudes': 'Bachelor'
+                        'niveau_etudes': 'Bachelor',
+                        'soft_skills': ['communication', 'adaptabilité'],
+                        'langues': ['Français'],
+                        'logiciels': ['Git', 'VS Code']
                     },
                     'questionnaire_data': {
                         'adresse': 'Boulogne-Billancourt',
                         'salaire_souhaite': 50000,
-                        'types_contrat': ['CDI', 'CDD'],
-                        'mode_transport': 'voiture',
-                        'objectif': 'stabilite',
-                        'niveau_ambition': 'moyen'
+                        'contrats_recherches': ['CDI', 'CDD'],
+                        'mobilite': 'moyenne',
+                        'criteres_importants': {
+                            'stabilite': True,
+                            'salaire_important': False
+                        },
+                        'objectifs_carriere': {
+                            'evolution_rapide': False
+                        },
+                        'valeurs_importantes': ['stabilité', 'teamwork']
                     }
                 }
             ]
@@ -438,6 +652,7 @@ def get_test_data():
 
 if __name__ == '__main__':
     port = 5061
-    logger.info(f"🚀 Démarrage SuperSmartMatch v2.1 BIDIRECTIONNEL sur le port {port}")
-    logger.info("🎯 Nouvelles fonctionnalités: matching candidat ↔ entreprise")
+    logger.info(f"🚀 Démarrage SuperSmartMatch v2.2 avec INTELLIGENCE CÔTÉ ENTREPRISE sur le port {port}")
+    logger.info("🎯 Nouveau: SuperSmartMatch avec pourcentages détaillés pour recruteurs")
+    logger.info("🧠 Fonctionnalités: raisonnement intelligent, analyse risques, profils candidats")
     app.run(host='0.0.0.0', port=port, debug=False)
