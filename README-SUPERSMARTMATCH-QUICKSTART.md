@@ -39,17 +39,17 @@ Dans un autre terminal :
 
 ### **Health Check**
 ```bash
-curl http://localhost:5060/api/health
+curl http://localhost:5061/api/health
 ```
 
 ### **Liste des Algorithmes**
 ```bash
-curl http://localhost:5060/api/algorithms
+curl http://localhost:5061/api/algorithms
 ```
 
 ### **Matching Principal**
 ```bash
-curl -X POST http://localhost:5060/api/match \
+curl -X POST http://localhost:5061/api/match \
   -H "Content-Type: application/json" \
   -d '{
     "cv_data": {
@@ -147,7 +147,7 @@ curl -X POST http://localhost:5060/api/match \
 
 ### **JavaScript/Frontend**
 ```javascript
-const response = await fetch('http://localhost:5060/api/match', {
+const response = await fetch('http://localhost:5061/api/match', {
   method: 'POST',
   headers: {'Content-Type': 'application/json'},
   body: JSON.stringify({
@@ -166,7 +166,7 @@ console.log(result.results);
 ```python
 import requests
 
-response = requests.post('http://localhost:5060/api/match', json={
+response = requests.post('http://localhost:5061/api/match', json={
     'cv_data': {'competences': ['Python', 'Django']},
     'questionnaire_data': {'adresse': 'Lyon'},
     'job_data': [{'id': 'job1', 'competences': ['Python']}],
@@ -189,10 +189,10 @@ rm -rf super-smart-match/venv
 ./start-supersmartmatch.sh
 ```
 
-### **Port 5060 occupé**
+### **Port 5061 occupé**
 ```bash
 # Trouver le processus
-lsof -i :5060
+lsof -i :5061
 
 # L'arrêter
 kill -9 <PID>
@@ -207,7 +207,7 @@ Les logs s'affichent dans le terminal où le service est lancé :
 ```
 ✅ Algorithme ENHANCED chargé
 📊 3 algorithmes chargés
-🚀 Démarrage sur le port 5060
+🚀 Démarrage sur le port 5061
 🎯 Nouvelle demande: auto, 5 jobs, limit=10
 ```
 
