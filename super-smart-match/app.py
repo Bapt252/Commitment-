@@ -80,9 +80,9 @@ class SuperSmartMatch:
         try:
             from algorithms.supersmartmatch import SuperSmartMatchAlgorithm
             self.new_algorithms['supersmartmatch'] = SuperSmartMatchAlgorithm()
-            logger.info("✅ 🚀 Algorithme SUPERSMARTMATCH chargé - Matching côté entreprise!")
+            logger.info("🚀✅ Algorithme SUPERSMARTMATCH v2.1 chargé - Pondération dynamique!")
         except ImportError as e:
-            logger.warning(f"⚠️ SuperSmartMatchAlgorithm non disponible: {e}")
+            logger.warning(f"⚠️ SuperSmartMatchAlgorithm v2.1 non disponible: {e}")
         
         # Anciens algorithmes entreprise → candidats
         self.reverse_algorithms['reverse_fallback'] = self.simple_reverse_matching
@@ -210,7 +210,8 @@ class SuperSmartMatch:
                     execution_time
                 )
             
-            return {
+            # ⚡ NOUVEAU v2.1: Ajouter infos pondération dynamique
+            response_data = {
                 'success': True,
                 'matching_mode': 'candidate_to_jobs',
                 'algorithm_used': algorithm,
@@ -219,6 +220,19 @@ class SuperSmartMatch:
                 'execution_time': execution_time,
                 'results': results
             }
+            
+            # Si SuperSmartMatch v2.1, ajouter les infos spécifiques
+            if algorithm == 'supersmartmatch' and results:
+                response_data['version'] = '2.1'
+                response_data['dynamic_weighting_used'] = 'questionnaire_data' in (cv_data or questionnaire_data or {})
+                response_data['features_v21'] = [
+                    'dynamic_weighting',
+                    'flexibility_scoring', 
+                    'bidirectional_matching',
+                    'intelligent_reasoning'
+                ]
+            
+            return response_data
             
         except Exception as e:
             logger.error(f"Erreur matching candidat: {e}")
@@ -283,6 +297,8 @@ class SuperSmartMatch:
                             'explications_entreprise': result.get('explications_entreprise', {}),
                             'analyse_risques': result.get('analyse_risques', {}),
                             'profil_candidat': result.get('profil_candidat', {}),
+                            # ⚡ NOUVEAU v2.1: Pondération dynamique
+                            'ponderation_dynamique': result.get('ponderation_dynamique', {}),
                             **candidate  # Données originales du candidat
                         }
                         results.append(candidate_result)
@@ -332,7 +348,8 @@ class SuperSmartMatch:
                     execution_time
                 )
             
-            return {
+            # ⚡ NOUVEAU v2.1: Réponse enrichie
+            response_data = {
                 'success': True,
                 'matching_mode': 'company_to_candidates',
                 'algorithm_used': algorithm,
@@ -346,6 +363,18 @@ class SuperSmartMatch:
                 'execution_time': execution_time,
                 'results': results
             }
+            
+            # Si SuperSmartMatch v2.1, ajouter les infos spécifiques
+            if algorithm == 'supersmartmatch':
+                response_data['version'] = '2.1'
+                response_data['features_v21'] = [
+                    'dynamic_weighting_per_candidate',
+                    'flexibility_scoring', 
+                    'intelligent_company_perspective',
+                    'detailed_risk_analysis'
+                ]
+            
+            return response_data
             
         except Exception as e:
             logger.error(f"Erreur matching entreprise: {e}")
@@ -372,9 +401,9 @@ def index():
     return jsonify({
         'service': 'SuperSmartMatch',
         'status': 'running',
-        'version': '2.3 - SuperSmartMatch Intelligence + Analytics',
-        'description': 'Matching intelligent avec pourcentages côté entreprise et analytics',
-        'port': 5063,  # NOUVEAU PORT SÉCURISÉ
+        'version': '2.1 - Pondération Dynamique + Intelligence + Analytics',
+        'description': 'Matching intelligent avec pondération dynamique basée sur priorités candidat',
+        'port': 5063,
         'modes': {
             'candidate_to_jobs': 'Matching candidat vers emplois',
             'company_to_candidates': 'Matching entreprise vers candidats (avec SuperSmartMatch!)'
@@ -385,12 +414,13 @@ def index():
             'company_algorithms': list(service.reverse_algorithms.keys())
         },
         'analytics_enabled': service.analytics is not None,
-        'supersmartmatch_features': [
-            '🎯 Pourcentages détaillés par critère côté entreprise',
-            '📍 Localisation avec temps de trajet',
-            '💼 Expérience avec analyse surqualification', 
-            '💰 Rémunération compatible budget entreprise',
-            '🔧 Compétences (techniques, langues, logiciels)',
+        'supersmartmatch_v21_features': [
+            '🎛️ Pondération dynamique basée sur 4 leviers candidat',
+            '📈 Évolution → Influence Expérience + Compétences',
+            '💰 Rémunération → Influence Rémunération',
+            '📍 Proximité → Influence Proximité (ex-localisation)',
+            '🔄 Flexibilité → Nouveau critère (télétravail, horaires, RTT)',
+            '🎯 Questionnaire candidat avec notes 1-10',
             '🧠 Raisonnement intelligent (évolution, stabilité, innovation)',
             '⚠️ Analyse des risques et opportunités',
             '👤 Profil candidat pour recruteur',
@@ -404,7 +434,8 @@ def health():
     
     return jsonify({
         'status': 'healthy',
-        'port': 5063,  # NOUVEAU PORT SÉCURISÉ
+        'port': 5063,
+        'version': '2.1',
         'legacy_algorithms_loaded': len(service.algorithms),
         'new_algorithms_loaded': len(service.new_algorithms),
         'company_algorithms_loaded': len(service.reverse_algorithms),
@@ -415,9 +446,11 @@ def health():
             'new_candidate': list(service.new_algorithms.keys()),
             'company_matching': list(service.reverse_algorithms.keys()) + (['supersmartmatch'] if supersmartmatch_loaded else [])
         },
-        'features': [
+        'features_v21': [
+            'Dynamic weighting based on candidate priorities',
             'Bidirectional matching (candidate ↔ company)',
             'SuperSmartMatch with company-side percentages',
+            'Flexibility scoring (remote work, flexible hours, RTT)',
             'Intelligent reasoning (evolution, stability, innovation)',
             'Travel time calculation',
             'Risk and opportunity analysis',
@@ -477,6 +510,12 @@ def algorithms():
                 'description': info.get('description', f'Algorithme {name}'),
                 'features': info.get('features', [])
             }
+            
+            # ⚡ NOUVEAU v2.1: Infos spécifiques SuperSmartMatch
+            if name == 'supersmartmatch':
+                new_candidate_algorithms[name]['dynamic_levers'] = info.get('dynamic_levers', {})
+                new_candidate_algorithms[name]['questionnaire_structure'] = info.get('questionnaire_structure', {})
+                new_candidate_algorithms[name]['new_features'] = info.get('new_features', {})
         else:
             new_candidate_algorithms[name] = {
                 'type': 'new_class',
@@ -505,12 +544,14 @@ def algorithms():
     # Ajouter SuperSmartMatch pour entreprise
     if 'supersmartmatch' in service.new_algorithms:
         company_algorithms['supersmartmatch'] = {
-            'type': 'supersmartmatch',
+            'type': 'supersmartmatch_v21',
             'status': 'available',
             'features': [
+                'dynamic_weighting_per_candidate',
                 'company_side_percentages',
                 'intelligent_reasoning',
                 'detailed_scoring',
+                'flexibility_analysis',
                 'risk_analysis',
                 'location_travel_time',
                 'salary_budget_compatibility',
@@ -518,7 +559,7 @@ def algorithms():
                 'candidate_profiling',
                 'performance_analytics'
             ],
-            'description': '🚀 SuperSmartMatch - Matching intelligent côté entreprise avec pourcentages détaillés'
+            'description': '🚀 SuperSmartMatch v2.1 - Pondération dynamique intelligente côté entreprise'
         }
     
     return jsonify({
@@ -530,17 +571,284 @@ def algorithms():
         'recommended': {
             'candidate_to_jobs': 'supersmartmatch' if 'supersmartmatch' in service.new_algorithms else 'advanced',
             'company_to_candidates': 'supersmartmatch' if 'supersmartmatch' in service.new_algorithms else 'reverse_advanced'
-        }
+        },
+        'version': '2.1'
     })
+
+# ⚡ NOUVEAUX ENDPOINTS v2.1 - PONDÉRATION DYNAMIQUE
+
+@app.route('/api/candidate/<candidate_id>/questionnaire', methods=['POST', 'PUT'])
+def update_candidate_questionnaire(candidate_id: str):
+    """
+    ⚡ NOUVEAU v2.1: Met à jour les priorités d'un candidat
+    
+    Body:
+    {
+        "priorites_candidat": {
+            "evolution": 8,
+            "remuneration": 6,
+            "proximite": 4,
+            "flexibilite": 9
+        },
+        "flexibilite_attendue": {
+            "teletravail": "partiel",
+            "horaires_flexibles": true,
+            "rtt_important": true
+        }
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        # Validation des priorités
+        priorites = data.get('priorites_candidat', {})
+        required_levers = ['evolution', 'remuneration', 'proximite', 'flexibilite']
+        
+        for lever in required_levers:
+            if lever not in priorites:
+                return jsonify({
+                    'error': f'Levier manquant: {lever}',
+                    'required_levers': required_levers
+                }), 400
+            
+            note = priorites[lever]
+            if not isinstance(note, (int, float)) or not (1 <= note <= 10):
+                return jsonify({
+                    'error': f'Note invalide pour {lever}: {note} (doit être entre 1 et 10)'
+                }), 400
+        
+        # Validation flexibilité attendue
+        flex_attendue = data.get('flexibilite_attendue', {})
+        if 'teletravail' in flex_attendue:
+            valid_teletravail = ['aucun', 'partiel', 'total']
+            if flex_attendue['teletravail'] not in valid_teletravail:
+                return jsonify({
+                    'error': f'Valeur télétravail invalide: {flex_attendue["teletravail"]}',
+                    'valid_values': valid_teletravail
+                }), 400
+        
+        # Prévisualiser la pondération
+        if 'supersmartmatch' in service.new_algorithms:
+            algorithm = service.new_algorithms['supersmartmatch']
+            fake_candidate = {'questionnaire_data': data}
+            weights_preview = algorithm.calculate_dynamic_weights(fake_candidate)
+            
+            # Calculer les variations vs base
+            base_weights = algorithm.config['ponderation_base']
+            variations = {}
+            for critere in weights_preview:
+                variation = ((weights_preview[critere] / base_weights[critere]) - 1) * 100
+                variations[critere] = round(variation, 1)
+            
+            preview = {
+                'ponderation_adaptee': {k: round(v*100, 1) for k, v in weights_preview.items()},
+                'variations_vs_base': variations,
+                'levier_dominant': max(priorites, key=priorites.get),
+                'note_dominante': max(priorites.values())
+            }
+        else:
+            preview = {'error': 'SuperSmartMatch v2.1 non disponible'}
+        
+        # Sauvegarder les données questionnaire (ici simulation)
+        questionnaire_data = {
+            'priorites_candidat': priorites,
+            'flexibilite_attendue': flex_attendue,
+            'date_maj': time.strftime('%Y-%m-%d'),
+            'version': '2.1'
+        }
+        
+        return jsonify({
+            'success': True,
+            'message': 'Questionnaire mis à jour avec succès',
+            'candidate_id': candidate_id,
+            'questionnaire_data': questionnaire_data,
+            'ponderation_preview': preview
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Erreur questionnaire candidat: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/weighting-impact', methods=['POST'])
+def analyze_weighting_impact():
+    """
+    ⚡ NOUVEAU v2.1: Compare l'impact pondération fixe vs dynamique
+    
+    Body:
+    {
+        "candidat": {...},
+        "offres": [...],
+        "compare_scenarios": true
+    }
+    """
+    try:
+        data = request.get_json()
+        candidat = data.get('candidat', {})
+        offres = data.get('offres', [])
+        
+        if 'supersmartmatch' not in service.new_algorithms:
+            return jsonify({'error': 'SuperSmartMatch v2.1 non disponible'}), 503
+        
+        algorithm = service.new_algorithms['supersmartmatch']
+        
+        # Scénario 1: Avec pondération dynamique
+        results_dynamic = algorithm.match_candidate_with_jobs(candidat, offres, limit=5)
+        
+        # Scénario 2: Sans questionnaire (pondération fixe)
+        candidat_sans_questionnaire = {k: v for k, v in candidat.items() if k != 'questionnaire_data'}
+        results_fixed = algorithm.match_candidate_with_jobs(candidat_sans_questionnaire, offres, limit=5)
+        
+        # Analyse comparative
+        comparison = []
+        for i in range(min(len(results_dynamic), len(results_fixed))):
+            job_id = results_dynamic[i]['id']
+            dynamic_score = results_dynamic[i]['matching_score_entreprise']
+            
+            # Trouver le même job dans les résultats fixes
+            fixed_score = None
+            fixed_rank = None
+            for j, fixed_result in enumerate(results_fixed):
+                if fixed_result['id'] == job_id:
+                    fixed_score = fixed_result['matching_score_entreprise']
+                    fixed_rank = j + 1
+                    break
+            
+            if fixed_score is not None:
+                comparison.append({
+                    'job_id': job_id,
+                    'job_title': results_dynamic[i]['titre'],
+                    'dynamic_score': dynamic_score,
+                    'dynamic_rank': i + 1,
+                    'fixed_score': fixed_score,
+                    'fixed_rank': fixed_rank,
+                    'score_difference': dynamic_score - fixed_score,
+                    'rank_difference': fixed_rank - (i + 1)
+                })
+        
+        # Statistiques globales
+        score_differences = [comp['score_difference'] for comp in comparison]
+        rank_differences = [comp['rank_difference'] for comp in comparison]
+        
+        # Générer des recommandations
+        recommendations = []
+        if not candidat.get('questionnaire_data'):
+            recommendations.append("Faire remplir le questionnaire de priorités pour personnaliser le matching")
+        else:
+            avg_score_diff = sum(score_differences) / len(score_differences) if score_differences else 0
+            if avg_score_diff > 5:
+                recommendations.append(f"La pondération dynamique améliore significativement les scores (+{avg_score_diff:.1f}% en moyenne)")
+            elif avg_score_diff < -5:
+                recommendations.append("La pondération fixe pourrait être plus adaptée pour ce profil")
+            else:
+                recommendations.append("Impact modéré de la pondération dynamique")
+        
+        analytics = {
+            'has_questionnaire': 'questionnaire_data' in candidat,
+            'dynamic_weights': results_dynamic[0]['ponderation_dynamique'] if results_dynamic else None,
+            'fixed_weights': algorithm.config['ponderation_base'],
+            'comparison': comparison,
+            'impact_statistics': {
+                'avg_score_difference': sum(score_differences) / len(score_differences) if score_differences else 0,
+                'max_score_difference': max(score_differences) if score_differences else 0,
+                'min_score_difference': min(score_differences) if score_differences else 0,
+                'avg_rank_change': sum(rank_differences) / len(rank_differences) if rank_differences else 0,
+                'jobs_improved_ranking': len([r for r in rank_differences if r > 0]),
+                'jobs_degraded_ranking': len([r for r in rank_differences if r < 0])
+            },
+            'recommendations': recommendations
+        }
+        
+        return jsonify({
+            'success': True,
+            'version': '2.1',
+            'analytics': analytics
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Erreur analytics impact: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/demo/candidate-profiles', methods=['GET'])
+def get_demo_profiles():
+    """
+    ⚡ NOUVEAU v2.1: Profils candidat types pour la démo
+    """
+    profiles = {
+        'salaire_prioritaire': {
+            'nom': 'Marie Dubois - Salaire Prioritaire',
+            'description': 'Candidate expérimentée qui privilégie la rémunération',
+            'questionnaire': {
+                'priorites_candidat': {'evolution': 4, 'remuneration': 9, 'proximite': 6, 'flexibilite': 5},
+                'flexibilite_attendue': {'teletravail': 'partiel', 'horaires_flexibles': False, 'rtt_important': False}
+            }
+        },
+        'evolution_prioritaire': {
+            'nom': 'Thomas Martin - Évolution Prioritaire', 
+            'description': 'Jeune candidat ambitieux qui veut progresser rapidement',
+            'questionnaire': {
+                'priorites_candidat': {'evolution': 10, 'remuneration': 3, 'proximite': 5, 'flexibilite': 6},
+                'flexibilite_attendue': {'teletravail': 'ouvert', 'horaires_flexibles': True, 'rtt_important': False}
+            }
+        },
+        'flexibilite_prioritaire': {
+            'nom': 'Sophie Chen - Flexibilité Prioritaire',
+            'description': 'Candidate qui privilégie work-life balance et autonomie',
+            'questionnaire': {
+                'priorites_candidat': {'evolution': 5, 'remuneration': 4, 'proximite': 3, 'flexibilite': 10},
+                'flexibilite_attendue': {'teletravail': 'total', 'horaires_flexibles': True, 'rtt_important': True}
+            }
+        },
+        'proximite_prioritaire': {
+            'nom': 'Jean Rousseau - Proximité Prioritaire',
+            'description': 'Candidat senior avec contraintes géographiques familiales',
+            'questionnaire': {
+                'priorites_candidat': {'evolution': 6, 'remuneration': 7, 'proximite': 10, 'flexibilite': 4},
+                'flexibilite_attendue': {'teletravail': 'aucun', 'horaires_flexibles': False, 'rtt_important': False}
+            }
+        }
+    }
+    
+    return jsonify({
+        'version': '2.1',
+        'profiles': profiles,
+        'usage': 'Utilisez ces profils pour tester l\'impact de la pondération dynamique',
+        'features': [
+            'Pondération adaptée selon priorités candidat',
+            'Notes 1-10 pour chaque levier',
+            'Impact visualisable sur classement offres',
+            'Comparaison pondération fixe vs dynamique'
+        ]
+    })
+
+@app.route('/api/supersmartmatch/info', methods=['GET'])
+def get_supersmartmatch_info():
+    """
+    ⚡ NOUVEAU v2.1: Informations détaillées sur SuperSmartMatch
+    """
+    if 'supersmartmatch' not in service.new_algorithms:
+        return jsonify({'error': 'SuperSmartMatch v2.1 non disponible'}), 503
+    
+    algorithm = service.new_algorithms['supersmartmatch']
+    info = algorithm.get_algorithm_info()
+    
+    return jsonify({
+        'version': '2.1',
+        'algorithm_info': info,
+        'api_endpoints': {
+            'questionnaire': '/api/candidate/<id>/questionnaire',
+            'analytics': '/api/analytics/weighting-impact',
+            'demo_profiles': '/api/demo/candidate-profiles',
+            'matching': '/api/match',
+            'company_matching': '/api/match-candidates'
+        },
+        'integration_guide': 'Voir PONDERATION_DYNAMIQUE_GUIDE.md pour la documentation complète'
+    })
+
+# ENDPOINTS EXISTANTS (conservés)
 
 @app.route('/api/analytics', methods=['GET'])
 def get_analytics():
-    """
-    NOUVEAU : Endpoint pour récupérer les statistiques d'utilisation
-    
-    Query params:
-    - days: nombre de jours à analyser (défaut: 7)
-    """
+    """Endpoint pour récupérer les statistiques d'utilisation"""
     if not service.analytics:
         return jsonify({'error': 'Analytics non disponible'}), 503
     
@@ -559,9 +867,7 @@ def get_analytics():
 
 @app.route('/api/analytics/summary', methods=['GET'])
 def get_analytics_summary():
-    """
-    NOUVEAU : Résumé rapide des analytics
-    """
+    """Résumé rapide des analytics"""
     if not service.analytics:
         return jsonify({'error': 'Analytics non disponible'}), 503
     
@@ -584,12 +890,13 @@ def get_analytics_summary():
             },
             'supersmartmatch_performance': {
                 'available': 'supersmartmatch' in service.new_algorithms,
-                'recommended_usage': '100% pour matching côté entreprise'
+                'recommended_usage': '100% pour matching côté entreprise avec pondération dynamique v2.1'
             }
         }
         
         return jsonify({
             'success': True,
+            'version': '2.1',
             'summary': summary
         })
         
@@ -599,7 +906,7 @@ def get_analytics_summary():
 
 @app.route('/api/match', methods=['POST'])
 def match():
-    """Endpoint existant : matching candidat → jobs avec analytics"""
+    """Endpoint existant : matching candidat → jobs avec analytics et support v2.1"""
     try:
         data = request.get_json()
         if not data:
@@ -649,8 +956,9 @@ def match_candidates():
 
 @app.route('/api/test-data')
 def get_test_data():
-    """Données de test pour les deux modes avec exemples SuperSmartMatch"""
+    """Données de test pour les deux modes avec exemples SuperSmartMatch v2.1"""
     return jsonify({
+        'version': '2.1',
         'candidate_to_jobs_example': {
             'cv_data': {
                 'competences': ['Python', 'Django', 'PostgreSQL', 'React', 'AWS'],
@@ -675,7 +983,20 @@ def get_test_data():
                     'evolution_rapide': True,
                     'ambitions': ['technique', 'management']
                 },
-                'valeurs_importantes': ['innovation', 'teamwork']
+                'valeurs_importantes': ['innovation', 'teamwork'],
+                
+                # ⚡ NOUVEAU v2.1: Priorités candidat
+                'priorites_candidat': {
+                    'evolution': 8,        # Priorité élevée évolution
+                    'remuneration': 6,     # Moyenne
+                    'proximite': 4,        # Faible (pas de contrainte géo)
+                    'flexibilite': 9       # Très important
+                },
+                'flexibilite_attendue': {
+                    'teletravail': 'partiel',
+                    'horaires_flexibles': True,
+                    'rtt_important': True
+                }
             },
             'job_data': [
                 {
@@ -686,16 +1007,19 @@ def get_test_data():
                     'localisation': 'Paris 8ème',
                     'type_contrat': 'CDI',
                     'salaire': '50-65K€',
+                    'budget_max': 65000,
                     'experience_requise': 3,
                     'perspectives_evolution': True,
                     'culture_entreprise': {
                         'valeurs': ['innovation', 'collaboration']
                     },
-                    'politique_remote': 'télétravail partiel'
+                    'politique_remote': 'télétravail partiel',
+                    'horaires_flexibles': True,
+                    'jours_rtt': 15
                 }
             ]
         },
-        'company_to_candidates_supersmartmatch_example': {
+        'company_to_candidates_supersmartmatch_v21_example': {
             'job_data': {
                 'id': 'startup-lead-001',
                 'titre': 'Lead Developer',
@@ -716,6 +1040,8 @@ def get_test_data():
                 'langues_requises': ['Français', 'Anglais'],
                 'logiciels_requis': ['Git', 'AWS', 'Docker'],
                 'politique_remote': 'télétravail possible',
+                'horaires_flexibles': True,
+                'jours_rtt': 12,
                 'description': 'Lead une équipe de 4 développeurs, architecture technique, évolution vers CTO possible'
             },
             'candidates_data': [
@@ -745,7 +1071,20 @@ def get_test_data():
                             'ambitions': ['management', 'technique']
                         },
                         'valeurs_importantes': ['innovation', 'autonomie'],
-                        'disponibilite': 'immédiate'
+                        'disponibilite': 'immédiate',
+                        
+                        # ⚡ NOUVEAU v2.1: Priorités candidat
+                        'priorites_candidat': {
+                            'evolution': 10,       # Priorité maximale évolution
+                            'remuneration': 7,     # Importante
+                            'proximite': 5,        # Moyenne
+                            'flexibilite': 6       # Importante
+                        },
+                        'flexibilite_attendue': {
+                            'teletravail': 'partiel',
+                            'horaires_flexibles': True,
+                            'rtt_important': False
+                        }
                     }
                 },
                 {
@@ -771,7 +1110,20 @@ def get_test_data():
                         'objectifs_carriere': {
                             'evolution_rapide': False
                         },
-                        'valeurs_importantes': ['stabilité', 'teamwork']
+                        'valeurs_importantes': ['stabilité', 'teamwork'],
+                        
+                        # ⚡ NOUVEAU v2.1: Priorités candidat
+                        'priorites_candidat': {
+                            'evolution': 3,        # Faible priorité évolution
+                            'remuneration': 9,     # Priorité élevée salaire
+                            'proximite': 8,        # Très important proximité
+                            'flexibilite': 4       # Faible priorité flexibilité
+                        },
+                        'flexibilite_attendue': {
+                            'teletravail': 'aucun',
+                            'horaires_flexibles': False,
+                            'rtt_important': False
+                        }
                     }
                 }
             ]
@@ -779,10 +1131,16 @@ def get_test_data():
     })
 
 if __name__ == '__main__':
-    port = 5063  # NOUVEAU PORT SÉCURISÉ - Évite le conflit avec le port 5061
-    logger.info(f"🚀 Démarrage SuperSmartMatch v2.3 avec ANALYTICS sur le port {port} (NOUVEAU PORT SÉCURISÉ)")
-    logger.info("🎯 Nouveau: SuperSmartMatch avec pourcentages détaillés + Analytics")
-    logger.info("📊 Endpoints analytics: /api/analytics et /api/analytics/summary")
-    logger.info("🧠 Fonctionnalités: raisonnement intelligent, suivi performances, optimisation")
+    port = 5063  # Port sécurisé - Évite les conflits
+    logger.info(f"🚀 Démarrage SuperSmartMatch v2.1 avec PONDÉRATION DYNAMIQUE sur le port {port}")
+    logger.info("🎛️ Nouveauté v2.1: Pondération adaptée selon priorités candidat")
+    logger.info("📈 4 leviers: Évolution, Rémunération, Proximité, Flexibilité")
+    logger.info("🔄 Nouveau critère flexibilité: télétravail, horaires, RTT")
+    logger.info("🧠 Raisonnement intelligent + Analytics + Matching bidirectionnel")
     logger.info(f"🔗 URL: http://localhost:{port}")
+    logger.info("📋 Nouveaux endpoints v2.1:")
+    logger.info("   POST /api/candidate/<id>/questionnaire - Priorités candidat")
+    logger.info("   POST /api/analytics/weighting-impact - Comparaison impact")
+    logger.info("   GET  /api/demo/candidate-profiles - Profils démo")
+    logger.info("   GET  /api/supersmartmatch/info - Infos algorithme v2.1")
     app.run(host='0.0.0.0', port=port, debug=False)
