@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 """
-SuperSmartMatch Algorithm - Algorithme intelligent avec matching côté entreprise
+SuperSmartMatch Algorithm v2.1 - Algorithme intelligent avec pondération dynamique
 Calcule des pourcentages de correspondance précis sur :
-- Localisation (temps de trajet)
+- Proximité (localisation, temps de trajet)
 - Expérience
 - Rémunération
-- Compétences (langues, logiciels)
+- Flexibilité (télétravail, horaires flexibles, RTT) ⭐ NOUVEAU
 - Raisonnement intelligent (évolution rapide, perspectives, etc.)
+
+⚡ NOUVEAUTÉ v2.1: Pondération dynamique basée sur 4 leviers candidat
 """
 
 import sys
@@ -27,20 +29,20 @@ logger = logging.getLogger(__name__)
 
 class SuperSmartMatchAlgorithm(BaseAlgorithm):
     """
-    Algorithme SuperSmartMatch avec intelligence artificielle pour le matching côté entreprise
+    Algorithme SuperSmartMatch v2.1 avec pondération dynamique intelligente
     """
     
     def __init__(self):
         super().__init__()
         self.name = "supersmartmatch"
-        self.description = "Algorithme intelligent avec pourcentages côté entreprise et raisonnement avancé"
-        self.version = "2.0"
+        self.description = "Algorithme intelligent avec pondération dynamique et scoring flexibilité"
+        self.version = "2.1"
         self.initialized = True
         
         # Configuration des seuils intelligents
         self.config = {
             'seuils': {
-                'localisation': {
+                'proximite': {  # Renommé de 'localisation'
                     'excellent': 85,    # Même ville/quartier
                     'bon': 70,         # Même région, <30min transport
                     'acceptable': 50,   # <1h transport
@@ -63,13 +65,28 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
                     'competent': 85,   # Toutes compétences requises
                     'partiel': 70,     # 80% des compétences
                     'apprentissage': 50 # 60% + potentiel d'apprentissage
+                },
+                'flexibilite': {  # ⭐ NOUVEAU CRITÈRE
+                    'parfait': 95,     # Toutes exigences flexibilité respectées
+                    'excellent': 85,   # Majorité des exigences
+                    'bon': 70,         # Quelques exigences
+                    'limite': 50       # Flexibilité limitée
                 }
             },
-            'ponderation': {
-                'localisation': 0.25,
-                'experience': 0.25, 
-                'remuneration': 0.20,
-                'competences': 0.30
+            # ⚡ PONDÉRATION DYNAMIQUE (remplace la pondération fixe)
+            'ponderation_base': {
+                'proximite': 0.25,    # Renommé de 'localisation'
+                'experience': 0.20,   # Réduit pour faire place à 'flexibilite'
+                'remuneration': 0.25,
+                'competences': 0.15,  # Réduit pour faire place à 'flexibilite'
+                'flexibilite': 0.15   # ⭐ NOUVEAU
+            },
+            # 🎛️ CORRESPONDANCE LEVIERS CANDIDAT → CRITÈRES ALGORITHM
+            'leviers_mapping': {
+                'evolution': ['experience', 'competences'],  # Évolution → Expérience + Compétences
+                'remuneration': ['remuneration'],            # Rémunération → Rémunération
+                'proximite': ['proximite'],                  # Proximité → Proximité
+                'flexibilite': ['flexibilite']               # Flexibilité → Flexibilité
             },
             'bonus_intelligence': {
                 'evolution_rapide': 10,     # Candidat ambitieux + poste évolutif
@@ -94,35 +111,39 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         limit: int = 10
     ) -> List[Dict[str, Any]]:
         """
-        Exécute le matching SuperSmartMatch intelligent côté entreprise
+        Exécute le matching SuperSmartMatch v2.1 avec pondération dynamique
         
         Args:
-            candidat: Données du candidat
+            candidat: Données du candidat (avec questionnaire_data optionnel)
             offres: Liste des offres d'emploi
             limit: Nombre maximum de résultats
             
         Returns:
-            Liste des offres avec scores de matching détaillés
+            Liste des offres avec scores de matching dynamiques
         """
-        logger.info(f"Démarrage SuperSmartMatch pour {len(offres)} offres")
+        logger.info(f"🚀 Démarrage SuperSmartMatch v2.1 pour {len(offres)} offres")
+        
+        # ⚡ CALCUL PONDÉRATION DYNAMIQUE
+        dynamic_weights = self.calculate_dynamic_weights(candidat)
+        logger.info(f"🎛️ Pondération dynamique: {dynamic_weights}")
         
         results = []
         candidat_profile = self._analyze_candidate_profile(candidat)
         
         for i, offre in enumerate(offres[:limit]):
             try:
-                # Calcul des scores détaillés
+                # Calcul des scores détaillés (avec nouveau critère flexibilité)
                 scores = self._calculate_detailed_scores(candidat, offre, candidat_profile)
                 
                 # Application du raisonnement intelligent
                 intelligence_bonus = self._apply_intelligent_reasoning(candidat, offre, candidat_profile)
                 
-                # Score final avec bonus intelligence
-                final_score = self._calculate_final_score(scores, intelligence_bonus)
+                # ⚡ Score final avec pondération DYNAMIQUE
+                final_score = self._calculate_final_score_dynamic(scores, intelligence_bonus, dynamic_weights)
                 
                 # Génération des explications intelligentes
                 explanations = self._generate_intelligent_explanations(
-                    candidat, offre, scores, intelligence_bonus, candidat_profile
+                    candidat, offre, scores, intelligence_bonus, candidat_profile, dynamic_weights
                 )
                 
                 result = {
@@ -130,26 +151,38 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
                     'titre': offre.get('titre', offre.get('title', 'Poste sans titre')),
                     'entreprise': offre.get('entreprise', 'Entreprise non spécifiée'),
                     
-                    # Score principal (côté entreprise)
+                    # Score principal avec pondération dynamique
                     'matching_score_entreprise': int(final_score),
                     
-                    # Détails des scores par critère (côté entreprise)
+                    # ⚡ NOUVEAUTÉ: Pondération utilisée pour ce candidat
+                    'ponderation_dynamique': dynamic_weights,
+                    
+                    # Détails des scores par critère (incluant flexibilité)
                     'scores_detailles': {
-                        'localisation': {
-                            'pourcentage': int(scores['localisation']),
-                            'details': scores['localisation_details']
+                        'proximite': {
+                            'pourcentage': int(scores['proximite']),
+                            'details': scores['proximite_details'],
+                            'poids': round(dynamic_weights['proximite'] * 100, 1)
                         },
                         'experience': {
                             'pourcentage': int(scores['experience']),
-                            'details': scores['experience_details']
+                            'details': scores['experience_details'],
+                            'poids': round(dynamic_weights['experience'] * 100, 1)
                         },
                         'remuneration': {
                             'pourcentage': int(scores['remuneration']),
-                            'details': scores['remuneration_details']
+                            'details': scores['remuneration_details'],
+                            'poids': round(dynamic_weights['remuneration'] * 100, 1)
                         },
                         'competences': {
                             'pourcentage': int(scores['competences']),
-                            'details': scores['competences_details']
+                            'details': scores['competences_details'],
+                            'poids': round(dynamic_weights['competences'] * 100, 1)
+                        },
+                        'flexibilite': {  # ⭐ NOUVEAU
+                            'pourcentage': int(scores['flexibilite']),
+                            'details': scores['flexibilite_details'],
+                            'poids': round(dynamic_weights['flexibilite'] * 100, 1)
                         }
                     },
                     
@@ -177,75 +210,99 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
             except Exception as e:
                 logger.error(f"Erreur lors du traitement de l'offre {i}: {e}")
                 # Fallback avec score basique
-                result = self._create_fallback_result(candidat, offre, i)
+                result = self._create_fallback_result(candidat, offre, i, dynamic_weights)
                 results.append(result)
         
         # Trier par score décroissant
         results.sort(key=lambda x: x['matching_score_entreprise'], reverse=True)
         
-        logger.info(f"SuperSmartMatch terminé - {len(results)} résultats générés")
+        logger.info(f"✅ SuperSmartMatch v2.1 terminé - {len(results)} résultats générés")
         return results
     
-    def _analyze_candidate_profile(self, candidat: Dict[str, Any]) -> Dict[str, Any]:
+    def calculate_dynamic_weights(self, candidat: Dict[str, Any]) -> Dict[str, float]:
         """
-        Analyse le profil du candidat pour identifier ses caractéristiques clés
+        🎛️ FONCTION CENTRALE: Calcule la pondération dynamique basée sur les priorités candidat
+        
+        Args:
+            candidat: Données candidat avec questionnaire_data optionnel
+            
+        Returns:
+            Dict avec pondération adaptée aux priorités du candidat
         """
-        profile = {
-            'type_profil': 'standard',
-            'niveau_experience': 'moyen',
-            'ambition': 'moyenne',
-            'stabilite': 'moyenne',
-            'specialisation': [],
-            'points_forts': [],
-            'potentiel_evolution': 'moyen'
+        # Récupérer les priorités candidat du questionnaire
+        questionnaire = candidat.get('questionnaire_data', {})
+        priorites = questionnaire.get('priorites_candidat', {})
+        
+        logger.info(f"📋 Priorités candidat trouvées: {priorites}")
+        
+        # Si pas de priorités, utiliser pondération de base
+        if not priorites:
+            logger.info("🔄 Aucune priorité définie - Utilisation pondération de base")
+            return self.config['ponderation_base'].copy()
+        
+        # Normaliser les notes (au cas où elles ne seraient pas sur 10)
+        notes_normalisees = {}
+        for levier, note in priorites.items():
+            if isinstance(note, (int, float)) and note > 0:
+                # Assurer que la note est entre 1 et 10
+                notes_normalisees[levier] = max(1, min(10, float(note)))
+        
+        if not notes_normalisees:
+            logger.warning("⚠️ Notes priorités invalides - Utilisation pondération de base")
+            return self.config['ponderation_base'].copy()
+        
+        logger.info(f"✅ Notes normalisées: {notes_normalisees}")
+        
+        # Calculer les poids dynamiques
+        # Plus la note est élevée, plus le poids augmente
+        total_notes = sum(notes_normalisees.values())
+        
+        # Calculer le facteur de distribution pour chaque levier
+        facteurs_leviers = {}
+        for levier, note in notes_normalisees.items():
+            # Facteur entre 0.5 et 2.0 basé sur la note
+            # Note 10 = facteur 2.0, Note 5 = facteur 1.0, Note 1 = facteur 0.5
+            facteurs_leviers[levier] = 0.5 + (note - 1) * (1.5 / 9)
+        
+        logger.info(f"📊 Facteurs par levier: {facteurs_leviers}")
+        
+        # Appliquer les facteurs aux critères correspondants
+        weights_ajustes = {}
+        
+        for critere, poids_base in self.config['ponderation_base'].items():
+            facteur_total = 1.0
+            nb_leviers = 0
+            
+            # Trouver quels leviers influencent ce critère
+            for levier, criteres_lies in self.config['leviers_mapping'].items():
+                if critere in criteres_lies and levier in facteurs_leviers:
+                    facteur_total *= facteurs_leviers[levier]
+                    nb_leviers += 1
+            
+            # Si plusieurs leviers influencent le critère, prendre la moyenne géométrique
+            if nb_leviers > 1:
+                facteur_total = facteur_total ** (1/nb_leviers)
+            
+            weights_ajustes[critere] = poids_base * facteur_total
+        
+        # Normaliser pour que la somme = 1.0
+        total_poids = sum(weights_ajustes.values())
+        weights_normalises = {
+            critere: poids / total_poids 
+            for critere, poids in weights_ajustes.items()
         }
         
-        # Analyser l'expérience
-        experience = candidat.get('annees_experience', 0)
-        if experience <= 2:
-            profile['niveau_experience'] = 'junior'
-            profile['potentiel_evolution'] = 'élevé'
-        elif experience <= 5:
-            profile['niveau_experience'] = 'moyen'
-        elif experience <= 10:
-            profile['niveau_experience'] = 'senior'
-        else:
-            profile['niveau_experience'] = 'expert'
-            profile['specialisation'] = candidat.get('competences', [])[:3]  # Top 3 compétences
+        logger.info(f"🎯 Pondération dynamique finale: {weights_normalises}")
         
-        # Analyser l'ambition (basé sur les critères et objectifs)
-        criteres = candidat.get('criteres_importants', {})
-        objectifs = candidat.get('objectifs_carriere', {})
+        # Calculer les variations par rapport à la base
+        variations = {}
+        for critere in weights_normalises:
+            variation = ((weights_normalises[critere] / self.config['ponderation_base'][critere]) - 1) * 100
+            variations[critere] = round(variation, 1)
         
-        if (objectifs.get('evolution_rapide') or 
-            criteres.get('responsabilites_importantes') or
-            candidat.get('leadership_experience')):
-            profile['ambition'] = 'élevée'
-            profile['type_profil'] = 'ambitieux'
+        logger.info(f"📈 Variations vs base: {variations}")
         
-        # Analyser la stabilité
-        mobilite = candidat.get('mobilite', '')
-        duree_poste_souhaite = candidat.get('duree_poste_souhaite', '')
-        
-        if ('long terme' in duree_poste_souhaite.lower() or 
-            'stabilité' in criteres.get('priorites', [])):
-            profile['stabilite'] = 'élevée'
-            profile['type_profil'] = 'stable'
-        
-        # Identifier les points forts
-        competences = candidat.get('competences', [])
-        langues = candidat.get('langues', [])
-        soft_skills = candidat.get('soft_skills', [])
-        
-        if len(competences) >= 8:
-            profile['points_forts'].append('polyvalent')
-        if len(langues) >= 2:
-            profile['points_forts'].append('international')
-        if any('management' in skill.lower() or 'leadership' in skill.lower() 
-               for skill in soft_skills):
-            profile['points_forts'].append('leadership')
-        
-        return profile
+        return weights_normalises
     
     def _calculate_detailed_scores(
         self, 
@@ -254,23 +311,169 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         candidat_profile: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Calcule les scores détaillés pour chaque critère côté entreprise
+        Calcule les scores détaillés pour chaque critère (avec nouveau critère flexibilité)
         """
         scores = {}
         
-        # 1. LOCALISATION - Temps de trajet et mobilité
+        # 1. PROXIMITÉ (anciennement localisation)
         scores.update(self._calculate_location_score_detailed(candidat, offre))
         
-        # 2. EXPÉRIENCE - Adéquation niveau/poste
+        # 2. EXPÉRIENCE
         scores.update(self._calculate_experience_score_detailed(candidat, offre, candidat_profile))
         
-        # 3. RÉMUNÉRATION - Compatibilité budget entreprise
+        # 3. RÉMUNÉRATION
         scores.update(self._calculate_salary_score_detailed(candidat, offre))
         
-        # 4. COMPÉTENCES - Techniques, langues, logiciels
+        # 4. COMPÉTENCES
         scores.update(self._calculate_skills_score_detailed(candidat, offre))
         
+        # 5. ⭐ FLEXIBILITÉ (NOUVEAU)
+        scores.update(self._calculate_flexibility_score_detailed(candidat, offre))
+        
         return scores
+    
+    def _calculate_flexibility_score_detailed(
+        self, 
+        candidat: Dict[str, Any], 
+        offre: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        ⭐ NOUVEAU: Calcule le score de flexibilité (télétravail, horaires, RTT)
+        """
+        score = 70  # Score de base
+        details = []
+        
+        # Récupérer les préférences flexibilité candidat
+        questionnaire = candidat.get('questionnaire_data', {})
+        flex_candidat = questionnaire.get('flexibilite_attendue', {})
+        
+        # Préférences générales du candidat
+        candidat_remote = candidat.get('preferences_remote', '')
+        candidat_horaires = candidat.get('horaires_flexibles', False)
+        
+        # Politique de l'entreprise
+        offre_remote = offre.get('politique_remote', '').lower()
+        offre_horaires = offre.get('horaires_flexibles', False)
+        offre_rtt = offre.get('jours_rtt', 0)
+        offre_avantages = offre.get('avantages', [])
+        
+        score_components = []
+        
+        # 1. TÉLÉTRAVAIL (40% du score flexibilité)
+        if flex_candidat.get('teletravail') or 'télétravail' in str(candidat_remote).lower():
+            candidat_want_remote = True
+            if flex_candidat.get('teletravail') == 'total':
+                remote_preference = 'total'
+            elif flex_candidat.get('teletravail') == 'partiel':
+                remote_preference = 'partiel'
+            else:
+                remote_preference = 'ouvert'
+        else:
+            candidat_want_remote = False
+            remote_preference = 'aucun'
+        
+        if candidat_want_remote:
+            if 'télétravail' in offre_remote or 'remote' in offre_remote:
+                if 'total' in offre_remote and remote_preference == 'total':
+                    score_teletravail = 100
+                    details.append("✅ Télétravail total possible - Parfait match")
+                elif 'partiel' in offre_remote:
+                    score_teletravail = 85 if remote_preference != 'total' else 75
+                    details.append("✅ Télétravail partiel possible - Bon compromis")
+                else:
+                    score_teletravail = 80
+                    details.append("✅ Télétravail disponible")
+            else:
+                score_teletravail = 30
+                details.append("❌ Pas de télétravail possible - Attente non satisfaite")
+        else:
+            if 'télétravail' in offre_remote:
+                score_teletravail = 85
+                details.append("⚖️ Télétravail disponible mais non souhaité")
+            else:
+                score_teletravail = 90
+                details.append("✅ Travail en présentiel - Correspondance parfaite")
+        
+        score_components.append(('teletravail', score_teletravail, 0.4))
+        
+        # 2. HORAIRES FLEXIBLES (35% du score flexibilité)
+        candidat_want_flex = (flex_candidat.get('horaires_flexibles', False) or 
+                             candidat_horaires or 
+                             'flexible' in str(candidat.get('contraintes_horaires', '')).lower())
+        
+        if candidat_want_flex:
+            if offre_horaires or 'flexible' in ' '.join(offre_avantages).lower():
+                score_horaires = 95
+                details.append("✅ Horaires flexibles disponibles - Excellent")
+            else:
+                score_horaires = 45
+                details.append("❌ Horaires fixes - Flexibilité non disponible")
+        else:
+            score_horaires = 80
+            details.append("⚖️ Horaires: Pas d'exigence particulière")
+        
+        score_components.append(('horaires', score_horaires, 0.35))
+        
+        # 3. RTT et CONGÉS (25% du score flexibilité)
+        candidat_rtt_important = flex_candidat.get('rtt_important', False)
+        
+        if candidat_rtt_important:
+            if offre_rtt >= 15:  # Plus de 15 RTT = excellent
+                score_rtt = 95
+                details.append(f"✅ {offre_rtt} jours RTT - Excellent équilibre")
+            elif offre_rtt >= 10:  # 10-15 RTT = bon
+                score_rtt = 80
+                details.append(f"✅ {offre_rtt} jours RTT - Bon équilibre")
+            elif offre_rtt >= 5:   # 5-10 RTT = acceptable
+                score_rtt = 65
+                details.append(f"⚖️ {offre_rtt} jours RTT - Équilibre moyen")
+            else:  # Moins de 5 RTT = insuffisant
+                score_rtt = 40
+                details.append(f"❌ Seulement {offre_rtt} jours RTT - Insuffisant")
+        else:
+            score_rtt = 75
+            details.append("⚖️ RTT: Pas d'exigence particulière")
+        
+        score_components.append(('rtt', score_rtt, 0.25))
+        
+        # Calcul du score final pondéré
+        final_score = sum(score * weight for _, score, weight in score_components)
+        
+        # Ajouter détails de calcul
+        calcul_details = [f"{name}: {score}% (poids {weight*100}%)" 
+                         for name, score, weight in score_components]
+        details.extend(calcul_details)
+        
+        logger.info(f"🔄 Score flexibilité: {final_score:.1f}% - {details}")
+        
+        return {
+            'flexibilite': final_score,
+            'flexibilite_details': details
+        }
+    
+    def _calculate_final_score_dynamic(
+        self, 
+        scores: Dict[str, Any], 
+        intelligence_bonus: Dict[str, Any],
+        dynamic_weights: Dict[str, float]
+    ) -> float:
+        """
+        ⚡ NOUVEAU: Calcule le score final avec pondération DYNAMIQUE
+        """
+        # Score de base pondéré dynamiquement
+        base_score = (
+            scores['proximite'] * dynamic_weights['proximite'] +
+            scores['experience'] * dynamic_weights['experience'] +
+            scores['remuneration'] * dynamic_weights['remuneration'] +
+            scores['competences'] * dynamic_weights['competences'] +
+            scores['flexibilite'] * dynamic_weights['flexibilite']  # ⭐ NOUVEAU
+        )
+        
+        # Ajouter le bonus intelligence
+        final_score = base_score + intelligence_bonus['total']
+        
+        # Limiter entre 0 et 100
+        return min(100, max(0, final_score))
     
     def _calculate_location_score_detailed(
         self, 
@@ -278,7 +481,7 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         offre: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Calcule le score de localisation avec estimation du temps de trajet
+        Calcule le score de proximité (renommé de localisation)
         """
         candidat_location = candidat.get('adresse', '').lower().strip()
         job_location = offre.get('localisation', '').lower().strip()
@@ -328,8 +531,8 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
             details.append("Candidat mobile - Bonus flexibilité")
         
         return {
-            'localisation': score,
-            'localisation_details': details
+            'proximite': score,  # Renommé de 'localisation'
+            'proximite_details': details
         }
     
     def _calculate_experience_score_detailed(
@@ -554,6 +757,67 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
             'competences_breakdown': scores_detail
         }
     
+    def _analyze_candidate_profile(self, candidat: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Analyse le profil du candidat pour identifier ses caractéristiques clés
+        """
+        profile = {
+            'type_profil': 'standard',
+            'niveau_experience': 'moyen',
+            'ambition': 'moyenne',
+            'stabilite': 'moyenne',
+            'specialisation': [],
+            'points_forts': [],
+            'potentiel_evolution': 'moyen'
+        }
+        
+        # Analyser l'expérience
+        experience = candidat.get('annees_experience', 0)
+        if experience <= 2:
+            profile['niveau_experience'] = 'junior'
+            profile['potentiel_evolution'] = 'élevé'
+        elif experience <= 5:
+            profile['niveau_experience'] = 'moyen'
+        elif experience <= 10:
+            profile['niveau_experience'] = 'senior'
+        else:
+            profile['niveau_experience'] = 'expert'
+            profile['specialisation'] = candidat.get('competences', [])[:3]  # Top 3 compétences
+        
+        # Analyser l'ambition (basé sur les critères et objectifs)
+        criteres = candidat.get('criteres_importants', {})
+        objectifs = candidat.get('objectifs_carriere', {})
+        
+        if (objectifs.get('evolution_rapide') or 
+            criteres.get('responsabilites_importantes') or
+            candidat.get('leadership_experience')):
+            profile['ambition'] = 'élevée'
+            profile['type_profil'] = 'ambitieux'
+        
+        # Analyser la stabilité
+        mobilite = candidat.get('mobilite', '')
+        duree_poste_souhaite = candidat.get('duree_poste_souhaite', '')
+        
+        if ('long terme' in duree_poste_souhaite.lower() or 
+            'stabilité' in criteres.get('priorites', [])):
+            profile['stabilite'] = 'élevée'
+            profile['type_profil'] = 'stable'
+        
+        # Identifier les points forts
+        competences = candidat.get('competences', [])
+        langues = candidat.get('langues', [])
+        soft_skills = candidat.get('soft_skills', [])
+        
+        if len(competences) >= 8:
+            profile['points_forts'].append('polyvalent')
+        if len(langues) >= 2:
+            profile['points_forts'].append('international')
+        if any('management' in skill.lower() or 'leadership' in skill.lower() 
+               for skill in soft_skills):
+            profile['points_forts'].append('leadership')
+        
+        return profile
+    
     def _apply_intelligent_reasoning(
         self, 
         candidat: Dict[str, Any], 
@@ -634,43 +898,22 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
             'recommandations': recommandations
         }
     
-    def _calculate_final_score(
-        self, 
-        scores: Dict[str, Any], 
-        intelligence_bonus: Dict[str, Any]
-    ) -> float:
-        """
-        Calcule le score final avec pondération et bonus intelligence
-        """
-        # Score de base pondéré
-        base_score = (
-            scores['localisation'] * self.config['ponderation']['localisation'] +
-            scores['experience'] * self.config['ponderation']['experience'] +
-            scores['remuneration'] * self.config['ponderation']['remuneration'] +
-            scores['competences'] * self.config['ponderation']['competences']
-        )
-        
-        # Ajouter le bonus intelligence
-        final_score = base_score + intelligence_bonus['total']
-        
-        # Limiter entre 0 et 100
-        return min(100, max(0, final_score))
-    
     def _generate_intelligent_explanations(
         self,
         candidat: Dict[str, Any],
         offre: Dict[str, Any],
         scores: Dict[str, Any],
         intelligence_bonus: Dict[str, Any],
-        candidat_profile: Dict[str, Any]
+        candidat_profile: Dict[str, Any],
+        dynamic_weights: Dict[str, float]
     ) -> Dict[str, str]:
         """
-        Génère des explications intelligentes pour l'entreprise
+        Génère des explications intelligentes avec info sur pondération dynamique
         """
         explanations = {}
         
         # Résumé global
-        total_score = self._calculate_final_score(scores, intelligence_bonus)
+        total_score = self._calculate_final_score_dynamic(scores, intelligence_bonus, dynamic_weights)
         
         if total_score >= 85:
             explanations['global'] = "🏆 CANDIDAT EXCELLENT - Correspondance exceptionnelle sur tous les critères"
@@ -681,13 +924,25 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         else:
             explanations['global'] = "⚠️ CANDIDAT À RISQUE - Correspondance faible, recrutement difficile"
         
+        # ⚡ Explication pondération dynamique
+        priorites_info = []
+        for critere, poids in dynamic_weights.items():
+            poids_base = self.config['ponderation_base'][critere]
+            if poids > poids_base * 1.1:
+                priorites_info.append(f"{critere.upper()}: priorité élevée ({poids*100:.1f}%)")
+            elif poids < poids_base * 0.9:
+                priorites_info.append(f"{critere}: priorité réduite ({poids*100:.1f}%)")
+        
+        if priorites_info:
+            explanations['ponderation'] = "🎛️ PONDÉRATION ADAPTÉE: " + " | ".join(priorites_info)
+        
         # Explication par critère
-        if scores['localisation'] >= 80:
-            explanations['localisation'] = "✅ Localisation excellente - Pas de problème de trajet"
-        elif scores['localisation'] >= 60:
-            explanations['localisation'] = "⚖️ Localisation acceptable - Trajet gérable"
+        if scores['proximite'] >= 80:
+            explanations['proximite'] = "✅ Proximité excellente - Pas de problème de trajet"
+        elif scores['proximite'] >= 60:
+            explanations['proximite'] = "⚖️ Proximité acceptable - Trajet gérable"
         else:
-            explanations['localisation'] = "⚠️ Localisation problématique - Trajet long ou difficile"
+            explanations['proximite'] = "⚠️ Proximité problématique - Trajet long ou difficile"
         
         if scores['experience'] >= 85:
             explanations['experience'] = "✅ Expérience parfaitement adaptée au poste"
@@ -709,6 +964,14 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
             explanations['competences'] = "⚖️ Compétences correctes - Quelques formations à prévoir"
         else:
             explanations['competences'] = "⚠️ Compétences insuffisantes - Formation importante nécessaire"
+        
+        # ⭐ NOUVEAU: Explication flexibilité
+        if scores['flexibilite'] >= 85:
+            explanations['flexibilite'] = "✅ Flexibilité excellente - Attentes parfaitement satisfaites"
+        elif scores['flexibilite'] >= 70:
+            explanations['flexibilite'] = "⚖️ Flexibilité correcte - Quelques compromis nécessaires"
+        else:
+            explanations['flexibilite'] = "⚠️ Flexibilité insuffisante - Attentes non satisfaites"
         
         # Ajouter les insights intelligence
         if intelligence_bonus['raisons']:
@@ -762,7 +1025,7 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
             'opportunites': opportunities
         }
     
-    # Méthodes utilitaires
+    # Méthodes utilitaires (maintenues identiques)
     
     def _same_region(self, location1: str, location2: str) -> bool:
         """Vérifie si deux localisations sont dans la même région"""
@@ -839,7 +1102,8 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         self, 
         candidat: Dict[str, Any], 
         offre: Dict[str, Any], 
-        index: int
+        index: int,
+        dynamic_weights: Dict[str, float]
     ) -> Dict[str, Any]:
         """Crée un résultat de fallback en cas d'erreur"""
         return {
@@ -847,11 +1111,13 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
             'titre': offre.get('titre', 'Poste sans titre'),
             'entreprise': offre.get('entreprise', 'Entreprise'),
             'matching_score_entreprise': 60,
+            'ponderation_dynamique': dynamic_weights,
             'scores_detailles': {
-                'localisation': {'pourcentage': 60, 'details': ['Analyse limitée']},
-                'experience': {'pourcentage': 60, 'details': ['Analyse limitée']},
-                'remuneration': {'pourcentage': 60, 'details': ['Analyse limitée']},
-                'competences': {'pourcentage': 60, 'details': ['Analyse limitée']}
+                'proximite': {'pourcentage': 60, 'details': ['Analyse limitée'], 'poids': round(dynamic_weights.get('proximite', 0.25)*100, 1)},
+                'experience': {'pourcentage': 60, 'details': ['Analyse limitée'], 'poids': round(dynamic_weights.get('experience', 0.25)*100, 1)},
+                'remuneration': {'pourcentage': 60, 'details': ['Analyse limitée'], 'poids': round(dynamic_weights.get('remuneration', 0.25)*100, 1)},
+                'competences': {'pourcentage': 60, 'details': ['Analyse limitée'], 'poids': round(dynamic_weights.get('competences', 0.25)*100, 1)},
+                'flexibilite': {'pourcentage': 60, 'details': ['Analyse limitée'], 'poids': round(dynamic_weights.get('flexibilite', 0.15)*100, 1)}
             },
             'intelligence': {
                 'bonus_applique': 0,
@@ -870,11 +1136,17 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         }
     
     def get_algorithm_info(self) -> Dict[str, Any]:
-        """Retourne les informations sur l'algorithme SuperSmartMatch"""
+        """Retourne les informations sur l'algorithme SuperSmartMatch v2.1"""
         return {
             "name": self.name,
             "description": self.description,
             "version": self.version,
+            "new_features": {
+                "dynamic_weighting": "Pondération adaptée aux priorités candidat",
+                "flexibility_scoring": "Nouveau critère flexibilité (télétravail, horaires, RTT)",
+                "candidate_priorities": "Support questionnaire_data avec notes 1-10",
+                "bidirectional_matching": "Matching personnalisé dans les deux sens"
+            },
             "capabilities": {
                 "intelligent_reasoning": True,
                 "company_perspective": True,
@@ -882,14 +1154,36 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
                 "location_analysis": True,
                 "salary_compatibility": True,
                 "skills_breakdown": True,
+                "flexibility_analysis": True,  # ⭐ NOUVEAU
+                "dynamic_weighting": True,    # ⭐ NOUVEAU
                 "risk_analysis": True,
                 "evolution_matching": True
             },
             "scoring_criteria": {
-                "localisation": "Temps de trajet, mobilité, télétravail",
+                "proximite": "Temps de trajet, mobilité, télétravail",
                 "experience": "Adéquation niveau, potentiel, surqualification",
                 "remuneration": "Compatibilité budget entreprise",
-                "competences": "Techniques, langues, logiciels"
+                "competences": "Techniques, langues, logiciels",
+                "flexibilite": "Télétravail, horaires flexibles, RTT"  # ⭐ NOUVEAU
+            },
+            "dynamic_levers": {  # ⭐ NOUVEAU
+                "evolution": "Perspectives, ambition, formation → Influence expérience + compétences",
+                "remuneration": "Salaire, avantages → Influence rémunération",
+                "proximite": "Localisation, temps trajet → Influence proximité",
+                "flexibilite": "Télétravail, horaires, RTT → Influence flexibilité"
+            },
+            "questionnaire_structure": {  # ⭐ NOUVEAU
+                "priorites_candidat": {
+                    "evolution": "Note 1-10",
+                    "remuneration": "Note 1-10",
+                    "proximite": "Note 1-10",
+                    "flexibilite": "Note 1-10"
+                },
+                "flexibilite_attendue": {
+                    "teletravail": "aucun/partiel/total",
+                    "horaires_flexibles": "boolean",
+                    "rtt_important": "boolean"
+                }
             },
             "intelligent_bonuses": [
                 "Évolution rapide × Perspectives",
@@ -901,3 +1195,133 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
             ],
             "initialized": self.initialized
         }
+
+# ===== 🧪 TESTS INTÉGRÉS =====
+
+def test_dynamic_weighting():
+    """
+    🧪 Tests pour valider la pondération dynamique
+    """
+    print("🧪 === TESTS PONDÉRATION DYNAMIQUE ===")
+    
+    algorithm = SuperSmartMatchAlgorithm()
+    
+    # Test 1: Candidat "salaire prioritaire"
+    print("\n📊 Test 1: Candidat salaire prioritaire")
+    candidat_salaire = {
+        'id': 'test_1',
+        'annees_experience': 5,
+        'salaire_souhaite': 50000,
+        'questionnaire_data': {
+            'priorites_candidat': {
+                'evolution': 3,      # Faible
+                'remuneration': 9,   # Très élevé
+                'proximite': 6,      # Moyen
+                'flexibilite': 5     # Moyen
+            }
+        }
+    }
+    
+    weights_salaire = algorithm.calculate_dynamic_weights(candidat_salaire)
+    print(f"Pondération adaptée: {weights_salaire}")
+    assert weights_salaire['remuneration'] > algorithm.config['ponderation_base']['remuneration']
+    print("✅ Test 1 réussi: Rémunération bien priorisée")
+    
+    # Test 2: Candidat "évolution prioritaire"
+    print("\n📊 Test 2: Candidat évolution prioritaire")
+    candidat_evolution = {
+        'id': 'test_2',
+        'annees_experience': 3,
+        'questionnaire_data': {
+            'priorites_candidat': {
+                'evolution': 10,     # Maximum
+                'remuneration': 4,   # Faible
+                'proximite': 5,      # Moyen
+                'flexibilite': 6     # Moyen
+            }
+        }
+    }
+    
+    weights_evolution = algorithm.calculate_dynamic_weights(candidat_evolution)
+    print(f"Pondération adaptée: {weights_evolution}")
+    # Évolution influence experience + competences
+    assert (weights_evolution['experience'] > algorithm.config['ponderation_base']['experience'] or
+            weights_evolution['competences'] > algorithm.config['ponderation_base']['competences'])
+    print("✅ Test 2 réussi: Évolution bien priorisée")
+    
+    # Test 3: Candidat "flexibilité prioritaire"
+    print("\n📊 Test 3: Candidat flexibilité prioritaire")
+    candidat_flex = {
+        'id': 'test_3',
+        'questionnaire_data': {
+            'priorites_candidat': {
+                'evolution': 4,      # Faible
+                'remuneration': 5,   # Moyen
+                'proximite': 3,      # Faible
+                'flexibilite': 10    # Maximum
+            },
+            'flexibilite_attendue': {
+                'teletravail': 'partiel',
+                'horaires_flexibles': True,
+                'rtt_important': True
+            }
+        }
+    }
+    
+    weights_flex = algorithm.calculate_dynamic_weights(candidat_flex)
+    print(f"Pondération adaptée: {weights_flex}")
+    assert weights_flex['flexibilite'] > algorithm.config['ponderation_base']['flexibilite']
+    print("✅ Test 3 réussi: Flexibilité bien priorisée")
+    
+    # Test 4: Pas de questionnaire (fallback)
+    print("\n📊 Test 4: Pas de questionnaire (fallback)")
+    candidat_vide = {'id': 'test_4'}
+    weights_vide = algorithm.calculate_dynamic_weights(candidat_vide)
+    assert weights_vide == algorithm.config['ponderation_base']
+    print("✅ Test 4 réussi: Fallback vers pondération de base")
+    
+    print("\n🎉 Tous les tests de pondération dynamique réussis!")
+
+def test_flexibility_scoring():
+    """
+    🧪 Tests pour valider le scoring flexibilité
+    """
+    print("\n🧪 === TESTS SCORING FLEXIBILITÉ ===")
+    
+    algorithm = SuperSmartMatchAlgorithm()
+    
+    # Test offre avec télétravail partiel + horaires flexibles
+    offre_flexible = {
+        'id': 'job_flex',
+        'titre': 'Développeur Full Stack',
+        'politique_remote': 'télétravail partiel possible',
+        'horaires_flexibles': True,
+        'jours_rtt': 12,
+        'avantages': ['mutuelle', 'tickets resto']
+    }
+    
+    # Test candidat qui veut télétravail + flexibilité
+    candidat_flexible = {
+        'questionnaire_data': {
+            'flexibilite_attendue': {
+                'teletravail': 'partiel',
+                'horaires_flexibles': True,
+                'rtt_important': True
+            }
+        }
+    }
+    
+    scores = algorithm._calculate_flexibility_score_detailed(candidat_flexible, offre_flexible)
+    print(f"Score flexibilité: {scores['flexibilite']:.1f}%")
+    print(f"Détails: {scores['flexibilite_details']}")
+    
+    assert scores['flexibilite'] >= 80  # Devrait être élevé
+    print("✅ Test flexibilité réussi: Score élevé pour correspondance")
+    
+    print("\n🎉 Tests scoring flexibilité réussis!")
+
+if __name__ == "__main__":
+    # Exécuter les tests si le script est lancé directement
+    test_dynamic_weighting()
+    test_flexibility_scoring()
+    print("\n🚀 SuperSmartMatch v2.1 avec pondération dynamique prêt!")
