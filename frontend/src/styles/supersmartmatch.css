@@ -1,0 +1,364 @@
+/* Styles spécifiques pour SuperSmartMatch Unifié */
+
+/* Variables CSS */
+:root {
+  --ssm-primary: #2563eb;
+  --ssm-secondary: #7c3aed;
+  --ssm-success: #16a34a;
+  --ssm-warning: #ca8a04;
+  --ssm-error: #dc2626;
+  --ssm-info: #0891b2;
+  
+  --ssm-gradient-primary: linear-gradient(135deg, var(--ssm-primary) 0%, var(--ssm-secondary) 100%);
+  --ssm-gradient-success: linear-gradient(135deg, var(--ssm-success) 0%, var(--ssm-info) 100%);
+  
+  --ssm-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --ssm-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --ssm-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  --ssm-animation-duration: 0.3s;
+  --ssm-animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animations personnalisées */
+@keyframes ssm-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ssm-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ssm-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes ssm-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translate3d(0, -5px, 0);
+  }
+  70% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translate3d(0, -3px, 0);
+  }
+  90% {
+    transform: translate3d(0, -1px, 0);
+  }
+}
+
+@keyframes ssm-progress-bar {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: var(--progress-width, 0%);
+  }
+}
+
+/* Classes utilitaires SuperSmartMatch */
+.ssm-fade-in {
+  animation: ssm-fade-in var(--ssm-animation-duration) var(--ssm-animation-easing);
+}
+
+.ssm-slide-in-right {
+  animation: ssm-slide-in-right var(--ssm-animation-duration) var(--ssm-animation-easing);
+}
+
+.ssm-pulse {
+  animation: ssm-pulse 2s infinite;
+}
+
+.ssm-bounce {
+  animation: ssm-bounce 1s infinite;
+}
+
+.ssm-gradient-text {
+  background: var(--ssm-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ssm-gradient-bg {
+  background: var(--ssm-gradient-primary);
+}
+
+.ssm-gradient-bg-success {
+  background: var(--ssm-gradient-success);
+}
+
+.ssm-shadow-glow {
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
+}
+
+.ssm-shadow-glow-success {
+  box-shadow: 0 0 20px rgba(22, 163, 74, 0.3);
+}
+
+/* Composants spécifiques */
+
+/* Indicateur d'étapes */
+.ssm-step-indicator {
+  @apply relative;
+}
+
+.ssm-step-indicator::after {
+  content: '';
+  @apply absolute top-8 left-8 w-full h-0.5 bg-gray-200;
+  z-index: -1;
+}
+
+.ssm-step-indicator.completed::after {
+  @apply bg-green-500;
+  animation: ssm-progress-bar 1s var(--ssm-animation-easing);
+}
+
+/* Upload zone */
+.ssm-upload-zone {
+  @apply border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-all duration-300;
+}
+
+.ssm-upload-zone:hover {
+  @apply border-blue-400 bg-blue-50;
+  transform: translateY(-2px);
+  box-shadow: var(--ssm-shadow-md);
+}
+
+.ssm-upload-zone.has-file {
+  @apply border-green-400 bg-green-50;
+  box-shadow: var(--ssm-shadow-glow-success);
+}
+
+/* Sliders personnalisés */
+.ssm-slider {
+  @apply w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+}
+
+.ssm-slider::-webkit-slider-thumb {
+  @apply appearance-none w-5 h-5 bg-blue-600 rounded-full cursor-pointer;
+  box-shadow: var(--ssm-shadow-sm);
+  transition: all var(--ssm-animation-duration) var(--ssm-animation-easing);
+}
+
+.ssm-slider::-webkit-slider-thumb:hover {
+  @apply bg-blue-700;
+  transform: scale(1.1);
+  box-shadow: var(--ssm-shadow-md);
+}
+
+.ssm-slider::-moz-range-thumb {
+  @apply w-5 h-5 bg-blue-600 rounded-full cursor-pointer border-0;
+  box-shadow: var(--ssm-shadow-sm);
+  transition: all var(--ssm-animation-duration) var(--ssm-animation-easing);
+}
+
+.ssm-slider::-moz-range-thumb:hover {
+  @apply bg-blue-700;
+  transform: scale(1.1);
+  box-shadow: var(--ssm-shadow-md);
+}
+
+/* Cartes de score */
+.ssm-score-card {
+  @apply bg-white rounded-lg p-6 text-center;
+  box-shadow: var(--ssm-shadow-md);
+  transition: all var(--ssm-animation-duration) var(--ssm-animation-easing);
+}
+
+.ssm-score-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--ssm-shadow-lg);
+}
+
+.ssm-score-excellent {
+  @apply text-green-600 bg-green-100;
+  animation: ssm-pulse 2s infinite;
+}
+
+.ssm-score-good {
+  @apply text-blue-600 bg-blue-100;
+}
+
+.ssm-score-average {
+  @apply text-yellow-600 bg-yellow-100;
+}
+
+.ssm-score-low {
+  @apply text-red-600 bg-red-100;
+}
+
+/* Barre de progression */
+.ssm-progress-bar {
+  @apply w-full bg-gray-200 rounded-full h-3 overflow-hidden;
+}
+
+.ssm-progress-fill {
+  @apply h-full rounded-full transition-all duration-1000 ease-out;
+  background: var(--ssm-gradient-success);
+  animation: ssm-progress-bar 1s var(--ssm-animation-easing);
+}
+
+/* Boutons personnalisés */
+.ssm-btn {
+  @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.ssm-btn-primary {
+  @apply text-white;
+  background: var(--ssm-gradient-primary);
+  box-shadow: var(--ssm-shadow-sm);
+}
+
+.ssm-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ssm-shadow-md), var(--ssm-shadow-glow);
+}
+
+.ssm-btn-primary:disabled {
+  @apply opacity-50 cursor-not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.ssm-btn-success {
+  @apply text-white;
+  background: var(--ssm-gradient-success);
+  box-shadow: var(--ssm-shadow-sm);
+}
+
+.ssm-btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ssm-shadow-md), var(--ssm-shadow-glow-success);
+}
+
+/* Notifications */
+.ssm-notification {
+  @apply p-4 rounded-lg border-l-4;
+  animation: ssm-slide-in-right var(--ssm-animation-duration) var(--ssm-animation-easing);
+}
+
+.ssm-notification-success {
+  @apply bg-green-50 border-green-400 text-green-700;
+}
+
+.ssm-notification-error {
+  @apply bg-red-50 border-red-400 text-red-700;
+}
+
+.ssm-notification-info {
+  @apply bg-blue-50 border-blue-400 text-blue-700;
+}
+
+.ssm-notification-warning {
+  @apply bg-yellow-50 border-yellow-400 text-yellow-700;
+}
+
+/* Spinner de chargement */
+.ssm-spinner {
+  @apply inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .ssm-upload-zone {
+    @apply p-4;
+  }
+  
+  .ssm-score-card {
+    @apply p-4;
+  }
+  
+  .ssm-btn {
+    @apply px-4 py-2 text-sm;
+  }
+}
+
+/* Mode sombre (optionnel) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ssm-primary: #3b82f6;
+    --ssm-secondary: #8b5cf6;
+  }
+  
+  .ssm-upload-zone {
+    @apply bg-gray-800 border-gray-600 text-gray-200;
+  }
+  
+  .ssm-upload-zone:hover {
+    @apply bg-gray-700 border-blue-400;
+  }
+  
+  .ssm-score-card {
+    @apply bg-gray-800 text-gray-200;
+  }
+}
+
+/* Accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  .ssm-fade-in,
+  .ssm-slide-in-right,
+  .ssm-pulse,
+  .ssm-bounce,
+  .ssm-progress-fill {
+    animation: none;
+  }
+  
+  .ssm-btn:hover,
+  .ssm-score-card:hover,
+  .ssm-upload-zone:hover {
+    transform: none;
+  }
+}
+
+/* Focus pour accessibilité */
+.ssm-btn:focus,
+.ssm-slider:focus,
+input:focus,
+textarea:focus {
+  @apply ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* Print styles */
+@media print {
+  .ssm-btn,
+  .ssm-upload-zone {
+    @apply shadow-none;
+  }
+  
+  .ssm-gradient-bg,
+  .ssm-gradient-bg-success {
+    background: var(--ssm-primary) !important;
+    color: white !important;
+  }
+}
