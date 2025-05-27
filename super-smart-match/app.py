@@ -153,6 +153,6 @@ def match():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    port = 5060
+    port = 5061  # Changé de 5060 à 5061 pour éviter les conflits
     logger.info(f"🚀 Démarrage sur le port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
