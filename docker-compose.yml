@@ -85,6 +85,7 @@ services:
           cpus: '0.5'
           memory: 512M
 
+  # API PRINCIPALE
   api:
     build:
       context: ./backend
@@ -99,6 +100,8 @@ services:
         condition: service_healthy
       storage:
         condition: service_healthy
+      supersmartmatch-unified:
+        condition: service_started
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
       REDIS_URL: redis://redis:6379/0
@@ -107,7 +110,9 @@ services:
       MINIO_SECRET_KEY: minioadmin
       CV_PARSER_SERVICE_URL: http://cv-parser:5000
       JOB_PARSER_SERVICE_URL: http://job-parser:5000
-      MATCHING_SERVICE_URL: http://matching-api:5000
+      # NOUVEAU: Service unifié remplace l'ancien matching
+      MATCHING_SERVICE_URL: http://supersmartmatch-unified:5052
+      SUPERSMARTMATCH_UNIFIED_URL: http://supersmartmatch-unified:5052
       USER_BEHAVIOR_SERVICE_URL: http://user-behavior-api:5000
       FEEDBACK_SERVICE_URL: http://feedback-service:5000
       PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
@@ -130,6 +135,244 @@ services:
           cpus: '0.5'
           memory: 512M
 
+  # =============================================================================
+  # NOUVEAU SERVICE SUPERSMARTMATCH UNIFIÉ (Remplace l'ancien matching-api)
+  # =============================================================================
+  supersmartmatch-unified:
+    build:
+      context: ./super-smart-match-unified
+      dockerfile: Dockerfile
+    container_name: nexten-supersmartmatch-unified
+    ports:
+      - "5052:5052"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+      cv-parser:
+        condition: service_started
+      job-parser:
+        condition: service_started
+    environment:
+      <<: *common-redis-env
+      PORT: 5052
+      DEBUG: "false"
+      CV_PARSER_URL: http://cv-parser:5000
+      JOB_PARSER_URL: http://job-parser:5000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+      
+      # Configuration ML (optionnel)
+      ENABLE_SEMANTIC_ANALYSIS: "true"
+      ENABLE_NER_EXTRACTION: "true"
+      ENABLE_AUTO_LEARNING: "true"
+      
+      # OpenAI pour analyse avancée (optionnel)
+      OPENAI_API_KEY: ${OPENAI:-}
+      
+      # Monitoring
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    env_file:
+      - .env
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    volumes:
+      - ./super-smart-match-unified/models:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5052/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+        reservations:
+          cpus: '0.75'
+          memory: 1G
+
+  # SERVICES DE PARSING (MAINTENUS)
+  # Service API de parsing CV - FastAPI
+  cv-parser:
+    build:
+      context: ./cv-parser-service
+      dockerfile: Dockerfile
+    container_name: nexten-cv-parser
+    command: python main.py
+    ports:
+      - "5051:5000"
+    volumes:
+      - ./cv-parser-service/logs:/app/logs
+      - ./cv-parser-service/temp:/app/temp
+    depends_on:
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      PORT: 5000
+      MINIO_BUCKET_NAME: cv-files
+      USE_MINIO_FOR_FILES: "true"
+      STORE_RESULTS_IN_REDIS: "true"
+      REDIS_RESULT_TTL: 3600
+      OPENAI: ${OPENAI:-}
+      OPENAI_MODEL: gpt-4o-mini
+      CIRCUIT_BREAKER_ENABLED: "false"
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    env_file:
+      - .env
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Service Worker de parsing CV - RQ
+  cv-parser-worker:
+    build:
+      context: ./cv-parser-service
+      dockerfile: Dockerfile
+    command: python worker.py
+    volumes:
+      - ./cv-parser-service/logs:/app/logs
+      - ./cv-parser-service/temp:/app/temp
+    depends_on:
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      MINIO_BUCKET_NAME: cv-files
+      USE_MINIO_FOR_FILES: "true"
+      STORE_RESULTS_IN_REDIS: "true"
+      REDIS_RESULT_TTL: 3600
+      OPENAI: ${OPENAI:-}
+      OPENAI_MODEL: gpt-4o-mini
+      CIRCUIT_BREAKER_ENABLED: "false"
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    env_file:
+      - .env
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Service API de parsing de fiches de poste - FastAPI
+  job-parser:
+    build:
+      context: ./job-parser-service
+      dockerfile: Dockerfile.simple
+    container_name: nexten-job-parser
+    command: python main.py
+    ports:
+      - "5053:5000"  # ATTENTION: Port changé de 5055 à 5053 pour la cohérence
+    volumes:
+      - ./job-parser-service/logs:/app/logs
+      - ./job-parser-service/temp:/app/temp
+    depends_on:
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      PORT: 5000
+      MINIO_BUCKET_NAME: job-files
+      USE_MINIO_FOR_FILES: "true"
+      STORE_RESULTS_IN_REDIS: "true"
+      REDIS_RESULT_TTL: 3600
+      OPENAI: ${OPENAI:-}
+      OPENAI_MODEL: gpt-4o-mini
+      CIRCUIT_BREAKER_ENABLED: "false"
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    env_file:
+      - .env
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Service Worker de parsing de fiches de poste - RQ
+  job-parser-worker:
+    build:
+      context: ./job-parser-service
+      dockerfile: Dockerfile.simple
+    command: python worker.py
+    volumes:
+      - ./job-parser-service/logs:/app/logs
+      - ./job-parser-service/temp:/app/temp
+    depends_on:
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      MINIO_BUCKET_NAME: job-files
+      USE_MINIO_FOR_FILES: "true"
+      STORE_RESULTS_IN_REDIS: "true"
+      REDIS_RESULT_TTL: 3600
+      OPENAI: ${OPENAI:-}
+      OPENAI_MODEL: gpt-4o-mini
+      CIRCUIT_BREAKER_ENABLED: "false"
+      MAX_RETRIES: 3
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    env_file:
+      - .env
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # SERVICES COMPLÉMENTAIRES (MAINTENUS)
   # Service d'analyse comportementale et profiling utilisateur
   user-behavior-api:
     build:
@@ -137,7 +380,7 @@ services:
       dockerfile: Dockerfile
     container_name: nexten-user-behavior
     ports:
-      - "5057:5000"  # Changé de 5054 à 5057
+      - "5057:5000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -150,7 +393,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
       LOG_LEVEL: INFO
       LOG_FORMAT: json
-      FLASK_APP: user_behavior.api.app  # Ajouté pour clarifier le point d'entrée
+      FLASK_APP: user_behavior.api.app
     networks:
       - nexten-network
     restart: unless-stopped
@@ -193,6 +436,8 @@ services:
       LOG_FORMAT: json
       FLASK_APP: feedback_service.api.app
       USER_BEHAVIOR_SERVICE_URL: http://user-behavior-api:5000
+      # NOUVEAU: Connexion au service unifié
+      SUPERSMARTMATCH_UNIFIED_URL: http://supersmartmatch-unified:5052
     networks:
       - nexten-network
     restart: unless-stopped
@@ -210,226 +455,6 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
-
-  # Service API de parsing CV - FastAPI
-  cv-parser:
-    build:
-      context: ./cv-parser-service
-      dockerfile: Dockerfile
-    container_name: nexten-cv-parser
-    command: python main.py
-    ports:
-      - "5051:5000"
-    volumes:
-      - ./cv-parser-service/logs:/app/logs
-      - ./cv-parser-service/temp:/app/temp
-    depends_on:
-      redis:
-        condition: service_healthy
-      storage:
-        condition: service_healthy
-    environment:
-      <<: *common-redis-env
-      DEBUG: "false"
-      PORT: 5000
-      MINIO_BUCKET_NAME: cv-files
-      USE_MINIO_FOR_FILES: "true"
-      STORE_RESULTS_IN_REDIS: "true"
-      REDIS_RESULT_TTL: 3600
-      OPENAI: ${OPENAI:-}
-      OPENAI_MODEL: gpt-4o-mini
-      CIRCUIT_BREAKER_ENABLED: "false"
-      MAX_RETRIES: 3
-      LOG_LEVEL: INFO
-      LOG_FORMAT: json
-      MATCHING_API_URL: http://matching-api:5000
-    env_file:
-      - .env
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-  # Service Worker de parsing CV - RQ
-  cv-parser-worker:
-    build:
-      context: ./cv-parser-service
-      dockerfile: Dockerfile
-    command: python worker.py
-    volumes:
-      - ./cv-parser-service/logs:/app/logs
-      - ./cv-parser-service/temp:/app/temp
-    depends_on:
-      redis:
-        condition: service_healthy
-      storage:
-        condition: service_healthy
-    environment:
-      <<: *common-redis-env
-      DEBUG: "false"
-      MINIO_BUCKET_NAME: cv-files
-      USE_MINIO_FOR_FILES: "true"
-      STORE_RESULTS_IN_REDIS: "true"
-      REDIS_RESULT_TTL: 3600
-      OPENAI: ${OPENAI:-}
-      OPENAI_MODEL: gpt-4o-mini
-      CIRCUIT_BREAKER_ENABLED: "false"
-      MAX_RETRIES: 3
-      LOG_LEVEL: INFO
-      LOG_FORMAT: json
-      MATCHING_API_URL: http://matching-api:5000
-    env_file:
-      - .env
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-
-  # Service API de parsing de fiches de poste - FastAPI
-  job-parser:
-    build:
-      context: ./job-parser-service
-      dockerfile: Dockerfile.simple
-    container_name: nexten-job-parser
-    command: python main.py
-    ports:
-      - "5055:5000"
-    volumes:
-      - ./job-parser-service/logs:/app/logs
-      - ./job-parser-service/temp:/app/temp
-    depends_on:
-      redis:
-        condition: service_healthy
-      storage:
-        condition: service_healthy
-    environment:
-      <<: *common-redis-env
-      DEBUG: "false"
-      PORT: 5000
-      MINIO_BUCKET_NAME: job-files
-      USE_MINIO_FOR_FILES: "true"
-      STORE_RESULTS_IN_REDIS: "true"
-      REDIS_RESULT_TTL: 3600
-      OPENAI: ${OPENAI:-}
-      OPENAI_MODEL: gpt-4o-mini
-      CIRCUIT_BREAKER_ENABLED: "false"
-      MAX_RETRIES: 3
-      LOG_LEVEL: INFO
-      LOG_FORMAT: json
-      MATCHING_API_URL: http://matching-api:5000
-    env_file:
-      - .env
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-  # Service Worker de parsing de fiches de poste - RQ
-  job-parser-worker:
-    build:
-      context: ./job-parser-service
-      dockerfile: Dockerfile.simple
-    command: python worker.py
-    volumes:
-      - ./job-parser-service/logs:/app/logs
-      - ./job-parser-service/temp:/app/temp
-    depends_on:
-      redis:
-        condition: service_healthy
-      storage:
-        condition: service_healthy
-    environment:
-      <<: *common-redis-env
-      DEBUG: "false"
-      MINIO_BUCKET_NAME: job-files
-      USE_MINIO_FOR_FILES: "true"
-      STORE_RESULTS_IN_REDIS: "true"
-      REDIS_RESULT_TTL: 3600
-      OPENAI: ${OPENAI:-}
-      OPENAI_MODEL: gpt-4o-mini
-      CIRCUIT_BREAKER_ENABLED: "false"
-      MAX_RETRIES: 3
-      LOG_LEVEL: INFO
-      LOG_FORMAT: json
-      MATCHING_API_URL: http://matching-api:5000
-    env_file:
-      - .env
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-
-  # Service API de matching - FastAPI
-  matching-api:
-    build:
-      context: ./matching-service
-      dockerfile: Dockerfile
-    container_name: nexten-matching-api
-    command: python main.py
-    ports:
-      - "5052:5000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      storage:
-        condition: service_healthy
-    environment:
-      <<: *common-redis-env
-      DEBUG: "false"
-      PORT: 5000
-      SERVICE_NAME: matching-api
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
-      MINIO_BUCKET_NAME: matching-results
-      REDIS_JOB_TIMEOUT: 3600
-      REDIS_JOB_TTL: 86400
-      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
-      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
-      MAX_RETRIES: 3
-      LOG_LEVEL: INFO
-      LOG_FORMAT: json
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
 
   # Service de personnalisation
   personalization-service:
@@ -449,7 +474,8 @@ services:
       DEBUG: "false"
       PORT: 5060
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
-      MATCHING_SERVICE_URL: http://matching-api:5000
+      # NOUVEAU: Connexion au service unifié
+      MATCHING_SERVICE_URL: http://supersmartmatch-unified:5052
       AB_TESTING_ENABLED: "true"
       COLLABORATIVE_FILTER_ENABLED: "true"
       TEMPORAL_DRIFT_ENABLED: "true"
@@ -480,18 +506,19 @@ services:
       dockerfile: Dockerfile
     container_name: nexten-data-adapter
     ports:
-      - "5053:5053"
+      - "5054:5053"  # Port externe changé pour éviter conflit avec job-parser
     depends_on:
       - cv-parser
       - job-parser
-      - matching-api
+      - supersmartmatch-unified
     environment:
       PORT: 5053
       DEBUG: "false"
       LOG_LEVEL: INFO
       CV_PARSER_URL: http://cv-parser:5000
       JOB_PARSER_URL: http://job-parser:5000
-      MATCHING_API_URL: http://matching-api:5000
+      # NOUVEAU: Connexion au service unifié
+      MATCHING_API_URL: http://supersmartmatch-unified:5052
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     networks:
       - nexten-network
@@ -505,120 +532,38 @@ services:
           cpus: '0.25'
           memory: 256M
 
-  # Worker de matching - Haute priorité
-  matching-worker-high:
+  # FRONTEND MIS À JOUR
+  frontend:
     build:
-      context: ./matching-service
+      context: ./frontend
       dockerfile: Dockerfile
-    command: python worker.py
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
+    container_name: nexten-frontend
+    ports:
+      - "3000:3000"
     environment:
-      <<: *common-redis-env
-      DEBUG: "false"
-      SERVICE_NAME: matching-worker-high
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
-      MINIO_BUCKET_NAME: matching-results
-      QUEUE_DEFAULT: matching_high
-      REDIS_JOB_TIMEOUT: 3600
-      REDIS_JOB_TTL: 86400
-      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
-      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
-      MAX_RETRIES: 3
-      LOG_LEVEL: INFO
-      LOG_FORMAT: json
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:5050
+      # NOUVEAU: Configuration pour SuperSmartMatch Unifié
+      - NEXT_PUBLIC_SUPERSMARTMATCH_URL=http://localhost:5052
+      - NEXT_PUBLIC_CV_PARSER_URL=http://localhost:5051
+      - NEXT_PUBLIC_JOB_PARSER_URL=http://localhost:5053
+      - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-}
+    depends_on:
+      - api
+      - supersmartmatch-unified
     networks:
       - nexten-network
     restart: unless-stopped
     deploy:
-      replicas: 2
       resources:
         limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
           cpus: '0.5'
           memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
 
-  # Worker de matching - Priorité standard
-  matching-worker-standard:
-    build:
-      context: ./matching-service
-      dockerfile: Dockerfile
-    command: python worker.py
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    environment:
-      <<: *common-redis-env
-      DEBUG: "false"
-      SERVICE_NAME: matching-worker-standard
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
-      MINIO_BUCKET_NAME: matching-results
-      QUEUE_DEFAULT: matching_standard
-      REDIS_JOB_TIMEOUT: 3600
-      REDIS_JOB_TTL: 86400
-      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
-      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
-      MAX_RETRIES: 3
-      LOG_LEVEL: INFO
-      LOG_FORMAT: json
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    deploy:
-      replicas: 3
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-
-  # Worker de matching - Traitement en masse
-  matching-worker-bulk:
-    build:
-      context: ./matching-service
-      dockerfile: Dockerfile
-    command: python worker.py
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    environment:
-      <<: *common-redis-env
-      DEBUG: "false"
-      SERVICE_NAME: matching-worker-bulk
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
-      MINIO_BUCKET_NAME: matching-results
-      QUEUE_DEFAULT: matching_bulk
-      REDIS_JOB_TIMEOUT: 3600
-      REDIS_JOB_TTL: 86400
-      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-your-secret-key}
-      PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
-      MAX_RETRIES: 3
-      LOG_LEVEL: INFO
-      LOG_FORMAT: json
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-
+  # MONITORING ET OUTILS
   # Interface pour monitorer Redis
   redis-commander:
     image: rediscommander/redis-commander:latest
@@ -657,31 +602,6 @@ services:
           cpus: '0.25'
           memory: 256M
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: nexten-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:5050
-      - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-}
-    depends_on:
-      - api
-    networks:
-      - nexten-network
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
 networks:
   nexten-network:
     driver: bridge
@@ -690,3 +610,30 @@ volumes:
   postgres-data:
   redis-data:
   minio-data:
+
+# ==============================================================================
+# NOTES DE MIGRATION :
+# ==============================================================================
+# 
+# 1. ❌ SUPPRIMÉ : Ancien service 'matching-api' et ses workers
+#    - matching-api (port 5052) → Remplacé par supersmartmatch-unified
+#    - matching-worker-high, matching-worker-standard, matching-worker-bulk
+#
+# 2. ✅ NOUVEAU : Service 'supersmartmatch-unified' (port 5052)
+#    - Pipeline complet : Parsing → Questionnaire → Matching
+#    - Intégration ML optionnelle (sémantique, NER, apprentissage)
+#    - Fallback robuste si ML indisponible
+#    - Cache intelligent avec Redis
+#
+# 3. 🔧 MODIFIÉ : Ports et connexions
+#    - job-parser : 5055 → 5053 (cohérence)
+#    - data-adapter : Port externe 5053 → 5054 (éviter conflit)
+#    - Toutes les références vers matching-api pointent maintenant vers supersmartmatch-unified
+#
+# 4. 🎯 RÉSULTAT :
+#    - UN SEUL algorithme de matching unifié
+#    - Moins de complexité et de redondance
+#    - Meilleure performance et maintenabilité
+#    - Intégration frontend optimisée
+#
+# ==============================================================================

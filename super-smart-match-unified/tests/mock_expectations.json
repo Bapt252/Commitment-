@@ -1,0 +1,43 @@
+[
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/parse-cv/"
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": ["application/json"]
+      },
+      "body": {
+        "competences": ["Python", "Django", "React", "PostgreSQL"],
+        "experience_totale": 5,
+        "niveau_formation": 5,
+        "localisation": "Paris",
+        "texte_complet": "Développeur full-stack avec 5 ans d'expérience en Python/Django et React",
+        "parsing_confidence": 0.9
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/api/parse-job"
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": ["application/json"]
+      },
+      "body": {
+        "competences_requises": ["Python", "Django", "JavaScript", "SQL"],
+        "experience_requise": 3,
+        "niveau_formation_requis": 3,
+        "localisation": "Paris",
+        "salaire_max": 55000,
+        "description": "Nous recherchons un développeur Python/Django expérimenté",
+        "parsing_confidence": 0.85
+      }
+    }
+  }
+]

@@ -1,0 +1,78 @@
+# Docker Compose pour tester SuperSmartMatch Unifié en isolation
+version: '3.8'
+
+services:
+  # Redis pour le cache
+  redis-test:
+    image: redis:alpine
+    container_name: test-redis
+    ports:
+      - "6380:6379"
+    networks:
+      - test-network
+
+  # PostgreSQL pour les données
+  postgres-test:
+    image: postgres:14
+    container_name: test-postgres
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test_nexten
+    ports:
+      - "5433:5432"
+    networks:
+      - test-network
+
+  # SuperSmartMatch Unifié en mode test
+  supersmartmatch-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: test-supersmartmatch
+    ports:
+      - "5052:5052"
+    depends_on:
+      - redis-test
+      - postgres-test
+    environment:
+      PORT: 5052
+      DEBUG: "true"
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      DATABASE_URL: postgresql://test:test@postgres-test:5432/test_nexten
+      CV_PARSER_URL: http://mockserver:5051
+      JOB_PARSER_URL: http://mockserver:5053
+      
+      # Features ML désactivées pour les tests
+      ENABLE_SEMANTIC_ANALYSIS: "false"
+      ENABLE_NER_EXTRACTION: "false"
+      ENABLE_AUTO_LEARNING: "false"
+      
+      LOG_LEVEL: DEBUG
+    networks:
+      - test-network
+    volumes:
+      - ./test_models:/app/models
+
+  # Mock server pour simuler les services de parsing
+  mockserver:
+    image: mockserver/mockserver:latest
+    container_name: test-mockserver
+    ports:
+      - "5051:1080"
+      - "5053:1080"
+    environment:
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/expectations.json
+    volumes:
+      - ./tests/mock_expectations.json:/config/expectations.json
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  test_models:
