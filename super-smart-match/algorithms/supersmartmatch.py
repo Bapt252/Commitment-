@@ -20,6 +20,7 @@ import logging
 import math
 import requests
 import time
+import re
 from typing import Dict, List, Any, Tuple, Optional
 from datetime import datetime
 
@@ -394,6 +395,9 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         """
         ⭐ NOUVEAU: Convertit un temps de trajet en score de proximité
         """
+        if duration_minutes is None:
+            return 50
+        
         seuils = self.config['google_maps']['seuils_temps']
         
         if duration_minutes <= seuils['excellent']:
@@ -444,6 +448,48 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         
         details.append("⚠️ Calcul approximatif - Google Maps non disponible")
         return score, details
+
+    def _same_region(self, location1: str, location2: str) -> bool:
+        """Vérifie si deux localisations sont dans la même région"""
+        paris_areas = ['paris', 'boulogne', 'neuilly', 'levallois', 'issy', 'courbevoie', 'nanterre']
+        lyon_areas = ['lyon', 'villeurbanne', 'caluire']
+        
+        location1 = location1.lower()
+        location2 = location2.lower()
+        
+        # Vérifier si les deux sont dans la région parisienne
+        if any(area in location1 for area in paris_areas) and any(area in location2 for area in paris_areas):
+            return True
+        
+        # Vérifier si les deux sont dans la région lyonnaise
+        if any(area in location1 for area in lyon_areas) and any(area in location2 for area in lyon_areas):
+            return True
+        
+        return False
+
+    def _estimate_distance(self, location1: str, location2: str) -> int:
+        """Estime la distance entre deux villes en km"""
+        # Distances approximatives entre grandes villes françaises
+        distances = {
+            ('paris', 'lyon'): 465,
+            ('paris', 'marseille'): 775,
+            ('paris', 'toulouse'): 680,
+            ('paris', 'nice'): 930,
+            ('paris', 'bordeaux'): 580,
+            ('lyon', 'marseille'): 315,
+            ('lyon', 'toulouse'): 360,
+        }
+        
+        location1 = location1.lower()
+        location2 = location2.lower()
+        
+        # Chercher dans le dictionnaire
+        for (city1, city2), distance in distances.items():
+            if (city1 in location1 and city2 in location2) or (city1 in location2 and city2 in location1):
+                return distance
+        
+        # Estimation par défaut
+        return 50
     
     def supports(self, candidat: Dict[str, Any], offres: List[Dict[str, Any]]) -> bool:
         """SuperSmartMatch peut traiter tous types de données"""
@@ -625,71 +671,6 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         logger.info(f"🎯 Pondération dynamique finale: {weights_normalises}")
         return weights_normalises
     
-    def get_algorithm_info(self) -> Dict[str, Any]:
-        """Retourne les informations sur l'algorithme SuperSmartMatch v2.2"""
-        return {
-            "name": self.name,
-            "description": self.description,
-            "version": self.version,
-            "parent_version": "2.1",  # ⭐ NOUVEAU: Lien avec v2.1
-            "new_features": {
-                "google_maps_integration": "Calcul temps de trajet réel via Google Maps API",
-                "multi_transport_modes": "Support voiture, transport en commun, vélo, marche",
-                "real_time_traffic": "Prise en compte trafic temps réel",
-                "transit_details": "Détails lignes transport en commun",
-                "travel_cache": "Cache intelligent pour optimiser performances",
-                "backward_compatibility": "Compatible avec v2.1 + fallback automatique"
-            },
-            "capabilities": {
-                "intelligent_reasoning": True,
-                "company_perspective": True,
-                "detailed_scoring": True,
-                "google_maps_integration": self.use_google_maps,  # ⭐ NOUVEAU
-                "real_travel_times": self.use_google_maps,        # ⭐ NOUVEAU
-                "multi_transport_modes": self.use_google_maps,    # ⭐ NOUVEAU
-                "salary_compatibility": True,
-                "skills_breakdown": True,
-                "flexibility_analysis": True,
-                "dynamic_weighting": True,
-                "risk_analysis": True,
-                "evolution_matching": True
-            },
-            "transport_modes": {  # ⭐ NOUVEAU
-                "driving": "Voiture (avec trafic temps réel)",
-                "transit": "Transport en commun (horaires temps réel)",
-                "walking": "À pied",
-                "bicycling": "Vélo"
-            },
-            "google_maps_config": {  # ⭐ NOUVEAU
-                "api_enabled": self.use_google_maps,
-                "cache_enabled": True,
-                "supported_regions": ["FR", "Europe"],
-                "real_time_traffic": True,
-                "departure_time_support": True
-            },
-            "questionnaire_structure": {
-                "priorites_candidat": {
-                    "evolution": "Note 1-10",
-                    "remuneration": "Note 1-10",
-                    "proximite": "Note 1-10",
-                    "flexibilite": "Note 1-10"
-                },
-                "transport_preferences": {  # ⭐ NOUVEAU
-                    "transport_prefere": "driving/transit/walking/bicycling",
-                    "heure_depart_travail": "HH:MM format",
-                    "temps_trajet_max": "minutes (optionnel)"
-                },
-                "flexibilite_attendue": {
-                    "teletravail": "aucun/partiel/total",
-                    "horaires_flexibles": "boolean",
-                    "rtt_important": "boolean"
-                }
-            },
-            "initialized": self.initialized
-        }
-
-    # ===== MÉTHODES HÉRITÉES DE v2.1 (identiques) =====
-    
     def _calculate_detailed_scores(
         self, 
         candidat: Dict[str, Any], 
@@ -702,26 +683,203 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         # 1. PROXIMITÉ (avec Google Maps v2.2)
         scores.update(self._calculate_location_score_detailed(candidat, offre))
         
-        # 2. EXPÉRIENCE (identique v2.1)
+        # 2. EXPÉRIENCE
         scores.update(self._calculate_experience_score_detailed(candidat, offre, candidat_profile))
         
-        # 3. RÉMUNÉRATION (identique v2.1)
+        # 3. RÉMUNÉRATION
         scores.update(self._calculate_salary_score_detailed(candidat, offre))
         
-        # 4. COMPÉTENCES (identique v2.1)
+        # 4. COMPÉTENCES
         scores.update(self._calculate_skills_score_detailed(candidat, offre))
         
-        # 5. FLEXIBILITÉ (identique v2.1)
+        # 5. FLEXIBILITÉ
         scores.update(self._calculate_flexibility_score_detailed(candidat, offre))
         
         return scores
+    
+    def _calculate_experience_score_detailed(
+        self, 
+        candidat: Dict[str, Any], 
+        offre: Dict[str, Any],
+        candidat_profile: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Calcule le score d'expérience détaillé"""
+        # Expérience candidat
+        exp_candidat = candidat.get('annees_experience', 0)
+        if isinstance(exp_candidat, str):
+            exp_candidat = self._extract_years_from_string(exp_candidat)
+        
+        # Expérience requise
+        exp_requise = offre.get('experience_requise', 0)
+        if isinstance(exp_requise, str):
+            exp_requise = self._extract_years_from_string(exp_requise)
+        
+        score = 50
+        details = []
+        
+        if exp_requise <= 0:
+            score = 80
+            details.append("⚖️ Pas d'exigence d'expérience spécifiée")
+        elif exp_candidat >= exp_requise:
+            ecart = exp_candidat - exp_requise
+            if ecart == 0:
+                score = 95
+                details.append(f"✅ Expérience parfaite: {exp_candidat} ans (requis: {exp_requise})")
+            elif ecart <= 2:
+                score = 90
+                details.append(f"✅ Expérience très bonne: {exp_candidat} ans (requis: {exp_requise})")
+            elif ecart <= 5:
+                score = 85
+                details.append(f"✅ Expérience solide: {exp_candidat} ans (requis: {exp_requise})")
+            else:
+                score = 80
+                details.append(f"⚖️ Surqualifié: {exp_candidat} ans (requis: {exp_requise})")
+        else:
+            deficit = exp_requise - exp_candidat
+            if deficit == 1:
+                score = 75
+                details.append(f"⚖️ Léger déficit: {exp_candidat} ans (requis: {exp_requise})")
+            elif deficit <= 2:
+                score = 65
+                details.append(f"⚠️ Déficit modéré: {exp_candidat} ans (requis: {exp_requise})")
+            else:
+                score = 45
+                details.append(f"❌ Déficit important: {exp_candidat} ans (requis: {exp_requise})")
+        
+        # Bonus pour niveau d'études
+        niveau_etudes = candidat.get('niveau_etudes', '').lower()
+        if 'master' in niveau_etudes or 'ingénieur' in niveau_etudes:
+            bonus = 5
+            score = min(100, score + bonus)
+            details.append(f"🎓 Bonus formation: {niveau_etudes} (+{bonus}%)")
+        
+        return {
+            'experience': score,
+            'experience_details': details
+        }
+    
+    def _calculate_salary_score_detailed(
+        self, 
+        candidat: Dict[str, Any], 
+        offre: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Calcule le score de rémunération détaillé"""
+        # Salaire souhaité candidat
+        salaire_souhaite = candidat.get('salaire_souhaite', 0)
+        if isinstance(salaire_souhaite, str):
+            salaire_souhaite = self._extract_salary_from_string(salaire_souhaite)
+        
+        # Budget de l'offre
+        budget_max = offre.get('budget_max', 0)
+        salaire_str = offre.get('salaire', '')
+        
+        if budget_max == 0 and salaire_str:
+            budget_max = self._extract_max_salary_from_range(salaire_str)
+        
+        score = 50
+        details = []
+        
+        if salaire_souhaite == 0:
+            score = 70
+            details.append("⚖️ Pas de prétention salariale spécifiée")
+        elif budget_max == 0:
+            score = 60
+            details.append("⚖️ Budget de l'offre non spécifié")
+        else:
+            if salaire_souhaite <= budget_max:
+                ecart_pct = ((budget_max - salaire_souhaite) / budget_max) * 100
+                if ecart_pct >= 10:
+                    score = 95
+                    details.append(f"✅ Salaire très compatible: {salaire_souhaite}€ (budget: {budget_max}€)")
+                else:
+                    score = 85
+                    details.append(f"✅ Salaire compatible: {salaire_souhaite}€ (budget: {budget_max}€)")
+            else:
+                ecart_pct = ((salaire_souhaite - budget_max) / budget_max) * 100
+                if ecart_pct <= 10:
+                    score = 75
+                    details.append(f"⚖️ Léger dépassement: {salaire_souhaite}€ (budget: {budget_max}€)")
+                elif ecart_pct <= 20:
+                    score = 60
+                    details.append(f"⚠️ Dépassement modéré: {salaire_souhaite}€ (budget: {budget_max}€)")
+                else:
+                    score = 35
+                    details.append(f"❌ Dépassement important: {salaire_souhaite}€ (budget: {budget_max}€)")
+        
+        return {
+            'remuneration': score,
+            'remuneration_details': details
+        }
+    
+    def _calculate_skills_score_detailed(
+        self, 
+        candidat: Dict[str, Any], 
+        offre: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Calcule le score de compétences détaillé"""
+        competences_candidat = set(candidat.get('competences', []))
+        competences_requises = set(offre.get('competences', []))
+        
+        score = 50
+        details = []
+        
+        if not competences_requises:
+            score = 70
+            details.append("⚖️ Aucune compétence spécifiée dans l'offre")
+        elif not competences_candidat:
+            score = 40
+            details.append("❌ Aucune compétence spécifiée par le candidat")
+        else:
+            # Compétences en commun
+            competences_communes = competences_candidat.intersection(competences_requises)
+            competences_manquantes = competences_requises - competences_candidat
+            competences_bonus = competences_candidat - competences_requises
+            
+            # Score basé sur le pourcentage de compétences couvertes
+            if len(competences_requises) > 0:
+                couverture_pct = (len(competences_communes) / len(competences_requises)) * 100
+                
+                if couverture_pct == 100:
+                    score = 95
+                    details.append(f"✅ Toutes les compétences requises maîtrisées ({len(competences_communes)})")
+                elif couverture_pct >= 80:
+                    score = 85
+                    details.append(f"✅ Très bonne couverture: {couverture_pct:.0f}% ({len(competences_communes)}/{len(competences_requises)})")
+                elif couverture_pct >= 60:
+                    score = 70
+                    details.append(f"⚖️ Couverture acceptable: {couverture_pct:.0f}% ({len(competences_communes)}/{len(competences_requises)})")
+                elif couverture_pct >= 40:
+                    score = 55
+                    details.append(f"⚠️ Couverture limitée: {couverture_pct:.0f}% ({len(competences_communes)}/{len(competences_requises)})")
+                else:
+                    score = 40
+                    details.append(f"❌ Couverture insuffisante: {couverture_pct:.0f}% ({len(competences_communes)}/{len(competences_requises)})")
+            
+            # Détails des compétences communes
+            if competences_communes:
+                details.append(f"✅ Compétences communes: {', '.join(list(competences_communes)[:5])}")
+            
+            # Compétences manquantes
+            if competences_manquantes:
+                details.append(f"❌ Compétences à acquérir: {', '.join(list(competences_manquantes)[:3])}")
+            
+            # Bonus pour compétences supplémentaires
+            if competences_bonus:
+                bonus = min(10, len(competences_bonus) * 2)
+                score = min(100, score + bonus)
+                details.append(f"🎯 Compétences bonus: {', '.join(list(competences_bonus)[:3])} (+{bonus}%)")
+        
+        return {
+            'competences': score,
+            'competences_details': details
+        }
     
     def _calculate_flexibility_score_detailed(
         self, 
         candidat: Dict[str, Any], 
         offre: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Calcule le score de flexibilité (télétravail, horaires, RTT) - identique v2.1"""
+        """Calcule le score de flexibilité (télétravail, horaires, RTT)"""
         score = 70  # Score de base
         details = []
         
@@ -826,13 +984,244 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
             'flexibilite_details': details
         }
     
+    def _analyze_candidate_profile(self, candidat: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyse le profil du candidat pour l'entreprise"""
+        profile = {
+            'type_profil': 'Candidat',
+            'niveau_experience': 'Débutant',
+            'points_forts': [],
+            'points_attention': [],
+            'motivation': 'Moyenne',
+            'adaptabilite': 'Moyenne'
+        }
+        
+        # Analyse du niveau d'expérience
+        exp = candidat.get('annees_experience', 0)
+        if isinstance(exp, str):
+            exp = self._extract_years_from_string(exp)
+        
+        if exp >= 10:
+            profile['niveau_experience'] = 'Senior'
+            profile['type_profil'] = 'Profil Senior'
+        elif exp >= 5:
+            profile['niveau_experience'] = 'Confirmé'
+            profile['type_profil'] = 'Profil Confirmé'
+        elif exp >= 2:
+            profile['niveau_experience'] = 'Junior'
+            profile['type_profil'] = 'Profil Junior'
+        
+        # Analyse des compétences
+        competences = candidat.get('competences', [])
+        if len(competences) >= 8:
+            profile['points_forts'].append("Très polyvalent techniquement")
+        elif len(competences) >= 5:
+            profile['points_forts'].append("Bon niveau technique")
+        elif len(competences) < 3:
+            profile['points_attention'].append("Compétences techniques limitées")
+        
+        # Analyse de la formation
+        formation = candidat.get('niveau_etudes', '').lower()
+        if 'master' in formation or 'ingénieur' in formation:
+            profile['points_forts'].append("Formation supérieure solide")
+        
+        # Analyse de la mobilité
+        mobilite = candidat.get('mobilite', '').lower()
+        if 'élevée' in mobilite or 'mobile' in mobilite:
+            profile['points_forts'].append("Grande flexibilité géographique")
+        
+        # Analyse des priorités (si disponibles)
+        questionnaire = candidat.get('questionnaire_data', {})
+        priorites = questionnaire.get('priorites_candidat', {})
+        
+        if priorites:
+            levier_max = max(priorites, key=priorites.get)
+            note_max = priorites[levier_max]
+            
+            if levier_max == 'evolution' and note_max >= 8:
+                profile['motivation'] = 'Très élevée'
+                profile['points_forts'].append("Très motivé pour évoluer")
+            elif levier_max == 'remuneration' and note_max >= 8:
+                profile['points_attention'].append("Priorité sur la rémunération")
+            elif levier_max == 'flexibilite' and note_max >= 8:
+                profile['points_forts'].append("Recherche équilibre vie pro/perso")
+        
+        return profile
+    
+    def _apply_intelligent_reasoning(
+        self, 
+        candidat: Dict[str, Any], 
+        offre: Dict[str, Any],
+        candidat_profile: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Applique le raisonnement intelligent pour ajuster le score"""
+        bonus_total = 0
+        raisons = []
+        recommendations = []
+        
+        # Bonus évolution rapide
+        if offre.get('perspectives_evolution', False):
+            questionnaire = candidat.get('questionnaire_data', {})
+            priorites = questionnaire.get('priorites_candidat', {})
+            
+            if priorites.get('evolution', 0) >= 8:
+                bonus = 8
+                bonus_total += bonus
+                raisons.append(f"Candidat très motivé par l'évolution + poste avec perspectives (+{bonus}%)")
+        
+        # Bonus startup/innovation
+        if 'startup' in offre.get('type_entreprise', '').lower():
+            if candidat_profile.get('niveau_experience') in ['Junior', 'Confirmé']:
+                bonus = 5
+                bonus_total += bonus
+                raisons.append(f"Profil adapté à l'environnement startup (+{bonus}%)")
+        
+        # Malus sur-qualification
+        exp_candidat = candidat.get('annees_experience', 0)
+        if isinstance(exp_candidat, str):
+            exp_candidat = self._extract_years_from_string(exp_candidat)
+        
+        exp_requise = offre.get('experience_requise', 0)
+        if isinstance(exp_requise, str):
+            exp_requise = self._extract_years_from_string(exp_requise)
+        
+        if exp_candidat > exp_requise + 5:
+            malus = -3
+            bonus_total += malus
+            raisons.append(f"Risque de sur-qualification ({malus}%)")
+            recommendations.append("Vérifier les motivations du candidat")
+        
+        # Bonus secteur d'activité
+        secteur_candidat = candidat.get('secteur_activite', '').lower()
+        secteur_offre = offre.get('secteur', '').lower()
+        
+        if secteur_candidat and secteur_offre and secteur_candidat in secteur_offre:
+            bonus = 5
+            bonus_total += bonus
+            raisons.append(f"Expérience dans le secteur d'activité (+{bonus}%)")
+        
+        return {
+            'total': bonus_total,
+            'raisons': raisons,
+            'recommandations': recommendations
+        }
+    
+    def _generate_intelligent_explanations(
+        self, 
+        candidat: Dict[str, Any], 
+        offre: Dict[str, Any],
+        scores: Dict[str, Any],
+        intelligence_bonus: Dict[str, Any],
+        candidat_profile: Dict[str, Any],
+        dynamic_weights: Dict[str, float]
+    ) -> Dict[str, Any]:
+        """Génère des explications intelligentes pour l'entreprise"""
+        explanations = {
+            'resume_executif': '',
+            'points_forts': [],
+            'points_attention': [],
+            'recommandations': [],
+            'score_global': 0
+        }
+        
+        # Calcul du score global
+        score_global = (
+            scores['proximite'] * dynamic_weights['proximite'] +
+            scores['experience'] * dynamic_weights['experience'] +
+            scores['remuneration'] * dynamic_weights['remuneration'] +
+            scores['competences'] * dynamic_weights['competences'] +
+            scores['flexibilite'] * dynamic_weights['flexibilite']
+        ) + intelligence_bonus['total']
+        
+        explanations['score_global'] = int(min(100, max(0, score_global)))
+        
+        # Résumé exécutif
+        if score_global >= 85:
+            explanations['resume_executif'] = "Candidat excellent avec une très forte compatibilité"
+        elif score_global >= 70:
+            explanations['resume_executif'] = "Bon candidat avec quelques points d'attention"
+        elif score_global >= 55:
+            explanations['resume_executif'] = "Candidat acceptable nécessitant une évaluation approfondie"
+        else:
+            explanations['resume_executif'] = "Candidat avec des incompatibilités importantes"
+        
+        # Points forts
+        if scores['competences'] >= 80:
+            explanations['points_forts'].append("Très bonnes compétences techniques")
+        if scores['experience'] >= 80:
+            explanations['points_forts'].append("Expérience professionnelle solide")
+        if scores['proximite'] >= 80:
+            explanations['points_forts'].append("Localisation géographique favorable")
+        if scores['flexibilite'] >= 80:
+            explanations['points_forts'].append("Bonne flexibilité professionnelle")
+        
+        # Points d'attention
+        if scores['competences'] < 60:
+            explanations['points_attention'].append("Compétences techniques à renforcer")
+        if scores['experience'] < 60:
+            explanations['points_attention'].append("Expérience professionnelle limitée")
+        if scores['proximite'] < 60:
+            explanations['points_attention'].append("Contraintes géographiques importantes")
+        if scores['remuneration'] < 60:
+            explanations['points_attention'].append("Écart salarial à négocier")
+        
+        # Recommandations
+        if intelligence_bonus['recommandations']:
+            explanations['recommandations'].extend(intelligence_bonus['recommandations'])
+        
+        if scores['experience'] < 70 and scores['competences'] >= 70:
+            explanations['recommandations'].append("Évaluer le potentiel d'apprentissage")
+        
+        if scores['remuneration'] < 70:
+            explanations['recommandations'].append("Négociation salariale nécessaire")
+        
+        return explanations
+    
+    def _analyze_risks_opportunities(
+        self, 
+        candidat: Dict[str, Any], 
+        offre: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Analyse les risques et opportunités"""
+        risks = []
+        opportunities = []
+        
+        # Analyse des risques
+        exp_candidat = candidat.get('annees_experience', 0)
+        if isinstance(exp_candidat, str):
+            exp_candidat = self._extract_years_from_string(exp_candidat)
+        
+        exp_requise = offre.get('experience_requise', 0)
+        if isinstance(exp_requise, str):
+            exp_requise = self._extract_years_from_string(exp_requise)
+        
+        if exp_candidat > exp_requise + 3:
+            risks.append("Risque de sur-qualification et d'ennui rapide")
+        
+        salaire_souhaite = candidat.get('salaire_souhaite', 0)
+        budget_max = offre.get('budget_max', 0)
+        
+        if salaire_souhaite > budget_max * 1.2:
+            risks.append("Écart salarial important - Risque de refus")
+        
+        # Analyse des opportunités
+        if exp_candidat >= exp_requise and len(candidat.get('competences', [])) >= 5:
+            opportunities.append("Profil polyvalent avec potentiel d'évolution")
+        
+        if offre.get('perspectives_evolution', False):
+            opportunities.append("Opportunité de développement professionnel")
+        
+        return {
+            'risques': risks,
+            'opportunites': opportunities
+        }
+    
     def _calculate_final_score_dynamic(
         self, 
         scores: Dict[str, Any], 
         intelligence_bonus: Dict[str, Any],
         dynamic_weights: Dict[str, float]
     ) -> float:
-        """Calcule le score final avec pondération DYNAMIQUE - identique v2.1"""
+        """Calcule le score final avec pondération DYNAMIQUE"""
         # Score de base pondéré dynamiquement
         base_score = (
             scores['proximite'] * dynamic_weights['proximite'] +
@@ -848,63 +1237,136 @@ class SuperSmartMatchAlgorithm(BaseAlgorithm):
         # Limiter entre 0 et 100
         return min(100, max(0, final_score))
     
-    # Toutes les autres méthodes v2.1 maintenues identiques
-    # (Pour économiser l'espace, je n'inclus que les signatures)
+    def _extract_years_from_string(self, text: str) -> int:
+        """Extrait le nombre d'années d'une chaîne de caractères"""
+        if isinstance(text, (int, float)):
+            return int(text)
+        
+        # Rechercher des patterns comme "5 ans", "3-5 ans", etc.
+        import re
+        matches = re.findall(r'(\d+)', str(text))
+        if matches:
+            return int(matches[0])
+        return 0
     
-    def _calculate_experience_score_detailed(self, candidat, offre, candidat_profile):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
+    def _extract_salary_from_string(self, text: str) -> int:
+        """Extrait un salaire d'une chaîne de caractères"""
+        if isinstance(text, (int, float)):
+            return int(text)
+        
+        # Rechercher des patterns comme "45000", "45K", "45 000€", etc.
+        import re
+        text = str(text).replace(' ', '').replace('€', '').replace('k', '000').replace('K', '000')
+        matches = re.findall(r'(\d+)', text)
+        if matches:
+            return int(matches[0])
+        return 0
     
-    def _calculate_salary_score_detailed(self, candidat, offre):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
+    def _extract_max_salary_from_range(self, salary_range: str) -> int:
+        """Extrait le salaire maximum d'une fourchette"""
+        if isinstance(salary_range, (int, float)):
+            return int(salary_range)
+        
+        # Patterns comme "45-55K€", "45000-55000€", etc.
+        import re
+        text = str(salary_range).replace(' ', '').replace('€', '').replace('k', '000').replace('K', '000')
+        matches = re.findall(r'(\d+)', text)
+        if len(matches) >= 2:
+            return int(matches[-1])  # Prendre le dernier (maximum)
+        elif len(matches) == 1:
+            return int(matches[0])
+        return 0
     
-    def _calculate_skills_score_detailed(self, candidat, offre):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
+    def _create_fallback_result(
+        self, 
+        candidat: Dict[str, Any], 
+        offre: Dict[str, Any],
+        index: int,
+        dynamic_weights: Dict[str, float]
+    ) -> Dict[str, Any]:
+        """Crée un résultat de fallback en cas d'erreur"""
+        return {
+            'id': offre.get('id', f'job_{index}'),
+            'titre': offre.get('titre', offre.get('title', 'Poste sans titre')),
+            'entreprise': offre.get('entreprise', 'Entreprise non spécifiée'),
+            'matching_score_entreprise': 50,
+            'ponderation_dynamique': dynamic_weights,
+            'scores_detailles': {
+                'proximite': {'pourcentage': 50, 'details': ['Erreur de calcul'], 'poids': 25, 'travel_info': {}},
+                'experience': {'pourcentage': 50, 'details': ['Erreur de calcul'], 'poids': 20},
+                'remuneration': {'pourcentage': 50, 'details': ['Erreur de calcul'], 'poids': 25},
+                'competences': {'pourcentage': 50, 'details': ['Erreur de calcul'], 'poids': 15},
+                'flexibilite': {'pourcentage': 50, 'details': ['Erreur de calcul'], 'poids': 15}
+            },
+            'intelligence': {'bonus_applique': 0, 'raisons': [], 'recommandations': []},
+            'explications_entreprise': {'resume_executif': 'Erreur de traitement', 'points_forts': [], 'points_attention': [], 'recommandations': []},
+            'analyse_risques': {'risques': ['Erreur de traitement'], 'opportunites': []},
+            'profil_candidat': {'type_profil': 'Erreur', 'niveau_experience': 'Inconnu', 'points_forts': [], 'points_attention': []},
+            **offre
+        }
     
-    def _analyze_candidate_profile(self, candidat):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
-    
-    def _apply_intelligent_reasoning(self, candidat, offre, candidat_profile):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
-    
-    def _generate_intelligent_explanations(self, candidat, offre, scores, intelligence_bonus, candidat_profile, dynamic_weights):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
-    
-    def _analyze_risks_opportunities(self, candidat, offre):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
-    
-    def _same_region(self, location1, location2):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
-    
-    def _estimate_distance(self, location1, location2):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
-    
-    def _parse_salary_range(self, salary_str, budget_max=0):
-        """Identique v2.1"""
-        # Implementation identique...
-        pass
-    
-    def _create_fallback_result(self, candidat, offre, index, dynamic_weights):
-        """Identique v2.1 avec ajout travel_info"""
-        # Implementation identique avec ajout travel_info vide...
-        pass
+    def get_algorithm_info(self) -> Dict[str, Any]:
+        """Retourne les informations sur l'algorithme SuperSmartMatch v2.2"""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "version": self.version,
+            "parent_version": "2.1",  # ⭐ NOUVEAU: Lien avec v2.1
+            "new_features": {
+                "google_maps_integration": "Calcul temps de trajet réel via Google Maps API",
+                "multi_transport_modes": "Support voiture, transport en commun, vélo, marche",
+                "real_time_traffic": "Prise en compte trafic temps réel",
+                "transit_details": "Détails lignes transport en commun",
+                "travel_cache": "Cache intelligent pour optimiser performances",
+                "backward_compatibility": "Compatible avec v2.1 + fallback automatique"
+            },
+            "capabilities": {
+                "intelligent_reasoning": True,
+                "company_perspective": True,
+                "detailed_scoring": True,
+                "google_maps_integration": self.use_google_maps,  # ⭐ NOUVEAU
+                "real_travel_times": self.use_google_maps,        # ⭐ NOUVEAU
+                "multi_transport_modes": self.use_google_maps,    # ⭐ NOUVEAU
+                "salary_compatibility": True,
+                "skills_breakdown": True,
+                "flexibility_analysis": True,
+                "dynamic_weighting": True,
+                "risk_analysis": True,
+                "evolution_matching": True
+            },
+            "transport_modes": {  # ⭐ NOUVEAU
+                "driving": "Voiture (avec trafic temps réel)",
+                "transit": "Transport en commun (horaires temps réel)",
+                "walking": "À pied",
+                "bicycling": "Vélo"
+            },
+            "google_maps_config": {  # ⭐ NOUVEAU
+                "api_enabled": self.use_google_maps,
+                "cache_enabled": True,
+                "supported_regions": ["FR", "Europe"],
+                "real_time_traffic": True,
+                "departure_time_support": True
+            },
+            "questionnaire_structure": {
+                "priorites_candidat": {
+                    "evolution": "Note 1-10",
+                    "remuneration": "Note 1-10",
+                    "proximite": "Note 1-10",
+                    "flexibilite": "Note 1-10"
+                },
+                "transport_preferences": {  # ⭐ NOUVEAU
+                    "transport_prefere": "driving/transit/walking/bicycling",
+                    "heure_depart_travail": "HH:MM format",
+                    "temps_trajet_max": "minutes (optionnel)"
+                },
+                "flexibilite_attendue": {
+                    "teletravail": "aucun/partiel/total",
+                    "horaires_flexibles": "boolean",
+                    "rtt_important": "boolean"
+                }
+            },
+            "initialized": self.initialized
+        }
 
 if __name__ == "__main__":
     # Test rapide de l'intégration Google Maps
