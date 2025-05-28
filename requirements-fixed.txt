@@ -1,0 +1,39 @@
+# Requirements avec versions compatibles pour éviter les conflits NumPy
+# Ordre important : NumPy en premier, puis SciPy, puis les autres
+
+# Core scientific packages avec versions compatibles
+numpy>=1.21.6,<2.0.0
+scipy>=1.9.0,<1.12.0
+
+# TensorFlow compatible avec NumPy 1.x
+tensorflow>=2.13.0,<2.16.0
+
+# Pandas compatible
+pandas>=1.5.0,<2.1.0
+
+# Scikit-learn compatible
+scikit-learn>=1.1.0,<1.4.0
+
+# Web framework
+fastapi==0.110.0
+uvicorn==0.27.1
+pydantic==2.5.2
+python-multipart==0.0.9
+
+# Flask pour SuperSmartMatch
+Flask>=2.3.0,<3.0.0
+Flask-CORS>=4.0.0,<5.0.0
+
+# Other dependencies
+requests==2.31.0
+PyPDF2==3.0.1
+prometheus-client==0.18.0
+structlog==23.1.0
+gunicorn==21.2.0
+python-dotenv==1.0.0
+
+# NLTK pour le traitement du langage naturel
+nltk>=3.8.0,<4.0.0
+
+# Autres packages utiles
+Pillow>=9.0.0,<11.0.0
