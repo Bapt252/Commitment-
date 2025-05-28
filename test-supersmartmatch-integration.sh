@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script de test d'intégration SuperSmartMatch-Service
+# Script de test d'intégration SuperSmartMatch-Service - Version corrigée
 # Usage: ./test-supersmartmatch-integration.sh
 
 set -e
@@ -74,72 +74,111 @@ echo ""
 echo -e "${BLUE}🔍 Test détaillé des endpoints SuperSmartMatch${NC}"
 echo "=================================================="
 
-# Test 8a: Status endpoint
-echo "📡 Test status endpoint..."
-STATUS_RESPONSE=$(curl -s http://localhost:5062/api/v1/status 2>/dev/null || curl -s http://localhost:5062/ 2>/dev/null || echo "ERROR")
-if echo "$STATUS_RESPONSE" | grep -q "SuperSmartMatch\\|status\\|version\\|API"; then
-    echo -e "${GREEN}✅ Status endpoint fonctionnel${NC}"
+# Test 8a: Root endpoint (correct)
+echo "📡 Test root endpoint..."
+ROOT_RESPONSE=$(curl -s http://localhost:5062/ 2>/dev/null || echo "ERROR")
+if echo "$ROOT_RESPONSE" | grep -q "SuperSmartMatch\\|service\\|API"; then
+    echo -e "${GREEN}✅ Root endpoint fonctionnel${NC}"
 else
-    echo -e "${YELLOW}⚠️ Status endpoint non standard: $(echo $STATUS_RESPONSE | head -c 100)...${NC}"
+    echo -e "${YELLOW}⚠️ Root endpoint: $(echo $ROOT_RESPONSE | head -c 100)...${NC}"
 fi
 
 # Test 8b: Algorithms endpoint
 echo "🧮 Test algorithms endpoint..."
-ALGO_RESPONSE=$(curl -s http://localhost:5062/api/v1/algorithms 2>/dev/null || curl -s http://localhost:5062/algorithms 2>/dev/null || echo "ERROR")
+ALGO_RESPONSE=$(curl -s http://localhost:5062/api/v1/algorithms 2>/dev/null || echo "ERROR")
 if echo "$ALGO_RESPONSE" | grep -q "algorithm\\|semantic\\|hybrid\\|matching"; then
     echo -e "${GREEN}✅ Algorithms endpoint fonctionnel${NC}"
+    echo "📋 Algorithmes disponibles:"
+    echo "$ALGO_RESPONSE" | jq -r '.algorithms | keys[]' 2>/dev/null | sed 's/^/   • /' || echo "   • Parsing JSON failed"
 else
     echo -e "${YELLOW}⚠️ Algorithms endpoint: $(echo $ALGO_RESPONSE | head -c 100)...${NC}"
 fi
 
-# Test 9: Test de matching simple
+# Test 9: Test de matching simple avec format correct
 echo ""
-echo -e "${BLUE}🎯 Test de matching simple${NC}"
-echo "=============================="
+echo -e "${BLUE}🎯 Test de matching simple (format corrigé)${NC}"
+echo "=============================================="
 
 MATCH_PAYLOAD='{
-  "profile": {
-    "skills": ["Python", "Docker", "PostgreSQL"],
-    "experience": "2 ans",
-    "location": "Paris"
+  "candidate": {
+    "competences": ["Python", "Docker", "PostgreSQL"],
+    "annees_experience": 2,
+    "adresse": "Paris"
   },
   "jobs": [
     {
-      "title": "Développeur Python",
-      "requirements": ["Python", "API", "Base de données"],
-      "location": "Paris",
-      "company": "TechCorp"
+      "titre": "Développeur Python",
+      "competences": ["Python", "API", "Base de données"],
+      "localisation": "Paris",
+      "entreprise": "TechCorp"
     },
     {
-      "title": "DevOps Engineer",
-      "requirements": ["Docker", "Kubernetes", "Python"],
-      "location": "Lyon",
-      "company": "CloudInc"
+      "titre": "DevOps Engineer", 
+      "competences": ["Docker", "Kubernetes", "Python"],
+      "localisation": "Lyon",
+      "entreprise": "CloudInc"
     }
-  ]
+  ],
+  "algorithm": "smart-match",
+  "options": {
+    "limit": 5,
+    "include_details": true
+  }
 }'
 
-echo "📤 Envoi de la requête de matching..."
+echo "📤 Envoi de la requête de matching (format candidate/jobs)..."
 MATCH_RESPONSE=$(curl -s -X POST \
   -H "Content-Type: application/json" \
   -d "$MATCH_PAYLOAD" \
-  http://localhost:5062/api/v1/match 2>/dev/null || 
-  curl -s -X POST \
-  -H "Content-Type: application/json" \
-  -d "$MATCH_PAYLOAD" \
-  http://localhost:5062/match 2>/dev/null || echo "ERROR")
+  http://localhost:5062/api/v1/match 2>/dev/null || echo "ERROR")
 
-if echo "$MATCH_RESPONSE" | grep -q "score\\|match\\|result\\|ranking"; then
+if echo "$MATCH_RESPONSE" | grep -q "algorithm_used\\|matches\\|execution_time"; then
     echo -e "${GREEN}✅ Test de matching réussi${NC}"
     echo "📊 Aperçu de la réponse:"
-    echo "$MATCH_RESPONSE" | head -5
+    echo "$MATCH_RESPONSE" | jq '.algorithm_used, .execution_time_ms, (.matches | length)' 2>/dev/null || echo "$MATCH_RESPONSE" | head -3
 else
-    echo -e "${YELLOW}⚠️ Test de matching - réponse inattendue${NC}"
-    echo "📤 Payload envoyé: $(echo $MATCH_PAYLOAD | head -c 150)..."
-    echo "📥 Réponse reçue: $(echo $MATCH_RESPONSE | head -c 150)..."
+    echo -e "${YELLOW}⚠️ Test de matching - réponse à analyser${NC}"
+    echo "📤 Payload envoyé: $(echo $MATCH_PAYLOAD | head -c 200)..."
+    echo "📥 Réponse reçue: $(echo $MATCH_RESPONSE | head -c 200)..."
 fi
 
-# Test 10: Vérification des autres services (pas de conflit)
+# Test 10: Test de comparaison d'algorithmes
+echo ""
+echo -e "${BLUE}🔬 Test de comparaison d'algorithmes${NC}"
+echo "===================================="
+
+COMPARE_PAYLOAD='{
+  "candidate": {
+    "competences": ["Python", "Machine Learning"],
+    "annees_experience": 3,
+    "adresse": "Paris"
+  },
+  "jobs": [
+    {
+      "titre": "Data Scientist",
+      "competences": ["Python", "Machine Learning", "SQL"],
+      "localisation": "Paris"
+    }
+  ],
+  "algorithms": ["smart-match", "enhanced", "semantic"]
+}'
+
+echo "🔬 Test de comparaison d'algorithmes..."
+COMPARE_RESPONSE=$(curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d "$COMPARE_PAYLOAD" \
+  http://localhost:5062/api/v1/compare 2>/dev/null || echo "ERROR")
+
+if echo "$COMPARE_RESPONSE" | grep -q "comparison_results\\|recommendation"; then
+    echo -e "${GREEN}✅ Test de comparaison réussi${NC}"
+    echo "📊 Algorithmes testés:"
+    echo "$COMPARE_RESPONSE" | jq -r '.comparison_results | keys[]' 2>/dev/null | sed 's/^/   • /' || echo "   • Parsing failed"
+else
+    echo -e "${YELLOW}⚠️ Test de comparaison - à analyser${NC}"
+    echo "📥 Réponse: $(echo $COMPARE_RESPONSE | head -c 150)..."
+fi
+
+# Test 11: Vérification des autres services (pas de conflit)
 echo ""
 echo -e "${BLUE}🔍 Vérification des autres services (pas de conflit)${NC}"
 echo "=================================================="
@@ -159,7 +198,7 @@ for service in "${SERVICES[@]}"; do
     fi
 done
 
-# Test 11: Vérification de la configuration Docker
+# Test 12: Vérification de la configuration Docker
 echo ""
 echo -e "${BLUE}🐳 Vérification de la configuration Docker${NC}"
 echo "=========================================="
@@ -180,14 +219,14 @@ else
     echo -e "${YELLOW}⚠️ Certains volumes peuvent être manquants${NC}"
 fi
 
-# Test 12: Test de performance basique
+# Test 13: Test de performance basique
 echo ""
 echo -e "${BLUE}⚡ Test de performance basique${NC}"
 echo "================================"
 
 echo "⏱️ Test de latence..."
 START_TIME=$(date +%s%N)
-curl -s http://localhost:5062/api/v1/health > /dev/null 2>&1 || curl -s http://localhost:5062 > /dev/null 2>&1
+curl -s http://localhost:5062/api/v1/health > /dev/null 2>&1
 END_TIME=$(date +%s%N)
 LATENCY=$(( (END_TIME - START_TIME) / 1000000 ))
 
@@ -197,7 +236,7 @@ else
     echo -e "${YELLOW}⚠️ Latence élevée: ${LATENCY}ms${NC}"
 fi
 
-# Test 13: Vérification des logs
+# Test 14: Vérification des logs
 echo ""
 echo -e "${BLUE}📋 Vérification des logs${NC}"
 echo "============================="
@@ -215,7 +254,7 @@ else
     echo -e "${YELLOW}⚠️ Aucun log SuperSmartMatch trouvé${NC}"
 fi
 
-# Test 14: Test de connectivité interne
+# Test 15: Test de connectivité interne
 echo ""
 echo -e "${BLUE}🔗 Test de connectivité interne${NC}"
 echo "=================================="
@@ -225,7 +264,7 @@ PG_TEST=$(docker-compose exec -T supersmartmatch-service sh -c "python -c 'impor
 if [ "$PG_TEST" = "OK" ]; then
     echo -e "${GREEN}✅ SuperSmartMatch → PostgreSQL${NC}"
 else
-    echo -e "${YELLOW}⚠️ SuperSmartMatch → PostgreSQL (peut être normal)${NC}"
+    echo -e "${YELLOW}⚠️ SuperSmartMatch → PostgreSQL (peut être normal si psycopg2 non installé)${NC}"
 fi
 
 # Test de connectivité Redis depuis SuperSmartMatch
@@ -233,7 +272,19 @@ REDIS_TEST=$(docker-compose exec -T supersmartmatch-service sh -c "python -c 'im
 if [ "$REDIS_TEST" = "OK" ]; then
     echo -e "${GREEN}✅ SuperSmartMatch → Redis${NC}"
 else
-    echo -e "${YELLOW}⚠️ SuperSmartMatch → Redis (peut être normal)${NC}"
+    echo -e "${YELLOW}⚠️ SuperSmartMatch → Redis (peut être normal si redis non installé)${NC}"
+fi
+
+# Test 16: Métriques du service
+echo ""
+echo -e "${BLUE}📊 Test des métriques${NC}"
+echo "======================"
+
+METRICS_RESPONSE=$(curl -s http://localhost:5062/api/v1/metrics 2>/dev/null || echo "ERROR")
+if echo "$METRICS_RESPONSE" | grep -q "performance_metrics\\|cache_metrics"; then
+    echo -e "${GREEN}✅ Métriques disponibles${NC}"
+else
+    echo -e "${YELLOW}⚠️ Métriques non disponibles: $(echo $METRICS_RESPONSE | head -c 100)...${NC}"
 fi
 
 # Résumé final
@@ -256,6 +307,20 @@ if [ $FAILED_TESTS -eq 0 ]; then
     echo "   • RQ Dashboard: http://localhost:9181"
     echo "   • Redis Commander: http://localhost:8081"
     echo "   • MinIO Console: http://localhost:9001"
+    
+    echo ""
+    echo -e "${BLUE}🧪 Exemples de test manuels:${NC}"
+    echo ""
+    echo "# Test de santé"
+    echo "curl http://localhost:5062/api/v1/health"
+    echo ""
+    echo "# Test de matching correct"
+    echo 'curl -X POST http://localhost:5062/api/v1/match \'
+    echo '  -H "Content-Type: application/json" \'
+    echo '  -d '"'"'{"candidate":{"competences":["Python"],"annees_experience":2},"jobs":[{"titre":"Dev Python","competences":["Python"]}]}'"'"
+    echo ""
+    echo "# Liste des algorithmes"
+    echo "curl http://localhost:5062/api/v1/algorithms"
     
     exit 0
 else
