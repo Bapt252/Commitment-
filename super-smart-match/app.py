@@ -396,6 +396,9 @@ class SuperSmartMatch:
 # Instance globale
 service = SuperSmartMatch()
 
+# Configuration du port depuis les variables d'environnement
+PORT = int(os.getenv('PORT', 5062))
+
 @app.route('/')
 def index():
     return jsonify({
@@ -403,7 +406,7 @@ def index():
         'status': 'running',
         'version': '2.1 - Pondération Dynamique + Intelligence + Analytics',
         'description': 'Matching intelligent avec pondération dynamique basée sur priorités candidat',
-        'port': 5063,
+        'port': PORT,
         'modes': {
             'candidate_to_jobs': 'Matching candidat vers emplois',
             'company_to_candidates': 'Matching entreprise vers candidats (avec SuperSmartMatch!)'
@@ -428,13 +431,14 @@ def index():
         ]
     })
 
+@app.route('/api/v1/health')
 @app.route('/api/health')
 def health():
     supersmartmatch_loaded = 'supersmartmatch' in service.new_algorithms
     
     return jsonify({
         'status': 'healthy',
-        'port': 5063,
+        'port': PORT,
         'version': '2.1',
         'legacy_algorithms_loaded': len(service.algorithms),
         'new_algorithms_loaded': len(service.new_algorithms),
@@ -1131,16 +1135,15 @@ def get_test_data():
     })
 
 if __name__ == '__main__':
-    port = 5063  # Port sécurisé - Évite les conflits
-    logger.info(f"🚀 Démarrage SuperSmartMatch v2.1 avec PONDÉRATION DYNAMIQUE sur le port {port}")
+    logger.info(f"🚀 Démarrage SuperSmartMatch v2.1 avec PONDÉRATION DYNAMIQUE sur le port {PORT}")
     logger.info("🎛️ Nouveauté v2.1: Pondération adaptée selon priorités candidat")
     logger.info("📈 4 leviers: Évolution, Rémunération, Proximité, Flexibilité")
     logger.info("🔄 Nouveau critère flexibilité: télétravail, horaires, RTT")
     logger.info("🧠 Raisonnement intelligent + Analytics + Matching bidirectionnel")
-    logger.info(f"🔗 URL: http://localhost:{port}")
+    logger.info(f"🔗 URL: http://localhost:{PORT}")
     logger.info("📋 Nouveaux endpoints v2.1:")
     logger.info("   POST /api/candidate/<id>/questionnaire - Priorités candidat")
     logger.info("   POST /api/analytics/weighting-impact - Comparaison impact")
     logger.info("   GET  /api/demo/candidate-profiles - Profils démo")
     logger.info("   GET  /api/supersmartmatch/info - Infos algorithme v2.1")
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=PORT, debug=False)
