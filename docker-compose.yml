@@ -474,10 +474,10 @@ services:
           cpus: '0.25'
           memory: 256M
 
-  # Service SuperSmartMatch - Nouveau service de matching avancé
+  # Service SuperSmartMatch - Service de matching avancé v2.1
   supersmartmatch-service:
     build:
-      context: ./supersmartmatch-service
+      context: ./super-smart-match
       dockerfile: Dockerfile
     container_name: nexten-supersmartmatch
     ports:
@@ -494,7 +494,7 @@ services:
       DEBUG: "false"
       FLASK_DEBUG: "false"
       PORT: 5062
-      SECRET_KEY: ${SECRET_KEY:-your-secret-key-here}
+      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-here-for-supersmartmatch}
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
       REDIS_URL: redis://redis:6379/0
       OPENAI_API_KEY: ${OPENAI:-}
@@ -514,6 +514,17 @@ services:
       RATE_LIMIT_PER_HOUR: 1000
       LOG_LEVEL: INFO
       LOG_FORMAT: json
+      # Configuration SuperSmartMatch v2.1
+      ENABLE_DYNAMIC_WEIGHTING: "true"
+      ENABLE_INTELLIGENT_REASONING: "true"
+      ENABLE_FLEXIBILITY_SCORING: "true"
+      ENABLE_TRAVEL_TIME_CALCULATION: "true"
+      ENABLE_RISK_ANALYSIS: "true"
+      MIN_MATCHING_SCORE: 30
+      EXCELLENT_SCORE_THRESHOLD: 85
+      GOOD_SCORE_THRESHOLD: 70
+      DEFAULT_TRAVEL_MODE: driving
+      MAX_TRAVEL_TIME_MINUTES: 60
     env_file:
       - .env
     networks:
@@ -534,7 +545,7 @@ services:
           cpus: '0.5'
           memory: 512M
     volumes:
-      - ./supersmartmatch-service/logs:/app/logs
+      - ./super-smart-match/logs:/app/logs
 
   # Service d'adaptation de données pour SmartMatch
   data-adapter:
