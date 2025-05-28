@@ -111,6 +111,7 @@ services:
       USER_BEHAVIOR_SERVICE_URL: http://user-behavior-api:5000
       FEEDBACK_SERVICE_URL: http://feedback-service:5000
       PERSONALIZATION_SERVICE_URL: http://personalization-service:5060
+      SUPERSMARTMATCH_SERVICE_URL: http://supersmartmatch-service:5062
       PORT: 5000
     networks:
       - nexten-network
@@ -473,6 +474,68 @@ services:
           cpus: '0.25'
           memory: 256M
 
+  # Service SuperSmartMatch - Nouveau service de matching avancé
+  supersmartmatch-service:
+    build:
+      context: ./supersmartmatch-service
+      dockerfile: Dockerfile
+    container_name: nexten-supersmartmatch
+    ports:
+      - "5062:5062"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    environment:
+      <<: *common-redis-env
+      DEBUG: "false"
+      FLASK_DEBUG: "false"
+      PORT: 5062
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-here}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexten
+      REDIS_URL: redis://redis:6379/0
+      OPENAI_API_KEY: ${OPENAI:-}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      # Configuration des algorithmes
+      DEFAULT_ALGORITHM: auto
+      ENABLE_CACHING: "true"
+      CACHE_TTL: 3600
+      # Configuration de performance
+      MAX_JOBS_PER_REQUEST: 100
+      DEFAULT_RESULT_LIMIT: 10
+      # Configuration de monitoring
+      ENABLE_METRICS: "true"
+      METRICS_RETENTION_DAYS: 30
+      # Limites de taux
+      RATE_LIMIT_PER_MINUTE: 100
+      RATE_LIMIT_PER_HOUR: 1000
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    env_file:
+      - .env
+    networks:
+      - nexten-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5062/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    volumes:
+      - ./supersmartmatch-service/logs:/app/logs
+
   # Service d'adaptation de données pour SmartMatch
   data-adapter:
     build:
@@ -492,6 +555,7 @@ services:
       CV_PARSER_URL: http://cv-parser:5000
       JOB_PARSER_URL: http://job-parser:5000
       MATCHING_API_URL: http://matching-api:5000
+      SUPERSMARTMATCH_SERVICE_URL: http://supersmartmatch-service:5062
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     networks:
       - nexten-network
