@@ -1,9 +1,12 @@
-# Requirements pour SuperSmartMatch avec versions compatibles NumPy
+# Requirements pour SuperSmartMatch v2.2 avec Google Maps
 Flask>=2.3.0,<3.0.0
 Flask-CORS>=4.0.0,<5.0.0
 requests>=2.31.0,<3.0.0
 gunicorn>=21.2.0,<22.0.0
 python-dotenv>=1.0.0,<2.0.0
+
+# Google Maps Integration (NOUVEAU v2.2)
+googlemaps>=4.10.0,<5.0.0
 
 # Packages scientifiques avec versions compatibles
 numpy>=1.21.6,<2.0.0
@@ -16,3 +19,13 @@ tensorflow>=2.13.0,<2.16.0
 
 # NLTK pour le traitement du langage naturel
 nltk>=3.8.0,<4.0.0
+
+# Logging et utilitaires
+python-json-logger>=2.0.7,<3.0.0
+
+# Performance monitoring (optionnel)
+psutil>=5.9.5,<6.0.0
+
+# Development et testing (optionnel)
+pytest>=7.4.0,<8.0.0
+pytest-cov>=4.1.0,<5.0.0
