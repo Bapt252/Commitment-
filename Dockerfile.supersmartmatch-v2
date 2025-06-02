@@ -1,0 +1,65 @@
+# 🚀 SuperSmartMatch V2 - Unified Service Dockerfile
+# Port 5070 - Service intelligent unifiant Nexten Matcher et SuperSmartMatch V1
+
+FROM python:3.11-slim
+
+LABEL maintainer="SuperSmartMatch Team"
+LABEL version="2.0.0"
+LABEL description="Service unifié SuperSmartMatch V2 - Sélection intelligente d'algorithmes"
+
+# Variables d'environnement
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+ENV PORT=5070
+ENV ENVIRONMENT=production
+
+# Création utilisateur non-root pour sécurité
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Installation des dépendances système
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Répertoire de travail
+WORKDIR /app
+
+# Copie et installation des dépendances Python
+COPY requirements-v2.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-v2.txt
+
+# Copie du code source
+COPY supersmartmatch-v2-unified-service.py ./
+COPY supersmartmatch-v2-models.py ./
+COPY config/ ./config/
+COPY scripts/ ./scripts/
+
+# Création des répertoires nécessaires
+RUN mkdir -p /app/logs /app/data /app/cache && \
+    chown -R appuser:appuser /app
+
+# Configuration des permissions
+RUN chmod +x scripts/*.sh 2>/dev/null || true
+
+# Changement vers utilisateur non-root
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5070/health || exit 1
+
+# Exposition du port
+EXPOSE 5070
+
+# Point d'entrée avec validation
+ENTRYPOINT ["python", "supersmartmatch-v2-unified-service.py"]
+
+# Labels additionnels pour monitoring
+LABEL service.name="supersmartmatch-v2"
+LABEL service.port="5070"
+LABEL service.type="unified-matching"
+LABEL service.integrations="nexten-matcher,supersmartmatch-v1"
