@@ -1,0 +1,240 @@
+# SuperSmartMatch V2 Configuration
+# 🎯 Unified configuration for intelligent algorithm selection and Nexten integration
+
+version: "2.0"
+environment: "production"
+
+# Algorithm Configuration
+algorithms:
+  nexten_matcher:
+    enabled: true
+    priority: 1
+    max_response_time_ms: 100
+    cache_enabled: true
+    cache_ttl_seconds: 3600
+    circuit_breaker:
+      failure_threshold: 5
+      recovery_timeout: 60
+      half_open_max_calls: 3
+
+  smart_match:
+    enabled: true
+    priority: 2
+    use_cases: ["geo_complex", "mobility_constraints"]
+    max_response_time_ms: 150
+
+  enhanced_match:
+    enabled: true
+    priority: 3
+    use_cases: ["senior_profiles", "incomplete_questionnaires"]
+    min_experience_years: 3
+
+  semantic_match:
+    enabled: true
+    priority: 4
+    use_cases: ["complex_skills", "nlp_analysis"]
+    requires_models: ["spacy", "transformers"]
+
+  hybrid_match:
+    enabled: true
+    priority: 5
+    use_cases: ["critical_validation", "consensus_required"]
+
+# Intelligent Selection Rules
+selection_rules:
+  - name: "nexten_priority"
+    condition: "questionnaires_score >= 0.8 AND skills_count >= 5"
+    algorithm: "nexten_matcher"
+    confidence: 0.95
+    
+  - name: "nexten_default_high_performance"
+    condition: "questionnaires_score >= 0.4 OR skills_count >= 3"
+    algorithm: "nexten_matcher"
+    confidence: 0.85
+    
+  - name: "geo_complex"
+    condition: "mobility == 'complex' OR geo_constraints == 'strict'"
+    algorithm: "smart_match"
+    confidence: 0.90
+    
+  - name: "senior_profile"
+    condition: "experience >= 7 AND questionnaires_score < 0.8"
+    algorithm: "enhanced_match"
+    confidence: 0.75
+    
+  - name: "semantic_analysis"
+    condition: "requires_semantic_analysis == true"
+    algorithm: "semantic_match"
+    confidence: 0.80
+    
+  - name: "critical_validation"
+    condition: "validation_level == 'critical'"
+    algorithm: "hybrid_match"
+    confidence: 0.85
+    
+  - name: "default_intelligent"
+    condition: "true"  # Fallback rule
+    algorithm: "nexten_matcher"
+    confidence: 0.70
+
+# Nexten Integration Configuration
+nexten:
+  service_url: "http://matching-api:5000"
+  adapter_type: "enhanced"
+  enable_bidirectional: true
+  enable_questionnaire_processing: true
+  max_concurrent_requests: 10
+  timeout_seconds: 30
+  retry_attempts: 3
+  
+  # Data format conversion
+  input_format: "supersmartmatch"
+  output_format: "supersmartmatch"
+  
+  # Performance optimization
+  enable_caching: true
+  cache_prefix: "nexten_v2"
+  cache_ttl: 3600
+  
+  # Feature flags
+  enable_ml_scoring: true
+  enable_bidirectional_analysis: true
+  enable_cultural_fit: true
+  enable_risk_assessment: true
+
+# Performance Configuration
+performance:
+  max_response_time_ms: 100
+  cache_enabled: true
+  cache_ttl_seconds: 3600
+  enable_ab_testing: true
+  enable_monitoring: true
+  
+  # Circuit breaker settings
+  circuit_breaker:
+    failure_threshold: 5
+    recovery_timeout: 60
+    half_open_max_calls: 3
+  
+  # Rate limiting
+  rate_limit:
+    requests_per_minute: 1000
+    requests_per_hour: 10000
+    burst_limit: 50
+
+# Feature Flags for Progressive Rollout
+feature_flags:
+  enable_v2: true
+  v2_traffic_percentage: 100
+  enable_nexten_algorithm: true
+  enable_smart_selection: true
+  enable_fallback_handling: true
+  enable_performance_monitoring: true
+  
+  # A/B testing
+  enable_ab_testing: true
+  ab_test_traffic_percentage: 20
+
+# Monitoring and Analytics
+monitoring:
+  enable_metrics: true
+  metrics_retention_days: 30
+  enable_detailed_logging: true
+  log_level: "INFO"
+  
+  # Health check configuration
+  health_check:
+    interval_seconds: 30
+    timeout_seconds: 10
+    retries: 3
+  
+  # Alert thresholds
+  alerts:
+    response_time_ms: 150
+    error_rate_percentage: 5
+    availability_percentage: 99.5
+
+# Data Adapter Configuration
+data_adapter:
+  enable_format_validation: true
+  enable_schema_conversion: true
+  cache_conversions: true
+  conversion_timeout_seconds: 5
+  
+  # Format mappings
+  candidate_profile_mapping:
+    nexten_format: "cv_data + questionnaire"
+    smart_format: "candidate_profile"
+    enhanced_format: "extended_profile"
+    
+  offer_mapping:
+    nexten_format: "job_data + company_questionnaire"
+    smart_format: "company_offer"
+    enhanced_format: "extended_offer"
+
+# Security Configuration
+security:
+  enable_api_key_auth: false  # For internal services
+  enable_rate_limiting: true
+  enable_request_validation: true
+  enable_response_sanitization: true
+  
+  # CORS configuration
+  cors:
+    allowed_origins: ["*"]
+    allowed_methods: ["GET", "POST", "PUT", "DELETE"]
+    allowed_headers: ["Content-Type", "Authorization", "X-User-ID"]
+
+# Deployment Configuration
+deployment:
+  service_name: "supersmartmatch-v2"
+  port: 5062
+  workers: 4
+  max_connections: 1000
+  
+  # Resource limits
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1Gi"
+    cpu_request: "500m"
+    memory_request: "512Mi"
+  
+  # Health and readiness
+  health_endpoint: "/api/v2/health"
+  readiness_endpoint: "/api/v2/ready"
+  metrics_endpoint: "/api/v2/metrics"
+
+# Integration with Other Services
+integrations:
+  matching_service:
+    url: "http://matching-api:5000"
+    type: "nexten_matcher"
+    timeout: 30
+    
+  personalization_service:
+    url: "http://personalization-service:5060"
+    enabled: true
+    timeout: 10
+    
+  user_behavior_service:
+    url: "http://user-behavior-api:5000"
+    enabled: true
+    timeout: 5
+    
+  feedback_service:
+    url: "http://feedback-service:5058"
+    enabled: true
+    timeout: 5
+
+# Development and Testing
+development:
+  enable_debug_mode: false
+  enable_mock_responses: false
+  enable_test_data: false
+  
+  # Testing configuration
+  testing:
+    enable_unit_tests: true
+    enable_integration_tests: true
+    enable_performance_tests: true
+    test_data_size: 100
