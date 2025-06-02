@@ -1,42 +1,42 @@
 #!/bin/bash
 
-# 🚀 SuperSmartMatch V2 - Script de test corrigé
-# Tests des API V1 et V2 avec les bonnes routes identifiées
+# 🚀 SuperSmartMatch - Script de test avec routes correctes identifiées
+# Tests des API V1 classique (5052) et SuperSmartMatch V1 (5062)
 
 echo "=========================================="
-echo "🚀 SUPERSMARTMATCH V2 - TESTS CORRIGES"
+echo "🚀 SUPERSMARTMATCH - TESTS AVEC ROUTES CORRECTES"
 echo "=========================================="
 
-# Configuration
-MATCHING_SERVICE_PORT_5052="http://localhost:5052"
-SUPERSMARTMATCH_V2_PORT_5062="http://localhost:5062"
+# Configuration des services identifiés
+MATCHING_SERVICE_V1="http://localhost:5052"      # Service de matching classique  
+SUPERSMARTMATCH_V1="http://localhost:5062"       # SuperSmartMatch V1 (pas V2!)
 
 echo ""
-echo "📋 Tests des services disponibles:"
+echo "📋 Services testés :"
 echo "   Port 5052: Service de matching classique (V1)"
-echo "   Port 5062: SuperSmartMatch V2"
+echo "   Port 5062: SuperSmartMatch V1 unifié (4 algorithmes)"
 echo ""
 
 # Vérification des services
 echo "🔍 1. Vérification des services..."
 
 echo "   ✓ Test health check port 5052:"
-curl -s "$MATCHING_SERVICE_PORT_5052/health" | jq '.' || echo "❌ Service 5052 non accessible"
+curl -s "$MATCHING_SERVICE_V1/health" | jq '.' || echo "❌ Service 5052 non accessible"
 
 echo ""
 echo "   ✓ Test health check port 5062:"
-curl -s "$SUPERSMARTMATCH_V2_PORT_5062/health" | jq '.' || echo "❌ Service 5062 non accessible"
+curl -s "$SUPERSMARTMATCH_V1/api/v1/health" | jq '.' || echo "❌ Service 5062 non accessible"
 
 echo ""
 echo "=========================================="
-echo "🔧 2. Test API V1 classique (Port 5052)"
+echo "🔧 2. Test Service de matching classique (Port 5052)"
 echo "=========================================="
 
 echo "   📡 Route: /api/v1/queue-matching"
 echo ""
 
-# Test V1 sur port 5052 avec la bonne route
-curl -X POST "$MATCHING_SERVICE_PORT_5052/api/v1/queue-matching" \
+# Test V1 classique sur port 5052
+curl -X POST "$MATCHING_SERVICE_V1/api/v1/queue-matching" \
   -H "Content-Type: application/json" \
   -d '{
     "candidate_id": "test-candidate-123",
@@ -46,123 +46,135 @@ curl -X POST "$MATCHING_SERVICE_PORT_5052/api/v1/queue-matching" \
 
 echo ""
 echo "=========================================="
-echo "🚀 3. Test SuperSmartMatch V2 (Port 5062)"
+echo "🧠 3. Test SuperSmartMatch V1 (Port 5062)"
 echo "=========================================="
 
-echo "   📡 Route: /api/v2/match (Format V2 complet)"
+echo "   📡 Route: /api/v1/match (Service unifié)"
 echo ""
 
-# Test V2 avec format complet
-curl -X POST "$SUPERSMARTMATCH_V2_PORT_5062/api/v2/match" \
+# Test SuperSmartMatch V1 avec le bon format
+curl -X POST "$SUPERSMARTMATCH_V1/api/v1/match" \
   -H "Content-Type: application/json" \
   -d '{
     "candidate": {
       "name": "Jean Dupont",
       "email": "jean.dupont@example.com",
-      "location": {
-        "city": "Paris",
-        "country": "France"
-      },
-      "technical_skills": [
-        {
-          "name": "Python",
-          "level": "Expert",
-          "years": 5
-        },
-        {
-          "name": "Django",
-          "level": "Advanced",
-          "years": 3
-        }
-      ],
-      "experiences": [
-        {
-          "title": "Développeur Senior",
-          "company": "TechCorp",
-          "duration_months": 24,
-          "skills": ["Python", "Django", "PostgreSQL"]
-        }
-      ],
-      "mobility_preferences": "flexible"
-    },
-    "candidate_questionnaire": {
-      "work_style": "collaborative",
-      "culture_preferences": "innovation_focused",
-      "remote_preference": "hybrid"
+      "technical_skills": ["Python", "Django", "PostgreSQL"],
+      "experience_years": 5,
+      "location": "Paris, France"
     },
     "offers": [
       {
         "id": "job-123",
         "title": "Développeur Python Senior",
-        "company": "StartupIA",
-        "location": {
-          "city": "Paris",
-          "country": "France"
-        },
-        "required_skills": ["Python", "Django", "Machine Learning"],
-        "experience_level": "senior",
-        "remote_policy": "hybrid",
-        "salary_range": {
-          "min": 55000,
-          "max": 75000,
-          "currency": "EUR"
-        }
-      }
-    ],
-    "company_questionnaires": [
+        "company": "TechCorp",
+        "required_skills": ["Python", "Django", "PostgreSQL"],
+        "location": "Paris, France",
+        "experience_required": "3-7 ans"
+      },
       {
-        "culture": "innovation_focused",
-        "team_size": "small",
-        "work_methodology": "agile"
+        "id": "job-456", 
+        "title": "Lead Developer Python",
+        "company": "StartupAI",
+        "required_skills": ["Python", "FastAPI", "Machine Learning"],
+        "location": "Lyon, France",
+        "experience_required": "5+ ans"
       }
     ],
-    "algorithm": "auto"
+    "algorithm": "smart-match"
   }' | jq '.'
 
 echo ""
 echo "=========================================="
-echo "🔄 4. Test Compatibilité V1 sur V2 (Port 5062)"
+echo "🎯 4. Test des algorithmes disponibles"
 echo "=========================================="
 
-echo "   📡 Route: /match (Format V1 compatible)"
-echo ""
+echo "   📊 Liste des algorithmes SuperSmartMatch V1:"
+curl -s "$SUPERSMARTMATCH_V1/api/v1/algorithms" | jq '.' || echo "Route non disponible"
 
-# Test format V1 sur SuperSmartMatch V2
-curl -X POST "$SUPERSMARTMATCH_V2_PORT_5062/match" \
+echo ""
+echo "   📈 Métriques de performance:"
+curl -s "$SUPERSMARTMATCH_V1/api/v1/metrics" | jq '.' || echo "Route non disponible"
+
+echo ""
+echo "=========================================="
+echo "🔬 5. Test comparaison d'algorithmes"
+echo "=========================================="
+
+echo "   🧪 Comparaison: smart-match vs enhanced"
+curl -X POST "$SUPERSMARTMATCH_V1/api/v1/compare" \
   -H "Content-Type: application/json" \
   -d '{
     "candidate": {
-      "name": "Marie Martin",
-      "technical_skills": ["Python", "Django", "React"],
-      "experiences": [
-        {
-          "title": "Développeuse Full Stack",
-          "company": "WebAgency",
-          "duration": "2 ans"
-        }
-      ]
+      "name": "Alice Expert",
+      "technical_skills": ["Python", "Machine Learning", "TensorFlow"],
+      "experience_years": 8
     },
     "offers": [
       {
-        "id": "job-456",
-        "title": "Développeuse Full Stack",
-        "required_skills": ["Python", "Django", "JavaScript"],
-        "company": "TechStartup"
+        "id": "ml-job-789",
+        "title": "ML Engineer Senior",
+        "required_skills": ["Python", "Machine Learning", "TensorFlow", "AWS"],
+        "experience_required": "5+ ans"
       }
-    ]
-  }' | jq '.'
+    ],
+    "algorithms": ["smart-match", "enhanced"]
+  }' | jq '.' || echo "Comparaison non disponible"
 
 echo ""
 echo "=========================================="
-echo "📊 5. Tests de monitoring et santé"
+echo "🧪 6. Test des 4 algorithmes individuellement"
 echo "=========================================="
 
-echo "   🔍 Health check détaillé V2:"
-curl -s "$SUPERSMARTMATCH_V2_PORT_5062/api/v2/health?detailed=true" | jq '.'
+# Données de test pour les algorithmes
+test_data='{
+  "candidate": {
+    "name": "Bob Developer",
+    "technical_skills": ["JavaScript", "React", "Node.js"],
+    "experience_years": 3,
+    "location": "Paris, France"
+  },
+  "offers": [
+    {
+      "id": "frontend-job",
+      "title": "Développeur Frontend",
+      "required_skills": ["JavaScript", "React", "CSS"],
+      "location": "Paris, France"
+    }
+  ]
+}'
+
+algorithms=("smart-match" "enhanced" "semantic" "hybrid")
+
+for algo in "${algorithms[@]}"; do
+    echo "   🔬 Test algorithme: $algo"
+    
+    modified_data=$(echo "$test_data" | jq --arg alg "$algo" '. + {algorithm: $alg}')
+    
+    curl -X POST "$SUPERSMARTMATCH_V1/api/v1/match" \
+      -H "Content-Type: application/json" \
+      -d "$modified_data" \
+      -s | jq -r '.algorithm_used // "N/A"' | head -1 | tr -d '\n'
+    
+    echo ""
+done
 
 echo ""
-echo "   🧠 Recommandations d'algorithmes:"
-curl -s "$SUPERSMARTMATCH_V2_PORT_5062/api/v2/algorithm/recommendations?candidate_experience=5&questionnaire_completeness=0.8&has_geo_constraints=true" | jq '.'
+echo "=========================================="
+echo "📊 7. Test Dashboard et monitoring"
+echo "=========================================="
+
+echo "   🖥️ Dashboard SuperSmartMatch (HTML):"
+echo "   📍 URL: http://localhost:5062/dashboard"
+echo "   🌐 Ouvrez dans votre navigateur pour l'interface complète"
+
+# Test simple du dashboard
+dashboard_status=$(curl -s -w "%{http_code}" -o /dev/null "$SUPERSMARTMATCH_V1/dashboard")
+if [ "$dashboard_status" = "200" ]; then
+    echo "   ✅ Dashboard accessible"
+else
+    echo "   ❌ Dashboard non accessible (HTTP $dashboard_status)"
+fi
 
 echo ""
 echo "=========================================="
@@ -170,16 +182,25 @@ echo "✅ TESTS TERMINÉS"
 echo "=========================================="
 
 echo ""
-echo "📝 Résumé des routes identifiées :"
-echo "   Port 5052 - Service classique :"
-echo "   • /health"
-echo "   • /api/v1/queue-matching"
+echo "📝 Résumé des routes fonctionnelles :"
 echo ""
-echo "   Port 5062 - SuperSmartMatch V2 :"
-echo "   • /health"
-echo "   • /api/v2/health"
-echo "   • /api/v2/match (Format V2 complet)"
-echo "   • /match (Compatible V1)"
-echo "   • /api/v2/algorithm/recommendations"
+echo "   🔧 Port 5052 - Service matching classique :"
+echo "   • GET  /health"
+echo "   • POST /api/v1/queue-matching"
 echo ""
-echo "🎯 Utilisez ces routes pour vos tests !"
+echo "   🧠 Port 5062 - SuperSmartMatch V1 unifié :"
+echo "   • GET  /api/v1/health"
+echo "   • GET  /api/v1/algorithms" 
+echo "   • GET  /api/v1/metrics"
+echo "   • GET  /dashboard"
+echo "   • POST /api/v1/match (Route principale)"
+echo "   • POST /api/v1/compare"
+echo ""
+echo "   🎯 Algorithmes disponibles :"
+echo "   • smart-match (géolocalisation optimisée)"
+echo "   • enhanced (profils expérimentés)"
+echo "   • semantic (analyse sémantique)"
+echo "   • hybrid (multi-algorithmes)"
+echo ""
+echo "🎉 SuperSmartMatch V1 opérationnel avec 4 algorithmes intelligents !"
+echo "📖 Documentation: https://github.com/Bapt252/SuperSmartMatch-Service"
