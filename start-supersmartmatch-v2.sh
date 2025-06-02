@@ -1,119 +1,143 @@
 #!/bin/bash
+
+# 🚀 SuperSmartMatch V2 - Script de Démarrage Automatique
+# Orchestration complète du service unifié sur port 5070
+
 set -e
 
-# 🚀 SuperSmartMatch V2 - Script de Démarrage Automatisé
-# Déploiement complet du service unifié avec validation
-
-echo "🚀 SuperSmartMatch V2 - Démarrage Automatisé"
-echo "=============================================="
-
-# Configuration par défaut
-PROJECT_NAME="supersmartmatch-v2"
-BASE_DIR="$(pwd)"
-COMPOSE_FILE="docker-compose.supersmartmatch-v2.yml"
-VALIDATION_TIMEOUT=300
-ENVIRONMENT="${ENVIRONMENT:-production}"
-
-# Couleurs pour output
+# Couleurs pour l'affichage
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Fonction utilitaires
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+# Configuration par défaut
+DEFAULT_MODE="docker"
+DEFAULT_ENVIRONMENT="development"
+DEFAULT_PORT=5070
+
+# Affichage du header
+print_header() {
+    echo -e "${PURPLE}"
+    echo "╔══════════════════════════════════════════════════════════╗"
+    echo "║              🚀 SuperSmartMatch V2 Launcher              ║"
+    echo "║                 Service Unifié Port 5070                ║"
+    echo "╚══════════════════════════════════════════════════════════╝"
+    echo -e "${NC}"
 }
 
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+# Affichage de l'aide
+show_help() {
+    echo -e "${CYAN}Usage: $0 [MODE] [OPTIONS]${NC}"
+    echo ""
+    echo -e "${YELLOW}MODES:${NC}"
+    echo "  docker     - Démarrage avec Docker Compose (recommandé)"
+    echo "  local      - Démarrage local avec Python"
+    echo "  dev        - Mode développement avec hot reload"
+    echo "  test       - Lancement des tests et validation"
+    echo "  stop       - Arrêt de tous les services"
+    echo "  status     - État des services"
+    echo "  logs       - Affichage des logs"
+    echo ""
+    echo -e "${YELLOW}OPTIONS:${NC}"
+    echo "  --port PORT        Port du service V2 (défaut: 5070)"
+    echo "  --env ENV          Environnement (development/production)"
+    echo "  --no-validation    Skip la validation post-démarrage"
+    echo "  --verbose          Affichage détaillé"
+    echo "  --help             Afficher cette aide"
+    echo ""
+    echo -e "${YELLOW}EXEMPLES:${NC}"
+    echo "  $0 docker                    # Démarrage Docker standard"
+    echo "  $0 local --port 5071         # Démarrage local port 5071"
+    echo "  $0 dev --verbose             # Mode développement verbeux"
+    echo "  $0 test                      # Tests complets"
 }
 
 # Vérification des prérequis
 check_prerequisites() {
-    log_info "Vérification des prérequis..."
+    echo -e "${BLUE}🔍 Vérification des prérequis...${NC}"
     
-    # Docker et Docker Compose
-    if ! command -v docker &> /dev/null; then
-        log_error "Docker n'est pas installé. Installation requise."
+    local missing_deps=0
+    
+    # Vérifier Docker si mode Docker
+    if [[ "$MODE" == "docker" || "$MODE" == "dev" ]]; then
+        if ! command -v docker &> /dev/null; then
+            echo -e "${RED}❌ Docker non trouvé${NC}"
+            missing_deps=1
+        fi
+        
+        if ! command -v docker-compose &> /dev/null; then
+            echo -e "${RED}❌ Docker Compose non trouvé${NC}"
+            missing_deps=1
+        fi
+    fi
+    
+    # Vérifier Python si mode local
+    if [[ "$MODE" == "local" || "$MODE" == "dev" || "$MODE" == "test" ]]; then
+        if ! command -v python3 &> /dev/null; then
+            echo -e "${RED}❌ Python 3 non trouvé${NC}"
+            missing_deps=1
+        fi
+        
+        if ! command -v pip &> /dev/null; then
+            echo -e "${RED}❌ pip non trouvé${NC}"
+            missing_deps=1
+        fi
+    fi
+    
+    # Vérifier les fichiers requis
+    required_files=(
+        "supersmartmatch-v2-unified-service.py"
+        "requirements-v2.txt"
+        "docker-compose.supersmartmatch-v2.yml"
+    )
+    
+    for file in "${required_files[@]}"; do
+        if [[ ! -f "$file" ]]; then
+            echo -e "${RED}❌ Fichier manquant: $file${NC}"
+            missing_deps=1
+        fi
+    done
+    
+    if [[ $missing_deps -eq 1 ]]; then
+        echo -e "${RED}💥 Prérequis manquants. Installation nécessaire.${NC}"
         exit 1
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
-        log_error "Docker Compose n'est pas installé. Installation requise."
-        exit 1
-    fi
-    
-    # Python pour scripts de validation
-    if ! command -v python3 &> /dev/null; then
-        log_warning "Python3 non trouvé. Validation automatique désactivée."
-    fi
-    
-    # Vérification espace disque
-    AVAILABLE_SPACE=$(df . | tail -1 | awk '{print $4}')
-    if [ "$AVAILABLE_SPACE" -lt 5242880 ]; then  # 5GB en KB
-        log_warning "Moins de 5GB d'espace disque disponible. Recommandé: 10GB+"
-    fi
-    
-    log_success "Prérequis validés"
+    echo -e "${GREEN}✅ Prérequis satisfaits${NC}"
 }
 
 # Configuration de l'environnement
 setup_environment() {
-    log_info "Configuration de l'environnement..."
+    echo -e "${BLUE}🔧 Configuration de l'environnement...${NC}"
     
-    # Création des répertoires nécessaires
-    mkdir -p logs/{supersmartmatch-v2,nexten,v1,nginx,redis}
-    mkdir -p config/{supersmartmatch-v2,monitoring,nginx}
-    mkdir -p data/{redis,prometheus,grafana}
-    mkdir -p monitoring/{prometheus,grafana/dashboards,grafana/datasources}
-    
-    # Configuration des permissions
-    chmod -R 755 logs config data monitoring
-    
-    # Copie de la configuration par défaut si non existante
-    if [ ! -f .env ]; then
-        if [ -f .env.example ]; then
-            cp .env.example .env
-            log_info "Fichier .env créé depuis .env.example"
-        else
-            create_default_env
-        fi
-    fi
-    
-    log_success "Environnement configuré"
-}
-
-# Création configuration par défaut
-create_default_env() {
-    cat > .env << EOF
+    # Créer le fichier .env s'il n'existe pas
+    if [[ ! -f ".env" ]]; then
+        echo -e "${YELLOW}📝 Création du fichier .env...${NC}"
+        cat > .env << EOF
 # SuperSmartMatch V2 Configuration
+SERVICE_PORT=${PORT}
 ENVIRONMENT=${ENVIRONMENT}
-COMPOSE_PROJECT_NAME=${PROJECT_NAME}
+SERVICE_NAME=supersmartmatch-v2
 
-# Service URLs
-NEXTEN_URL=http://nexten-matcher:5052
-SUPERSMARTMATCH_V1_URL=http://supersmartmatch-v1:5062
+# Services externes
+NEXTEN_URL=http://localhost:5052
+SUPERSMARTMATCH_V1_URL=http://localhost:5062
 
-# Redis Configuration
-REDIS_URL=redis://redis-cache:6379
+# Redis
+REDIS_URL=redis://localhost:6379
 CACHE_TTL=300
+CACHE_ENABLED=true
 
-# Performance Settings
-MAX_RESPONSE_TIME_MS=100
+# Circuit breakers
 CIRCUIT_BREAKER_THRESHOLD=5
 CIRCUIT_BREAKER_TIMEOUT=60
+MAX_RESPONSE_TIME_MS=100
 
-# Feature Flags
+# Feature flags
 ENABLE_V2=true
 V2_TRAFFIC_PERCENTAGE=100
 ENABLE_NEXTEN_ALGORITHM=true
@@ -121,305 +145,370 @@ ENABLE_SMART_SELECTION=true
 
 # Monitoring
 ENABLE_METRICS=true
-PROMETHEUS_RETENTION=168h
-
-# API Keys (à configurer)
-GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
+LOG_LEVEL=INFO
 EOF
+        echo -e "${GREEN}✅ Fichier .env créé${NC}"
+    fi
     
-    log_info "Configuration par défaut créée. Veuillez éditer .env avec vos clés API."
+    # Créer les répertoires nécessaires
+    mkdir -p logs config data cache
+    
+    echo -e "${GREEN}✅ Environnement configuré${NC}"
 }
 
-# Configuration monitoring
-setup_monitoring() {
-    log_info "Configuration du monitoring..."
+# Démarrage mode Docker
+start_docker() {
+    echo -e "${BLUE}🐳 Démarrage avec Docker Compose...${NC}"
     
-    # Configuration Prometheus
-    cat > monitoring/prometheus/prometheus.yml << 'EOF'
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
-
-rule_files:
-  - "alerts/*.yml"
-
-scrape_configs:
-  - job_name: 'supersmartmatch-v2'
-    static_configs:
-      - targets: ['supersmartmatch-v2:5070']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
+    # Arrêter les services existants
+    docker-compose -f docker-compose.supersmartmatch-v2.yml down &>/dev/null || true
     
-  - job_name: 'nexten-matcher'
-    static_configs:
-      - targets: ['nexten-matcher:5052']
-    metrics_path: '/metrics'
-    scrape_interval: 15s
+    # Build et démarrage
+    if [[ "$VERBOSE" == "true" ]]; then
+        docker-compose -f docker-compose.supersmartmatch-v2.yml up --build -d
+    else
+        docker-compose -f docker-compose.supersmartmatch-v2.yml up --build -d &>/dev/null
+    fi
     
-  - job_name: 'supersmartmatch-v1'
-    static_configs:
-      - targets: ['supersmartmatch-v1:5062']
-    metrics_path: '/metrics'
-    scrape_interval: 15s
+    # Attendre que les services soient prêts
+    echo -e "${YELLOW}⏳ Attente des services (30s max)...${NC}"
     
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis-cache:6379']
+    local max_attempts=30
+    local attempt=0
     
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-          - alertmanager:9093
-EOF
-
-    # Configuration Grafana datasource
-    cat > monitoring/grafana/datasources/prometheus.yml << 'EOF'
-apiVersion: 1
-
-datasources:
-  - name: Prometheus
-    type: prometheus
-    access: proxy
-    url: http://prometheus:9090
-    isDefault: true
-    editable: true
-EOF
-
-    log_success "Monitoring configuré"
-}
-
-# Configuration Nginx
-setup_nginx() {
-    log_info "Configuration Nginx..."
-    
-    cat > config/nginx/nginx.conf << 'EOF'
-events {
-    worker_connections 1024;
-}
-
-http {
-    upstream supersmartmatch-v2 {
-        server supersmartmatch-v2:5070;
-    }
-    
-    upstream nexten-matcher {
-        server nexten-matcher:5052;
-    }
-    
-    upstream supersmartmatch-v1 {
-        server supersmartmatch-v1:5062;
-    }
-    
-    server {
-        listen 80;
-        server_name localhost;
-        
-        # SuperSmartMatch V2 (principal)
-        location / {
-            proxy_pass http://supersmartmatch-v2;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-        
-        # Monitoring endpoints
-        location /prometheus {
-            proxy_pass http://prometheus:9090;
-        }
-        
-        location /grafana {
-            proxy_pass http://grafana:3000;
-        }
-        
-        # Health checks
-        location /health {
-            proxy_pass http://supersmartmatch-v2/health;
-        }
-    }
-}
-EOF
-
-    log_success "Nginx configuré"
-}
-
-# Démarrage des services
-start_services() {
-    log_info "Démarrage des services SuperSmartMatch V2..."
-    
-    # Arrêt des services existants
-    log_info "Arrêt des services existants..."
-    docker-compose -f "$COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
-    
-    # Construction des images si nécessaire
-    log_info "Construction des images Docker..."
-    docker-compose -f "$COMPOSE_FILE" build --parallel
-    
-    # Démarrage en arrière-plan
-    log_info "Démarrage des services..."
-    docker-compose -f "$COMPOSE_FILE" up -d
-    
-    log_success "Services démarrés"
-}
-
-# Validation du déploiement
-validate_deployment() {
-    log_info "Validation du déploiement..."
-    
-    # Attente démarrage des services
-    log_info "Attente du démarrage des services (max ${VALIDATION_TIMEOUT}s)..."
-    
-    local timeout=$VALIDATION_TIMEOUT
-    local interval=10
-    local elapsed=0
-    
-    while [ $elapsed -lt $timeout ]; do
-        if docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
-            log_info "Services détectés en cours d'exécution..."
-            sleep $interval
+    while [[ $attempt -lt $max_attempts ]]; do
+        if curl -s http://localhost:${PORT}/health &>/dev/null; then
+            echo -e "${GREEN}✅ SuperSmartMatch V2 opérationnel${NC}"
             break
         fi
         
-        sleep $interval
-        elapsed=$((elapsed + interval))
-        log_info "Attente... (${elapsed}s/${timeout}s)"
+        echo -n "."
+        sleep 1
+        ((attempt++))
     done
     
-    # Validation santé des services
-    log_info "Validation de la santé des services..."
+    if [[ $attempt -eq $max_attempts ]]; then
+        echo -e "${RED}❌ Timeout - Service non démarré${NC}"
+        show_logs
+        exit 1
+    fi
+}
+
+# Démarrage mode local
+start_local() {
+    echo -e "${BLUE}🐍 Démarrage local avec Python...${NC}"
     
-    # SuperSmartMatch V2
-    if curl -sf http://localhost:5070/health > /dev/null 2>&1; then
-        log_success "✅ SuperSmartMatch V2 (port 5070) - HEALTHY"
-    else
-        log_warning "⚠️ SuperSmartMatch V2 (port 5070) - En cours de démarrage"
+    # Installation des dépendances
+    if [[ ! -d "venv" ]]; then
+        echo -e "${YELLOW}📦 Création de l'environnement virtuel...${NC}"
+        python3 -m venv venv
     fi
     
-    # Nexten Matcher
-    if curl -sf http://localhost:5052/health > /dev/null 2>&1; then
-        log_success "✅ Nexten Matcher (port 5052) - HEALTHY"
-    else
-        log_warning "⚠️ Nexten Matcher (port 5052) - En cours de démarrage"
+    source venv/bin/activate
+    
+    echo -e "${YELLOW}📦 Installation des dépendances...${NC}"
+    pip install -r requirements-v2.txt &>/dev/null
+    
+    # Démarrage Redis si nécessaire
+    if ! pgrep redis-server &>/dev/null; then
+        echo -e "${YELLOW}🔴 Démarrage Redis...${NC}"
+        redis-server &
+        sleep 2
     fi
     
-    # SuperSmartMatch V1
-    if curl -sf http://localhost:5062/health > /dev/null 2>&1; then
-        log_success "✅ SuperSmartMatch V1 (port 5062) - HEALTHY"
-    else
-        log_warning "⚠️ SuperSmartMatch V1 (port 5062) - En cours de démarrage"
-    fi
+    # Démarrage du service
+    echo -e "${BLUE}🚀 Démarrage SuperSmartMatch V2...${NC}"
     
-    # Redis
-    if docker exec redis-cache-v2 redis-cli ping > /dev/null 2>&1; then
-        log_success "✅ Redis Cache - HEALTHY"
-    else
-        log_warning "⚠️ Redis Cache - En cours de démarrage"
-    fi
+    export SERVICE_PORT=${PORT}
+    export ENVIRONMENT=${ENVIRONMENT}
     
-    # Validation complète avec script Python
-    if command -v python3 &> /dev/null && [ -f validate-supersmartmatch-v2.py ]; then
-        log_info "Validation E2E avec script Python..."
-        if python3 validate-supersmartmatch-v2.py http://localhost:5070; then
-            log_success "✅ Validation E2E - PASSED"
-        else
-            log_warning "⚠️ Validation E2E - PARTIAL (voir détails ci-dessus)"
+    if [[ "$VERBOSE" == "true" ]]; then
+        python supersmartmatch-v2-unified-service.py
+    else
+        python supersmartmatch-v2-unified-service.py &>/dev/null &
+        local service_pid=$!
+        
+        # Attendre que le service soit prêt
+        local max_attempts=20
+        local attempt=0
+        
+        while [[ $attempt -lt $max_attempts ]]; do
+            if curl -s http://localhost:${PORT}/health &>/dev/null; then
+                echo -e "${GREEN}✅ SuperSmartMatch V2 opérationnel (PID: $service_pid)${NC}"
+                break
+            fi
+            
+            echo -n "."
+            sleep 1
+            ((attempt++))
+        done
+        
+        if [[ $attempt -eq $max_attempts ]]; then
+            echo -e "${RED}❌ Timeout - Service non démarré${NC}"
+            kill $service_pid 2>/dev/null || true
+            exit 1
         fi
     fi
 }
 
-# Affichage des informations de connexion
-show_connection_info() {
-    echo ""
-    echo "🎉 SuperSmartMatch V2 déployé avec succès!"
-    echo "==========================================="
-    echo ""
-    echo "📊 ENDPOINTS PRINCIPAUX:"
-    echo "  🚀 SuperSmartMatch V2:     http://localhost:5070"
-    echo "  📱 API V2:                 http://localhost:5070/api/v2/match"
-    echo "  🔄 API V1 (compat):        http://localhost:5070/match"
-    echo "  💚 Health Check:           http://localhost:5070/health"
-    echo "  📊 Métriques:              http://localhost:5070/metrics"
-    echo "  📚 Documentation:          http://localhost:5070/api/docs"
-    echo ""
-    echo "🔧 SERVICES INTÉGRÉS:"
-    echo "  🧠 Nexten Matcher:         http://localhost:5052"
-    echo "  ⚡ SuperSmartMatch V1:      http://localhost:5062" 
-    echo "  🗄️ Redis Cache:            http://localhost:6379"
-    echo ""
-    echo "📈 MONITORING:"
-    echo "  📊 Grafana Dashboard:      http://localhost:3000 (admin/supersmartmatch)"
-    echo "  🔍 Prometheus:             http://localhost:9090"
-    echo "  🌐 Nginx Gateway:          http://localhost:80"
-    echo ""
-    echo "🧪 VALIDATION:"
-    echo "  python3 validate-supersmartmatch-v2.py"
-    echo ""
-    echo "📋 COMMANDES UTILES:"
-    echo "  docker-compose -f $COMPOSE_FILE logs -f        # Logs en temps réel"
-    echo "  docker-compose -f $COMPOSE_FILE ps             # Status services"
-    echo "  docker-compose -f $COMPOSE_FILE down           # Arrêt complet"
-    echo "  ./scripts/health-check.sh                      # Vérification santé"
-    echo ""
+# Mode développement
+start_dev() {
+    echo -e "${BLUE}🛠️ Mode développement avec hot reload...${NC}"
+    
+    # Installation des dépendances de développement
+    if [[ ! -d "venv" ]]; then
+        python3 -m venv venv
+    fi
+    
+    source venv/bin/activate
+    pip install -r requirements-v2.txt
+    pip install watchdog uvicorn[standard]
+    
+    # Démarrage avec hot reload
+    export SERVICE_PORT=${PORT}
+    export ENVIRONMENT=development
+    
+    uvicorn supersmartmatch_v2_unified_service:app \
+        --host 0.0.0.0 \
+        --port ${PORT} \
+        --reload \
+        --reload-dir . \
+        --log-level info
 }
 
-# Fonction de nettoyage en cas d'erreur
-cleanup_on_error() {
-    log_error "Erreur détectée. Nettoyage..."
-    docker-compose -f "$COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
-    exit 1
+# Tests et validation
+run_tests() {
+    echo -e "${BLUE}🧪 Exécution des tests et validation...${NC}"
+    
+    # Tests unitaires
+    echo -e "${YELLOW}🔬 Tests unitaires...${NC}"
+    if command -v python &>/dev/null; then
+        python -m pytest test-supersmartmatch-v2.py -v
+    else
+        echo -e "${YELLOW}⏭️ Python non disponible, skip tests unitaires${NC}"
+    fi
+    
+    # Validation d'intégration
+    echo -e "${YELLOW}🔗 Validation d'intégration...${NC}"
+    if curl -s http://localhost:${PORT}/health &>/dev/null; then
+        python validate-supersmartmatch-v2.py http://localhost:${PORT}
+    else
+        echo -e "${RED}❌ Service non disponible pour validation${NC}"
+        exit 1
+    fi
 }
 
-# Main execution
-main() {
-    trap cleanup_on_error ERR
+# Arrêt des services
+stop_services() {
+    echo -e "${BLUE}🛑 Arrêt des services...${NC}"
     
-    echo "Démarrage: $(date)"
-    echo "Répertoire: $BASE_DIR"
-    echo "Environnement: $ENVIRONMENT"
+    # Docker
+    if command -v docker-compose &>/dev/null; then
+        docker-compose -f docker-compose.supersmartmatch-v2.yml down &>/dev/null || true
+        echo -e "${GREEN}✅ Services Docker arrêtés${NC}"
+    fi
+    
+    # Processus locaux
+    pkill -f "supersmartmatch-v2-unified-service.py" &>/dev/null || true
+    pkill -f "uvicorn.*supersmartmatch" &>/dev/null || true
+    
+    echo -e "${GREEN}✅ Tous les services arrêtés${NC}"
+}
+
+# État des services
+show_status() {
+    echo -e "${BLUE}📊 État des services SuperSmartMatch V2${NC}"
     echo ""
     
-    check_prerequisites
-    setup_environment
-    setup_monitoring
-    setup_nginx
-    start_services
-    validate_deployment
-    show_connection_info
+    # Service principal V2
+    if curl -s http://localhost:${PORT}/health &>/dev/null; then
+        echo -e "${GREEN}✅ SuperSmartMatch V2 (port ${PORT})${NC}"
+        
+        # Informations détaillées
+        local health_info=$(curl -s http://localhost:${PORT}/health 2>/dev/null)
+        if [[ $? -eq 0 ]]; then
+            echo "   $(echo $health_info | jq -r '.version // "Version inconnue"' 2>/dev/null || echo "Status: OK")"
+        fi
+    else
+        echo -e "${RED}❌ SuperSmartMatch V2 (port ${PORT})${NC}"
+    fi
     
-    log_success "🎉 Déploiement SuperSmartMatch V2 terminé avec succès!"
+    # Services externes
+    if curl -s http://localhost:5052/health &>/dev/null; then
+        echo -e "${GREEN}✅ Nexten Matcher (port 5052)${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Nexten Matcher (port 5052) - Indisponible${NC}"
+    fi
+    
+    if curl -s http://localhost:5062/health &>/dev/null; then
+        echo -e "${GREEN}✅ SuperSmartMatch V1 (port 5062)${NC}"
+    else
+        echo -e "${YELLOW}⚠️  SuperSmartMatch V1 (port 5062) - Indisponible${NC}"
+    fi
+    
+    # Redis
+    if command -v redis-cli &>/dev/null && redis-cli ping &>/dev/null; then
+        echo -e "${GREEN}✅ Redis Cache${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Redis Cache - Indisponible${NC}"
+    fi
+    
+    # Docker
+    if command -v docker &>/dev/null; then
+        local containers=$(docker ps --filter "name=supersmartmatch" --format "table {{.Names}}\t{{.Status}}" 2>/dev/null)
+        if [[ -n "$containers" && "$containers" != "NAMES	STATUS" ]]; then
+            echo ""
+            echo -e "${CYAN}🐳 Conteneurs Docker:${NC}"
+            echo "$containers"
+        fi
+    fi
 }
 
-# Options de ligne de commande
+# Affichage des logs
+show_logs() {
+    echo -e "${BLUE}📋 Logs SuperSmartMatch V2${NC}"
+    
+    if command -v docker &>/dev/null; then
+        # Logs Docker
+        docker-compose -f docker-compose.supersmartmatch-v2.yml logs --tail=50 supersmartmatch-v2 2>/dev/null || {
+            echo -e "${YELLOW}⚠️  Pas de logs Docker disponibles${NC}"
+        }
+    fi
+    
+    # Logs locaux
+    if [[ -f "logs/supersmartmatch-v2.log" ]]; then
+        echo -e "${CYAN}📄 Logs locaux:${NC}"
+        tail -20 logs/supersmartmatch-v2.log
+    fi
+}
+
+# Validation post-démarrage
+post_start_validation() {
+    if [[ "$NO_VALIDATION" == "true" ]]; then
+        echo -e "${YELLOW}⏭️ Validation post-démarrage skip${NC}"
+        return
+    fi
+    
+    echo -e "${BLUE}✅ Validation post-démarrage...${NC}"
+    
+    # Test de base
+    if curl -s http://localhost:${PORT}/health &>/dev/null; then
+        echo -e "${GREEN}✅ Service accessible${NC}"
+        
+        # Test API simple
+        local test_response=$(curl -s -X POST http://localhost:${PORT}/match \
+            -H "Content-Type: application/json" \
+            -d '{"cv_data":{"name":"Test"},"job_data":[{"id":"1","title":"Test"}]}' 2>/dev/null)
+        
+        if [[ $? -eq 0 ]]; then
+            echo -e "${GREEN}✅ API fonctionnelle${NC}"
+        else
+            echo -e "${YELLOW}⚠️  API non testée${NC}"
+        fi
+    else
+        echo -e "${RED}❌ Service inaccessible${NC}"
+        return 1
+    fi
+}
+
+# Parsing des arguments
+MODE="$1"
+shift || true
+
+VERBOSE="false"
+NO_VALIDATION="false"
+PORT=${DEFAULT_PORT}
+ENVIRONMENT=${DEFAULT_ENVIRONMENT}
+
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --port)
+            PORT="$2"
+            shift 2
+            ;;
         --env)
             ENVIRONMENT="$2"
             shift 2
             ;;
-        --timeout)
-            VALIDATION_TIMEOUT="$2"
-            shift 2
+        --no-validation)
+            NO_VALIDATION="true"
+            shift
+            ;;
+        --verbose)
+            VERBOSE="true"
+            shift
             ;;
         --help)
-            echo "Usage: $0 [options]"
-            echo "Options:"
-            echo "  --env ENV              Environnement (production|development|staging)"
-            echo "  --timeout SECONDS      Timeout pour validation (défaut: 300s)"
-            echo "  --help                 Afficher cette aide"
+            show_help
             exit 0
             ;;
         *)
-            log_error "Option inconnue: $1"
+            echo -e "${RED}❌ Option inconnue: $1${NC}"
+            show_help
             exit 1
             ;;
     esac
 done
 
+# Validation du mode
+if [[ -z "$MODE" ]]; then
+    MODE="$DEFAULT_MODE"
+fi
+
+case $MODE in
+    docker|local|dev|test|stop|status|logs)
+        ;;
+    *)
+        echo -e "${RED}❌ Mode invalide: $MODE${NC}"
+        show_help
+        exit 1
+        ;;
+esac
+
 # Exécution principale
-main "$@"
+main() {
+    print_header
+    
+    case $MODE in
+        docker)
+            check_prerequisites
+            setup_environment
+            start_docker
+            post_start_validation
+            echo -e "${GREEN}🎉 SuperSmartMatch V2 démarré avec succès!${NC}"
+            echo -e "${CYAN}📍 Service disponible: http://localhost:${PORT}${NC}"
+            echo -e "${CYAN}📚 Documentation: http://localhost:${PORT}/api/docs${NC}"
+            ;;
+        local)
+            check_prerequisites
+            setup_environment
+            start_local
+            post_start_validation
+            echo -e "${GREEN}🎉 SuperSmartMatch V2 démarré localement!${NC}"
+            echo -e "${CYAN}📍 Service disponible: http://localhost:${PORT}${NC}"
+            ;;
+        dev)
+            check_prerequisites
+            setup_environment
+            start_dev
+            ;;
+        test)
+            run_tests
+            ;;
+        stop)
+            stop_services
+            ;;
+        status)
+            show_status
+            ;;
+        logs)
+            show_logs
+            ;;
+    esac
+}
+
+# Gestion des signaux
+trap 'echo -e "\n${YELLOW}⚠️  Arrêt demandé...${NC}"; stop_services; exit 0' INT TERM
+
+# Exécution
+main
