@@ -1,297 +1,322 @@
 """
-Configuration du logging pour SuperSmartMatch V2
+SuperSmartMatch V2 - Configuration du logging
+===========================================
 
-Configure le système de logging avec :
-- Niveaux de log configurables
-- Formatage JSON structuré
-- Rotation des logs
-- Métriques intégrées
+Configuration centralisée du système de logging avec support pour
+différents formats et niveaux selon l'environnement.
 """
 
 import logging
 import logging.handlers
 import sys
-import json
-from datetime import datetime
-from typing import Dict, Any
 from pathlib import Path
+from typing import Optional
+import structlog
+from pythonjsonlogger import jsonlogger
 
 
-class JSONFormatter(logging.Formatter):
+def setup_logging(log_level: str = "INFO", log_format: str = "json") -> None:
     """
-    Formateur JSON pour les logs structurés
-    """
-    
-    def format(self, record: logging.LogRecord) -> str:
-        """Formate un enregistrement de log en JSON"""
-        
-        # Données de base
-        log_data = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-            "level": record.levelname,
-            "logger": record.name,
-            "message": record.getMessage(),
-            "module": record.module,
-            "function": record.funcName,
-            "line": record.lineno
-        }
-        
-        # Ajouter des champs spéciaux s'ils existent
-        if hasattr(record, 'request_id'):
-            log_data['request_id'] = record.request_id
-        
-        if hasattr(record, 'user_id'):
-            log_data['user_id'] = record.user_id
-        
-        if hasattr(record, 'algorithm'):
-            log_data['algorithm'] = record.algorithm
-        
-        if hasattr(record, 'duration_ms'):
-            log_data['duration_ms'] = record.duration_ms
-        
-        if hasattr(record, 'service'):
-            log_data['service'] = record.service
-        
-        # Exception si présente
-        if record.exc_info:
-            log_data['exception'] = self.formatException(record.exc_info)
-        
-        # Données additionnelles
-        if hasattr(record, 'extra_data'):
-            log_data.update(record.extra_data)
-        
-        return json.dumps(log_data, ensure_ascii=False)
-
-
-class SuperSmartMatchFilter(logging.Filter):
-    """
-    Filtre personnalisé pour les logs SuperSmartMatch
-    """
-    
-    def filter(self, record: logging.LogRecord) -> bool:
-        """Filtre les logs selon les critères"""
-        
-        # Ajouter des métadonnées standard
-        record.service = "supersmartmatch-v2"
-        record.version = "2.0.0"
-        
-        # Filtrer les logs de sanity check trop verbeux
-        if record.levelno == logging.DEBUG and "health" in record.getMessage().lower():
-            return False
-        
-        return True
-
-
-def setup_logging(log_level: str = "INFO", enable_json: bool = True, log_file: str = None):
-    """
-    Configure le système de logging
+    Configure le système de logging pour SuperSmartMatch V2
     
     Args:
         log_level: Niveau de log (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        enable_json: Activer le formatage JSON
-        log_file: Fichier de log (optionnel)
+        log_format: Format des logs ("json" ou "text")
     """
     
-    # Configuration de base
-    root_logger = logging.getLogger()
-    root_logger.setLevel(getattr(logging, log_level.upper()))
+    # Configuration du niveau
+    numeric_level = getattr(logging, log_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError(f'Niveau de log invalide: {log_level}')
     
-    # Supprimer les handlers existants
-    for handler in root_logger.handlers[:]:
-        root_logger.removeHandler(handler)
-    
-    # Handler console
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(getattr(logging, log_level.upper()))
-    
-    # Formateur
-    if enable_json:
-        formatter = JSONFormatter()
+    # Formatters
+    if log_format.lower() == "json":
+        formatter = jsonlogger.JsonFormatter(
+            '%(asctime)s %(name)s %(levelname)s %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
     else:
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
         )
     
+    # Handler pour la console
+    console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
+    console_handler.setLevel(numeric_level)
     
-    # Filtre personnalisé
-    supersmartmatch_filter = SuperSmartMatchFilter()
-    console_handler.addFilter(supersmartmatch_filter)
-    
+    # Configuration du logger racine
+    root_logger = logging.getLogger()
+    root_logger.setLevel(numeric_level)
+    root_logger.handlers.clear()
     root_logger.addHandler(console_handler)
     
-    # Handler fichier avec rotation (si spécifié)
-    if log_file:
-        # Créer le répertoire si nécessaire
-        log_path = Path(log_file)
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        file_handler = logging.handlers.RotatingFileHandler(
-            log_file,
-            maxBytes=10 * 1024 * 1024,  # 10 MB
-            backupCount=5
+    # Configuration spécifique pour SuperSmartMatch V2
+    app_logger = logging.getLogger('app')
+    app_logger.setLevel(numeric_level)
+    
+    # Réduction du bruit des librairies externes
+    logging.getLogger('uvicorn.access').setLevel(logging.WARNING)
+    logging.getLogger('httpx').setLevel(logging.WARNING)
+    logging.getLogger('httpcore').setLevel(logging.WARNING)
+    
+    # Configuration structlog si JSON
+    if log_format.lower() == "json":
+        structlog.configure(
+            processors=[
+                structlog.stdlib.filter_by_level,
+                structlog.stdlib.add_logger_name,
+                structlog.stdlib.add_log_level,
+                structlog.stdlib.PositionalArgumentsFormatter(),
+                structlog.processors.TimeStamper(fmt="iso"),
+                structlog.processors.StackInfoRenderer(),
+                structlog.processors.format_exc_info,
+                structlog.processors.UnicodeDecoder(),
+                structlog.processors.JSONRenderer()
+            ],
+            context_class=dict,
+            logger_factory=structlog.stdlib.LoggerFactory(),
+            wrapper_class=structlog.stdlib.BoundLogger,
+            cache_logger_on_first_use=True,
         )
-        file_handler.setLevel(getattr(logging, log_level.upper()))
-        file_handler.setFormatter(formatter)
-        file_handler.addFilter(supersmartmatch_filter)
-        
-        root_logger.addHandler(file_handler)
-    
-    # Configuration spécifique pour certains loggers
-    _configure_specific_loggers(log_level)
-    
-    # Log initial
-    logger = logging.getLogger(__name__)
-    logger.info(
-        f"🔧 Logging configuré - Niveau: {log_level}, JSON: {enable_json}, Fichier: {log_file or 'Non'}"
-    )
 
 
-def _configure_specific_loggers(log_level: str):
-    """Configure des loggers spécifiques"""
-    
-    # Logger aiohttp moins verbeux
-    aiohttp_logger = logging.getLogger('aiohttp')
-    aiohttp_logger.setLevel(logging.WARNING)
-    
-    # Logger Redis moins verbeux
-    redis_logger = logging.getLogger('aioredis')
-    redis_logger.setLevel(logging.WARNING)
-    
-    # Logger uvicorn personnalisé
-    uvicorn_logger = logging.getLogger('uvicorn')
-    if log_level.upper() == 'DEBUG':
-        uvicorn_logger.setLevel(logging.DEBUG)
-    else:
-        uvicorn_logger.setLevel(logging.INFO)
-    
-    # Logger pour les accès HTTP
-    access_logger = logging.getLogger('uvicorn.access')
-    access_logger.setLevel(logging.INFO)
-
-
-def get_logger_with_context(name: str, **context) -> logging.LoggerAdapter:
+def setup_file_logging(
+    log_file: Optional[str] = None,
+    max_size: str = "100MB",
+    backup_count: int = 5
+) -> None:
     """
-    Crée un logger avec contexte additionnel
+    Configure le logging vers fichier avec rotation
     
     Args:
-        name: Nom du logger
-        **context: Contexte additionnel (request_id, user_id, etc.)
-    
-    Returns:
-        LoggerAdapter avec contexte
+        log_file: Chemin du fichier de log
+        max_size: Taille maximale avant rotation
+        backup_count: Nombre de fichiers de backup à conserver
     """
-    logger = logging.getLogger(name)
-    return logging.LoggerAdapter(logger, context)
+    
+    if not log_file:
+        return
+    
+    # Création du dossier si nécessaire
+    log_path = Path(log_file)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Conversion de la taille
+    size_map = {
+        'KB': 1024,
+        'MB': 1024 * 1024,
+        'GB': 1024 * 1024 * 1024
+    }
+    
+    size_value = max_size.rstrip('KMGB')
+    size_unit = max_size[len(size_value):]
+    max_bytes = int(size_value) * size_map.get(size_unit, 1)
+    
+    # Handler pour fichier avec rotation
+    file_handler = logging.handlers.RotatingFileHandler(
+        log_file,
+        maxBytes=max_bytes,
+        backupCount=backup_count
+    )
+    
+    # Format JSON pour les fichiers
+    json_formatter = jsonlogger.JsonFormatter(
+        '%(asctime)s %(name)s %(levelname)s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    file_handler.setFormatter(json_formatter)
+    
+    # Ajout au logger racine
+    root_logger = logging.getLogger()
+    root_logger.addHandler(file_handler)
 
 
-class MetricsLogHandler(logging.Handler):
+def get_logger(name: str) -> logging.Logger:
     """
-    Handler spécialisé pour les métriques
+    Récupère un logger configuré pour SuperSmartMatch V2
     
-    Extrait et envoie les métriques depuis les logs vers un système de monitoring
-    """
-    
-    def __init__(self, metrics_callback=None):
-        super().__init__()
-        self.metrics_callback = metrics_callback
-        self.metrics_buffer = []
-    
-    def emit(self, record: logging.LogRecord):
-        """Traite un enregistrement de log pour extraire les métriques"""
-        try:
-            # Extraire les métriques depuis les logs
-            if hasattr(record, 'duration_ms'):
-                metric = {
-                    'timestamp': datetime.utcnow().isoformat(),
-                    'type': 'duration',
-                    'value': record.duration_ms,
-                    'tags': {
-                        'service': getattr(record, 'service', 'unknown'),
-                        'algorithm': getattr(record, 'algorithm', 'unknown'),
-                        'level': record.levelname
-                    }
-                }
-                
-                if self.metrics_callback:
-                    self.metrics_callback(metric)
-                else:
-                    self.metrics_buffer.append(metric)
+    Args:
+        name: Nom du logger (généralement __name__)
         
-        except Exception:
-            # Ne pas faire échouer le logging si les métriques posent problème
-            pass
+    Returns:
+        Logger configuré
+    """
+    return logging.getLogger(name)
+
+
+def setup_correlation_id_logging():
+    """
+    Configure le logging avec correlation ID pour tracer les requêtes
+    """
     
-    def get_buffered_metrics(self) -> list:
-        """Récupère et vide le buffer de métriques"""
-        metrics = self.metrics_buffer.copy()
-        self.metrics_buffer.clear()
-        return metrics
-
-
-# Helpers pour logging structuré
-def log_matching_request(logger: logging.Logger, algorithm: str, num_jobs: int, duration_ms: float, success: bool):
-    """Log structuré pour les requêtes de matching"""
-    logger.info(
-        f"{'✅' if success else '❌'} Matching request completed",
-        extra={
-            'algorithm': algorithm,
-            'num_jobs': num_jobs,
-            'duration_ms': duration_ms,
-            'success': success,
-            'event_type': 'matching_request'
-        }
-    )
-
-
-def log_algorithm_selection(logger: logging.Logger, selected: str, score: float, reasons: list):
-    """Log structuré pour la sélection d'algorithme"""
-    logger.info(
-        f"🧠 Algorithm selected: {selected}",
-        extra={
-            'selected_algorithm': selected,
-            'selection_score': score,
-            'selection_reasons': reasons,
-            'event_type': 'algorithm_selection'
-        }
-    )
-
-
-def log_service_health(logger: logging.Logger, service: str, status: str, details: dict):
-    """Log structuré pour la santé des services"""
-    status_emoji = {
-        'healthy': '✅',
-        'unhealthy': '❌', 
-        'degraded': '⚠️',
-        'unknown': '❓'
-    }
+    class CorrelationIdFilter(logging.Filter):
+        """Filtre pour ajouter correlation_id aux logs"""
+        
+        def filter(self, record):
+            # Récupération du correlation_id depuis le contexte
+            # (nécessite middleware FastAPI pour le contexte)
+            correlation_id = getattr(record, 'correlation_id', None)
+            if not correlation_id:
+                import uuid
+                correlation_id = str(uuid.uuid4())[:8]
+            
+            record.correlation_id = correlation_id
+            return True
     
-    logger.info(
-        f"{status_emoji.get(status, '❓')} Service {service}: {status}",
-        extra={
-            'service_name': service,
-            'health_status': status,
-            'health_details': details,
-            'event_type': 'service_health'
-        }
-    )
+    # Ajout du filtre à tous les handlers
+    for handler in logging.getLogger().handlers:
+        handler.addFilter(CorrelationIdFilter())
 
 
-def log_circuit_breaker_event(logger: logging.Logger, service: str, old_state: str, new_state: str, failure_count: int):
-    """Log structuré pour les événements circuit breaker"""
-    state_emoji = {
-        'closed': '🟢',
-        'open': '🔴',
-        'half_open': '🟡'
-    }
+class RequestLogger:
+    """
+    Logger spécialisé pour les requêtes HTTP avec métriques
+    """
     
-    logger.warning(
-        f"{state_emoji.get(new_state, '❓')} Circuit breaker {service}: {old_state} → {new_state}",
-        extra={
-            'service_name': service,
-            'old_state': old_state,
-            'new_state': new_state,
-            'failure_count': failure_count,
-            'event_type': 'circuit_breaker_transition'
-        }
-    )
+    def __init__(self, name: str = "supersmartmatch.requests"):
+        self.logger = logging.getLogger(name)
+    
+    def log_request_start(self, method: str, path: str, client_ip: str = None):
+        """Log du début d'une requête"""
+        self.logger.info(
+            "Request started",
+            extra={
+                "event": "request_start",
+                "method": method,
+                "path": path,
+                "client_ip": client_ip
+            }
+        )
+    
+    def log_request_end(
+        self,
+        method: str,
+        path: str,
+        status_code: int,
+        duration: float,
+        algorithm: str = None
+    ):
+        """Log de la fin d'une requête"""
+        self.logger.info(
+            "Request completed",
+            extra={
+                "event": "request_end",
+                "method": method,
+                "path": path,
+                "status_code": status_code,
+                "duration_ms": duration * 1000,
+                "algorithm": algorithm
+            }
+        )
+    
+    def log_algorithm_selection(self, algorithm: str, reason: str, score: float = None):
+        """Log de la sélection d'algorithme"""
+        self.logger.info(
+            "Algorithm selected",
+            extra={
+                "event": "algorithm_selection",
+                "algorithm": algorithm,
+                "reason": reason,
+                "score": score
+            }
+        )
+    
+    def log_external_service_call(
+        self,
+        service: str,
+        method: str,
+        url: str,
+        duration: float,
+        success: bool,
+        status_code: int = None
+    ):
+        """Log d'appel à un service externe"""
+        level = logging.INFO if success else logging.WARNING
+        self.logger.log(
+            level,
+            f"External service call: {service}",
+            extra={
+                "event": "external_service_call",
+                "service": service,
+                "method": method,
+                "url": url,
+                "duration_ms": duration * 1000,
+                "success": success,
+                "status_code": status_code
+            }
+        )
+    
+    def log_circuit_breaker_event(self, service: str, state: str, reason: str = None):
+        """Log d'événement circuit breaker"""
+        self.logger.warning(
+            f"Circuit breaker {state}: {service}",
+            extra={
+                "event": "circuit_breaker",
+                "service": service,
+                "state": state,
+                "reason": reason
+            }
+        )
+
+
+class PerformanceLogger:
+    """
+    Logger spécialisé pour les métriques de performance
+    """
+    
+    def __init__(self, name: str = "supersmartmatch.performance"):
+        self.logger = logging.getLogger(name)
+    
+    def log_algorithm_performance(
+        self,
+        algorithm: str,
+        duration: float,
+        num_jobs: int,
+        num_results: int,
+        success: bool
+    ):
+        """Log des performances d'un algorithme"""
+        self.logger.info(
+            f"Algorithm performance: {algorithm}",
+            extra={
+                "event": "algorithm_performance",
+                "algorithm": algorithm,
+                "duration_ms": duration * 1000,
+                "num_jobs": num_jobs,
+                "num_results": num_results,
+                "success": success,
+                "jobs_per_second": num_jobs / duration if duration > 0 else 0
+            }
+        )
+    
+    def log_cache_operation(self, operation: str, hit: bool, key: str = None):
+        """Log des opérations de cache"""
+        self.logger.debug(
+            f"Cache {operation}: {'HIT' if hit else 'MISS'}",
+            extra={
+                "event": "cache_operation",
+                "operation": operation,
+                "hit": hit,
+                "key": key
+            }
+        )
+    
+    def log_memory_usage(self, usage_mb: float, threshold_mb: float = None):
+        """Log de l'utilisation mémoire"""
+        level = logging.WARNING if threshold_mb and usage_mb > threshold_mb else logging.DEBUG
+        self.logger.log(
+            level,
+            f"Memory usage: {usage_mb:.1f}MB",
+            extra={
+                "event": "memory_usage",
+                "usage_mb": usage_mb,
+                "threshold_mb": threshold_mb
+            }
+        )
+
+
+# Loggers préconfigurés pour faciliter l'usage
+request_logger = RequestLogger()
+performance_logger = PerformanceLogger()
