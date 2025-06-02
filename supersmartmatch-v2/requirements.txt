@@ -1,48 +1,44 @@
 # SuperSmartMatch V2 - Dependencies
-# FastAPI et serveur ASGI
+# FastAPI and web framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
-pydantic-settings==2.1.0
 
-# HTTP Client pour appels externes
+# HTTP client for external services
 httpx==0.25.2
-aiohttp==3.9.1
 
-# Redis pour cache et metrics
+# Redis for caching and performance
 redis==5.0.1
-aioredis==2.0.1
 
-# Monitoring et métriques
-prometheus-client==0.19.0
-
-# Logging et configuration
+# Logging and monitoring
 structlog==23.2.0
-python-json-logger==2.0.7
 
-# Utilitaires
-python-multipart==0.0.6
+# Environment and configuration
 python-dotenv==1.0.0
-tenacity==8.2.3
+pyyaml==6.0.1
 
-# Data processing
+# Data processing and ML utilities
 numpy==1.24.4
-pandas==2.0.3
+pandas==2.1.4
 
-# Circuit breaker
-pybreaker==1.0.1
-
-# Tests
+# Testing (development)
 pytest==7.4.3
 pytest-asyncio==0.21.1
 pytest-cov==4.1.0
-httpx[test]==0.25.2
+httpx==0.25.2  # For testing HTTP calls
 
-# Development
-black==23.11.0
-isort==5.12.0
-flake8==6.1.0
+# Type checking (development)
 mypy==1.7.1
 
-# Production monitoring
-sentry-sdk[fastapi]==1.38.0
+# Code formatting (development) 
+black==23.11.0
+isort==5.13.2
+
+# Security
+cryptography==41.0.8
+
+# Performance monitoring
+psutil==5.9.6
+
+# Validation and data integrity
+jsonschema==4.20.0
