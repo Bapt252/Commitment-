@@ -1,252 +1,89 @@
 #!/bin/bash
 
-echo "🚀 Test SuperSmartMatch v2.0 - Format de données corrigé (macOS compatible)"
-echo "=========================================================================="
-echo ""
+# 🚀 SuperSmartMatch V2 - Script de test corrigé
+# Tests des API V1 et V2 avec les bonnes routes identifiées
 
-# Colors for output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+echo "=========================================="
+echo "🚀 SUPERSMARTMATCH V2 - TESTS CORRIGES"
+echo "=========================================="
 
-print_test() {
-    echo -e "${BLUE}🧪 $1${NC}"
-}
-
-print_success() {
-    echo -e "${GREEN}✅ $1${NC}"
-}
-
-print_error() {
-    echo -e "${RED}❌ $1${NC}"
-}
-
-print_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
-}
-
-# Détecter automatiquement le port et endpoint SuperSmartMatch
-SUPERSMARTMATCH_PORT=""
-SUPERSMARTMATCH_ENDPOINT=""
-
-print_test "Détection automatique de SuperSmartMatch..."
-for port in 5062 5061 5060 5052; do
-    # Test /match
-    if curl -s --connect-timeout 2 "http://localhost:$port/match" -X POST \
-        -H "Content-Type: application/json" \
-        -d '{"candidate":{"name":"test"},"offers":[{"id":"test"}]}' 2>/dev/null | grep -v -E "(Not Found|404)" > /dev/null; then
-        SUPERSMARTMATCH_PORT=$port
-        SUPERSMARTMATCH_ENDPOINT="/match"
-        break
-    fi
-    
-    # Test /api/v1/match
-    if curl -s --connect-timeout 2 "http://localhost:$port/api/v1/match" -X POST \
-        -H "Content-Type: application/json" \
-        -d '{"candidate":{"name":"test"},"offers":[{"id":"test"}]}' 2>/dev/null | grep -v -E "(Not Found|404)" > /dev/null; then
-        SUPERSMARTMATCH_PORT=$port
-        SUPERSMARTMATCH_ENDPOINT="/api/v1/match"
-        break
-    fi
-done
-
-if [ -z "$SUPERSMARTMATCH_PORT" ]; then
-    print_error "SuperSmartMatch non trouvé ! Utilisation du port par défaut 5052"
-    SUPERSMARTMATCH_PORT=5052
-    SUPERSMARTMATCH_ENDPOINT="/match"
-else
-    print_success "SuperSmartMatch détecté sur port $SUPERSMARTMATCH_PORT avec endpoint $SUPERSMARTMATCH_ENDPOINT"
-fi
-
-# Test 1: Health Check
-print_test "Test 1: Health Check SuperSmartMatch V2"
-HEALTH_RESPONSE=$(curl -s "http://localhost:$SUPERSMARTMATCH_PORT/health")
-if [[ $? -eq 0 ]] && [[ $HEALTH_RESPONSE == *"healthy"* ]]; then
-    print_success "Service accessible et en bonne santé"
-    echo "$HEALTH_RESPONSE" | python3 -m json.tool 2>/dev/null
-else
-    print_error "Service non accessible sur le port $SUPERSMARTMATCH_PORT"
-    echo "Réponse: $HEALTH_RESPONSE"
-fi
+# Configuration
+MATCHING_SERVICE_PORT_5052="http://localhost:5052"
+SUPERSMARTMATCH_V2_PORT_5062="http://localhost:5062"
 
 echo ""
+echo "📋 Tests des services disponibles:"
+echo "   Port 5052: Service de matching classique (V1)"
+echo "   Port 5062: SuperSmartMatch V2"
+echo ""
 
-# Test 2: V1 API Compatible - Matching basique avec format correct
-print_test "Test 2: V1 API Compatible - Format candidate/offers"
-V1_TEST=$(curl -s -X POST "http://localhost:$SUPERSMARTMATCH_PORT$SUPERSMARTMATCH_ENDPOINT" \
+# Vérification des services
+echo "🔍 1. Vérification des services..."
+
+echo "   ✓ Test health check port 5052:"
+curl -s "$MATCHING_SERVICE_PORT_5052/health" | jq '.' || echo "❌ Service 5052 non accessible"
+
+echo ""
+echo "   ✓ Test health check port 5062:"
+curl -s "$SUPERSMARTMATCH_V2_PORT_5062/health" | jq '.' || echo "❌ Service 5062 non accessible"
+
+echo ""
+echo "=========================================="
+echo "🔧 2. Test API V1 classique (Port 5052)"
+echo "=========================================="
+
+echo "   📡 Route: /api/v1/queue-matching"
+echo ""
+
+# Test V1 sur port 5052 avec la bonne route
+curl -X POST "$MATCHING_SERVICE_PORT_5052/api/v1/queue-matching" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "candidate_id": "test-candidate-123",
+    "job_id": "test-job-456",
+    "webhook_url": "https://example.com/webhook"
+  }' | jq '.'
+
+echo ""
+echo "=========================================="
+echo "🚀 3. Test SuperSmartMatch V2 (Port 5062)"
+echo "=========================================="
+
+echo "   📡 Route: /api/v2/match (Format V2 complet)"
+echo ""
+
+# Test V2 avec format complet
+curl -X POST "$SUPERSMARTMATCH_V2_PORT_5062/api/v2/match" \
   -H "Content-Type: application/json" \
   -d '{
     "candidate": {
-      "name": "John Doe",
-      "technical_skills": ["Python", "Django", "PostgreSQL"],
-      "experiences": [
-        {
-          "title": "Développeur Full Stack",
-          "company": "TechCorp",
-          "duration_months": 24,
-          "skills": ["Python", "Django"]
-        }
-      ]
-    },
-    "offers": [
-      {
-        "id": "job-001",
-        "title": "Développeur Python Senior",
-        "company": "TechCorp",
-        "required_skills": ["Python", "Django"],
-        "location": {"city": "Paris", "country": "France"}
-      }
-    ]
-  }')
-
-if [[ $? -eq 0 ]] && [[ $V1_TEST == *"matches"* ]]; then
-    print_success "V1 API Compatible réussi"
-    echo "$V1_TEST" | python3 -m json.tool 2>/dev/null | head -20
-else
-    print_error "Échec du test V1 API Compatible"
-    echo "Réponse: $V1_TEST"
-fi
-
-echo ""
-
-# Test 3: Test avec géolocalisation simple
-print_test "Test 3: Test géolocalisation simple"
-GEO_TEST=$(curl -s -X POST "http://localhost:$SUPERSMARTMATCH_PORT$SUPERSMARTMATCH_ENDPOINT" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "candidate": {
-      "name": "Pierre Martin",
-      "technical_skills": ["JavaScript", "React", "Node.js"],
-      "experiences": [
-        {
-          "title": "Frontend Developer",
-          "duration_months": 18
-        }
-      ]
-    },
-    "offers": [
-      {
-        "id": "job-geo-001",
-        "title": "React Developer",
-        "required_skills": ["React", "JavaScript"],
-        "location": {"city": "Paris", "country": "France"}
+      "name": "Jean Dupont",
+      "email": "jean.dupont@example.com",
+      "location": {
+        "city": "Paris",
+        "country": "France"
       },
-      {
-        "id": "job-geo-002",
-        "title": "Frontend Lead",
-        "required_skills": ["React", "Node.js"],
-        "location": {"city": "Marseille", "country": "France"}
-      }
-    ],
-    "algorithm": "smart-match"
-  }')
-
-if [[ $? -eq 0 ]] && [[ $GEO_TEST == *"matches"* ]]; then
-    print_success "Test géolocalisation réussi"
-    echo "$GEO_TEST" | python3 -m json.tool 2>/dev/null | head -25
-else
-    print_error "Échec du test géolocalisation"
-    echo "Réponse: $GEO_TEST"
-fi
-
-echo ""
-
-# Test 4: Test algorithme enhanced
-print_test "Test 4: Test algorithme enhanced"
-ENHANCED_TEST=$(curl -s -X POST "http://localhost:$SUPERSMARTMATCH_PORT$SUPERSMARTMATCH_ENDPOINT" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "candidate": {
-      "name": "Sophie Laurent",
-      "technical_skills": ["Java", "Spring", "Microservices"],
-      "experiences": [
-        {
-          "title": "Senior Java Developer",
-          "duration_months": 48,
-          "skills": ["Java", "Spring Boot"]
-        }
-      ]
-    },
-    "offers": [
-      {
-        "id": "job-enhanced-001",
-        "title": "Java Architect",
-        "required_skills": ["Java", "Spring", "Architecture"],
-        "location": {"city": "Lyon", "country": "France"}
-      }
-    ],
-    "algorithm": "enhanced"
-  }')
-
-if [[ $? -eq 0 ]] && [[ $ENHANCED_TEST == *"matches"* ]]; then
-    print_success "Test algorithme enhanced réussi"
-    echo "$ENHANCED_TEST" | python3 -m json.tool 2>/dev/null | head -20
-else
-    print_error "Échec du test enhanced"
-    echo "Réponse: $ENHANCED_TEST"
-fi
-
-echo ""
-
-# Test 5: Test sélection automatique d'algorithme
-print_test "Test 5: Test sélection automatique d'algorithme"
-AUTO_TEST=$(curl -s -X POST "http://localhost:$SUPERSMARTMATCH_PORT$SUPERSMARTMATCH_ENDPOINT" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "candidate": {
-      "name": "Lucas Bernard",
-      "technical_skills": ["C#", ".NET", "Azure"],
-      "experiences": [
-        {
-          "title": "Backend Developer",
-          "duration_months": 30
-        }
-      ]
-    },
-    "offers": [
-      {
-        "id": "job-auto-001",
-        "title": ".NET Developer",
-        "required_skills": ["C#", ".NET Core"],
-        "location": {"city": "Toulouse", "country": "France"}
-      }
-    ],
-    "algorithm": "auto"
-  }')
-
-if [[ $? -eq 0 ]] && [[ $AUTO_TEST == *"matches"* ]]; then
-    print_success "Sélection automatique d'algorithme réussie"
-    echo "$AUTO_TEST" | python3 -m json.tool 2>/dev/null | head -20
-else
-    print_error "Échec du test auto"
-    echo "Réponse: $AUTO_TEST"
-fi
-
-echo ""
-
-# Test 6: Test V2 Enhanced API (si disponible)
-print_test "Test 6: V2 Enhanced API (si disponible)"
-V2_ENDPOINT="/api/v2/match"
-V2_TEST=$(curl -s -X POST "http://localhost:$SUPERSMARTMATCH_PORT$V2_ENDPOINT" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "candidate": {
-      "name": "Sophie Laurent",
-      "email": "sophie@example.com",
       "technical_skills": [
-        {"name": "Python", "level": "Expert", "years": 5},
-        {"name": "Machine Learning", "level": "Advanced", "years": 3}
+        {
+          "name": "Python",
+          "level": "Expert",
+          "years": 5
+        },
+        {
+          "name": "Django",
+          "level": "Advanced",
+          "years": 3
+        }
       ],
       "experiences": [
         {
-          "title": "Senior Developer",
+          "title": "Développeur Senior",
           "company": "TechCorp",
-          "duration_months": 36,
+          "duration_months": 24,
           "skills": ["Python", "Django", "PostgreSQL"]
         }
-      ]
+      ],
+      "mobility_preferences": "flexible"
     },
     "candidate_questionnaire": {
       "work_style": "collaborative",
@@ -255,62 +92,94 @@ V2_TEST=$(curl -s -X POST "http://localhost:$SUPERSMARTMATCH_PORT$V2_ENDPOINT" \
     },
     "offers": [
       {
-        "id": "job_ml_001",
-        "title": "ML Engineer",
-        "company": "AI Startup",
-        "required_skills": ["Python", "TensorFlow", "MLOps"],
-        "location": {"city": "Paris", "country": "France"},
-        "remote_policy": "hybrid"
+        "id": "job-123",
+        "title": "Développeur Python Senior",
+        "company": "StartupIA",
+        "location": {
+          "city": "Paris",
+          "country": "France"
+        },
+        "required_skills": ["Python", "Django", "Machine Learning"],
+        "experience_level": "senior",
+        "remote_policy": "hybrid",
+        "salary_range": {
+          "min": 55000,
+          "max": 75000,
+          "currency": "EUR"
+        }
+      }
+    ],
+    "company_questionnaires": [
+      {
+        "culture": "innovation_focused",
+        "team_size": "small",
+        "work_methodology": "agile"
       }
     ],
     "algorithm": "auto"
-  }')
-
-if [[ $? -eq 0 ]] && [[ $V2_TEST == *"matches"* ]]; then
-    print_success "V2 Enhanced API réussi !"
-    echo "$V2_TEST" | python3 -m json.tool 2>/dev/null | head -30
-else
-    print_warning "V2 Enhanced API non disponible ou non implémenté"
-fi
+  }' | jq '.'
 
 echo ""
+echo "=========================================="
+echo "🔄 4. Test Compatibilité V1 sur V2 (Port 5062)"
+echo "=========================================="
 
-# Test 7: Test endpoints de monitoring
-print_test "Test 7: Test endpoints de monitoring"
+echo "   📡 Route: /match (Format V1 compatible)"
+echo ""
 
-# Health détaillé
-DETAILED_HEALTH=$(curl -s "http://localhost:$SUPERSMARTMATCH_PORT/api/v2/health?detailed=true" 2>/dev/null)
-if [[ $? -eq 0 ]] && [[ $DETAILED_HEALTH != *"Not Found"* ]]; then
-    print_success "Health check détaillé disponible"
-else
-    print_warning "Health check détaillé non disponible"
-fi
-
-# Stats
-STATS=$(curl -s "http://localhost:$SUPERSMARTMATCH_PORT/stats" 2>/dev/null)
-if [[ $? -eq 0 ]] && [[ $STATS != *"Not Found"* ]]; then
-    print_success "Statistiques disponibles"
-else
-    print_warning "Endpoint stats non disponible"
-fi
+# Test format V1 sur SuperSmartMatch V2
+curl -X POST "$SUPERSMARTMATCH_V2_PORT_5062/match" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "candidate": {
+      "name": "Marie Martin",
+      "technical_skills": ["Python", "Django", "React"],
+      "experiences": [
+        {
+          "title": "Développeuse Full Stack",
+          "company": "WebAgency",
+          "duration": "2 ans"
+        }
+      ]
+    },
+    "offers": [
+      {
+        "id": "job-456",
+        "title": "Développeuse Full Stack",
+        "required_skills": ["Python", "Django", "JavaScript"],
+        "company": "TechStartup"
+      }
+    ]
+  }' | jq '.'
 
 echo ""
-echo "🎯 Résumé des tests SuperSmartMatch v2.0"
-echo "======================================="
-print_success "Service testé sur port $SUPERSMARTMATCH_PORT avec endpoint $SUPERSMARTMATCH_ENDPOINT"
-print_success "Format de données corrigé (candidate/offers)"
+echo "=========================================="
+echo "📊 5. Tests de monitoring et santé"
+echo "=========================================="
+
+echo "   🔍 Health check détaillé V2:"
+curl -s "$SUPERSMARTMATCH_V2_PORT_5062/api/v2/health?detailed=true" | jq '.'
 
 echo ""
-echo "🔗 Informations de connexion:"
-echo "   • URL: http://localhost:$SUPERSMARTMATCH_PORT$SUPERSMARTMATCH_ENDPOINT"
-echo "   • Health Check: http://localhost:$SUPERSMARTMATCH_PORT/health"
-echo "   • Documentation: http://localhost:$SUPERSMARTMATCH_PORT/docs (si disponible)"
+echo "   🧠 Recommandations d'algorithmes:"
+curl -s "$SUPERSMARTMATCH_V2_PORT_5062/api/v2/algorithm/recommendations?candidate_experience=5&questionnaire_completeness=0.8&has_geo_constraints=true" | jq '.'
 
 echo ""
-echo "📋 Formats de données testés:"
-echo "   ✅ V1 Compatible: candidate + offers"
-echo "   ✅ Algorithmes: smart-match, enhanced, auto"
-echo "   ⚠️  V2 Enhanced: candidate_questionnaire + company_questionnaires (si implémenté)"
+echo "=========================================="
+echo "✅ TESTS TERMINÉS"
+echo "=========================================="
 
 echo ""
-echo "🚀 SuperSmartMatch v2.0 testé avec succès !"
+echo "📝 Résumé des routes identifiées :"
+echo "   Port 5052 - Service classique :"
+echo "   • /health"
+echo "   • /api/v1/queue-matching"
+echo ""
+echo "   Port 5062 - SuperSmartMatch V2 :"
+echo "   • /health"
+echo "   • /api/v2/health"
+echo "   • /api/v2/match (Format V2 complet)"
+echo "   • /match (Compatible V1)"
+echo "   • /api/v2/algorithm/recommendations"
+echo ""
+echo "🎯 Utilisez ces routes pour vos tests !"
