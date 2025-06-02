@@ -1,0 +1,172 @@
+# SuperSmartMatch V2 - Default Configuration
+# This configuration provides optimal settings for production deployment
+
+# Core Settings
+version: "2.0.0"
+environment: "production"
+debug: false
+
+# Feature Flags for Progressive Rollout
+feature_flags:
+  enable_v2: true
+  v2_traffic_percentage: 100  # Start with 10% and gradually increase
+  enable_nexten_algorithm: true
+  enable_smart_selection: true
+  enable_questionnaire_matching: true
+  enable_performance_monitoring: true
+  enable_ab_testing: false  # Enable when ready for optimization
+  enable_fallback_chaining: true
+  enable_cache_warming: false
+
+# Algorithm Configuration
+algorithms:
+  nexten:
+    enabled: true
+    weight: 1.3  # +13% precision improvement
+    timeout_ms: 80
+    cache_enabled: true
+    cache_ttl_seconds: 300
+    max_parallel_requests: 10
+    fallback_enabled: true
+    custom_parameters:
+      enable_questionnaire_weighting: true
+      confidence_threshold: 0.7
+      batch_processing_size: 10
+  
+  smart:
+    enabled: true
+    weight: 1.0
+    timeout_ms: 70
+    cache_enabled: true
+    cache_ttl_seconds: 180
+    max_parallel_requests: 8
+    fallback_enabled: true
+    custom_parameters:
+      enable_geographical_optimization: true
+      max_distance_calculation_km: 100
+  
+  enhanced:
+    enabled: true
+    weight: 1.1
+    timeout_ms: 60
+    cache_enabled: true
+    cache_ttl_seconds: 240
+    max_parallel_requests: 12
+    fallback_enabled: true
+    custom_parameters:
+      adaptive_weighting: true
+      senior_experience_boost: 1.2
+  
+  semantic:
+    enabled: true
+    weight: 0.9
+    timeout_ms: 90
+    cache_enabled: true
+    cache_ttl_seconds: 360
+    max_parallel_requests: 6
+    fallback_enabled: true
+    custom_parameters:
+      nlp_model: "bert-base-uncased"
+      semantic_similarity_threshold: 0.75
+  
+  hybrid:
+    enabled: true
+    weight: 1.2
+    timeout_ms: 100
+    cache_enabled: true
+    cache_ttl_seconds: 180
+    max_parallel_requests: 4
+    fallback_enabled: true
+    custom_parameters:
+      consensus_threshold: 0.8
+      multi_algorithm_validation: true
+
+# Intelligent Algorithm Selection Rules
+selection:
+  # Nexten Selection Criteria
+  min_skills_for_nexten: 5
+  min_questionnaire_completeness: 0.7
+  min_company_questionnaire_completeness: 0.5
+  
+  # Enhanced Selection Criteria
+  senior_experience_threshold: 7
+  partial_questionnaire_threshold: 0.3
+  
+  # Geographic Selection Criteria
+  max_distance_km: 50
+  mobility_complexity_threshold: 3
+  
+  # Semantic Analysis Triggers
+  semantic_skill_description_length: 100
+  semantic_complexity_threshold: 0.8
+  
+  # Critical Positions for Hybrid Validation
+  critical_positions:
+    - "CEO"
+    - "CTO"
+    - "CFO"
+    - "VP"
+    - "Director"
+    - "Senior Manager"
+    - "Team Lead"
+  
+  high_value_clients: []  # Configure per deployment
+
+# Performance and Monitoring
+performance:
+  max_response_time_ms: 100
+  cache_enabled: true
+  cache_size: 1000
+  cache_ttl_seconds: 300
+  
+  # Monitoring Settings
+  enable_detailed_logging: false  # Set to true for debugging
+  metrics_retention_hours: 24
+  enable_ab_testing: false
+  
+  # Alert Thresholds
+  error_rate_warning: 0.02      # 2% error rate warning
+  error_rate_critical: 0.05     # 5% error rate critical
+  response_time_warning_ms: 120 # 120ms warning
+  response_time_critical_ms: 150 # 150ms critical
+  success_rate_threshold: 0.95  # 95% success rate minimum
+
+# Nexten Matcher Specific Configuration
+nexten:
+  enabled: true
+  timeout_ms: 80
+  cache_enabled: true
+  parallel_processing: true
+  max_workers: 4
+  
+  # ML Model Settings
+  model_version: "latest"
+  confidence_threshold: 0.7
+  enable_questionnaire_weighting: true
+  
+  # Performance Optimization
+  enable_skill_caching: true
+  enable_embedding_cache: true
+  batch_processing_size: 10
+  
+  # Fallback Settings
+  fallback_to_enhanced: true
+  emergency_timeout_ms: 50
+
+# External Service Configuration (set via environment variables)
+database_url: null  # Set via DATABASE_URL env var
+redis_url: null     # Set via REDIS_URL env var
+monitoring_endpoint: null # Set via MONITORING_ENDPOINT env var
+
+# Security Configuration
+api_key_required: false
+rate_limit_requests_per_minute: 1000
+max_request_size_mb: 10
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"
+  include_request_id: true
+  include_user_id: true
+  performance_logging: true
