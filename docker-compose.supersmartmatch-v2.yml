@@ -1,0 +1,238 @@
+version: '3.8'
+
+# 🚀 SuperSmartMatch V2 - Configuration Docker Compose
+# Orchestration complète du service unifié avec dépendances
+
+services:
+  # ===== SERVICE PRINCIPAL - SUPERSMARTMATCH V2 =====
+  supersmartmatch-v2:
+    build:
+      context: .
+      dockerfile: Dockerfile.supersmartmatch-v2
+    container_name: supersmartmatch-v2-unified
+    restart: unless-stopped
+    ports:
+      - "5070:5070"
+    environment:
+      # Configuration service
+      - SERVICE_PORT=5070
+      - ENVIRONMENT=production
+      - SERVICE_NAME=supersmartmatch-v2
+      
+      # Intégrations services externes
+      - NEXTEN_URL=http://nexten-matcher:5052
+      - SUPERSMARTMATCH_V1_URL=http://supersmartmatch-v1:5062
+      
+      # Configuration Redis
+      - REDIS_URL=redis://redis-cache:6379
+      - CACHE_TTL=300
+      - CACHE_ENABLED=true
+      
+      # Configuration circuit breakers
+      - CIRCUIT_BREAKER_THRESHOLD=5
+      - CIRCUIT_BREAKER_TIMEOUT=60
+      - MAX_RESPONSE_TIME_MS=100
+      
+      # Feature flags
+      - ENABLE_V2=true
+      - V2_TRAFFIC_PERCENTAGE=100
+      - ENABLE_NEXTEN_ALGORITHM=true
+      - ENABLE_SMART_SELECTION=true
+      - ENABLE_AB_TESTING=true
+      
+      # Monitoring
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=INFO
+      
+    depends_on:
+      - redis-cache
+      - nexten-matcher
+      - supersmartmatch-v1
+    networks:
+      - supersmartmatch-network
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5070/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "service.name=supersmartmatch-v2"
+      - "service.version=2.0.0"
+      - "service.type=unified-matching"
+      - "service.port=5070"
+
+  # ===== NEXTEN MATCHER - SERVICE ML AVANCÉ =====
+  nexten-matcher:
+    image: nexten-matcher:latest
+    container_name: nexten-matcher-service
+    restart: unless-stopped
+    ports:
+      - "5052:5052"
+    environment:
+      - SERVICE_PORT=5052
+      - ENVIRONMENT=production
+      - ML_MODEL_PATH=/app/models
+      - ENABLE_ADVANCED_ML=true
+    networks:
+      - supersmartmatch-network
+    volumes:
+      - ./nexten-data:/app/data
+      - ./nexten-models:/app/models:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5052/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "service.name=nexten-matcher"
+      - "service.version=1.0.0"
+      - "service.type=ml-matching"
+
+  # ===== SUPERSMARTMATCH V1 - SERVICE EXISTANT =====
+  supersmartmatch-v1:
+    image: supersmartmatch:v1
+    container_name: supersmartmatch-v1-service
+    restart: unless-stopped
+    ports:
+      - "5062:5062"
+    environment:
+      - SERVICE_PORT=5062
+      - ENVIRONMENT=production
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      - ENABLE_SMART_MATCH=true
+      - ENABLE_ENHANCED_MATCH=true
+      - ENABLE_SEMANTIC_MATCH=true
+    networks:
+      - supersmartmatch-network
+    volumes:
+      - ./v1-config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5062/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "service.name=supersmartmatch-v1"
+      - "service.version=1.0.0"
+      - "service.type=legacy-matching"
+
+  # ===== REDIS CACHE =====
+  redis-cache:
+    image: redis:7-alpine
+    container_name: redis-cache-v2
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_MAXMEMORY=512mb
+      - REDIS_MAXMEMORY_POLICY=allkeys-lru
+    command: >
+      redis-server 
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    networks:
+      - supersmartmatch-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "service.name=redis-cache"
+      - "service.type=cache"
+
+  # ===== MONITORING - PROMETHEUS =====
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-monitoring
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=168h'
+      - '--web.enable-lifecycle'
+    networks:
+      - supersmartmatch-network
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    labels:
+      - "service.name=prometheus"
+      - "service.type=monitoring"
+
+  # ===== MONITORING - GRAFANA =====
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=supersmartmatch
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - supersmartmatch-network
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    labels:
+      - "service.name=grafana"
+      - "service.type=dashboard"
+
+  # ===== REVERSE PROXY - NGINX =====
+  nginx-gateway:
+    image: nginx:alpine
+    container_name: nginx-supersmartmatch-gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - supersmartmatch-network
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - supersmartmatch-v2
+    labels:
+      - "service.name=nginx-gateway"
+      - "service.type=reverse-proxy"
+
+# ===== RÉSEAUX =====
+networks:
+  supersmartmatch-network:
+    driver: bridge
+    name: supersmartmatch-v2-network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+# ===== VOLUMES PERSISTANTS =====
+volumes:
+  redis-data:
+    name: supersmartmatch-v2-redis-data
+  prometheus-data:
+    name: supersmartmatch-v2-prometheus-data  
+  grafana-data:
+    name: supersmartmatch-v2-grafana-data
+
+# ===== CONFIGURATION DÉVELOPPEMENT =====
+# Pour développement local, utiliser : docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
