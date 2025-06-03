@@ -1,92 +1,57 @@
-# Fichiers système macOS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# Logs
+*.log
+logs/
+/tmp/
 
-# Environnement de développement
+# Runtime
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+*.pid
+
+# Docker
+.docker/
+
+# IDE
 .vscode/
 .idea/
-*.code-workspace
-.vscode-test
-.history/
-
-# Modules Node.js (pour le futur)
-node_modules/
-npm-debug.log
-yarn-debug.log
-yarn-error.log
-package-lock.json
-
-# Fichiers de build 
-dist/
-build/
-*.min.js
-*.min.css
-
-# Fichiers de cache
-.cache/
-.parcel-cache/
-__pycache__/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-
-# Fichiers temporaires
-*.tmp
-*.temp
 *.swp
 *.swo
-*~
-.nfs*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
 *.bak
 
-# Fichiers de credentials et configurations personnelles
-config.js
-credentials.json
-secrets.json
-*config.json
-*credentials*
-*.pem
-*.key
-*.crt
-*.cert
-auth.json
-.netrc
-app/api_keys.py  # Ignorer le fichier contenant les clés API
+# Test outputs
+/test-results/
+/coverage/
 
-# Environnement Python
+# Python virtual environment
 venv/
-.python-version
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+.venv/
 env/
-ENV/
-env.bak/
-venv.bak/
-.coverage
-htmlcov/
-.tox/
-.nox/
-.hypothesis/
-.pytest_cache/
-*.egg-info/
-*.egg
+.env/
+
+# Node modules
+frontend/node_modules/
+node_modules/
+npm-debug.log*
+
+# Python packages
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
 develop-eggs/
 dist/
 downloads/
 eggs/
+.eggs/
 lib/
 lib64/
 parts/
@@ -94,33 +59,23 @@ sdist/
 var/
 wheels/
 
-# Logs et données temporaires
-*.log
-logs/
-logs_cv_parser_worker.txt
-*.json
-*.pdf
+# TensorFlow / ML models
+*.dylib
+*.so.*
+*.dll
 
-# Docker
-docker-compose.override.yml
-.docker/
-*.env.docker
+# Large files
+*.bin
+*.model
+*.h5
+*.pkl
 
-# Fichiers de test
-test_matching/
-cv.pdf
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Fichiers de données locales
-backend/data/documents_a_analyser/
-backend/requirements.local.txt
-
-# Fichiers de travail
-worker_for_claude.py
-
-# Fichiers temporaires FastAPI
-instance/
-.webassets-cache
-
-# Fichiers spécifiques OpenAI
-openai.key
-*openai*key*
+# OS
+.DS_Store
+Thumbs.db

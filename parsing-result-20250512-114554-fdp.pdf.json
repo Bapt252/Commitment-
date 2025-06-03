@@ -1,0 +1,91 @@
+{
+  "processing_time": 16.252853631973267,
+  "parsed_at": 1747043170.3568096,
+  "file_format": ".pdf",
+  "model": "gpt-4o-mini",
+  "data": {
+    "informations_personnelles": {
+      "nom": "Exemple",
+      "prenom": "Tmpt4tgcynq",
+      "email": "tmpt4tgcynq.exemple@example.com",
+      "telephone": "+33 6 12 34 56 78",
+      "adresse": "123 Avenue des Développeurs, 75000 Paris",
+      "linkedin": "linkedin.com/in/tmpt4tgcynq-exemple"
+    },
+    "competences_techniques": [
+      "AWS",
+      "React",
+      "Python",
+      "Git",
+      "Node.js"
+    ],
+    "logiciels": [
+      "Microsoft Office",
+      "Slack",
+      "JIRA"
+    ],
+    "soft_skills": [
+      "Créativité",
+      "Communication",
+      "Travail d'équipe",
+      "Résolution de problèmes"
+    ],
+    "experiences_professionnelles": [
+      {
+        "entreprise": "TechCorp Solutions",
+        "poste": "Développeur Full-Stack",
+        "date_debut": "2020-01",
+        "date_fin": "2023-06",
+        "description": "Développement d'applications web, collaboration avec les équipes produit, maintenance de services existants."
+      },
+      {
+        "entreprise": "InnoSoft",
+        "poste": "Développeur Front-End",
+        "date_debut": "2018-03",
+        "date_fin": "2019-12",
+        "description": "Conception et implémentation d'interfaces utilisateur, optimisation des performances."
+      }
+    ],
+    "formation": [
+      {
+        "etablissement": "Université de Tech",
+        "diplome": "Master en Informatique",
+        "date_debut": "2016",
+        "date_fin": "2018"
+      },
+      {
+        "etablissement": "École d'Ingénieurs TechSup",
+        "diplome": "Licence en Développement Logiciel",
+        "date_debut": "2013",
+        "date_fin": "2016"
+      }
+    ],
+    "langues": [
+      {
+        "langue": "Français",
+        "niveau": "Natif"
+      },
+      {
+        "langue": "Anglais",
+        "niveau": "Courant"
+      },
+      {
+        "langue": "Espagnol",
+        "niveau": "Intermédiaire"
+      }
+    ],
+    "certifications": [
+      "AWS Certified Developer",
+      "Scrum Master Certified"
+    ],
+    "interets": [
+      "Nouvelles technologies",
+      "Développement durable",
+      "Musique",
+      "Voyages"
+    ]
+  },
+  "file_name": "fdp.pdf",
+  "content_type": null,
+  "size": 41662
+}

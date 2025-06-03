@@ -1,93 +1,29 @@
-# Configuration Prometheus pour Commitment- Platform
 global:
   scrape_interval: 15s
-  evaluation_interval: 15s
 
 scrape_configs:
-  # ===== INFRASTRUCTURE MONITORING =====
-  - job_name: 'prometheus'
+  - job_name: 'supersmartmatch-v1'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['supersmartmatch-v1:5062']
+    labels:
+      service: 'supersmartmatch'
+      version: 'v1'
 
-  - job_name: 'cadvisor'
+  - job_name: 'supersmartmatch-v2'
     static_configs:
-      - targets: ['nexten-cadvisor:8080']
+      - targets: ['supersmartmatch-v2:5070']
+    labels:
+      service: 'supersmartmatch'
+      version: 'v2'
 
-  - job_name: 'postgres-exporter'
+  - job_name: 'nexten-matcher'
     static_configs:
-      - targets: ['nexten-postgres-exporter:9187']
+      - targets: ['nexten-matcher:5052']
+    labels:
+      service: 'nexten-matcher'
 
-  - job_name: 'redis-exporter'
+  - job_name: 'nginx'
     static_configs:
-      - targets: ['nexten-redis-exporter:9121']
-
-  # ===== SERVICES AVEC MÉTRIQUES PROMETHEUS =====
-  
-  # CV Parser Service - Port 5051 (FONCTIONNE !)
-  - job_name: 'cv-parser-service'
-    static_configs:
-      - targets: ['host.docker.internal:5051']
-    metrics_path: /metrics
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # Personalization Service - Port 5060
-  - job_name: 'personalization-service'
-    static_configs:
-      - targets: ['host.docker.internal:5060']
-    metrics_path: /metrics
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # ===== SERVICES MONITORÉS VIA HEALTH CHECKS =====
-  
-  # Data Adapter - Port 5053 (via health check temporaire)
-  - job_name: 'data-adapter-health'
-    static_configs:
-      - targets: ['host.docker.internal:5053']
-    metrics_path: /health
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # Feedback Service - Port 5058 (via health check temporaire)
-  - job_name: 'feedback-service-health'
-    static_configs:
-      - targets: ['host.docker.internal:5058']
-    metrics_path: /health
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # Matching API - Port 5052
-  - job_name: 'matching-api-health'
-    static_configs:
-      - targets: ['host.docker.internal:5052']
-    metrics_path: /health
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # ===== FRONTEND & STORAGE =====
-  
-  # Frontend Next.js - Port 3000
-  - job_name: 'frontend-health'
-    static_configs:
-      - targets: ['host.docker.internal:3000']
-    metrics_path: /
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # MinIO Storage - Port 9000
-  - job_name: 'minio'
-    static_configs:
-      - targets: ['host.docker.internal:9000']
-    metrics_path: /minio/v2/metrics/cluster
-    scrape_interval: 30s
-
-rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
-
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-          - nexten-alertmanager:9093
+      - targets: ['nginx:80']
+    labels:
+      service: 'nginx'

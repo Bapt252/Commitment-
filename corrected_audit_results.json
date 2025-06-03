@@ -1,0 +1,96 @@
+{
+  "cv_parser": {
+    "service": "cv_parser",
+    "endpoint": "/health",
+    "avg_latency": 1.8567562103271484,
+    "min_latency": 1.3761520385742188,
+    "max_latency": 2.3610591888427734,
+    "p95_latency": 2.362346649169922,
+    "successful_requests": 10,
+    "total_requests": 10,
+    "success_rate": 100.0
+  },
+  "personalization": {
+    "service": "personalization",
+    "endpoint": "/health",
+    "avg_latency": 1.7908215522766113,
+    "min_latency": 1.4929771423339844,
+    "max_latency": 2.110004425048828,
+    "p95_latency": 2.1770119667053223,
+    "successful_requests": 8,
+    "total_requests": 8,
+    "success_rate": 100.0
+  },
+  "frontend": {
+    "/": {
+      "avg_latency": 53.336238861083984,
+      "min_latency": 16.742229461669922,
+      "max_latency": 168.19190979003906,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "/health": {
+      "avg_latency": 79.89177703857422,
+      "min_latency": 25.814056396484375,
+      "max_latency": 250.03480911254883,
+      "status_codes": [
+        404,
+        404,
+        404,
+        404,
+        404
+      ]
+    }
+  },
+  "system_metrics": {
+    "cpu_percent": 8.2,
+    "memory_analysis": {
+      "total_gb": 8,
+      "available_gb": 1,
+      "used_gb": 2,
+      "percent": 84.0,
+      "status": "\ud83d\udfe1 \u00c9LEV\u00c9"
+    },
+    "disk_usage_percent": 3.4,
+    "top_memory_processes": [
+      {
+        "cpu_percent": 0.0,
+        "memory_percent": 10.736465454101562,
+        "name": "com.apple.Virtualization.VirtualMachine",
+        "pid": 17227
+      },
+      {
+        "cpu_percent": 0.0,
+        "memory_percent": 2.5485992431640625,
+        "name": "Cursor Helper (Renderer)",
+        "pid": 1075
+      },
+      {
+        "cpu_percent": 0.0,
+        "memory_percent": 1.5134811401367188,
+        "name": "Google Chrome",
+        "pid": 648
+      },
+      {
+        "cpu_percent": 0.0,
+        "memory_percent": 1.0839462280273438,
+        "name": "com.docker.backend",
+        "pid": 17197
+      },
+      {
+        "cpu_percent": 0.0,
+        "memory_percent": 1.019287109375,
+        "name": "Google Chrome Helper (Renderer)",
+        "pid": 15630
+      }
+    ],
+    "load_average": 6.494140625
+  },
+  "audit_duration": 1.783808946609497,
+  "timestamp": 1747906385.1271338
+}

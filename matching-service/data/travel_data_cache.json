@@ -1,0 +1,40 @@
+{
+  "routes": {
+    "paris, france|lyon, france|driving": 991,
+    "paris, france|lyon, france|transit": 1730,
+    "paris, france|marseille, france|driving": 584,
+    "paris, france|marseille, france|transit": 1045,
+    "lyon, france|marseille, france|driving": 829,
+    "lyon, france|marseille, france|transit": 1341
+  },
+  "geocodes": {
+    "Paris, France": {
+      "lat": 48.856614,
+      "lng": 2.3522219
+    },
+    "Lyon, France": {
+      "lat": 45.764043,
+      "lng": 4.835659
+    },
+    "Versailles, France": {
+      "lat": 48.8035403,
+      "lng": 2.1266886
+    },
+    "Tour Montparnasse, 75015 Paris, France": {
+      "lat": 48.8421,
+      "lng": 2.3219
+    },
+    "paris, france": {
+      "lat": 44.53296419161083,
+      "lng": -3.3358940833245376
+    },
+    "lyon, france": {
+      "lat": 43.951873719270374,
+      "lng": 5.841515101591943
+    },
+    "marseille, france": {
+      "lat": 48.39274917580399,
+      "lng": 0.06711024558666878
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "processing_time": 6.95057225227356,
+  "parsed_at": 1746609355.444079,
+  "file_format": ".pdf",
+  "model": "gpt-4o-mini",
+  "data": {
+    "informations_personnelles": {
+      "nom": "",
+      "email": "",
+      "telephone": "",
+      "adresse": "",
+      "nationalite": "",
+      "date_de_naissance": "",
+      "linkedin_site_web_profils": ""
+    },
+    "competences_techniques_et_linguistiques": {
+      "techniques": [
+        "PeopleSoft (Oracle)",
+        "Excel (TCD, fonctions de recherche, formules de base)"
+      ],
+      "linguistiques": [
+        {
+          "langue": "français",
+          "niveau": "avancé"
+        }
+      ]
+    },
+    "experiences_professionnelles": [
+      {
+        "entreprise": "",
+        "poste": "Assistant Facturation",
+        "date_debut": "",
+        "date_fin": "",
+        "description": "Garantir la facturation conforme et complète d'un portefeuille clients en Île-de-France, dans un environnement en pleine réorganisation, en lien étroit avec les agences locales et les services internes. Missions principales incluent l'analyse et traitement de la facturation clients, vérification des numéros de SIRET, validation et révision des contrats, contrôle des écarts entre la planification et la facturation, gestion des avoirs, communication avec les agences et clients internes/externes, mise à jour des contrats et ERP, accompagnement des services internes sur les bonnes pratiques et processus, préparation des écritures de Factures À Émettre et Avoirs À Émettre pour le contrôle de gestion."
+      }
+    ],
+    "formation": [
+      {
+        "etablissement": "",
+        "diplome": "Bac +2/+3 (comptabilité, gestion, administratif)",
+        "date_debut": "",
+        "date_fin": ""
+      }
+    ],
+    "certifications_et_formations_complementaires": [],
+    "langues_et_niveau": [],
+    "interets_et_activites_extra_professionnelles": []
+  },
+  "file_name": "fdp.pdf",
+  "content_type": null,
+  "size": 41662
+}

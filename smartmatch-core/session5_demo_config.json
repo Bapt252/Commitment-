@@ -1,0 +1,51 @@
+{
+  "pipeline": {
+    "training_interval": 1800,
+    "ab_test_duration": 43200,
+    "drift_check_interval": 300,
+    "training": {
+      "max_concurrent_jobs": 2,
+      "validation_splits": 5,
+      "early_stopping_patience": 15
+    },
+    "ab_testing": {
+      "min_sample_size": 500,
+      "significance_level": 0.05,
+      "power": 0.8
+    },
+    "drift_monitoring": {
+      "drift_threshold": 0.1,
+      "performance_threshold": 0.05,
+      "window_size": 1000
+    }
+  },
+  "admin": {
+    "dashboard_port": 8501,
+    "api_port": 8080,
+    "enable_auth": false,
+    "dashboard": {
+      "update_interval": 5,
+      "max_data_points": 500
+    },
+    "model_controller": {
+      "models_dir": "session5_models",
+      "max_versions": 20,
+      "deployment_timeout": 180
+    },
+    "notifications": {
+      "webhook_enabled": true,
+      "webhook_url": "http://localhost:9000/webhook",
+      "alert_thresholds": {
+        "error_rate": 0.05,
+        "latency_p95": 1000,
+        "drift_score": 0.15
+      }
+    }
+  },
+  "demo": {
+    "generate_synthetic_data": true,
+    "synthetic_samples": 1000,
+    "simulate_real_time": true,
+    "run_duration": 3600
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "candidates": [
+    {
+      "name": "Alice Martin",
+      "skills": ["Python", "Docker", "React"],
+      "experience": 5
+    },
+    {
+      "name": "Bob Johnson", 
+      "skills": ["Java", "Spring", "MySQL"],
+      "experience": 3
+    }
+  ],
+  "jobs": [
+    {
+      "id": 1,
+      "title": "Développeur Python",
+      "required_skills": ["Python", "Docker"],
+      "experience_required": 3
+    },
+    {
+      "id": 2,
+      "title": "Développeur Java",
+      "required_skills": ["Java", "Spring"],
+      "experience_required": 2
+    }
+  ]
+}
