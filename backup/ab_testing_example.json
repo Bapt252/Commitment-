@@ -1,0 +1,22 @@
+{
+    "name": "ML Algorithm Test",
+    "description": "Test du nouvel algorithme ML vs default",
+    "start_date": "2024-01-01T00:00:00Z",
+    "end_date": "2024-01-15T00:00:00Z",
+    "traffic_allocation": {
+        "control": 50,
+        "variants": [
+            {
+                "name": "ml_v1",
+                "percentage": 25,
+                "algorithm": "ml_based"
+            },
+            {
+                "name": "improved_v1",
+                "percentage": 25,
+                "algorithm": "improved_v1"
+            }
+        ]
+    },
+    "metrics": ["match_count", "feedback_score", "conversion_rate"]
+}

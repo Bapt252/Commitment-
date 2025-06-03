@@ -1,0 +1,47 @@
+{
+  "status": "success",
+  "candidate": {
+    "id": "cv_-1953101",
+    "name": "Jean Dupont"
+  },
+  "job": {
+    "id": "job_40680310",
+    "name": "Innovatech - Développeur Full Stack Senior"
+  },
+  "score": 80.0,
+  "details": {
+    "skills": {
+      "score": 0.6,
+      "weight": 0.5,
+      "details": {
+        "matching_skills": [
+          "javascript",
+          "python",
+          "react"
+        ],
+        "missing_skills": [
+          "sql",
+          "api design"
+        ],
+        "total_required": 5,
+        "total_matching": 3
+      }
+    },
+    "experience": {
+      "score": 1.0,
+      "weight": 0.2
+    },
+    "location": {
+      "score": 1.0,
+      "weight": 0.15
+    },
+    "remote": {
+      "score": 1.0,
+      "weight": 0.1
+    },
+    "salary": {
+      "score": 1.0,
+      "weight": 0.05
+    }
+  }
+}

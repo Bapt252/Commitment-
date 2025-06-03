@@ -1,0 +1,339 @@
+#!/usr/bin/env python3
+"""
+Suite de tests production SuperSmartMatch V2
+Projet Commitment- - Architecture unifiée
+"""
+
+import requests
+import json
+import time
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass
+from datetime import datetime
+import logging
+import sys
+import os
+
+# Configuration logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('test_supersmartmatch_v2.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+@dataclass
+class TestResult:
+    test_name: str
+    success: bool
+    response_time: float
+    algorithm_used: Optional[str] = None
+    error_message: Optional[str] = None
+    expected_algorithm: Optional[str] = None
+    timestamp: str = None
+    
+    def __post_init__(self):
+        if not self.timestamp:
+            self.timestamp = datetime.now().isoformat()
+
+class SuperSmartMatchV2Tester:
+    """Testeur pour SuperSmartMatch V2"""
+    
+    def __init__(self, config: Optional[Dict] = None):
+        default_config = {
+            'base_urls': {
+                'v1': 'http://localhost:5062',
+                'nexten': 'http://localhost:5052', 
+                'v2': 'http://localhost:5070'
+            },
+            'timeouts': {
+                'health_check': 5,
+                'match_request': 15
+            }
+        }
+        
+        self.config = {**default_config, **(config or {})}
+        logger.info("🚀 SuperSmartMatch V2 Tester initialisé")
+        logger.info(f"📍 URLs: {self.config['base_urls']}")
+    
+    def test_service_connectivity(self) -> List[TestResult]:
+        """Test la connectivité des services"""
+        logger.info("🔍 Test de connectivité des services...")
+        tests = []
+        
+        for service, url in self.config['base_urls'].items():
+            start_time = time.time()
+            test_name = f"connectivity_{service}"
+            
+            try:
+                # Essaie plusieurs endpoints de santé
+                endpoints = ['/health', '/api/health', '/status', '/']
+                response = None
+                
+                for endpoint in endpoints:
+                    try:
+                        response = requests.get(
+                            f"{url}{endpoint}", 
+                            timeout=self.config['timeouts']['health_check']
+                        )
+                        if response.status_code == 200:
+                            break
+                    except:
+                        continue
+                
+                response_time = time.time() - start_time
+                
+                if response and response.status_code == 200:
+                    tests.append(TestResult(
+                        test_name=test_name,
+                        success=True,
+                        response_time=response_time
+                    ))
+                    logger.info(f"✅ {service} connecté ({response_time:.3f}s)")
+                else:
+                    tests.append(TestResult(
+                        test_name=test_name,
+                        success=False,
+                        response_time=response_time,
+                        error_message="Service non accessible"
+                    ))
+                    logger.warning(f"❌ {service} non accessible")
+                    
+            except Exception as e:
+                response_time = time.time() - start_time
+                tests.append(TestResult(
+                    test_name=test_name,
+                    success=False,
+                    response_time=response_time,
+                    error_message=str(e)
+                ))
+                logger.error(f"❌ Erreur {service}: {e}")
+        
+        return tests
+    
+    def test_algorithm_selection(self) -> List[TestResult]:
+        """Test la sélection d'algorithmes"""
+        logger.info("🧠 Test de sélection d'algorithmes...")
+        
+        test_cases = [
+            {
+                "name": "nexten_questionnaire_complete",
+                "payload": {
+                    "user_profile": {
+                        "age": 28,
+                        "questionnaire_complete": True,
+                        "skills": ["Python", "Machine Learning"]
+                    },
+                    "jobs": [{"title": "Senior Data Scientist"}]
+                },
+                "expected_algorithm": "nexten"
+            },
+            {
+                "name": "smart_match_geolocation",
+                "payload": {
+                    "user_profile": {
+                        "age": 30,
+                        "location": {"lat": 48.8566, "lon": 2.3522}
+                    },
+                    "jobs": [{"title": "Full Stack Developer"}]
+                },
+                "expected_algorithm": "smart"
+            },
+            {
+                "name": "enhanced_senior_candidate",
+                "payload": {
+                    "user_profile": {"age": 55, "experience_years": 25},
+                    "jobs": [{"title": "Senior Consultant"}]
+                },
+                "expected_algorithm": "enhanced"
+            }
+        ]
+        
+        results = []
+        v2_url = self.config['base_urls']['v2']
+        
+        for test_case in test_cases:
+            start_time = time.time()
+            test_name = test_case["name"]
+            
+            try:
+                response = requests.post(
+                    f"{v2_url}/api/v2/match",
+                    json=test_case["payload"],
+                    headers={'Content-Type': 'application/json'},
+                    timeout=self.config['timeouts']['match_request']
+                )
+                
+                response_time = time.time() - start_time
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    algorithm_used = data.get('algorithm_used', 'unknown')
+                    expected = test_case["expected_algorithm"]
+                    success = algorithm_used == expected
+                    
+                    results.append(TestResult(
+                        test_name=test_name,
+                        success=success,
+                        response_time=response_time,
+                        algorithm_used=algorithm_used,
+                        expected_algorithm=expected
+                    ))
+                    
+                    status = "✅" if success else "⚠️"
+                    logger.info(f"{status} {test_name}: {algorithm_used} ({response_time:.3f}s)")
+                    
+                else:
+                    results.append(TestResult(
+                        test_name=test_name,
+                        success=False,
+                        response_time=response_time,
+                        expected_algorithm=test_case["expected_algorithm"],
+                        error_message=f"HTTP {response.status_code}"
+                    ))
+                    logger.error(f"❌ {test_name}: HTTP {response.status_code}")
+                    
+            except Exception as e:
+                results.append(TestResult(
+                    test_name=test_name,
+                    success=False,
+                    response_time=time.time() - start_time,
+                    expected_algorithm=test_case["expected_algorithm"],
+                    error_message=str(e)
+                ))
+                logger.error(f"❌ {test_name}: {e}")
+        
+        return results
+    
+    def test_v1_compatibility(self) -> List[TestResult]:
+        """Test la compatibilité V1"""
+        logger.info("🔄 Test de compatibilité V1...")
+        
+        v1_payload = {
+            "user_profile": {"age": 25, "skills": ["Python"]},
+            "jobs": [{"title": "Python Developer"}]
+        }
+        
+        results = []
+        
+        # Test V2 compatibility endpoint
+        start_time = time.time()
+        try:
+            response = requests.post(
+                f"{self.config['base_urls']['v2']}/api/v1/match",
+                json=v1_payload,
+                headers={'Content-Type': 'application/json'},
+                timeout=self.config['timeouts']['match_request']
+            )
+            
+            response_time = time.time() - start_time
+            success = response.status_code == 200
+            
+            results.append(TestResult(
+                test_name="v2_compatibility_endpoint",
+                success=success,
+                response_time=response_time,
+                error_message=None if success else f"HTTP {response.status_code}"
+            ))
+            
+            if success:
+                logger.info(f"✅ Compatibilité V1 OK ({response_time:.3f}s)")
+            else:
+                logger.error(f"❌ Compatibilité V1 échouée: HTTP {response.status_code}")
+                
+        except Exception as e:
+            results.append(TestResult(
+                test_name="v2_compatibility_endpoint",
+                success=False,
+                response_time=time.time() - start_time,
+                error_message=str(e)
+            ))
+            logger.error(f"❌ Compatibilité V1: {e}")
+        
+        return results
+    
+    def run_test_suite(self) -> Dict[str, List[TestResult]]:
+        """Exécute la suite de tests"""
+        logger.info("🚀 DÉMARRAGE TESTS SUPERSMARTMATCH V2")
+        logger.info("=" * 50)
+        
+        test_suites = {
+            "connectivity": self.test_service_connectivity(),
+            "algorithm_selection": self.test_algorithm_selection(),
+            "v1_compatibility": self.test_v1_compatibility()
+        }
+        
+        return test_suites
+    
+    def generate_report(self, test_results: Dict[str, List[TestResult]]) -> str:
+        """Génère le rapport"""
+        report_lines = [
+            "=" * 60,
+            "📊 RAPPORT SUPERSMARTMATCH V2 - COMMITMENT",
+            f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            "=" * 60,
+            ""
+        ]
+        
+        total_tests = sum(len(results) for results in test_results.values())
+        total_passed = sum(
+            sum(1 for result in results if result.success) 
+            for results in test_results.values()
+        )
+        success_rate = (total_passed / total_tests * 100) if total_tests > 0 else 0
+        
+        report_lines.extend([
+            f"🎯 Tests totaux: {total_tests}",
+            f"✅ Tests réussis: {total_passed}",
+            f"📊 Taux de succès: {success_rate:.1f}%",
+            ""
+        ])
+        
+        for suite_name, results in test_results.items():
+            suite_passed = sum(1 for r in results if r.success)
+            suite_total = len(results)
+            
+            report_lines.extend([
+                f"🔧 {suite_name.upper()} ({suite_passed}/{suite_total})",
+                "-" * 40
+            ])
+            
+            for result in results:
+                status = "✅" if result.success else "❌"
+                report_lines.append(f"{status} {result.test_name}")
+                report_lines.append(f"   ⏱️  {result.response_time:.3f}s")
+                
+                if result.algorithm_used:
+                    report_lines.append(f"   🧠 {result.algorithm_used}")
+                if result.error_message:
+                    report_lines.append(f"   ❗ {result.error_message}")
+                report_lines.append("")
+        
+        return "\n".join(report_lines)
+
+def main():
+    """Point d'entrée principal"""
+    print("🚀 SuperSmartMatch V2 Production Tester")
+    print("🔗 Projet Commitment- - Tests automatisés")
+    print()
+    
+    tester = SuperSmartMatchV2Tester()
+    results = tester.run_test_suite()
+    
+    report = tester.generate_report(results)
+    print(report)
+    
+    # Sauvegarde
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"test_report_v2_{timestamp}.txt"
+    
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(report)
+    
+    print(f"\n💾 Rapport sauvegardé: {filename}")
+
+if __name__ == "__main__":
+    main()

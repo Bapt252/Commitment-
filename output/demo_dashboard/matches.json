@@ -1,0 +1,350 @@
+[
+  {
+    "candidate_id": "C8238",
+    "company_id": "E3795",
+    "score": 0.99,
+    "candidate_location": "Lyon, France",
+    "company_location": "Bordeaux, France",
+    "details": {
+      "skills_score": 0.66,
+      "location_score": 0.92,
+      "remote_score": 0.49,
+      "experience_score": 0.32,
+      "salary_score": 0.9,
+      "matched_skills": [
+        "TensorFlow"
+      ],
+      "missing_skills": [
+        "PostgreSQL",
+        "Kubernetes",
+        "Angular",
+        "React",
+        "PHP"
+      ],
+      "travel_time_minutes": 68
+    }
+  },
+  {
+    "candidate_id": "C8029",
+    "company_id": "E6601",
+    "score": 0.84,
+    "candidate_location": "Marseille, France",
+    "company_location": "Lille, France",
+    "details": {
+      "skills_score": 0.81,
+      "location_score": 0.58,
+      "remote_score": 0.78,
+      "experience_score": 0.64,
+      "salary_score": 0.91,
+      "matched_skills": [],
+      "missing_skills": [
+        "MongoDB",
+        "ASP.NET",
+        "Redis"
+      ],
+      "travel_time_minutes": 81
+    }
+  },
+  {
+    "candidate_id": "C7457",
+    "company_id": "E5161",
+    "score": 0.81,
+    "candidate_location": "Lyon, France",
+    "company_location": "Strasbourg, France",
+    "details": {
+      "skills_score": 0.66,
+      "location_score": 0.42,
+      "remote_score": 0.71,
+      "experience_score": 0.4,
+      "salary_score": 0.79,
+      "matched_skills": [
+        "Azure",
+        "Redis"
+      ],
+      "missing_skills": [
+        "Scikit-learn"
+      ],
+      "travel_time_minutes": 136
+    }
+  },
+  {
+    "candidate_id": "C1265",
+    "company_id": "E1761",
+    "score": 0.79,
+    "candidate_location": "Nantes, France",
+    "company_location": "Paris, France",
+    "details": {
+      "skills_score": 0.31,
+      "location_score": 0.64,
+      "remote_score": 0.36,
+      "experience_score": 0.38,
+      "salary_score": 0.98,
+      "matched_skills": [
+        "MySQL",
+        "PyTorch",
+        "Docker"
+      ],
+      "missing_skills": [
+        "Flask"
+      ],
+      "travel_time_minutes": 153
+    }
+  },
+  {
+    "candidate_id": "C6911",
+    "company_id": "E4437",
+    "score": 0.78,
+    "candidate_location": "Lille, France",
+    "company_location": "Bordeaux, France",
+    "details": {
+      "skills_score": 0.69,
+      "location_score": 0.95,
+      "remote_score": 0.4,
+      "experience_score": 0.77,
+      "salary_score": 0.52,
+      "matched_skills": [
+        "AWS",
+        "CI/CD"
+      ],
+      "missing_skills": [
+        "MongoDB",
+        "PostgreSQL",
+        "Computer Vision",
+        "Ruby",
+        "TensorFlow"
+      ],
+      "travel_time_minutes": 129
+    }
+  },
+  {
+    "candidate_id": "C2884",
+    "company_id": "E9398",
+    "score": 0.73,
+    "candidate_location": "Nantes, France",
+    "company_location": "Nantes, France",
+    "details": {
+      "skills_score": 0.8,
+      "location_score": 0.99,
+      "remote_score": 0.72,
+      "experience_score": 0.83,
+      "salary_score": 0.42,
+      "matched_skills": [],
+      "missing_skills": [
+        "AWS",
+        "PostgreSQL",
+        "Agile",
+        "Kubernetes"
+      ],
+      "travel_time_minutes": 22
+    }
+  },
+  {
+    "candidate_id": "C5078",
+    "company_id": "E3608",
+    "score": 0.7,
+    "candidate_location": "Strasbourg, France",
+    "company_location": "Nantes, France",
+    "details": {
+      "skills_score": 0.56,
+      "location_score": 0.81,
+      "remote_score": 0.77,
+      "experience_score": 0.79,
+      "salary_score": 0.56,
+      "matched_skills": [
+        "TensorFlow"
+      ],
+      "missing_skills": [
+        "PostgreSQL",
+        "Spring"
+      ],
+      "travel_time_minutes": 90
+    }
+  },
+  {
+    "candidate_id": "C6862",
+    "company_id": "E9094",
+    "score": 0.69,
+    "candidate_location": "Strasbourg, France",
+    "company_location": "Strasbourg, France",
+    "details": {
+      "skills_score": 0.74,
+      "location_score": 0.53,
+      "remote_score": 0.76,
+      "experience_score": 0.38,
+      "salary_score": 0.77,
+      "matched_skills": [
+        "AWS",
+        "Docker"
+      ],
+      "missing_skills": [
+        "C#",
+        "Agile",
+        "TensorFlow"
+      ],
+      "travel_time_minutes": 18
+    }
+  },
+  {
+    "candidate_id": "C8646",
+    "company_id": "E4707",
+    "score": 0.67,
+    "candidate_location": "Lille, France",
+    "company_location": "Strasbourg, France",
+    "details": {
+      "skills_score": 0.47,
+      "location_score": 0.37,
+      "remote_score": 0.75,
+      "experience_score": 0.92,
+      "salary_score": 0.98,
+      "matched_skills": [],
+      "missing_skills": [
+        "MongoDB",
+        "SQL",
+        "Scikit-learn",
+        "Scrum",
+        "Spring",
+        "Ruby on Rails",
+        "Python"
+      ],
+      "travel_time_minutes": 63
+    }
+  },
+  {
+    "candidate_id": "C8543",
+    "company_id": "E3162",
+    "score": 0.66,
+    "candidate_location": "Paris, France",
+    "company_location": "Lyon, France",
+    "details": {
+      "skills_score": 0.35,
+      "location_score": 0.82,
+      "remote_score": 0.48,
+      "experience_score": 0.85,
+      "salary_score": 0.5,
+      "matched_skills": [
+        "Django",
+        "Java"
+      ],
+      "missing_skills": [
+        "Git",
+        "NLP",
+        "Laravel"
+      ],
+      "travel_time_minutes": 157
+    }
+  },
+  {
+    "candidate_id": "C5586",
+    "company_id": "E3837",
+    "score": 0.6,
+    "candidate_location": "Lyon, France",
+    "company_location": "Lille, France",
+    "details": {
+      "skills_score": 0.61,
+      "location_score": 0.98,
+      "remote_score": 0.6,
+      "experience_score": 0.86,
+      "salary_score": 0.77,
+      "matched_skills": [],
+      "missing_skills": [
+        "Django",
+        "PHP",
+        "CI/CD",
+        "Agile"
+      ],
+      "travel_time_minutes": 101
+    }
+  },
+  {
+    "candidate_id": "C9473",
+    "company_id": "E3708",
+    "score": 0.57,
+    "candidate_location": "Paris, France",
+    "company_location": "Lyon, France",
+    "details": {
+      "skills_score": 0.78,
+      "location_score": 0.69,
+      "remote_score": 0.5,
+      "experience_score": 0.61,
+      "salary_score": 0.64,
+      "matched_skills": [],
+      "missing_skills": [
+        "DevOps",
+        "Scrum",
+        "TensorFlow"
+      ],
+      "travel_time_minutes": 54
+    }
+  },
+  {
+    "candidate_id": "C8080",
+    "company_id": "E2983",
+    "score": 0.45,
+    "candidate_location": "Lille, France",
+    "company_location": "Bordeaux, France",
+    "details": {
+      "skills_score": 0.43,
+      "location_score": 0.42,
+      "remote_score": 0.52,
+      "experience_score": 0.69,
+      "salary_score": 0.75,
+      "matched_skills": [
+        "Git",
+        "Oracle"
+      ],
+      "missing_skills": [
+        "MySQL",
+        "AWS",
+        "Python",
+        "Vue.js"
+      ],
+      "travel_time_minutes": 107
+    }
+  },
+  {
+    "candidate_id": "C7851",
+    "company_id": "E5748",
+    "score": 0.4,
+    "candidate_location": "Strasbourg, France",
+    "company_location": "Nantes, France",
+    "details": {
+      "skills_score": 0.76,
+      "location_score": 0.49,
+      "remote_score": 0.51,
+      "experience_score": 0.86,
+      "salary_score": 0.74,
+      "matched_skills": [
+        "JavaScript"
+      ],
+      "missing_skills": [
+        "MongoDB",
+        "Flask",
+        "Ruby on Rails",
+        "TensorFlow"
+      ],
+      "travel_time_minutes": 52
+    }
+  },
+  {
+    "candidate_id": "C5306",
+    "company_id": "E1148",
+    "score": 0.3,
+    "candidate_location": "Toulouse, France",
+    "company_location": "Marseille, France",
+    "details": {
+      "skills_score": 0.5,
+      "location_score": 0.36,
+      "remote_score": 0.74,
+      "experience_score": 0.76,
+      "salary_score": 0.73,
+      "matched_skills": [
+        "Angular"
+      ],
+      "missing_skills": [
+        "Azure",
+        "Computer Vision"
+      ],
+      "travel_time_minutes": 155
+    }
+  }
+]
