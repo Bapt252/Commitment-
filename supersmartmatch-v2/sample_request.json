@@ -1,419 +1,110 @@
 {
-  "description": "Sample request for SuperSmartMatch V2 testing and demonstration",
-  "version": "2.0.0",
-  "sample_requests": {
-    "complete_data_scenario": {
-      "description": "Complete data scenario - should trigger Nexten Matcher",
-      "request": {
-        "candidate": {
-          "name": "Marie Dubois",
-          "email": "marie.dubois@example.com",
-          "technical_skills": [
-            {
-              "name": "Python",
-              "level": "Expert",
-              "years": 6
-            },
-            {
-              "name": "Machine Learning",
-              "level": "Advanced",
-              "years": 4
-            },
-            {
-              "name": "TensorFlow",
-              "level": "Advanced",
-              "years": 3
-            },
-            {
-              "name": "Docker",
-              "level": "Intermediate",
-              "years": 2
-            },
-            {
-              "name": "AWS",
-              "level": "Intermediate",
-              "years": 3
-            }
-          ],
-          "experiences": [
-            {
-              "title": "Senior ML Engineer",
-              "company": "TechCorp Paris",
-              "duration_months": 30,
-              "skills": ["Python", "TensorFlow", "MLOps", "AWS"]
-            },
-            {
-              "title": "Data Scientist",
-              "company": "Analytics Solutions",
-              "duration_months": 24,
-              "skills": ["Python", "Pandas", "Scikit-learn", "SQL"]
-            },
-            {
-              "title": "Software Developer",
-              "company": "StartupXYZ",
-              "duration_months": 18,
-              "skills": ["Python", "Django", "PostgreSQL"]
-            }
-          ],
-          "location": {
-            "city": "Paris",
-            "country": "France",
-            "remote_ok": true
-          }
-        },
-        "candidate_questionnaire": {
-          "work_style": "collaborative",
-          "culture_preferences": "innovation_focused",
-          "remote_preference": "hybrid",
-          "career_goals": "technical_leadership",
-          "team_size_preference": "small_to_medium"
-        },
-        "offers": [
-          {
-            "id": "job_ml_lead_001",
-            "title": "ML Engineering Lead",
-            "company": "AI Innovation Labs",
-            "required_skills": ["Python", "Machine Learning", "TensorFlow", "Team Leadership"],
-            "location": {
-              "city": "Paris",
-              "country": "France",
-              "remote_ok": true
-            },
-            "remote_policy": "hybrid",
-            "description": "Lead a team of ML engineers building next-generation recommendation systems"
-          },
-          {
-            "id": "job_senior_ml_002",
-            "title": "Senior ML Engineer",
-            "company": "FinTech Solutions",
-            "required_skills": ["Python", "TensorFlow", "MLOps", "AWS"],
-            "location": {
-              "city": "Paris",
-              "country": "France",
-              "remote_ok": false
-            },
-            "remote_policy": "office_only",
-            "description": "Develop ML models for fraud detection and risk assessment"
-          },
-          {
-            "id": "job_data_scientist_003",
-            "title": "Principal Data Scientist",
-            "company": "E-commerce Giant",
-            "required_skills": ["Python", "Machine Learning", "Big Data", "Statistics"],
-            "location": {
-              "city": "Lyon",
-              "country": "France",
-              "remote_ok": true
-            },
-            "remote_policy": "full_remote",
-            "description": "Drive data science initiatives for personalization and optimization"
-          }
-        ],
-        "company_questionnaires": [
-          {
-            "culture": "innovation_focused",
-            "team_size": "small",
-            "work_methodology": "agile",
-            "remote_policy": "hybrid"
-          },
-          {
-            "culture": "result_oriented",
-            "team_size": "medium",
-            "work_methodology": "traditional",
-            "remote_policy": "office_only"
-          },
-          {
-            "culture": "innovation_focused",
-            "team_size": "large",
-            "work_methodology": "agile",
-            "remote_policy": "full_remote"
-          }
-        ],
-        "algorithm": "auto"
+  "candidate": {
+    "name": "Alex Martin",
+    "email": "alex.martin@example.com",
+    "technical_skills": [
+      {
+        "name": "Python",
+        "level": "Expert",
+        "years": 5
       },
-      "expected_algorithm": "nexten",
-      "expected_reason": "Complete questionnaire and CV data available for maximum ML precision"
-    },
-    "location_scenario": {
-      "description": "Location constraints scenario - should trigger Smart Match",
-      "request": {
-        "candidate": {
-          "name": "Jean Martin",
-          "email": "jean.martin@example.com",
-          "technical_skills": [
-            {
-              "name": "JavaScript",
-              "level": "Expert",
-              "years": 5
-            },
-            {
-              "name": "React",
-              "level": "Advanced",
-              "years": 4
-            }
-          ],
-          "experiences": [
-            {
-              "title": "Frontend Developer",
-              "company": "WebCorp",
-              "duration_months": 36,
-              "skills": ["JavaScript", "React", "CSS"]
-            }
-          ],
-          "location": {
-            "city": "Marseille",
-            "country": "France",
-            "remote_ok": false
-          }
-        },
-        "offers": [
-          {
-            "id": "job_frontend_001",
-            "title": "Frontend Developer",
-            "company": "Local Agency",
-            "required_skills": ["JavaScript", "React"],
-            "location": {
-              "city": "Marseille",
-              "country": "France",
-              "remote_ok": false
-            }
-          },
-          {
-            "id": "job_frontend_002",
-            "title": "React Developer",
-            "company": "Paris Startup",
-            "required_skills": ["React", "TypeScript"],
-            "location": {
-              "city": "Paris",
-              "country": "France",
-              "remote_ok": false
-            }
-          }
-        ],
-        "algorithm": "auto"
+      {
+        "name": "Machine Learning",
+        "level": "Advanced",
+        "years": 3
       },
-      "expected_algorithm": "smart",
-      "expected_reason": "Geographic constraints detected, using location-optimized algorithm"
-    },
-    "senior_scenario": {
-      "description": "Senior profile scenario - should trigger Enhanced algorithm",
-      "request": {
-        "candidate": {
-          "name": "Philippe Durand",
-          "email": "philippe.durand@example.com",
-          "technical_skills": [
-            {
-              "name": "Java",
-              "level": "Expert",
-              "years": 12
-            },
-            {
-              "name": "Spring",
-              "level": "Expert",
-              "years": 10
-            },
-            {
-              "name": "Microservices",
-              "level": "Expert",
-              "years": 8
-            }
-          ],
-          "experiences": [
-            {
-              "title": "Principal Software Architect",
-              "company": "Enterprise Corp",
-              "duration_months": 48,
-              "skills": ["Java", "Spring", "Microservices", "Architecture"]
-            },
-            {
-              "title": "Senior Java Developer",
-              "company": "Tech Solutions",
-              "duration_months": 60,
-              "skills": ["Java", "Spring", "Hibernate", "Oracle"]
-            },
-            {
-              "title": "Java Developer",
-              "company": "Software House",
-              "duration_months": 36,
-              "skills": ["Java", "JSF", "MySQL"]
-            }
-          ]
-        },
-        "offers": [
-          {
-            "id": "job_architect_001",
-            "title": "Solution Architect",
-            "company": "Big Enterprise",
-            "required_skills": ["Java", "Architecture", "Microservices"],
-            "description": "Design and lead enterprise-scale software solutions"
-          }
-        ],
-        "algorithm": "auto"
-      },
-      "expected_algorithm": "enhanced",
-      "expected_reason": "Senior profile with good CV completeness, using experience-weighted algorithm"
-    },
-    "complex_skills_scenario": {
-      "description": "Complex skills scenario - should trigger Semantic algorithm",
-      "request": {
-        "candidate": {
-          "name": "Sophie Chen",
-          "email": "sophie.chen@example.com",
-          "technical_skills": [
-            {
-              "name": "Natural Language Processing",
-              "level": "Expert",
-              "years": 4
-            },
-            {
-              "name": "Computer Vision",
-              "level": "Advanced",
-              "years": 3
-            },
-            {
-              "name": "Deep Learning",
-              "level": "Expert",
-              "years": 5
-            },
-            {
-              "name": "PyTorch",
-              "level": "Expert",
-              "years": 4
-            },
-            {
-              "name": "Transformers",
-              "level": "Advanced",
-              "years": 2
-            }
-          ],
-          "experiences": [
-            {
-              "title": "AI Research Engineer",
-              "company": "Research Lab",
-              "duration_months": 30,
-              "skills": ["NLP", "Computer Vision", "PyTorch", "Research"]
-            }
-          ]
-        },
-        "offers": [
-          {
-            "id": "job_ai_researcher_001",
-            "title": "AI Research Scientist",
-            "company": "AI Lab",
-            "required_skills": ["Natural Language Processing", "Deep Learning", "Research"],
-            "description": "Advance the state-of-the-art in multimodal AI systems"
-          }
-        ],
-        "algorithm": "auto"
-      },
-      "expected_algorithm": "semantic",
-      "expected_reason": "Complex technical skills detected, using NLP-enhanced matching"
-    },
-    "minimal_data_scenario": {
-      "description": "Minimal data scenario - should use default Nexten",
-      "request": {
-        "candidate": {
-          "name": "Alex Smith",
-          "email": "alex.smith@example.com",
-          "technical_skills": [
-            {
-              "name": "Python",
-              "level": "Intermediate"
-            }
-          ]
-        },
-        "offers": [
-          {
-            "id": "job_junior_001",
-            "title": "Junior Developer",
-            "company": "Startup",
-            "required_skills": ["Python"]
-          }
-        ],
-        "algorithm": "auto"
-      },
-      "expected_algorithm": "nexten",
-      "expected_reason": "Default selection for best overall performance"
-    }
-  },
-  "v1_compatibility_requests": {
-    "basic_v1_format": {
-      "description": "V1 format for backward compatibility testing",
-      "request": {
-        "candidate": {
-          "name": "V1 User",
-          "email": "v1@example.com",
-          "technical_skills": ["Python", "JavaScript", "SQL"],
-          "experiences": [
-            {
-              "title": "Full Stack Developer",
-              "company": "WebCorp",
-              "duration": 24
-            }
-          ]
-        },
-        "offers": [
-          {
-            "id": "v1_job_001",
-            "title": "Full Stack Developer",
-            "company": "TechCorp",
-            "required_skills": ["Python", "JavaScript", "React"]
-          },
-          {
-            "id": "v1_job_002",
-            "title": "Backend Developer",
-            "company": "DataCorp",
-            "required_skills": ["Python", "SQL", "API"]
-          }
-        ]
+      {
+        "name": "Django",
+        "level": "Intermediate",
+        "years": 2
       }
-    }
-  },
-  "performance_test_requests": {
-    "stress_test": {
-      "description": "Large dataset for performance testing",
-      "request": {
-        "candidate": {
-          "name": "Performance Test User",
-          "email": "perf@example.com",
-          "technical_skills": [
-            {"name": "Python", "level": "Expert", "years": 5},
-            {"name": "Java", "level": "Advanced", "years": 4},
-            {"name": "JavaScript", "level": "Intermediate", "years": 3},
-            {"name": "C++", "level": "Intermediate", "years": 2},
-            {"name": "Go", "level": "Beginner", "years": 1}
-          ],
-          "experiences": [
-            {
-              "title": "Senior Developer",
-              "company": "Corp1",
-              "duration_months": 24,
-              "skills": ["Python", "Django", "PostgreSQL"]
-            },
-            {
-              "title": "Java Developer",
-              "company": "Corp2",
-              "duration_months": 18,
-              "skills": ["Java", "Spring", "MySQL"]
-            }
-          ]
-        },
-        "offers": [
-          {"id": "perf_job_001", "title": "Python Developer", "company": "Co1", "required_skills": ["Python"]},
-          {"id": "perf_job_002", "title": "Java Developer", "company": "Co2", "required_skills": ["Java"]},
-          {"id": "perf_job_003", "title": "Full Stack", "company": "Co3", "required_skills": ["Python", "JavaScript"]},
-          {"id": "perf_job_004", "title": "Backend Lead", "company": "Co4", "required_skills": ["Python", "Leadership"]},
-          {"id": "perf_job_005", "title": "Software Architect", "company": "Co5", "required_skills": ["Python", "Architecture"]}
-        ],
-        "algorithm": "auto"
+    ],
+    "experiences": [
+      {
+        "title": "Senior Data Scientist",
+        "company": "TechCorp",
+        "duration_months": 36,
+        "skills": ["Python", "Machine Learning", "TensorFlow"]
+      },
+      {
+        "title": "Backend Developer",
+        "company": "StartupXYZ",
+        "duration_months": 24,
+        "skills": ["Python", "Django", "PostgreSQL"]
       }
+    ],
+    "location": {
+      "city": "Paris",
+      "country": "France",
+      "remote_ok": true
     }
   },
-  "curl_examples": {
-    "complete_data_test": "curl -X POST http://localhost:5070/api/v2/match -H 'Content-Type: application/json' -d @sample_request.json",
-    "v1_compatibility_test": "curl -X POST http://localhost:5070/match -H 'Content-Type: application/json' -d '{\"candidate\":{\"name\":\"Test\",\"technical_skills\":[\"Python\"]},\"offers\":[{\"id\":\"1\",\"title\":\"Dev\",\"required_skills\":[\"Python\"]}]}'",
-    "health_check": "curl http://localhost:5070/health",
-    "stats_check": "curl http://localhost:5070/stats",
-    "algorithm_specific": "curl -X POST http://localhost:5070/api/v2/match -H 'Content-Type: application/json' -d '{\"candidate\":{\"name\":\"Test\",\"technical_skills\":[{\"name\":\"Python\",\"level\":\"Expert\"}]},\"offers\":[{\"id\":\"1\",\"title\":\"Dev\",\"required_skills\":[\"Python\"]}],\"algorithm\":\"nexten\"}'"
-  }
+  "candidate_questionnaire": {
+    "work_style": "collaborative",
+    "culture_preferences": "innovation_focused",
+    "remote_preference": "hybrid",
+    "career_goals": "technical_leadership",
+    "team_size_preference": "medium"
+  },
+  "offers": [
+    {
+      "id": "job_ml_engineer_001",
+      "title": "Senior ML Engineer",
+      "company": "AI Innovation Lab",
+      "required_skills": ["Python", "Machine Learning", "TensorFlow", "MLOps"],
+      "location": {
+        "city": "Paris",
+        "country": "France",
+        "remote_ok": true
+      },
+      "remote_policy": "hybrid",
+      "description": "Lead ML projects in a fast-paced innovation environment"
+    },
+    {
+      "id": "job_backend_dev_002", 
+      "title": "Senior Backend Developer",
+      "company": "Enterprise Solutions Corp",
+      "required_skills": ["Python", "Django", "PostgreSQL", "AWS"],
+      "location": {
+        "city": "Lyon",
+        "country": "France",
+        "remote_ok": false
+      },
+      "description": "Build scalable backend systems for enterprise clients"
+    },
+    {
+      "id": "job_tech_lead_003",
+      "title": "Technical Lead - Data Platform",
+      "company": "DataTech Startup",
+      "required_skills": ["Python", "Machine Learning", "Team Leadership", "Architecture"],
+      "location": {
+        "city": "Remote",
+        "country": "France",
+        "remote_ok": true
+      },
+      "remote_policy": "full_remote",
+      "description": "Lead technical team building next-gen data platform"
+    }
+  ],
+  "company_questionnaires": [
+    {
+      "culture": "innovation_focused",
+      "team_size": "small",
+      "work_methodology": "agile",
+      "remote_policy": "hybrid"
+    },
+    {
+      "culture": "process_oriented",
+      "team_size": "large", 
+      "work_methodology": "traditional",
+      "remote_policy": "office_only"
+    },
+    {
+      "culture": "innovation_focused",
+      "team_size": "medium",
+      "work_methodology": "agile",
+      "remote_policy": "full_remote"
+    }
+  ],
+  "algorithm": "auto"
 }
