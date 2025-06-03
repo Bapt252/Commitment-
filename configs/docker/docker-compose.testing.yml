@@ -1,0 +1,191 @@
+version: '3.8'
+
+services:
+  # V1 Services (Rollback ready) - using existing images
+  supersmartmatch-v1:
+    image: supersmartmatch/v1:stable
+    build: 
+      context: ./supersmartmatch-v1
+      dockerfile: Dockerfile
+    ports: ["5062:5062"]
+    environment:
+      - REDIS_URL=redis://redis-master:6379
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5062/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - backend
+      - data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # V2 Service (Migration target) - using built image
+  supersmartmatch-v2:
+    image: supersmartmatch/v2:2.0.0  # ✅ This image exists!
+    ports: ["5070:5070"]
+    environment:
+      - REDIS_URL=redis://redis-master:6379
+      - FEATURE_FLAG_ENABLED=true
+      - FALLBACK_TO_V1=true
+      - MONITORING_ENABLED=true
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5070/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - backend
+      - data
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: '0.75'
+
+  # Nexten ML service - using existing if available
+  nexten:
+    image: nexten/matcher:stable
+    build:
+      context: ./nexten
+      dockerfile: Dockerfile
+    ports: ["5052:5052"]
+    environment:
+      - REDIS_URL=redis://redis-master:6379
+      - ML_MODEL_PATH=/app/models
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5052/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - backend
+      - data
+    volumes:
+      - nexten-models:/app/models
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Load Balancer
+  nginx:
+    image: nginx:alpine
+    ports: 
+      - "80:80"
+      - "443:443"
+      - "9113:9113"  # metrics
+    volumes:
+      - ./configs/nginx/production.conf:/etc/nginx/nginx.conf:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - supersmartmatch-v1
+      - supersmartmatch-v2
+      - nexten
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Redis Cluster
+  redis-master:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru --save 900 1 --save 300 10
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - data
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes:
+      - ./configs/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    restart: unless-stopped
+    networks:
+      - monitoring
+      - backend
+      - data
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-secure_admin_password_change_me}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - monitoring
+      - frontend
+    depends_on:
+      - prometheus
+
+# Networks for isolation
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+  data:
+    driver: bridge
+  monitoring:
+    driver: bridge
+
+# Persistent volumes
+volumes:
+  redis-data:
+    driver: local
+  nexten-models:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  nginx-logs:
+    driver: local
