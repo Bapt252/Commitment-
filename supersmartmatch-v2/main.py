@@ -449,14 +449,6 @@ class SuperSmartMatchV2:
     async def _execute_matching_with_fallback(self, request: MatchRequest, algorithm: AlgorithmType) -> List[MatchResult]:
         """Execute matching with intelligent fallback hierarchy"""
         
-        # Fallback hierarchy: Nexten → Enhanced → Smart → Basic
-        fallback_sequence = [
-            (AlgorithmType.NEXTEN, self._call_nexten),
-            (AlgorithmType.ENHANCED, self._call_v1),
-            (AlgorithmType.SMART, self._call_v1),
-            (AlgorithmType.SEMANTIC, self._call_v1)
-        ]
-        
         # Start with selected algorithm
         if algorithm == AlgorithmType.NEXTEN:
             try:
