@@ -1,72 +1,61 @@
-# SuperSmartMatch V2 - Dépendances Python
-# Service unifié intelligent pour matching avancé
+# SuperSmartMatch V2 - Dépendances Python Corrigées
+# Versions compatibles pour Apple Silicon et autres architectures
 
 # Framework API
-fastapi>=0.104.1
-uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
-pydantic-settings>=2.1.0
+fastapi>=0.100.0,<1.0.0
+uvicorn[standard]>=0.23.0,<1.0.0
+pydantic>=2.4.0,<3.0.0
+pydantic-settings>=2.0.0,<3.0.0
 
 # HTTP Client
-httpx>=0.25.2
-requests>=2.31.0
+httpx>=0.24.0,<1.0.0
+requests>=2.28.0,<3.0.0
 
 # Cache et Storage  
-redis>=5.0.1
-redis-py-cluster>=2.1.3
+redis>=4.5.0,<6.0.0
 
 # Base de données
-sqlalchemy>=2.0.23
-psycopg2-binary>=2.9.9
-alembic>=1.13.1
+sqlalchemy>=1.4.0,<3.0.0
+psycopg2-binary>=2.9.0,<3.0.0
 
-# ML et Data Science
-numpy>=1.24.3
-pandas>=2.1.4
-scikit-learn>=1.3.2
-scipy>=1.11.4
+# ML et Data Science (versions compatibles)
+numpy>=1.21.0,<2.0.0
+pandas>=1.5.0,<3.0.0
+scikit-learn>=1.1.0,<2.0.0
+scipy>=1.9.0,<2.0.0
 
-# NLP et Embeddings
-sentence-transformers>=2.2.2
-transformers>=4.36.2
-torch>=2.1.1
+# NLP et Embeddings (versions légères)
+sentence-transformers>=2.2.0,<3.0.0
 
 # Monitoring et Métriques
-prometheus-client>=0.19.0
-structlog>=23.2.0
+prometheus-client>=0.15.0,<1.0.0
 
-# Géolocalisation (pour Smart Match)
-geopy>=2.4.1
-googlemaps>=4.10.0
+# Géolocalisation
+geopy>=2.3.0,<3.0.0
 
 # Utilitaires
-python-multipart>=0.0.6
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-jinja2>=3.1.2
-aiofiles>=23.2.1
+python-multipart>=0.0.5,<1.0.0
+python-dotenv>=0.19.0,<2.0.0
+pyyaml>=6.0,<7.0
 
-# Configuration
-python-dotenv>=1.0.0
-pyyaml>=6.0.1
-toml>=0.10.2
-
-# Tests (optionnel)
-pytest>=7.4.3
-pytest-asyncio>=0.21.1
-pytest-cov>=4.1.0
-httpx>=0.25.2
+# Configuration et logging
+structlog>=22.0.0,<24.0.0
 
 # Circuit Breakers et Resilience
-tenacity>=8.2.3
-circuitbreaker>=1.4.0
+tenacity>=8.0.0,<9.0.0
 
 # JSON et sérialisation
-orjson>=3.9.10
+orjson>=3.8.0,<4.0.0
 
-# Websockets
-websockets>=12.0
+# Cryptographie (version flexible)
+cryptography>=40.0.0,<46.0.0
 
-# Concurrent processing
-asyncio>=3.4.3
-concurrent-futures>=3.1.1
+# Outils async
+aiofiles>=22.0.0,<24.0.0
+
+# Tests (optionnel)
+pytest>=7.0.0,<8.0.0
+pytest-asyncio>=0.20.0,<1.0.0
+
+# Jinja pour templates
+jinja2>=3.0.0,<4.0.0
