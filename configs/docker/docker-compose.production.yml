@@ -1,0 +1,289 @@
+version: '3.8'
+
+services:
+  # V1 Services (Rollback ready)
+  supersmartmatch-v1:
+    image: supersmartmatch/v1:stable
+    ports: ["5062:5062"]
+    environment:
+      - REDIS_URL=redis://redis-master:6379
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5062/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - backend
+      - data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  nexten:
+    image: nexten/matcher:stable  
+    ports: ["5052:5052"]
+    environment:
+      - REDIS_URL=redis://redis-master:6379
+      - ML_MODEL_PATH=/app/models
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5052/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - backend
+      - data
+    volumes:
+      - nexten-models:/app/models
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # V2 Service (Migration target)
+  supersmartmatch-v2:
+    image: supersmartmatch/v2:2.0.0
+    ports: ["5070:5070"]
+    environment:
+      - REDIS_URL=redis://redis-master:6379
+      - FEATURE_FLAG_ENABLED=true
+      - FALLBACK_TO_V1=true
+      - MONITORING_ENABLED=true
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5070/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - backend
+      - data
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: '0.75'
+
+  # Load Balancer avec feature flags
+  nginx:
+    image: nginx:alpine
+    ports: 
+      - "80:80"
+      - "443:443"
+      - "9113:9113"  # metrics
+    volumes:
+      - ./nginx/production.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/rollback.conf:/etc/nginx/rollback.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - supersmartmatch-v1
+      - nexten
+      - supersmartmatch-v2
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Data sync service for migration
+  data-sync:
+    image: supersmartmatch/data-sync:1.0
+    environment:
+      - SOURCE_V1=redis://redis-master:6379/0
+      - SOURCE_NEXTEN=redis://redis-master:6379/1
+      - TARGET_V2=redis://redis-master:6379/2
+      - SYNC_MODE=bidirectional
+      - TRANSFORM_FORMAT=offers_to_jobs
+      - INTEGRITY_CHECK=enabled
+      - LOG_LEVEL=INFO
+    networks:
+      - data
+    restart: unless-stopped
+    depends_on:
+      - redis-master
+
+  # Redis Cluster
+  redis-master:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru --save 900 1 --save 300 10
+    volumes:
+      - redis-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    restart: unless-stopped
+    networks:
+      - data
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  redis-replica:
+    image: redis:7-alpine
+    command: redis-server --slaveof redis-master 6379 --appendonly yes --maxmemory 1gb
+    depends_on:
+      - redis-master
+    restart: unless-stopped
+    networks:
+      - data
+    volumes:
+      - redis-replica-data:/data
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    restart: unless-stopped
+    networks:
+      - monitoring
+      - backend
+      - data
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-secure_admin_password_change_me}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+      - GF_SERVER_ROOT_URL=https://grafana.supersmartmatch.com
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/provisioning:/etc/grafana/provisioning:ro
+    restart: unless-stopped
+    networks:
+      - monitoring
+      - frontend
+    depends_on:
+      - prometheus
+
+  # ELK Stack for Logging
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=supersmartmatch-logs
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports: ["9200:9200"]
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    volumes:
+      - ./monitoring/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    ports: ["5044:5044"]
+    environment:
+      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    ports: ["5601:5601"]
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    restart: unless-stopped
+    networks:
+      - monitoring
+      - frontend
+    depends_on:
+      - elasticsearch
+
+  # Alertmanager for notifications
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports: ["9093:9093"]
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    restart: unless-stopped
+    networks:
+      - monitoring
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+
+# Networks for isolation
+networks:
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.1.0/24
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.2.0/24
+  data:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.3.0/24
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.4.0/24
+
+# Persistent volumes
+volumes:
+  redis-data:
+    driver: local
+  redis-replica-data:
+    driver: local
+  nexten-models:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  elasticsearch-data:
+    driver: local
+  nginx-logs:
+    driver: local

@@ -1,0 +1,365 @@
+# Feature Flags Configuration for SuperSmartMatch V2 Migration
+# Controls progressive rollout and A/B testing
+
+version: "1.0"
+environment: "production"
+last_updated: "2025-06-03T15:00:00Z"
+
+# Global Migration Settings
+global:
+  migration_enabled: true
+  rollback_enabled: true
+  monitoring_enhanced: true
+  logging_level: "INFO"
+  
+# Main V2 Migration Feature Flag
+v2_migration:
+  enabled: true
+  description: "SuperSmartMatch V2 progressive migration"
+  rollout_type: "percentage"
+  rollout_percentage: 0  # Start at 0%, increase progressively
+  
+  # Progressive rollout schedule
+  rollout_schedule:
+    - phase: "initial"
+      percentage: 10
+      target_date: "2025-06-10"
+      duration_hours: 24
+      validation_required: true
+      success_criteria:
+        error_rate_threshold: 1.0
+        response_time_p95_ms: 100
+        accuracy_improvement_min: 10.0
+      
+    - phase: "early"
+      percentage: 25
+      target_date: "2025-06-11"
+      duration_hours: 48
+      validation_required: true
+      success_criteria:
+        error_rate_threshold: 0.8
+        response_time_p95_ms: 80
+        accuracy_improvement_min: 11.0
+      
+    - phase: "mid"
+      percentage: 50
+      target_date: "2025-06-13"
+      duration_hours: 72
+      validation_required: true
+      success_criteria:
+        error_rate_threshold: 0.5
+        response_time_p95_ms: 60
+        accuracy_improvement_min: 12.0
+      
+    - phase: "late"
+      percentage: 75
+      target_date: "2025-06-17"
+      duration_hours: 96
+      validation_required: true
+      success_criteria:
+        error_rate_threshold: 0.3
+        response_time_p95_ms: 50
+        accuracy_improvement_min: 12.5
+      
+    - phase: "complete"
+      percentage: 100
+      target_date: "2025-06-24"
+      duration_hours: 168  # 1 week
+      validation_required: false
+      success_criteria:
+        error_rate_threshold: 0.2
+        response_time_p95_ms: 50
+        accuracy_improvement_min: 13.0
+
+# User Segment Overrides
+user_segments:
+  beta_users:
+    enabled: true
+    rollout_percentage: 100
+    override_global: true
+    description: "Beta users get V2 immediately"
+    target_users:
+      - user_type: "beta_tester"
+      - email_domain: "company-internal.com"
+      - user_flag: "early_adopter"
+    
+  enterprise_clients:
+    enabled: true
+    rollout_percentage: 0
+    override_global: true
+    description: "Enterprise clients migrate last for stability"
+    target_users:
+      - user_type: "enterprise"
+      - subscription_tier: "premium"
+      - sla_requirement: "99.9"
+    migration_schedule:
+      start_phase: "late"  # Only start at 75% global rollout
+      custom_validation: true
+      notification_required: true
+      support_team_ready: true
+    
+  api_partners:
+    enabled: true
+    rollout_percentage: 50
+    override_global: false
+    description: "API partners get gradual migration"
+    target_users:
+      - user_type: "api_consumer"
+      - integration_type: "partner"
+    special_handling:
+      format_transformation: true
+      backward_compatibility: true
+      notification_advance_days: 14
+    
+  internal_services:
+    enabled: true
+    rollout_percentage: 100
+    override_global: true
+    description: "Internal services get V2 for testing"
+    target_users:
+      - user_type: "internal"
+      - service_account: true
+    
+  freemium_users:
+    enabled: true
+    rollout_percentage: 0  # Follow global rollout
+    override_global: false
+    description: "Free users follow standard rollout"
+    target_users:
+      - subscription_tier: "free"
+      - user_type: "individual"
+
+# Geographic Rollout
+geographic_rollout:
+  enabled: true
+  strategy: "region_by_region"
+  
+  regions:
+    us_west:
+      enabled: true
+      rollout_percentage: 0
+      priority: 1
+      description: "US West - Primary region"
+      
+    us_east:
+      enabled: true
+      rollout_percentage: 0
+      priority: 2
+      description: "US East - Secondary region"
+      
+    europe:
+      enabled: true
+      rollout_percentage: 0
+      priority: 3
+      description: "Europe - GDPR compliance validated"
+      
+    asia_pacific:
+      enabled: false
+      rollout_percentage: 0
+      priority: 4
+      description: "Asia Pacific - Hold for now"
+
+# Fallback System Configuration
+fallback_system:
+  enabled: true
+  description: "Automatic fallback to V1 on issues"
+  
+  automatic_triggers:
+    error_rate_threshold: 5.0  # %
+    response_time_p95_threshold: 150  # ms
+    accuracy_degradation_threshold: 85.0  # %
+    availability_threshold: 99.0  # %
+    
+  trigger_conditions:
+    - condition: "error_rate > error_rate_threshold"
+      duration_minutes: 2
+      action: "rollback_immediate"
+      
+    - condition: "response_time_p95 > response_time_p95_threshold"
+      duration_minutes: 5
+      action: "rollback_gradual"
+      
+    - condition: "accuracy_score < accuracy_degradation_threshold"
+      duration_minutes: 10
+      action: "rollback_immediate"
+      
+    - condition: "availability < availability_threshold"
+      duration_minutes: 1
+      action: "rollback_emergency"
+  
+  manual_triggers:
+    emergency_stop: true
+    stakeholder_override: true
+    performance_concerns: true
+    business_impact: true
+
+# A/B Testing Configuration
+ab_testing:
+  enabled: true
+  description: "A/B testing for performance comparison"
+  
+  experiments:
+    matching_accuracy:
+      enabled: true
+      control_group: "v1"
+      treatment_group: "v2"
+      traffic_split: 50  # 50/50 split for comparison
+      sample_size_minimum: 10000
+      statistical_significance: 0.95
+      duration_days: 7
+      
+      metrics:
+        primary: "matching_accuracy_score"
+        secondary: ["response_time", "user_satisfaction", "conversion_rate"]
+        
+    response_time:
+      enabled: true
+      control_group: "v1"
+      treatment_group: "v2"
+      traffic_split: 50
+      sample_size_minimum: 50000
+      statistical_significance: 0.95
+      duration_days: 3
+      
+      metrics:
+        primary: "response_time_p95"
+        secondary: ["throughput", "error_rate"]
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  enhanced_mode: true
+  
+  metrics_collection:
+    frequency_seconds: 30
+    retention_days: 90
+    granularity: "high"
+    
+  business_metrics:
+    - name: "matching_accuracy"
+      target: ">= 13% improvement over V1"
+      alert_threshold: "< 10% improvement"
+      
+    - name: "user_satisfaction"
+      target: ">= 95%"
+      alert_threshold: "< 90%"
+      
+    - name: "revenue_per_match"
+      target: ">= V1 baseline"
+      alert_threshold: "< 95% of V1"
+      
+  technical_metrics:
+    - name: "response_time_p95"
+      target: "<= 50ms"
+      alert_threshold: "> 100ms"
+      
+    - name: "error_rate"
+      target: "<= 0.5%"
+      alert_threshold: "> 1%"
+      
+    - name: "availability"
+      target: ">= 99.9%"
+      alert_threshold: "< 99.5%"
+
+# Alert Configuration
+alerting:
+  enabled: true
+  channels:
+    slack:
+      enabled: true
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channels: ["#migration-v2-alerts", "#engineering-alerts"]
+      
+    email:
+      enabled: true
+      recipients: ["devops@company.com", "engineering-leads@company.com"]
+      
+    pagerduty:
+      enabled: true
+      service_key: "${PAGERDUTY_SERVICE_KEY}"
+      
+  severity_levels:
+    critical:
+      conditions: ["rollback_triggered", "availability < 99%", "error_rate > 5%"]
+      escalation_minutes: 0
+      
+    high:
+      conditions: ["performance_degradation", "accuracy < target"]
+      escalation_minutes: 15
+      
+    warning:
+      conditions: ["elevated_metrics", "approaching_thresholds"]
+      escalation_minutes: 60
+
+# Deployment Gates
+deployment_gates:
+  enabled: true
+  
+  pre_deployment:
+    - check: "v1_baseline_healthy"
+      required: true
+      
+    - check: "monitoring_operational"
+      required: true
+      
+    - check: "rollback_tested"
+      required: true
+      
+    - check: "team_ready"
+      required: true
+      
+  post_deployment:
+    - check: "health_checks_passing"
+      required: true
+      timeout_minutes: 5
+      
+    - check: "metrics_within_bounds"
+      required: true
+      timeout_minutes: 10
+      
+    - check: "no_critical_alerts"
+      required: true
+      timeout_minutes: 15
+
+# Feature Flag Management
+flag_management:
+  update_mechanism: "api"
+  validation_required: true
+  approval_process: true
+  
+  api_endpoints:
+    get_flags: "/api/feature-flags"
+    update_flag: "/api/feature-flags/{flag_name}"
+    bulk_update: "/api/feature-flags/bulk"
+    
+  permissions:
+    read: ["developers", "ops", "qa"]
+    update: ["tech_leads", "devops_leads"]
+    emergency_override: ["cto", "vp_engineering"]
+    
+  audit_logging:
+    enabled: true
+    retention_days: 365
+    include_user: true
+    include_reason: true
+
+# Environment Overrides
+environment_overrides:
+  staging:
+    v2_migration:
+      rollout_percentage: 100
+    user_segments:
+      enterprise_clients:
+        rollout_percentage: 100
+        
+  development:
+    v2_migration:
+      rollout_percentage: 100
+    fallback_system:
+      enabled: false
+      
+  testing:
+    v2_migration:
+      rollout_percentage: 100
+    ab_testing:
+      enabled: false
