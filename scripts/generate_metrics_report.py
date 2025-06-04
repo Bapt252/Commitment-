@@ -45,21 +45,12 @@ class MetricsReporter:
         request_rate_query = f'sum(rate(http_requests_total[{hours}h]))'
         request_rate = self.prom.custom_query(request_rate_query)
         
-        # Taux d'erreur
-        error_rate_query = f'''
-        (
-            sum(rate(http_requests_total{{status_code!~"2.."}}[{hours}h])) /
-            sum(rate(http_requests_total[{hours}h]))
-        ) * 100
-        '''
+        # Taux d'erreur - correction des accolades
+        error_rate_query = f'(sum(rate(http_requests_total{{status_code!~"2.."}}[{hours}h])) / sum(rate(http_requests_total[{hours}h]))) * 100'
         error_rate = self.prom.custom_query(error_rate_query)
         
-        # Temps de réponse
-        response_time_query = f'''
-        histogram_quantile(0.95, 
-            sum(rate(http_request_duration_seconds_bucket[{hours}h])) by (le)
-        )
-        '''
+        # Temps de réponse - correction des accolades
+        response_time_query = f'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[{hours}h])) by (le))'
         response_time = self.prom.custom_query(response_time_query)
         
         # Requêtes par service
@@ -78,21 +69,12 @@ class MetricsReporter:
     
     def get_ml_metrics(self, hours: int = 24) -> Dict[str, Any]:
         """Obtenir les métriques ML."""
-        # Taux de succès ML
-        ml_success_rate_query = f'''
-        (
-            sum(rate(ml_requests_total{{status="success"}}[{hours}h])) /
-            sum(rate(ml_requests_total[{hours}h]))
-        ) * 100
-        '''
+        # Taux de succès ML - correction des accolades
+        ml_success_rate_query = f'(sum(rate(ml_requests_total{{status="success"}}[{hours}h])) / sum(rate(ml_requests_total[{hours}h]))) * 100'
         ml_success_rate = self.prom.custom_query(ml_success_rate_query)
         
-        # Temps de traitement ML
-        ml_processing_time_query = f'''
-        histogram_quantile(0.95, 
-            sum(rate(ml_processing_duration_seconds_bucket[{hours}h])) by (le)
-        )
-        '''
+        # Temps de traitement ML - correction des accolades
+        ml_processing_time_query = f'histogram_quantile(0.95, sum(rate(ml_processing_duration_seconds_bucket[{hours}h])) by (le))'
         ml_processing_time = self.prom.custom_query(ml_processing_time_query)
         
         # Appels OpenAI
@@ -124,14 +106,12 @@ class MetricsReporter:
         cpu_usage_query = f'avg(rate(container_cpu_usage_seconds_total[{hours}h])) * 100'
         cpu_usage = self.prom.custom_query(cpu_usage_query)
         
-        # Usage mémoire
-        memory_usage_query = f'''
-        avg(container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100
-        '''
+        # Usage mémoire - correction des accolades
+        memory_usage_query = 'avg(container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100'
         memory_usage = self.prom.custom_query(memory_usage_query)
         
-        # Connexions base de données
-        db_connections_query = 'pg_stat_database_numbackends{{datname="nexten"}}'
+        # Connexions base de données - correction des accolades
+        db_connections_query = 'pg_stat_database_numbackends{datname="nexten"}'
         db_connections = self.prom.custom_query(db_connections_query)
         
         # État Redis
@@ -147,13 +127,8 @@ class MetricsReporter:
     
     def get_performance_trends(self, days: int = 7) -> Dict[str, Any]:
         """Obtenir les tendances de performance."""
-        # Tendance du taux d'erreur
-        error_trend_query = f'''
-        (
-            sum(rate(http_requests_total{{status_code!~"2.."}}[1h])) /
-            sum(rate(http_requests_total[1h]))
-        ) * 100
-        '''
+        # Tendance du taux d'erreur - correction des accolades
+        error_trend_query = '(sum(rate(http_requests_total{status_code!~"2.."}[1h])) / sum(rate(http_requests_total[1h]))) * 100'
         
         # Obtenir les données des derniers jours
         end_time = datetime.now()
@@ -166,12 +141,8 @@ class MetricsReporter:
             step='1h'
         )
         
-        # Tendance du temps de réponse
-        response_time_trend_query = f'''
-        histogram_quantile(0.95, 
-            sum(rate(http_request_duration_seconds_bucket[1h])) by (le)
-        )
-        '''
+        # Tendance du temps de réponse - correction des accolades
+        response_time_trend_query = 'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1h])) by (le))'
         
         response_time_trend = self.prom.custom_query_range(
             query=response_time_trend_query,
