@@ -1,0 +1,484 @@
+# =============================================================================
+# SuperSmartMatch V2 - Production Docker Compose
+# =============================================================================
+# Configuration Blue-Green deployment avec monitoring avancé
+# Author: SuperSmartMatch Team
+# Version: 1.0 - Production Ready
+# =============================================================================
+
+version: '3.8'
+
+# Variables d'environnement communes production
+x-common-env: &common-env
+  REDIS_HOST: redis-production
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  MINIO_ENDPOINT: storage-production:9000
+  MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+  MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+  ENVIRONMENT: production
+  LOG_LEVEL: INFO
+  LOG_FORMAT: json
+
+x-security-headers: &security-headers
+  SECURITY_HEADERS: "true"
+  HSTS_MAX_AGE: "31536000"
+  CSP_POLICY: "default-src 'self'"
+  X_FRAME_OPTIONS: "DENY"
+
+# Ressources par défaut production
+x-default-resources: &default-resources
+  deploy:
+    resources:
+      limits:
+        cpus: '2'
+        memory: 2G
+      reservations:
+        cpus: '1'
+        memory: 1G
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+      max_attempts: 3
+      window: 120s
+
+services:
+  # =============================================================================
+  # INFRASTRUCTURE DE BASE
+  # =============================================================================
+  
+  # Load Balancer NGINX avec SSL/TLS
+  nginx-lb:
+    image: nginx:alpine
+    container_name: supersmartmatch-nginx-production
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/production.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/templates:/etc/nginx/templates:ro
+    environment:
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
+      - UPSTREAM_BLUE=supersmartmatch-v1:5062
+      - UPSTREAM_GREEN=supersmartmatch-v2:5070
+      - TRAFFIC_SPLIT=100  # 100% V1, 0% V2 initially
+    networks:
+      - production-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    <<: *default-resources
+
+  # PostgreSQL HA avec réplication
+  postgres-production:
+    image: postgres:15-alpine
+    container_name: supersmartmatch-postgres-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: supersmartmatch_production
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres-prod-data:/var/lib/postgresql/data
+      - ./scripts/postgres-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - production-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d supersmartmatch_production"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+
+  # Redis Cluster pour cache haute disponibilité
+  redis-production:
+    image: redis:7-alpine
+    container_name: supersmartmatch-redis-prod
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 2gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-prod-data:/data
+    networks:
+      - production-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 3G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # MinIO Storage sécurisé
+  storage-production:
+    image: minio/minio:latest
+    container_name: supersmartmatch-storage-prod
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+      MINIO_SERVER_URL: https://storage.company.com
+      MINIO_BROWSER_REDIRECT_URL: https://storage-console.company.com
+    volumes:
+      - minio-prod-data:/data
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - production-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    <<: *default-resources
+
+  # =============================================================================
+  # SUPERSMARTMATCH V1 (BLUE - Current Production)
+  # =============================================================================
+  
+  supersmartmatch-v1:
+    build:
+      context: ./super-smart-match
+      dockerfile: Dockerfile.production
+    container_name: supersmartmatch-v1-production
+    ports:
+      - "5062:5062"
+    depends_on:
+      postgres-production:
+        condition: service_healthy
+      redis-production:
+        condition: service_healthy
+      storage-production:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      <<: *security-headers
+      VERSION: "v1.0"
+      PORT: 5062
+      SECRET_KEY: ${SECRET_KEY_V1}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-production:5432/supersmartmatch_production
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis-production:6379/0
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+      # Configuration sécurité production
+      RATE_LIMIT_PER_MINUTE: 500
+      RATE_LIMIT_PER_HOUR: 5000
+      ENABLE_SECURITY_HEADERS: "true"
+      ENABLE_REQUEST_LOGGING: "true"
+      ENABLE_METRICS: "true"
+    env_file:
+      - .env.production
+    networks:
+      - production-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5062/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+    volumes:
+      - ./logs/v1:/app/logs
+
+  # =============================================================================
+  # SUPERSMARTMATCH V2 (GREEN - New Version)
+  # =============================================================================
+  
+  supersmartmatch-v2:
+    build:
+      context: ./supersmartmatch-v2
+      dockerfile: Dockerfile.production
+    container_name: supersmartmatch-v2-production
+    ports:
+      - "5070:5070"
+    depends_on:
+      postgres-production:
+        condition: service_healthy
+      redis-production:
+        condition: service_healthy
+      storage-production:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      <<: *security-headers
+      VERSION: "v2.0.0"
+      PORT: 5070
+      SECRET_KEY: ${SECRET_KEY_V2}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-production:5432/supersmartmatch_production
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis-production:6379/0
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+      # Configuration SuperSmartMatch V2 optimisée
+      ENABLE_PROMPT5_COMPLIANCE: "true"
+      PRECISION_TARGET: 95.0
+      LATENCY_TARGET_MS: 50
+      ROI_TARGET_EUROS: 964154
+      # Nouvelles fonctionnalités V2
+      ENABLE_ADVANCED_ALGORITHMS: "true"
+      ENABLE_ML_OPTIMIZATION: "true"
+      ENABLE_CONTEXT_AWARENESS: "true"
+      ENABLE_REAL_TIME_LEARNING: "true"
+      # Sécurité renforcée
+      RATE_LIMIT_PER_MINUTE: 1000
+      RATE_LIMIT_PER_HOUR: 10000
+      ENABLE_SECURITY_HEADERS: "true"
+      ENABLE_REQUEST_LOGGING: "true"
+      ENABLE_METRICS: "true"
+      ENABLE_TRACING: "true"
+    env_file:
+      - .env.production
+    networks:
+      - production-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5070/api/v2/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '6'
+          memory: 6G
+        reservations:
+          cpus: '3'
+          memory: 3G
+    volumes:
+      - ./logs/v2:/app/logs
+
+  # =============================================================================
+  # SERVICES SUPPORTING
+  # =============================================================================
+  
+  # Service de monitoring Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: supersmartmatch-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - production-network
+    restart: unless-stopped
+    <<: *default-resources
+
+  # Dashboard Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: supersmartmatch-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - production-network
+    restart: unless-stopped
+    <<: *default-resources
+
+  # Alertmanager pour notifications
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: supersmartmatch-alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/config.yml:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks:
+      - production-network
+    restart: unless-stopped
+    <<: *default-resources
+
+  # Service de backup automatisé
+  backup-service:
+    build:
+      context: ./scripts/backup
+      dockerfile: Dockerfile
+    container_name: supersmartmatch-backup
+    environment:
+      BACKUP_SCHEDULE: "0 2 * * *"  # Daily at 2 AM
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-production:5432/supersmartmatch_production
+      S3_BUCKET: ${BACKUP_S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - backup-data:/backups
+    networks:
+      - production-network
+    restart: unless-stopped
+    depends_on:
+      - postgres-production
+      - redis-production
+
+  # Service de monitoring temps réel
+  real-time-monitor:
+    build:
+      context: ./scripts
+      dockerfile: Dockerfile.monitor
+    container_name: supersmartmatch-monitor
+    command: python production_monitor.py
+    environment:
+      MONITORING_MODE: production
+      DASHBOARD_PORT: 8501
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL}
+      PAGERDUTY_API_KEY: ${PAGERDUTY_API_KEY}
+    ports:
+      - "8501:8501"
+    networks:
+      - production-network
+    restart: unless-stopped
+    depends_on:
+      - supersmartmatch-v1
+      - supersmartmatch-v2
+    <<: *default-resources
+
+  # =============================================================================
+  # SECURITY & COMPLIANCE
+  # =============================================================================
+  
+  # Scanner de sécurité continu
+  security-scanner:
+    image: aquasec/trivy:latest
+    container_name: supersmartmatch-security
+    command: ["server", "--listen", "0.0.0.0:4954"]
+    ports:
+      - "4954:4954"
+    networks:
+      - production-network
+    restart: unless-stopped
+    volumes:
+      - trivy-cache:/root/.cache
+
+  # Service de log aggregation
+  log-aggregator:
+    image: fluent/fluent-bit:latest
+    container_name: supersmartmatch-logs
+    volumes:
+      - ./monitoring/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ./logs:/var/log/supersmartmatch:ro
+    networks:
+      - production-network
+    restart: unless-stopped
+
+# =============================================================================
+# VOLUMES PERSISTANTS PRODUCTION
+# =============================================================================
+volumes:
+  postgres-prod-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/postgres-production
+  
+  redis-prod-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/redis-production
+  
+  minio-prod-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/minio-production
+  
+  prometheus-data:
+  grafana-data:
+  alertmanager-data:
+  backup-data:
+  trivy-cache:
+
+# =============================================================================
+# RÉSEAUX SÉCURISÉS
+# =============================================================================
+networks:
+  production-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: supersmartmatch-prod
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# =============================================================================
+# CONFIGURATION DE DÉPLOIEMENT
+# =============================================================================
+x-deploy-config:
+  blue_green:
+    strategy: "progressive"
+    phases:
+      - name: "canary"
+        traffic: 5
+        duration: "2h"
+        validation_required: true
+      - name: "extended"
+        traffic: 25
+        duration: "6h"
+        validation_required: true
+      - name: "full"
+        traffic: 100
+        duration: "4h"
+        monitoring_required: "48h"
+    
+    rollback_triggers:
+      precision_threshold: 94.0
+      latency_threshold_ms: 200
+      error_rate_threshold: 2.0
+      roi_threshold_euros: 175000
+    
+    monitoring:
+      prometheus_scrape_interval: "15s"
+      alerting_evaluation_interval: "1m"
+      retention_period: "30d"
