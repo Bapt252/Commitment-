@@ -3,61 +3,56 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  - "rules/*.yml"
+  - "/etc/prometheus/rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
 
 scrape_configs:
-  # SuperSmartMatch V1
-  - job_name: 'cv-parser'
+  # SuperSmartMatch V1 Service
+  - job_name: 'supersmartmatch-v1'
     static_configs:
-      - targets: ['supersmartmatch-v1:5062']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-
-  # SuperSmartMatch V2
-  - job_name: 'matching-api'
-    static_configs:
-      - targets: ['supersmartmatch-v2:5070']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-
-  # Nexten Matcher
-  - job_name: 'job-parser'
-    static_configs:
-      - targets: ['nexten-matcher:5052']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-
-  # Backend services
-  - job_name: 'backend'
-    static_configs:
-      - targets: ['supersmartmatch-v2:5070']
-    metrics_path: '/api/metrics'
-    scrape_interval: 10s
-
-  # Frontend (if metrics exposed)
-  - job_name: 'frontend'
-    static_configs:
-      - targets: ['nginx:80']
+      - targets: ['supersmartmatch-v1:80']
     metrics_path: '/metrics'
     scrape_interval: 30s
 
-  # Redis metrics
+  # SuperSmartMatch V2 Service (Orchestrator)
+  - job_name: 'supersmartmatch-v2'
+    static_configs:
+      - targets: ['supersmartmatch-v2:80']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Nexten Advanced Matcher
+  - job_name: 'nexten-matcher'
+    static_configs:
+      - targets: ['nexten-matcher:80']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Redis Monitoring
   - job_name: 'redis'
     static_configs:
       - targets: ['redis:6379']
-    metrics_path: '/metrics'
-    scrape_interval: 15s
+    scrape_interval: 30s
 
-  # Prometheus self-monitoring
+  # Node Exporter (System Metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Prometheus Self-Monitoring
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
-    scrape_interval: 10s
+    scrape_interval: 30s
 
-  # cAdvisor for container metrics (if available)
-  - job_name: 'cadvisor'
+  # Grafana Monitoring
+  - job_name: 'grafana'
     static_configs:
-      - targets: ['cadvisor:8080']
+      - targets: ['grafana:3000']
+    scrape_interval: 60s
     metrics_path: '/metrics'
-    scrape_interval: 15s
-    scrape_timeout: 10s
