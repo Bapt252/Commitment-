@@ -21,6 +21,9 @@ plotly>=5.10.0
 # Template engine for reports
 jinja2>=3.1.0
 
+# Monitoring and metrics
+prometheus-api-client>=0.5.0
+
 # Database connectivity
 psycopg2-binary>=2.9.0  # PostgreSQL
 SQLAlchemy>=1.4.0
