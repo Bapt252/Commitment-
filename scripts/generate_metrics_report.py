@@ -23,7 +23,7 @@ class MetricsReporter:
         health_data = {}
         
         for service in services:
-            query = f'up{{job="{service}"}}}'
+            query = f'up{{job="{service}"}}'
             result = self.prom.custom_query(query)
             
             if result:
