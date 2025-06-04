@@ -1,0 +1,139 @@
+services:
+  # Simulation SuperSmartMatch V1 avec API mockée
+  supersmartmatch-v1:
+    image: nginx:alpine
+    container_name: ssm_v1
+    ports:
+      - "5062:80"
+    volumes:
+      - ./mock/v1-api.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./mock/v1-responses:/usr/share/nginx/html:ro
+    environment:
+      - SERVICE_VERSION=v1
+    networks:
+      - ssm_network
+    restart: unless-stopped
+
+  # Simulation SuperSmartMatch V2 avec API mockée  
+  supersmartmatch-v2:
+    image: nginx:alpine
+    container_name: ssm_v2
+    ports:
+      - "5070:80"
+    volumes:
+      - ./mock/v2-api.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./mock/v2-responses:/usr/share/nginx/html:ro
+    environment:
+      - SERVICE_VERSION=v2
+    networks:
+      - ssm_network
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  # Simulation Nexten Matcher
+  nexten-matcher:
+    image: nginx:alpine
+    container_name: nexten_matcher
+    ports:
+      - "5052:80"
+    volumes:
+      - ./mock/nexten-api.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./mock/nexten-responses:/usr/share/nginx/html:ro
+    networks:
+      - ssm_network
+    restart: unless-stopped
+
+  # Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: ssm_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - ssm_network
+    restart: unless-stopped
+    depends_on:
+      - supersmartmatch-v1
+      - supersmartmatch-v2
+
+  # Redis Cache (service réel)
+  redis:
+    image: redis:7-alpine
+    container_name: ssm_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - ssm_network
+    restart: unless-stopped
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ssm_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - ssm_network
+    restart: unless-stopped
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ssm_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - ssm_network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # Node Exporter pour métriques système
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: ssm_node_exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - ssm_network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  grafana_data:
+
+networks:
+  ssm_network:
+    driver: bridge
