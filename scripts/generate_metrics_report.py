@@ -131,7 +131,7 @@ class MetricsReporter:
         memory_usage = self.prom.custom_query(memory_usage_query)
         
         # Connexions base de données
-        db_connections_query = 'pg_stat_database_numbackends{datname="nexten"}'
+        db_connections_query = 'pg_stat_database_numbackends{{datname="nexten"}}'
         db_connections = self.prom.custom_query(db_connections_query)
         
         # État Redis
