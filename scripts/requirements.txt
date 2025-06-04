@@ -1,126 +1,45 @@
-# Core dependencies for SuperSmartMatch V2 validation suite
-# Install with: pip install -r requirements.txt
-
-# Async HTTP and web requests
+# SuperSmartMatch V2 - Validation & Benchmarking Dependencies
+# Core async and HTTP
 aiohttp>=3.8.0
-requests>=2.28.0
+asyncio-throttle>=1.0.0
 
-# Data analysis and manipulation
+# Data processing and analysis
 pandas>=1.5.0
-numpy>=1.23.0
+numpy>=1.21.0
 scipy>=1.9.0
 
-# Machine learning for anomaly detection
+# Machine Learning
 scikit-learn>=1.1.0
 
-# Data visualization
-matplotlib>=3.6.0
-seaborn>=0.12.0
+# Visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0
 plotly>=5.10.0
+kaleido>=0.2.1
 
-# Template engine for reports
+# Templates and reports
 jinja2>=3.1.0
-
-# Monitoring and metrics
-prometheus-api-client>=0.5.0
-
-# Database connectivity
-psycopg2-binary>=2.9.0  # PostgreSQL
-SQLAlchemy>=1.4.0
-
-# Excel file handling
 openpyxl>=3.0.0
-xlsxwriter>=3.0.0
 
-# YAML configuration support
-PyYAML>=6.0
+# Database
+sqlite3
 
-# Email functionality
-secure-smtplib>=0.1.1
+# Monitoring and alerts
+requests>=2.28.0
 
-# Statistical testing
-statsmodels>=0.13.0
+# Testing and benchmarking
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
 
-# Time series analysis
+# Utilities
+python-dateutil>=2.8.0
 pytz>=2022.1
 
-# Development and testing
-pytest>=7.0.0
-pytest-asyncio>=0.19.0
-black>=22.0.0
-flake8>=5.0.0
+# Optional: for production deployments
+# gunicorn>=20.1.0
+# uvloop>=0.17.0
 
-# Optional: Advanced visualization
-dash>=2.6.0
-dash-bootstrap-components>=1.2.0
-
-# Optional: Advanced ML features
-xgboost>=1.6.0
-lightgbm>=3.3.0
-
-# Optional: Time series forecasting
-prophet>=1.1.0
-
-# Optional: More robust HTTP client
-httpx>=0.23.0
-
-# Optional: Progress bars
-tqdm>=4.64.0
-
-# Optional: Better logging
-loguru>=0.6.0
-
-# Optional: Configuration management
-python-dotenv>=0.20.0
-
-# Optional: Advanced statistical testing
-pingouin>=0.5.0
-
-# Optional: JSON schema validation
-jsonschema>=4.0.0
-
-# Optional: Slack SDK for notifications
-slack-sdk>=3.18.0
-
-# Optional: PagerDuty integration
-pypd>=1.1.0
-
-# Optional: Advanced plotting
-bokeh>=2.4.0
-
-# Optional: PDF generation
-reportlab>=3.6.0
-weasyprint>=57.0
-
-# Optional: Advanced data formats
-pyarrow>=9.0.0
-fastparquet>=0.8.0
-
-# Optional: Memory profiling
-memory-profiler>=0.60.0
-psutil>=5.9.0
-
-# Optional: Code formatting and linting
-isort>=5.10.0
-mypy>=0.971
-
-# Optional: Documentation generation
-sphinx>=5.0.0
-sphinx-rtd-theme>=1.0.0
-
-# Optional: Jupyter notebook support (for analysis)
-jupyter>=1.0.0
-ipywidgets>=8.0.0
-
-# Optional: Advanced datetime handling
-pendulum>=2.1.0
-
-# Optional: Command line interface improvements
-click>=8.1.0
-rich>=12.5.0
-
-# Optional: Cryptography for secure configurations
-cryptography>=37.0.0
-
-# Optional: Advanced caching
-redis>=4.3.0
+# Development tools (optional)
+# black>=22.0.0
+# flake8>=5.0.0
+# mypy>=0.991
