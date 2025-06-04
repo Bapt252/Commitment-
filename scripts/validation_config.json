@@ -1,0 +1,84 @@
+{
+  "mode": "full",
+  "duration_days": 7,
+  "precision_target": 95.0,
+  "precision_baseline": 82.0,
+  "precision_improvement_required": 13.0,
+  "p95_latency_max_ms": 100,
+  "satisfaction_target": 96.0,
+  "availability_min": 99.7,
+  "services": {
+    "v1_url": "http://localhost:5062",
+    "v2_url": "http://localhost:5070",
+    "load_balancer_url": "http://localhost",
+    "monitoring_url": "http://localhost:8080",
+    "prometheus_url": "http://localhost:9090",
+    "grafana_url": "http://localhost:3000"
+  },
+  "tools_config": {
+    "benchmark_sample_size": 50000,
+    "load_test_multipliers": [1, 2, 5, 10],
+    "monitoring_interval_seconds": 30,
+    "report_generation_enabled": true
+  },
+  "notifications": {
+    "slack_webhook": null,
+    "email_config": {
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587,
+      "username": "monitoring@yourcompany.com",
+      "password": "your_app_password",
+      "from": "monitoring@yourcompany.com",
+      "to": ["team@yourcompany.com", "ops@yourcompany.com"]
+    },
+    "stakeholders": [
+      "cto@yourcompany.com",
+      "product@yourcompany.com",
+      "engineering@yourcompany.com"
+    ]
+  },
+  "thresholds": {
+    "precision": {
+      "target": 95.0,
+      "warning": 90.0,
+      "critical": 85.0
+    },
+    "latency_p95": {
+      "target": 100.0,
+      "warning": 120.0,
+      "critical": 150.0
+    },
+    "satisfaction": {
+      "target": 96.0,
+      "warning": 94.0,
+      "critical": 90.0
+    },
+    "availability": {
+      "target": 99.7,
+      "warning": 99.5,
+      "critical": 99.0
+    },
+    "cache_hit_rate": {
+      "target": 85.0,
+      "warning": 80.0,
+      "critical": 75.0
+    },
+    "error_rate": {
+      "target": 0.1,
+      "warning": 0.5,
+      "critical": 1.0
+    }
+  },
+  "ml_config": {
+    "anomaly_detection_window": 100,
+    "contamination_rate": 0.1,
+    "confidence_threshold": 0.5
+  },
+  "reporting": {
+    "auto_generate_reports": true,
+    "report_schedule": "daily",
+    "formats": ["html", "json"],
+    "recipients": ["stakeholders"],
+    "include_charts": true
+  }
+}
