@@ -1,0 +1,93 @@
+{
+  "mode": "full",
+  "duration_days": 7,
+  "precision_target": 95.0,
+  "precision_baseline": 82.0,
+  "precision_improvement_required": 13.0,
+  "p95_latency_max_ms": 100,
+  "satisfaction_target": 96.0,
+  "availability_min": 99.7,
+  
+  "services": {
+    "v1_url": "http://localhost:5062",
+    "v2_url": "http://localhost:5070",
+    "load_balancer_url": "http://localhost",
+    "monitoring_url": "http://localhost:8080",
+    "prometheus_url": "http://localhost:9090",
+    "grafana_url": "http://localhost:3000"
+  },
+  
+  "tools_config": {
+    "benchmark_sample_size": 50000,
+    "load_test_multipliers": [1, 2, 5, 10],
+    "monitoring_interval_seconds": 30,
+    "report_generation_enabled": true,
+    "anomaly_detection_enabled": true,
+    "statistical_confidence_level": 0.95
+  },
+  
+  "notifications": {
+    "slack_webhook": null,
+    "email_config": {
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587,
+      "username": "monitoring@company.com",
+      "password": "your_app_password_here",
+      "from": "supersmartmatch-monitoring@company.com",
+      "to": ["team@company.com", "cto@company.com"]
+    },
+    "pagerduty_key": null,
+    "stakeholders": [
+      "cto@company.com",
+      "product-manager@company.com",
+      "engineering-lead@company.com",
+      "data-science@company.com"
+    ],
+    "dashboard_url": "http://localhost:3000"
+  },
+  
+  "alert_thresholds": {
+    "precision_target_percent": 95.0,
+    "precision_warning_percent": 90.0,
+    "satisfaction_target_percent": 96.0,
+    "satisfaction_warning_percent": 94.0,
+    "p95_latency_critical_ms": 120,
+    "p95_latency_warning_ms": 100,
+    "availability_critical_percent": 99.0,
+    "availability_warning_percent": 99.5,
+    "error_rate_critical_percent": 1.0,
+    "error_rate_warning_percent": 0.5,
+    "revenue_drop_critical_percent": 10.0,
+    "revenue_drop_warning_percent": 5.0,
+    "critical_duration_minutes": 60,
+    "warning_duration_minutes": 1440
+  },
+  
+  "business_config": {
+    "base_revenue_per_match_eur": 100,
+    "total_matches_per_month": 10000,
+    "precision_impact_factor": 0.3,
+    "latency_impact_factor": 0.05,
+    "currency": "EUR",
+    "fiscal_year_start": "2025-01-01"
+  },
+  
+  "technical_config": {
+    "database_url": "postgresql://user:pass@localhost:5432/supersmartmatch",
+    "redis_url": "redis://localhost:6379/0",
+    "log_level": "INFO",
+    "max_concurrent_requests": 100,
+    "request_timeout_seconds": 60,
+    "retry_attempts": 3,
+    "cache_ttl_seconds": 3600
+  },
+  
+  "validation_criteria": {
+    "minimum_sample_size": 1000,
+    "statistical_power": 0.8,
+    "effect_size_threshold": 0.1,
+    "confidence_interval": 0.95,
+    "max_acceptable_p_value": 0.05,
+    "business_significance_threshold_eur": 50000
+  }
+}
