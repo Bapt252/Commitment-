@@ -1,0 +1,168 @@
+# SuperSmartMatch V2 - Basic Infrastructure Only
+# PostgreSQL + Redis + MinIO + Monitoring
+# Use this first to start the infrastructure, then build application images
+
+version: '3.8'
+
+services:
+  # =================== POSTGRESQL - DATABASE ===================
+  postgres:
+    image: postgres:15-alpine
+    container_name: supersmartmatch-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=supersmartmatch
+      - POSTGRES_USER=supersmartmatch_user
+      - POSTGRES_PASSWORD=supersmartmatch_2024
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./config/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - supersmartmatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supersmartmatch_user -d supersmartmatch"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.supersmartmatch.service=postgres"
+
+  # =================== REDIS - CACHING & SESSION STORE ===================
+  redis:
+    image: redis:7-alpine
+    container_name: supersmartmatch-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    networks:
+      - supersmartmatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - redis-data:/data
+    labels:
+      - "com.supersmartmatch.service=redis"
+
+  # =================== MINIO - OBJECT STORAGE ===================
+  minio:
+    image: minio/minio:latest
+    container_name: supersmartmatch-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=supersmartmatch
+      - MINIO_ROOT_PASSWORD=supersmartmatch2024
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - supersmartmatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    labels:
+      - "com.supersmartmatch.service=minio"
+
+  # =================== MONITORING - PROMETHEUS & GRAFANA ===================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: supersmartmatch-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - supersmartmatch-network
+    restart: unless-stopped
+    labels:
+      - "com.supersmartmatch.service=prometheus"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: supersmartmatch-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=supersmartmatch2024
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - supersmartmatch-network
+    restart: unless-stopped
+    labels:
+      - "com.supersmartmatch.service=grafana"
+
+  # =================== NGINX - REVERSE PROXY ===================
+  nginx:
+    image: nginx:alpine
+    container_name: supersmartmatch-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx/nginx.basic.conf:/etc/nginx/nginx.conf:ro
+      - ./config/ssl:/etc/nginx/ssl:ro
+      - ./logs:/var/log/nginx
+    networks:
+      - supersmartmatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.supersmartmatch.service=nginx"
+
+# =================== NETWORKS ===================
+networks:
+  supersmartmatch-network:
+    driver: bridge
+    name: supersmartmatch-network
+
+# =================== VOLUMES ===================
+volumes:
+  postgres-data:
+    driver: local
+    name: supersmartmatch-postgres-data
+  
+  redis-data:
+    driver: local
+    name: supersmartmatch-redis-data
+  
+  minio-data:
+    driver: local
+    name: supersmartmatch-minio-data
+  
+  prometheus-data:
+    driver: local
+    name: prometheus-data
+  
+  grafana-data:
+    driver: local
+    name: grafana-data
