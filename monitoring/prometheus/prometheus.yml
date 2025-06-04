@@ -1,29 +1,63 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules/*.yml"
 
 scrape_configs:
-  - job_name: 'supersmartmatch-v1'
+  # SuperSmartMatch V1
+  - job_name: 'cv-parser'
     static_configs:
       - targets: ['supersmartmatch-v1:5062']
-    labels:
-      service: 'supersmartmatch'
-      version: 'v1'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
 
-  - job_name: 'supersmartmatch-v2'
+  # SuperSmartMatch V2
+  - job_name: 'matching-api'
     static_configs:
       - targets: ['supersmartmatch-v2:5070']
-    labels:
-      service: 'supersmartmatch'
-      version: 'v2'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
 
-  - job_name: 'nexten-matcher'
+  # Nexten Matcher
+  - job_name: 'job-parser'
     static_configs:
       - targets: ['nexten-matcher:5052']
-    labels:
-      service: 'nexten-matcher'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
 
-  - job_name: 'nginx'
+  # Backend services
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['supersmartmatch-v2:5070']
+    metrics_path: '/api/metrics'
+    scrape_interval: 10s
+
+  # Frontend (if metrics exposed)
+  - job_name: 'frontend'
     static_configs:
       - targets: ['nginx:80']
-    labels:
-      service: 'nginx'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 10s
+
+  # cAdvisor for container metrics (if available)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
