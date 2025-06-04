@@ -1,0 +1,52 @@
+{
+  "services": {
+    "v1_url": "http://localhost:5062",
+    "v2_url": "http://localhost:5070",
+    "load_balancer_url": "http://localhost",
+    "prometheus_url": "http://localhost:9090",
+    "grafana_url": "http://localhost:3000"
+  },
+  "thresholds": {
+    "precision_target": 95.0,
+    "precision_warning": 90.0,
+    "latency_p95_target": 100.0,
+    "latency_p95_warning": 120.0,
+    "satisfaction_target": 96.0,
+    "satisfaction_warning": 94.0,
+    "availability_target": 99.7,
+    "cache_hit_rate_target": 85.0,
+    "error_rate_target": 0.1
+  },
+  "monitoring": {
+    "check_interval_seconds": 30,
+    "anomaly_detection_window": 100,
+    "alert_cooldown_minutes": 15
+  },
+  "alerts": {
+    "slack_webhook_url": null,
+    "email_smtp_server": "smtp.gmail.com",
+    "email_smtp_port": 587,
+    "email_username": null,
+    "email_password": null,
+    "email_recipients": [
+      "team@yourcompany.com",
+      "ops@yourcompany.com"
+    ],
+    "pagerduty_integration_key": null
+  },
+  "database": {
+    "path": "monitoring.db",
+    "retention_days": 30
+  },
+  "dashboards": {
+    "auto_generate": true,
+    "update_interval_minutes": 5,
+    "export_format": "html"
+  },
+  "ml_anomaly_detection": {
+    "enabled": true,
+    "contamination": 0.1,
+    "confidence_threshold": 0.5,
+    "min_data_points": 50
+  }
+}
