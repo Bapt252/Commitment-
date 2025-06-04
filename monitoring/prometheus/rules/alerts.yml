@@ -1,247 +1,82 @@
-# Règles d'alerte Prometheus
 groups:
-  - name: api_alerts
+  - name: supersmartmatch_alerts
     rules:
-      # Taux d'erreur élevé
-      - alert: HighErrorRate
-        expr: |
-          (
-            rate(http_requests_total{status_code!~"2.."}[5m]) /
-            rate(http_requests_total[5m])
-          ) * 100 > 5
-        for: 2m
-        labels:
-          severity: warning
-          team: backend
-        annotations:
-          summary: "Taux d'erreur élevé détecté"
-          description: "Le taux d'erreur est au-dessus de 5% pour {{ $labels.service }} ({{ $value }}%)"
-          runbook_url: "https://wiki.company.com/runbooks/high-error-rate"
-
-      # Taux d'erreur critique
-      - alert: CriticalErrorRate
-        expr: |
-          (
-            rate(http_requests_total{status_code!~"2.."}[5m]) /
-            rate(http_requests_total[5m])
-          ) * 100 > 20
-        for: 1m
-        labels:
-          severity: critical
-          team: backend
-        annotations:
-          summary: "Taux d'erreur critique détecté"
-          description: "Le taux d'erreur est au-dessus de 20% pour {{ $labels.service }} ({{ $value }}%)"
-
-      # Temps de réponse élevé
-      - alert: HighResponseTime
-        expr: |
-          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
-        for: 5m
-        labels:
-          severity: warning
-          team: backend
-        annotations:
-          summary: "Temps de réponse élevé détecté"
-          description: "Le 95e percentile du temps de réponse est au-dessus de 1s pour {{ $labels.service }} ({{ $value }}s)"
-
-      # Temps de réponse critique
-      - alert: CriticalResponseTime
-        expr: |
-          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 5
-        for: 2m
-        labels:
-          severity: critical
-          team: backend
-        annotations:
-          summary: "Temps de réponse critique détecté"
-          description: "Le 95e percentile du temps de réponse est au-dessus de 5s pour {{ $labels.service }} ({{ $value }}s)"
-
-      # Service indisponible
+      # Service availability alerts
       - alert: ServiceDown
         expr: up == 0
         for: 1m
         labels:
           severity: critical
-          team: infra
         annotations:
-          summary: "Service indisponible"
-          description: "{{ $labels.instance }} de {{ $labels.job }} est indisponible depuis plus d'1 minute"
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute."
 
-      # Trop de requêtes actives
-      - alert: TooManyActiveRequests
-        expr: http_requests_active > 100
-        for: 3m
-        labels:
-          severity: warning
-          team: backend
-        annotations:
-          summary: "Trop de requêtes actives"
-          description: "{{ $labels.service }} a {{ $value }} requêtes actives"
-
-  - name: ml_alerts
-    rules:
-      # Erreurs ML fréquentes
-      - alert: HighMLErrorRate
-        expr: |
-          (
-            rate(ml_requests_total{status="error"}[5m]) /
-            rate(ml_requests_total[5m])
-          ) * 100 > 10
-        for: 3m
-        labels:
-          severity: warning
-          team: ml
-        annotations:
-          summary: "Taux d'erreur ML élevé"
-          description: "Le taux d'erreur ML est au-dessus de 10% pour {{ $labels.service }}/{{ $labels.operation }} ({{ $value }}%)"
-
-      # Traitement ML lent
-      - alert: SlowMLProcessing
-        expr: |
-          histogram_quantile(0.95, rate(ml_processing_duration_seconds_bucket[5m])) > 30
+      # High error rate alerts
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status_code!~"2.."}[5m]) / rate(http_requests_total[5m]) > 0.05
         for: 5m
         labels:
           severity: warning
-          team: ml
         annotations:
-          summary: "Traitement ML lent"
-          description: "Le 95e percentile du temps de traitement ML est au-dessus de 30s pour {{ $labels.service }}/{{ $labels.operation }} ({{ $value }}s)"
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} for service {{ $labels.job }}."
 
-      # Échec des appels OpenAI
-      - alert: OpenAIErrorRate
-        expr: |
-          (
-            rate(openai_api_calls_total{status="error"}[5m]) /
-            rate(openai_api_calls_total[5m])
-          ) * 100 > 5
-        for: 2m
-        labels:
-          severity: warning
-          team: ml
-        annotations:
-          summary: "Taux d'erreur OpenAI élevé"
-          description: "Le taux d'erreur OpenAI est au-dessus de 5% pour {{ $labels.service }}/{{ $labels.model }} ({{ $value }}%)"
-
-      # Consommation excessive de tokens OpenAI
-      - alert: HighTokenUsage
-        expr: |
-          rate(openai_tokens_total[1h]) > 10000
+      # High response time alerts
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.1
         for: 5m
         labels:
           severity: warning
-          team: ml
         annotations:
-          summary: "Consommation élevée de tokens OpenAI"
-          description: "Consommation de tokens élevée pour {{ $labels.service }}/{{ $labels.model }}: {{ $value }} tokens/heure"
+          summary: "High response time on {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s for service {{ $labels.job }}."
 
-  - name: system_alerts
-    rules:
-      # Usage CPU élevé
-      - alert: HighCPUUsage
-        expr: |
-          100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
-        for: 5m
-        labels:
-          severity: warning
-          team: infra
-        annotations:
-          summary: "Usage CPU élevé"
-          description: "Usage CPU au-dessus de 80% pour {{ $labels.instance }} ({{ $value }}%)"
-
-      # Usage CPU critique
-      - alert: CriticalCPUUsage
-        expr: |
-          100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+      # Critical response time alerts
+      - alert: CriticalResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.2
         for: 2m
         labels:
           severity: critical
-          team: infra
         annotations:
-          summary: "Usage CPU critique"
-          description: "Usage CPU au-dessus de 95% pour {{ $labels.instance }} ({{ $value }}%)"
+          summary: "Critical response time on {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s for service {{ $labels.job }}."
 
-      # Usage mémoire élevé
+      # Low precision matching alerts
+      - alert: LowMatchingPrecision
+        expr: matching_precision_percent < 90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low matching precision"
+          description: "Matching precision is {{ $value }}% which is below 90% threshold."
+
+      # Critical precision alerts
+      - alert: CriticalMatchingPrecision
+        expr: matching_precision_percent < 85
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical matching precision"
+          description: "Matching precision is {{ $value }}% which is critically low."
+
+      # High memory usage alerts
       - alert: HighMemoryUsage
-        expr: |
-          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 85
         for: 5m
         labels:
           severity: warning
-          team: infra
         annotations:
-          summary: "Usage mémoire élevé"
-          description: "Usage mémoire au-dessus de 85% pour {{ $labels.instance }} ({{ $value }}%)"
+          summary: "High memory usage on {{ $labels.container_label_com_docker_compose_service }}"
+          description: "Memory usage is {{ $value }}% on container {{ $labels.container_label_com_docker_compose_service }}."
 
-      # Usage mémoire critique
-      - alert: CriticalMemoryUsage
-        expr: |
-          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
-        for: 2m
-        labels:
-          severity: critical
-          team: infra
-        annotations:
-          summary: "Usage mémoire critique"
-          description: "Usage mémoire au-dessus de 95% pour {{ $labels.instance }} ({{ $value }}%)"
-
-      # Espace disque faible
-      - alert: LowDiskSpace
-        expr: |
-          (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100 > 85
+      # High CPU usage alerts
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
         for: 5m
         labels:
           severity: warning
-          team: infra
         annotations:
-          summary: "Espace disque faible"
-          description: "Espace disque au-dessus de 85% pour {{ $labels.instance }} ({{ $value }}%)"
-
-  - name: database_alerts
-    rules:
-      # Trop de connexions PostgreSQL
-      - alert: TooManyDBConnections
-        expr: |
-          pg_stat_activity_count{state="active"} > 80
-        for: 3m
-        labels:
-          severity: warning
-          team: backend
-        annotations:
-          summary: "Trop de connexions base de données"
-          description: "Nombre de connexions actives: {{ $value }}"
-
-      # Requêtes lentes PostgreSQL
-      - alert: SlowDatabaseQueries
-        expr: |
-          histogram_quantile(0.95, rate(db_query_duration_seconds_bucket[5m])) > 5
-        for: 5m
-        labels:
-          severity: warning
-          team: backend
-        annotations:
-          summary: "Requêtes base de données lentes"
-          description: "95e percentile des requêtes DB: {{ $value }}s pour {{ $labels.service }}"
-
-      # Redis indisponible
-      - alert: RedisDown
-        expr: redis_up == 0
-        for: 1m
-        labels:
-          severity: critical
-          team: infra
-        annotations:
-          summary: "Redis indisponible"
-          description: "Redis est indisponible pour {{ $labels.instance }}"
-
-      # Usage mémoire Redis élevé
-      - alert: HighRedisMemoryUsage
-        expr: |
-          (redis_memory_used_bytes / redis_config_maxmemory) * 100 > 90
-        for: 5m
-        labels:
-          severity: warning
-          team: infra
-        annotations:
-          summary: "Usage mémoire Redis élevé"
-          description: "Usage mémoire Redis: {{ $value }}% pour {{ $labels.instance }}"
+          summary: "High CPU usage on {{ $labels.container_label_com_docker_compose_service }}"
+          description: "CPU usage is {{ $value }}% on container {{ $labels.container_label_com_docker_compose_service }}."
