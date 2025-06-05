@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # SuperSmartMatch V2 - Service principal
+  supersmartmatch-v2:
+    build:
+      context: ..
+      dockerfile: Dockerfile.supersmartmatch-v2
+    ports:
+      - "5070:5070"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/supersmartmatch
+      - LOG_LEVEL=DEBUG
+      - ENABLE_DETAILED_METRICS=true
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ../logs:/app/logs
+
+  # Legacy V1 pour compatibilité
+  supersmartmatch-v1:
+    image: supersmartmatch:v1
+    ports:
+      - "5062:5062"
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - redis
+
+  # Nexten Algorithm Service
+  nexten-matcher:
+    image: nexten-matcher:latest
+    ports:
+      - "5052:5052"
+    environment:
+      - REDIS_URL=redis://redis:6379/2
+    depends_on:
+      - redis
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=supersmartmatch
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Load Balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ../nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - supersmartmatch-v2
+      - supersmartmatch-v1
+
+volumes:
+  redis_data:
+  postgres_data:
