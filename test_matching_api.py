@@ -18,14 +18,10 @@ import sys
 import argparse
 from datetime import datetime
 
-# Configuration de l'API
-API_BASE_URL = "http://localhost:8000"
-API_ENDPOINT = f"{API_BASE_URL}/api/matching/complete"
-
-def test_api_health():
+def test_api_health(api_base_url):
     """Vérifie que l'API est en ligne"""
     try:
-        response = requests.get(f"{API_BASE_URL}/health", timeout=5)
+        response = requests.get(f"{api_base_url}/health", timeout=5)
         if response.status_code == 200:
             print("✅ API SuperSmartMatch V2 en ligne")
             return True
@@ -37,7 +33,7 @@ def test_api_health():
         print("💡 Démarrez l'API avec: python3 data-adapter/api_matching.py")
         return False
 
-def test_matching_basic():
+def test_matching_basic(api_endpoint):
     """Test basique avec données pré-définies"""
     print("\n🎯 Test Matching Basique")
     print("=" * 40)
@@ -80,9 +76,9 @@ def test_matching_basic():
         }
     }
     
-    return send_matching_request(test_data)
+    return send_matching_request(test_data, api_endpoint)
 
-def test_matching_multiple_jobs():
+def test_matching_multiple_jobs(api_endpoint):
     """Test avec plusieurs offres d'emploi"""
     print("\n🎯 Test Matching Multiple Jobs")
     print("=" * 40)
@@ -131,9 +127,9 @@ def test_matching_multiple_jobs():
         ]
     }
     
-    return send_matching_request(test_data)
+    return send_matching_request(test_data, api_endpoint)
 
-def test_matching_bad_match():
+def test_matching_bad_match(api_endpoint):
     """Test avec un mauvais match pour voir la différence"""
     print("\n🎯 Test Matching Mauvais Match")
     print("=" * 40)
@@ -162,18 +158,18 @@ def test_matching_bad_match():
         ]
     }
     
-    return send_matching_request(test_data)
+    return send_matching_request(test_data, api_endpoint)
 
-def send_matching_request(data):
+def send_matching_request(data, api_endpoint):
     """Envoie une requête de matching et affiche les résultats"""
     try:
-        print(f"📤 Envoi requête vers: {API_ENDPOINT}")
+        print(f"📤 Envoi requête vers: {api_endpoint}")
         print(f"📊 Candidat: {data['cv_data'].get('nom', 'N/A')} {data['cv_data'].get('prenom', '')}")
         print(f"🎯 Compétences: {', '.join(data['cv_data']['competences'])}")
         print(f"🏢 {len(data['jobs_data'])} offre(s) à analyser")
         
         response = requests.post(
-            API_ENDPOINT,
+            api_endpoint,
             json=data,
             headers={'Content-Type': 'application/json'},
             timeout=30
@@ -251,7 +247,7 @@ def display_results(result):
         print(f"❌ Échec: {result.get('message', 'Erreur inconnue')}")
         print(f"🔍 Code: {result.get('error_code', 'UNKNOWN')}")
 
-def interactive_test():
+def interactive_test(api_endpoint):
     """Test interactif avec saisie utilisateur"""
     print("\n🎯 Test Interactif SuperSmartMatch V2")
     print("=" * 40)
@@ -292,25 +288,27 @@ def interactive_test():
         }]
     }
     
-    return send_matching_request(test_data)
+    return send_matching_request(test_data, api_endpoint)
 
 def main():
+    # Configuration par défaut
+    DEFAULT_API_URL = "http://localhost:8000"
+    
     parser = argparse.ArgumentParser(description='Test SuperSmartMatch V2 API')
     parser.add_argument('--custom', action='store_true', help='Test interactif personnalisé')
-    parser.add_argument('--url', default=API_BASE_URL, help='URL de base de l\'API')
+    parser.add_argument('--url', default=DEFAULT_API_URL, help='URL de base de l\'API')
     args = parser.parse_args()
     
-    global API_BASE_URL, API_ENDPOINT
-    API_BASE_URL = args.url
-    API_ENDPOINT = f"{API_BASE_URL}/api/matching/complete"
+    api_base_url = args.url
+    api_endpoint = f"{api_base_url}/api/matching/complete"
     
     print("🚀 SuperSmartMatch V2 - Test Suite")
     print("=" * 50)
-    print(f"🌐 API URL: {API_BASE_URL}")
+    print(f"🌐 API URL: {api_base_url}")
     print(f"📅 Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     # Vérification santé API
-    if not test_api_health():
+    if not test_api_health(api_base_url):
         sys.exit(1)
     
     success_count = 0
@@ -319,14 +317,14 @@ def main():
     if args.custom:
         # Test interactif
         total_tests = 1
-        if interactive_test():
+        if interactive_test(api_endpoint):
             success_count += 1
     else:
         # Suite de tests automatiques
         tests = [
-            test_matching_basic,
-            test_matching_multiple_jobs,
-            test_matching_bad_match
+            lambda: test_matching_basic(api_endpoint),
+            lambda: test_matching_multiple_jobs(api_endpoint),
+            lambda: test_matching_bad_match(api_endpoint)
         ]
         
         total_tests = len(tests)
