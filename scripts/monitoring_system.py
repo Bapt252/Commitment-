@@ -28,7 +28,7 @@ import time
 import logging
 import os
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
@@ -38,8 +38,8 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 from dataclasses import dataclass, asdict
 import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import requests
 import argparse
 from pathlib import Path
@@ -357,7 +357,7 @@ class AlertManager:
     async def _send_email_alert(self, alert: Alert):
         """Envoie alerte email"""
         try:
-            msg = MimeMultipart()
+            msg = MIMEMultipart()
             msg['From'] = self.config.email_username
             msg['To'] = ', '.join(self.config.email_recipients)
             msg['Subject'] = f"SuperSmartMatch V2 Alert - {alert.level}: {alert.metric}"
@@ -378,7 +378,7 @@ Please investigate immediately.
 -- SuperSmartMatch V2 Monitoring System
             """
             
-            msg.attach(MimeText(body, 'plain'))
+            msg.attach(MIMEText(body, 'plain'))
             
             # Envoi asynchrone simulé (dans un thread)
             def send_email():
