@@ -34,6 +34,26 @@ print_info() {
     echo -e "${BLUE}ℹ️  $1${NC}"
 }
 
+# Load environment variables
+load_env_vars() {
+    if [ -f .env.production ]; then
+        print_info "Chargement des variables d'environnement..."
+        set -a  # Automatically export all variables
+        source .env.production
+        set +a
+        print_success "Variables d'environnement chargées"
+        
+        # Verify key variables are loaded
+        if [ -z "$POSTGRES_PASSWORD" ] || [ -z "$REDIS_PASSWORD" ]; then
+            print_error "Variables critiques manquantes dans .env.production"
+            exit 1
+        fi
+    else
+        print_error "Fichier .env.production non trouvé"
+        exit 1
+    fi
+}
+
 # Check if Docker and Docker Compose are installed
 check_prerequisites() {
     print_header "Vérification des prérequis"
@@ -50,23 +70,17 @@ check_prerequisites() {
     fi
     print_success "Docker Compose trouvé"
     
-    # Check if .env.production exists
-    if [ ! -f .env.production ]; then
-        print_error "Fichier .env.production manquant"
-        print_info "Copie du template vers .env.production..."
-        cp .env.production.template .env.production
-        print_warning "IMPORTANT: Éditez .env.production avec vos propres secrets avant le déploiement!"
-    fi
-    print_success "Fichier .env.production trouvé"
+    # Load environment variables
+    load_env_vars
 }
 
 # Stop all services
 stop_services() {
     print_header "Arrêt des services existants"
     
-    if docker-compose -f docker-compose.production.yml ps -q | grep -q .; then
+    if docker-compose -f docker-compose.production.yml --env-file .env.production ps -q | grep -q .; then
         print_info "Arrêt des conteneurs..."
-        docker-compose -f docker-compose.production.yml down
+        docker-compose -f docker-compose.production.yml --env-file .env.production down
         print_success "Services arrêtés"
     else
         print_info "Aucun service en cours d'exécution"
@@ -80,7 +94,7 @@ cleanup_if_needed() {
     read -p "Voulez-vous nettoyer les volumes existants? (y/N): " cleanup_volumes
     if [[ $cleanup_volumes =~ ^[Yy]$ ]]; then
         print_warning "Suppression des volumes (toutes les données seront perdues)..."
-        docker-compose -f docker-compose.production.yml down -v
+        docker-compose -f docker-compose.production.yml --env-file .env.production down -v
         docker volume prune -f
         print_success "Volumes nettoyés"
     fi
@@ -88,7 +102,7 @@ cleanup_if_needed() {
     read -p "Voulez-vous rebuild tous les images? (y/N): " rebuild_images
     if [[ $rebuild_images =~ ^[Yy]$ ]]; then
         print_info "Suppression des images existantes..."
-        docker-compose -f docker-compose.production.yml down --rmi all 2>/dev/null || true
+        docker-compose -f docker-compose.production.yml --env-file .env.production down --rmi all 2>/dev/null || true
         print_success "Images supprimées"
     fi
 }
@@ -183,7 +197,7 @@ deploy_services() {
     print_header "Déploiement des services"
     
     print_info "Étape 1: Infrastructure (PostgreSQL, Redis, MinIO)"
-    docker-compose -f docker-compose.production.yml up -d postgres redis minio
+    docker-compose -f docker-compose.production.yml --env-file .env.production up -d postgres redis minio
     
     print_info "Attente que l'infrastructure soit prête..."
     sleep 30
@@ -194,7 +208,7 @@ deploy_services() {
     wait_for_service "minio" "9000"
     
     print_info "Étape 2: Services métiers"
-    docker-compose -f docker-compose.production.yml up -d \
+    docker-compose -f docker-compose.production.yml --env-file .env.production up -d \
         cv-parser-service \
         job-parser-service \
         matching-service \
@@ -206,12 +220,12 @@ deploy_services() {
     sleep 20
     
     print_info "Étape 3: API Gateway"
-    docker-compose -f docker-compose.production.yml up -d api-gateway
+    docker-compose -f docker-compose.production.yml --env-file .env.production up -d api-gateway
     
     sleep 10
     
     print_info "Étape 4: Reverse Proxy et Monitoring"
-    docker-compose -f docker-compose.production.yml up -d nginx prometheus grafana
+    docker-compose -f docker-compose.production.yml --env-file .env.production up -d nginx prometheus grafana
     
     print_success "Déploiement terminé"
 }
@@ -226,7 +240,7 @@ wait_for_service() {
     print_info "Attente du service $service sur le port $port..."
     
     while [ $attempt -le $max_attempts ]; do
-        if docker-compose -f docker-compose.production.yml exec -T $service nc -z localhost $port 2>/dev/null; then
+        if nc -z localhost $port 2>/dev/null; then
             print_success "Service $service prêt"
             return 0
         fi
@@ -263,7 +277,7 @@ check_health() {
     # Gateway & Monitoring
     check_service_health "API Gateway" "api-gateway" "5050"
     check_service_health "Nginx" "nginx" "80"
-    check_service_health "Prometheus" "prometheus" "9090"
+    check_service_health "Prometheus" "prometheus" "9091"
     check_service_health "Grafana" "grafana" "3000"
 }
 
@@ -272,7 +286,7 @@ check_service_health() {
     local container=$2
     local port=$3
     
-    if docker-compose -f docker-compose.production.yml ps $container | grep -q "Up"; then
+    if docker-compose -f docker-compose.production.yml --env-file .env.production ps $container | grep -q "Up"; then
         if curl -s --max-time 5 http://localhost:$port/health > /dev/null 2>&1 || \
            curl -s --max-time 5 http://localhost:$port > /dev/null 2>&1; then
             print_success "$name - ✅ OK"
@@ -303,13 +317,13 @@ show_info() {
     echo "  • MinIO Console:    http://localhost:9001"
     echo ""
     echo -e "${YELLOW}📊 Monitoring:${NC}"
-    echo "  • Grafana:          http://localhost:3000"
+    echo "  • Grafana:          http://localhost:3000 (admin/$GRAFANA_ADMIN_PASSWORD)"
     echo "  • Prometheus:       http://localhost:9091"
     echo ""
     echo -e "${GREEN}🚀 Tests rapides:${NC}"
     echo "  curl http://localhost:5050/health"
     echo "  curl http://localhost/api/health"
-    echo "  docker-compose -f docker-compose.production.yml logs -f api-gateway"
+    echo "  docker-compose -f docker-compose.production.yml --env-file .env.production logs -f api-gateway"
 }
 
 # Show logs for troubleshooting
@@ -327,12 +341,12 @@ show_logs() {
     read -p "Votre choix (1-6): " log_choice
     
     case $log_choice in
-        1) docker-compose -f docker-compose.production.yml logs -f ;;
-        2) docker-compose -f docker-compose.production.yml logs -f postgres ;;
-        3) docker-compose -f docker-compose.production.yml logs -f redis ;;
-        4) docker-compose -f docker-compose.production.yml logs -f api-gateway ;;
-        5) docker-compose -f docker-compose.production.yml logs -f cv-parser-service ;;
-        6) docker-compose -f docker-compose.production.yml logs -f matching-service ;;
+        1) docker-compose -f docker-compose.production.yml --env-file .env.production logs -f ;;
+        2) docker-compose -f docker-compose.production.yml --env-file .env.production logs -f postgres ;;
+        3) docker-compose -f docker-compose.production.yml --env-file .env.production logs -f redis ;;
+        4) docker-compose -f docker-compose.production.yml --env-file .env.production logs -f api-gateway ;;
+        5) docker-compose -f docker-compose.production.yml --env-file .env.production logs -f cv-parser-service ;;
+        6) docker-compose -f docker-compose.production.yml --env-file .env.production logs -f matching-service ;;
         *) print_error "Choix invalide" ;;
     esac
 }
@@ -373,15 +387,19 @@ main_menu() {
                 show_info
                 ;;
             3)
+                load_env_vars
                 check_health
                 ;;
             4)
+                load_env_vars
                 show_logs
                 ;;
             5)
+                load_env_vars
                 stop_services
                 ;;
             6)
+                load_env_vars
                 show_info
                 ;;
             7)
