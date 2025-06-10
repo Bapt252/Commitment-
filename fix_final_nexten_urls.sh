@@ -10,23 +10,23 @@ V2_CONTAINER="supersmartmatch-v2-unified"
 echo "🔍 Correction des URLs Nexten dans le conteneur..."
 echo "--------------------------------------------------"
 
-# 1. Corriger l'endpoint de /api/v1/queue-matching vers /match
+# 1. Corriger l'endpoint de /api/v1/queue-matching vers /match (ligne 251)
 echo "1️⃣ Correction de l'endpoint /api/v1/queue-matching → /match"
 docker exec $V2_CONTAINER sed -i 's|/api/v1/queue-matching|/match|g' /app/supersmartmatch-v2-unified-service.py
 
-# 2. Corriger l'URL pour inclure le port :5052
-echo "2️⃣ Correction de l'URL nexten_matcher → nexten_matcher:5052"
-docker exec $V2_CONTAINER sed -i 's|http://nexten_matcher/|http://nexten_matcher:5052/|g' /app/supersmartmatch-v2-unified-service.py
+# 2. Corriger l'URL par défaut de localhost vers nexten_matcher (ligne 38)
+echo "2️⃣ Correction de l'URL http://localhost:5052 → http://nexten_matcher:5052"
+docker exec $V2_CONTAINER sed -i 's|http://localhost:5052|http://nexten_matcher:5052|g' /app/supersmartmatch-v2-unified-service.py
 
 # 3. Vérifications
 echo ""
 echo "🔍 Vérifications des corrections..."
 echo "----------------------------------"
-echo "✅ Endpoint corrigé:"
+echo "✅ Endpoint corrigé (ligne 251):"
 docker exec $V2_CONTAINER grep -n "/match" /app/supersmartmatch-v2-unified-service.py | head -3
 
 echo ""
-echo "✅ URL avec port:"
+echo "✅ URL corrigée (ligne 38):"
 docker exec $V2_CONTAINER grep -n "nexten_matcher:5052" /app/supersmartmatch-v2-unified-service.py | head -3
 
 # 4. Redémarrage du conteneur
@@ -88,7 +88,7 @@ except:
 echo ""
 echo "🎉 RÉSULTAT FINAL:"
 echo "=================="
-if [ "$FINAL_ALGORITHM" = "nexten" ]; then
+if [ "$FINAL_ALGORITHM" = "nexten_matcher" ]; then
     echo "✅ SUCCESS! V2 route maintenant vers Nexten!"
     echo "   🎯 Algorithme: $FINAL_ALGORITHM"
     echo "   🏆 Mission accomplie!"
