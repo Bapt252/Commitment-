@@ -3,6 +3,7 @@
 # ===========================================
 # SuperSmartMatch V2 - Deployment Automation Script
 # Gestion des conflits locaux et déploiement complet
+# Version macOS Compatible
 # ===========================================
 
 set -e
@@ -117,7 +118,7 @@ handle_modified_files() {
     esac
 }
 
-# Generate secure environment configuration
+# Generate secure environment configuration (macOS compatible)
 generate_env_config() {
     log_step "Setting up environment configuration..."
     
@@ -126,31 +127,88 @@ generate_env_config() {
             log_info "Creating .env.production from template..."
             cp .env.production.template .env.production
             
-            # Generate secure passwords
+            # Generate secure passwords (macOS compatible)
             log_info "Generating secure passwords..."
             
-            JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n')
-            REDIS_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-            POSTGRES_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-            MINIO_SECRET_KEY=$(openssl rand -base64 32 | tr -d '\n')
-            GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -d '\n')
-            GRAFANA_SECRET_KEY=$(openssl rand -base64 32 | tr -d '\n')
+            # Generate passwords without special characters that cause sed issues
+            JWT_SECRET=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 64)
+            REDIS_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
+            POSTGRES_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
+            MINIO_SECRET_KEY=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
+            GRAFANA_ADMIN_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 16)
+            GRAFANA_SECRET_KEY=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
             
-            # Update .env.production with secure values
-            sed -i.bak "s/your_super_secure_jwt_secret_change_this_in_production_512bits_minimum/$JWT_SECRET/g" .env.production
-            sed -i.bak "s/your_secure_redis_password_change_this/$REDIS_PASSWORD/g" .env.production
-            sed -i.bak "s/your_secure_postgres_password_change_this/$POSTGRES_PASSWORD/g" .env.production
-            sed -i.bak "s/your_secure_minio_secret_key_change_this/$MINIO_SECRET_KEY/g" .env.production
-            sed -i.bak "s/your_secure_grafana_password_change_this/$GRAFANA_ADMIN_PASSWORD/g" .env.production
-            sed -i.bak "s/your_secure_grafana_secret_key_change_this/$GRAFANA_SECRET_KEY/g" .env.production
+            # Use Python for safer text replacement (available on macOS)
+            log_info "Updating configuration with secure values..."
             
-            # Remove backup file
-            rm .env.production.bak
+            # Create a temporary Python script for text replacement
+            cat > temp_replace.py << EOF
+import sys
+import re
+
+# Read the file
+with open('.env.production', 'r') as f:
+    content = f.read()
+
+# Define replacements
+replacements = {
+    'your_super_secure_jwt_secret_change_this_in_production_512bits_minimum': '$JWT_SECRET',
+    'your_secure_redis_password_change_this': '$REDIS_PASSWORD',
+    'your_secure_postgres_password_change_this': '$POSTGRES_PASSWORD',
+    'your_secure_minio_secret_key_change_this': '$MINIO_SECRET_KEY',
+    'your_secure_grafana_password_change_this': '$GRAFANA_ADMIN_PASSWORD',
+    'your_secure_grafana_secret_key_change_this': '$GRAFANA_SECRET_KEY'
+}
+
+# Apply replacements
+for old, new in replacements.items():
+    content = content.replace(old, new)
+
+# Write back to file
+with open('.env.production', 'w') as f:
+    f.write(content)
+
+print("Configuration updated successfully")
+EOF
+            
+            # Execute the Python script with environment variables
+            JWT_SECRET="$JWT_SECRET" \
+            REDIS_PASSWORD="$REDIS_PASSWORD" \
+            POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+            MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
+            GRAFANA_ADMIN_PASSWORD="$GRAFANA_ADMIN_PASSWORD" \
+            GRAFANA_SECRET_KEY="$GRAFANA_SECRET_KEY" \
+            python3 -c "
+import os
+replacements = {
+    'your_super_secure_jwt_secret_change_this_in_production_512bits_minimum': os.environ['JWT_SECRET'],
+    'your_secure_redis_password_change_this': os.environ['REDIS_PASSWORD'], 
+    'your_secure_postgres_password_change_this': os.environ['POSTGRES_PASSWORD'],
+    'your_secure_minio_secret_key_change_this': os.environ['MINIO_SECRET_KEY'],
+    'your_secure_grafana_password_change_this': os.environ['GRAFANA_ADMIN_PASSWORD'],
+    'your_secure_grafana_secret_key_change_this': os.environ['GRAFANA_SECRET_KEY']
+}
+
+with open('.env.production', 'r') as f:
+    content = f.read()
+
+for old, new in replacements.items():
+    content = content.replace(old, new)
+
+with open('.env.production', 'w') as f:
+    f.write(content)
+"
+            
+            # Clean up
+            rm -f temp_replace.py
             
             log_success "Environment file created with secure passwords"
             log_warning "IMPORTANT: Save these credentials securely!"
             echo ""
-            echo -e "${GREEN}Grafana Admin Password: ${NC}$GRAFANA_ADMIN_PASSWORD"
+            echo -e "${GREEN}Generated Passwords:${NC}"
+            echo -e "${YELLOW}Grafana Admin: admin / $GRAFANA_ADMIN_PASSWORD${NC}"
+            echo -e "${YELLOW}PostgreSQL: ssm_user / $POSTGRES_PASSWORD${NC}"
+            echo -e "${YELLOW}Redis: $REDIS_PASSWORD${NC}"
             echo ""
         else
             log_error ".env.production.template not found"
@@ -168,7 +226,7 @@ check_prerequisites() {
     # Check Docker
     if ! command -v docker &> /dev/null; then
         log_error "Docker is not installed"
-        echo "Please install Docker first: https://docs.docker.com/get-docker/"
+        echo "Please install Docker Desktop for Mac: https://docs.docker.com/desktop/mac/"
         exit 1
     fi
     log_success "Docker is installed"
@@ -176,7 +234,7 @@ check_prerequisites() {
     # Check Docker Compose
     if ! command -v docker-compose &> /dev/null; then
         log_error "Docker Compose is not installed"
-        echo "Please install Docker Compose first"
+        echo "Please install Docker Desktop for Mac which includes Docker Compose"
         exit 1
     fi
     log_success "Docker Compose is installed"
@@ -184,10 +242,18 @@ check_prerequisites() {
     # Check if Docker is running
     if ! docker info &> /dev/null; then
         log_error "Docker is not running"
-        echo "Please start Docker first"
+        echo "Please start Docker Desktop"
         exit 1
     fi
     log_success "Docker is running"
+    
+    # Check Python3 availability
+    if ! command -v python3 &> /dev/null; then
+        log_error "Python3 is not available"
+        echo "Python3 is required for configuration generation"
+        exit 1
+    fi
+    log_success "Python3 is available"
     
     # Check available disk space (minimum 10GB)
     available_space=$(df . | tail -1 | awk '{print $4}')
@@ -235,7 +301,8 @@ run_deployment() {
 quick_health_check() {
     log_step "Running quick health checks..."
     
-    sleep 10  # Wait for services to stabilize
+    log_info "Waiting for services to stabilize..."
+    sleep 15  # Wait for services to stabilize
     
     # Test main endpoints
     endpoints=(
@@ -278,7 +345,8 @@ quick_health_check() {
     if [ $failed_checks -eq 0 ]; then
         log_success "🎉 All core services are healthy!"
     else
-        log_warning "⚠️ $failed_checks service(s) failed health checks. Check logs for details."
+        log_warning "⚠️ $failed_checks service(s) failed health checks. They may need more time to start."
+        log_info "You can check logs with: docker-compose -f docker-compose.production.yml logs -f"
     fi
 }
 
@@ -316,7 +384,12 @@ show_access_info() {
     if [ -f ".env.production" ]; then
         grafana_password=$(grep "GRAFANA_ADMIN_PASSWORD" .env.production | cut -d'=' -f2)
         echo -e "${YELLOW}🔑 Important Credentials:${NC}"
-        echo "  • Grafana: admin / $grafana_password"
+        echo "  • Grafana Dashboard: admin / $grafana_password"
+        echo ""
+        echo -e "${BLUE}💡 Next Steps:${NC}"
+        echo "  1. Test API: curl http://localhost/api/health"
+        echo "  2. Open Grafana: http://localhost:3000"
+        echo "  3. Run tests: ./scripts/test-integration-complete.sh all"
         echo ""
     fi
 }
