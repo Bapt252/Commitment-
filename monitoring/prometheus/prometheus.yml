@@ -1,94 +1,200 @@
-# Prometheus configuration for SuperSmartMatch V2
-# Configured for current container names with supersmartmatch- prefix
+# SuperSmartMatch V2 - Prometheus Configuration
+# Monitoring all microservices with health checks and alerting
 
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
+    cluster: 'supersmartmatch-v2'
     environment: 'production'
-    project: 'supersmartmatch-v2'
 
-# Alertmanager configuration (optionnel)
+# Rule files for alerting
+rule_files:
+  - "rules/*.yml"
+
+# Alertmanager configuration
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          # - alertmanager:9093
+          - alertmanager:9093
 
-# Load rules once and periodically evaluate them
-rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
-
-# A scrape configuration containing exactly one endpoint to scrape
+# Scrape configurations
 scrape_configs:
-  # Prometheus self-monitoring
+  # Prometheus itself
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
-    scrape_interval: 15s
-    metrics_path: '/metrics'
-
-  # SuperSmartMatch V1 Service (port 5062)
-  - job_name: 'supersmartmatch-v1'
-    static_configs:
-      - targets: ['host.docker.internal:5062']
-    scrape_interval: 10s
-    metrics_path: '/metrics'
-    scrape_timeout: 10s
-
-  # SuperSmartMatch V2 Service (port 5070) - TARGET
-  - job_name: 'supersmartmatch-v2' 
-    static_configs:
-      - targets: ['host.docker.internal:5070']
-    scrape_interval: 5s  # Plus fréquent pour le service principal
-    metrics_path: '/metrics'
-    scrape_timeout: 10s
-
-  # Nexten Matcher Service (port 5052)
-  - job_name: 'nexten-matcher'
-    static_configs:
-      - targets: ['host.docker.internal:5052']
-    scrape_interval: 10s
-    metrics_path: '/metrics'
-    scrape_timeout: 10s
-
-  # Redis monitoring (si redis_exporter est configuré)
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['supersmartmatch-redis:6379']
+    metrics_path: /metrics
     scrape_interval: 30s
-    metrics_path: '/metrics'
 
-  # PostgreSQL monitoring (si postgres_exporter est configuré)
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:5050']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    health_check_path: /health
+    labels:
+      service: 'api-gateway'
+      tier: 'frontend'
+
+  # CV Parser Service
+  - job_name: 'cv-parser-service'
+    static_configs:
+      - targets: ['cv-parser-service:5051']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    health_check_path: /health
+    labels:
+      service: 'cv-parser'
+      tier: 'processing'
+
+  # Matching Service
+  - job_name: 'matching-service'
+    static_configs:
+      - targets: ['matching-service:5052']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    health_check_path: /health
+    labels:
+      service: 'matching'
+      tier: 'core'
+
+  # Job Parser Service
+  - job_name: 'job-parser-service'
+    static_configs:
+      - targets: ['job-parser-service:5053']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    health_check_path: /health
+    labels:
+      service: 'job-parser'
+      tier: 'processing'
+
+  # User Service
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:5054']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    health_check_path: /health
+    labels:
+      service: 'user'
+      tier: 'backend'
+
+  # Notification Service
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:5055']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    health_check_path: /health
+    labels:
+      service: 'notification'
+      tier: 'backend'
+
+  # Analytics Service
+  - job_name: 'analytics-service'
+    static_configs:
+      - targets: ['analytics-service:5056']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    health_check_path: /health
+    labels:
+      service: 'analytics'
+      tier: 'monitoring'
+
+  # Infrastructure monitoring
   - job_name: 'postgres'
     static_configs:
-      - targets: ['supersmartmatch-postgres:5432']
+      - targets: ['postgres:5432']
+    metrics_path: /metrics
     scrape_interval: 30s
-    metrics_path: '/metrics'
+    labels:
+      service: 'postgres'
+      tier: 'database'
 
-  # NGINX monitoring (si nginx-prometheus-exporter est configuré)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    labels:
+      service: 'redis'
+      tier: 'cache'
+
   - job_name: 'nginx'
     static_configs:
-      - targets: ['supersmartmatch-nginx:9113']  
+      - targets: ['nginx:80']
+    metrics_path: /metrics
     scrape_interval: 30s
-    metrics_path: '/metrics'
+    labels:
+      service: 'nginx'
+      tier: 'proxy'
 
-  # MinIO monitoring
-  - job_name: 'minio'
+  # Node Exporter for system metrics (if deployed)
+  - job_name: 'node-exporter'
     static_configs:
-      - targets: ['supersmartmatch-minio:9000']
+      - targets: ['node-exporter:9100']
     scrape_interval: 30s
-    metrics_path: '/minio/v2/metrics/cluster'
-    scrape_timeout: 10s
+    labels:
+      service: 'node-exporter'
+      tier: 'system'
 
-# Configuration avancée pour les métriques SuperSmartMatch
-# Utilise les labels pour identifier les services
-relabel_configs:
-  # Ajouter des labels personnalisés
-  - source_labels: [__address__]
-    target_label: __param_target
-  - source_labels: [__param_target]
-    target_label: instance
-  - target_label: __address__
-    replacement: 127.0.0.1:9090  # Adresse du prometheus exporter
+  # Docker containers monitoring
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+    labels:
+      service: 'cadvisor'
+      tier: 'container'
+
+  # Business metrics from services
+  - job_name: 'business-metrics'
+    scrape_configs:
+      - job_name: 'matching-performance'
+        static_configs:
+          - targets: ['matching-service:5052']
+        metrics_path: /business-metrics
+        scrape_interval: 60s
+
+      - job_name: 'cv-processing-metrics'
+        static_configs:
+          - targets: ['cv-parser-service:5051']
+        metrics_path: /business-metrics
+        scrape_interval: 60s
+
+      - job_name: 'user-activity-metrics'
+        static_configs:
+          - targets: ['analytics-service:5056']
+        metrics_path: /business-metrics
+        scrape_interval: 60s
+
+# Remote write configuration (for long-term storage)
+# remote_write:
+#   - url: "http://thanos-receive:19291/api/v1/receive"
+#     queue_config:
+#       capacity: 10000
+#       max_shards: 200
+#       min_shards: 1
+#       max_samples_per_send: 2000
+#       batch_send_deadline: 5s
+
+# Storage configuration
+storage:
+  tsdb:
+    path: /prometheus
+    retention.time: 30d
+    retention.size: 10GB
+    wal-compression: true
+
+# Web configuration
+web:
+  console.libraries: /etc/prometheus/console_libraries
+  console.templates: /etc/prometheus/consoles
+  enable-lifecycle: true
+  enable-admin-api: true
+  max-connections: 512
+  read-timeout: 30s
