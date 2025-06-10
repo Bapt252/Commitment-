@@ -1,30 +1,39 @@
+# API Gateway Dockerfile
 FROM node:18-alpine
 
-# Create app directory
-WORKDIR /usr/src/app
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init curl
 
-# Install app dependencies
-COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+# Create app directory
+WORKDIR /app
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
-RUN adduser -S apigateway -u 1001
+RUN adduser -S nodejs -u 1001
 
-# Copy app source
-COPY --chown=apigateway:nodejs . .
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy source code
+COPY . .
+
+# Change ownership to nodejs user
+RUN chown -R nodejs:nodejs /app
+USER nodejs
 
 # Create logs directory
-RUN mkdir -p /var/log/app && chown apigateway:nodejs /var/log/app
-
-# Switch to non-root user
-USER apigateway
+RUN mkdir -p /var/log/app
 
 # Expose port
 EXPOSE 5050
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD node healthcheck.js
+  CMD curl -f http://localhost:5050/health || exit 1
 
-CMD ["npm", "start"]
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]
