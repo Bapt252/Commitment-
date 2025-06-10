@@ -206,7 +206,7 @@ def test_corrected_payload():
         
         response = requests.post(
             f"{SUPERSMARTMATCH_V2_URL}/match",
-            json=payload,
+            json=corrected_payload,  # CORRECTION: utilise corrected_payload au lieu de payload
             headers={"Content-Type": "application/json"},
             timeout=30
         )
