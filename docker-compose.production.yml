@@ -25,7 +25,7 @@ services:
       - USER_SERVICE_URL=http://user-service:5054
       - NOTIFICATION_SERVICE_URL=http://notification-service:5055
       - ANALYTICS_SERVICE_URL=http://analytics-service:5056
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - LOG_LEVEL=info
     volumes:
       - ./logs/api-gateway:/var/log/app
@@ -33,8 +33,10 @@ services:
       - microservices_network
     restart: unless-stopped
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
       interval: 30s
@@ -64,7 +66,7 @@ services:
       - NODE_ENV=production
       - PORT=5051
       - POSTGRES_URL=postgresql://ssm_user:${POSTGRES_PASSWORD}@postgres:5432/cv_parser_db
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
@@ -80,9 +82,12 @@ services:
       - microservices_network
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
-      - minio
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5051/health"]
       interval: 30s
@@ -112,7 +117,7 @@ services:
       - NODE_ENV=production
       - PORT=5053
       - POSTGRES_URL=postgresql://ssm_user:${POSTGRES_PASSWORD}@postgres:5432/job_parser_db
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
@@ -128,9 +133,12 @@ services:
       - microservices_network
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
-      - minio
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5053/health"]
       interval: 30s
@@ -160,7 +168,7 @@ services:
       - NODE_ENV=production
       - PORT=5052
       - POSTGRES_URL=postgresql://ssm_user:${POSTGRES_PASSWORD}@postgres:5432/matching_db
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - ALGORITHM_VERSION=v2_optimized
       - ENABLE_ML_ENHANCEMENT=true
       - SCORE_THRESHOLD=0.75
@@ -175,8 +183,10 @@ services:
       - microservices_network
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5052/health"]
       interval: 30s
@@ -206,7 +216,7 @@ services:
       - NODE_ENV=production
       - PORT=5054
       - POSTGRES_URL=postgresql://ssm_user:${POSTGRES_PASSWORD}@postgres:5432/user_db
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - JWT_SECRET=${JWT_SECRET}
       - BCRYPT_ROUNDS=12
       - SESSION_TTL=86400
@@ -220,8 +230,10 @@ services:
       - microservices_network
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5054/health"]
       interval: 30s
@@ -251,7 +263,7 @@ services:
       - NODE_ENV=production
       - PORT=5055
       - POSTGRES_URL=postgresql://ssm_user:${POSTGRES_PASSWORD}@postgres:5432/notification_db
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}
@@ -267,8 +279,10 @@ services:
       - microservices_network
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5055/health"]
       interval: 30s
@@ -298,7 +312,7 @@ services:
       - NODE_ENV=production
       - PORT=5056
       - POSTGRES_URL=postgresql://ssm_user:${POSTGRES_PASSWORD}@postgres:5432/analytics_db
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - ENABLE_REALTIME_METRICS=true
       - DATA_RETENTION_DAYS=365
       - AGGREGATION_INTERVAL=300
@@ -310,8 +324,10 @@ services:
       - microservices_network
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5056/health"]
       interval: 30s
@@ -337,9 +353,10 @@ services:
       - POSTGRES_USER=ssm_user
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=supersmartmatch
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/init:/docker-entrypoint-initdb.d:ro
       - ./database/backups:/backups
     networks:
       - microservices_network
@@ -360,10 +377,13 @@ services:
       -c checkpoint_completion_target=0.9
       -c wal_buffers=16MB
       -c default_statistics_target=100
+      -c log_statement=all
+      -c log_min_duration_statement=1000
+      -c log_line_prefix='%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ssm_user -d supersmartmatch"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 5
       start_period: 30s
     deploy:
@@ -391,20 +411,21 @@ services:
       --save 60 10000
       --appendonly yes
       --appendfsync everysec
+      --tcp-keepalive 300
+      --timeout 0
     volumes:
       - redis_data:/data
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
     networks:
       - microservices_network
     restart: unless-stopped
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
       retries: 3
-      start_period: 30s
+      start_period: 10s
     deploy:
       resources:
         limits:
@@ -466,7 +487,8 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
@@ -483,7 +505,7 @@ services:
           cpus: '0.1'
 
   # ===========================================
-  # MONITORING - Prometheus
+  # MONITORING - Prometheus (Port 9091)
   # ===========================================
   prometheus:
     image: prom/prometheus:latest
@@ -496,7 +518,7 @@ services:
       - microservices_network
     restart: unless-stopped
     ports:
-      - "9090:9090"
+      - "9091:9090"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -543,7 +565,7 @@ services:
       start_period: 30s
 
 # ===========================================
-# NETWORKS - Using default Docker bridge
+# NETWORKS - Using custom bridge network
 # ===========================================
 networks:
   microservices_network:
