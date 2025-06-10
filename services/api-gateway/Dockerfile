@@ -20,12 +20,14 @@ RUN npm install --production && npm cache clean --force
 # Copy source code
 COPY . .
 
-# Change ownership to nodejs user
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
-# Create logs directory
+# Create logs directory BEFORE changing user
 RUN mkdir -p /var/log/app
+
+# Change ownership to nodejs user (including the logs directory)
+RUN chown -R nodejs:nodejs /app /var/log/app
+
+# Switch to non-root user
+USER nodejs
 
 # Expose port
 EXPOSE 5050
