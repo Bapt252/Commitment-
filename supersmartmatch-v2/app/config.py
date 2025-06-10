@@ -106,7 +106,8 @@ class AlgorithmConfig:
     """Configuration spécifique aux algorithmes"""
     
     # === NEXTEN MATCHER ===
-    NEXTEN_ENDPOINT = "/api/match"
+    # CORRECTION: Nexten utilise /match et non /api/match
+    NEXTEN_ENDPOINT = "/match"
     NEXTEN_TIMEOUT = 30
     NEXTEN_RETRY_ATTEMPTS = 3
     
