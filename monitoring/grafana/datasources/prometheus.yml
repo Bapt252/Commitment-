@@ -4,27 +4,11 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    # Configuration pour le service prometheus dans Docker Compose
     url: http://prometheus:9090
     isDefault: true
     editable: true
+    basicAuth: false
     jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
       httpMethod: POST
-      manageAlerts: true
-      prometheusType: Prometheus
-      prometheusVersion: 2.40.0
-      cacheLevel: 'High'
-      disableRecordingRules: false
-      incrementalQueryOverlapWindow: 10m
-    secureJsonData: {}
-  
-  # Configuration alternative si les containers utilisent le préfixe supersmartmatch-  
-  - name: Prometheus-Alt
-    type: prometheus
-    access: proxy
-    url: http://supersmartmatch-prometheus:9090
-    editable: true
-    jsonData:
-      httpMethod: POST
-      manageAlerts: true
-      prometheusType: Prometheus
