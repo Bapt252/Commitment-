@@ -1,0 +1,65 @@
+version: '3.8'
+
+# 🔧 Override pour correction des endpoints SuperSmartMatch V2
+# Corrige les URLs et endpoints pour une communication correcte
+
+services:
+  # ===== CORRECTION SERVICE PRINCIPAL =====
+  supersmartmatch-v2:
+    environment:
+      # 🎯 ENDPOINTS CORRIGÉS
+      - NEXTEN_URL=http://nexten_matcher:80
+      - NEXTEN_ENDPOINT=/match
+      - SUPERSMARTMATCH_V1_URL=http://ssm_v1:80  
+      - SUPERSMARTMATCH_V1_ENDPOINT=/match
+      
+      # 🔗 CONFIGURATION REDIS  
+      - REDIS_URL=redis://redis-cache-v2-local:6379
+      - CACHE_TTL=300
+      - CACHE_ENABLED=true
+      
+      # ⚡ CONFIGURATION TIMEOUTS
+      - NEXTEN_TIMEOUT_MS=10000
+      - V1_TIMEOUT_MS=8000
+      - REQUEST_TIMEOUT_MS=15000
+      
+      # 🔧 CONFIGURATION DEBUG
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=production
+      - ENABLE_ENDPOINT_DEBUG=true
+      
+      # 🚀 FEATURE FLAGS
+      - ENABLE_NEXTEN_ALGORITHM=true
+      - ENABLE_SMART_SELECTION=true
+      - FORCE_NEXTEN_FOR_COMPLEX=true
+      
+    networks:
+      - default
+      - commitment-_nexten_network  
+      - commitment-_ssm_network
+    depends_on:
+      - redis-cache-v2
+    extra_hosts:
+      # Fallback pour cas spéciaux
+      - "host.docker.internal:host-gateway"
+
+  # ===== REDIS CACHE LOCAL =====
+  redis-cache-v2:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+# ===== RÉSEAUX EXTERNES =====
+networks:
+  commitment-_nexten_network:
+    external: true
+    name: commitment-_nexten_network
+  commitment-_ssm_network:
+    external: true  
+    name: commitment-_ssm_network
+  default:
+    name: supersmartmatch-v2_default
