@@ -543,14 +543,14 @@ services:
       start_period: 30s
 
 # ===========================================
-# NETWORKS
+# NETWORKS - Using default Docker bridge
 # ===========================================
 networks:
   microservices_network:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 192.168.100.0/24
 
 # ===========================================
 # VOLUMES
