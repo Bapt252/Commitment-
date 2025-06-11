@@ -1,0 +1,266 @@
+# 🚨 Alertes Prometheus Ultra v2.0 - PROMPT 2
+# SuperSmartMatch V2 - Alertes critiques parsers streaming temps réel
+
+groups:
+  # ===========================================
+  # CV PARSER ULTRA ALERTS ⚡
+  # ===========================================
+  
+  - name: cv-parser-ultra-critical
+    interval: 30s
+    rules:
+      # Latence de parsing CV critique
+      - alert: CVParsingLatencyHigh
+        expr: histogram_quantile(0.95, rate(cv_parsing_duration_seconds_bucket[5m])) > 3
+        for: 2m
+        labels:
+          severity: critical
+          service: cv-parser-ultra
+          team: parsing
+        annotations:
+          summary: "CV Parser Ultra: Latence de parsing élevée"
+          description: "Le parsing CV prend plus de 3 secondes en P95 pendant 2 minutes. Valeur actuelle: {{ $value }}s"
+          runbook: "https://docs.supersmartmatch.com/runbooks/cv-parser-latency"
+          
+      # Erreurs de parsing CV élevées
+      - alert: CVParsingErrorRateHigh
+        expr: rate(cv_parsing_requests_total{status="error"}[5m]) / rate(cv_parsing_requests_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+          service: cv-parser-ultra
+          team: parsing
+        annotations:
+          summary: "CV Parser Ultra: Taux d'erreur élevé"
+          description: "Plus de 10% des requêtes CV échouent. Taux actuel: {{ $value | humanizePercentage }}"
+          runbook: "https://docs.supersmartmatch.com/runbooks/cv-parser-errors"
+          
+      # WebSocket connections CV perdues
+      - alert: CVWebSocketConnectionsLost
+        expr: cv_websocket_connections_active < 1 and rate(cv_parsing_requests_total[5m]) > 0
+        for: 30s
+        labels:
+          severity: warning
+          service: cv-parser-ultra
+          team: parsing
+        annotations:
+          summary: "CV Parser Ultra: Connexions WebSocket perdues"
+          description: "Aucune connexion WebSocket active malgré des requêtes de parsing CV"
+          
+      # Cache hit ratio CV faible
+      - alert: CVCacheHitRateLow
+        expr: cv_cache_hit_ratio < 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: cv-parser-ultra
+          team: infrastructure
+        annotations:
+          summary: "CV Parser Ultra: Taux de cache faible"
+          description: "Le cache hit ratio est inférieur à 50%. Valeur: {{ $value | humanizePercentage }}"
+          
+      # OpenAI API failures CV
+      - alert: CVOpenAIAPIFailures
+        expr: rate(cv_openai_api_calls_total{status="error"}[5m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+          service: cv-parser-ultra
+          team: ai
+        annotations:
+          summary: "CV Parser Ultra: Échecs API OpenAI"
+          description: "Plus de 5 échecs OpenAI par minute pour CV. Rate: {{ $value }}/min"
+
+  # ===========================================
+  # JOB PARSER ULTRA ALERTS 🎯
+  # ===========================================
+  
+  - name: job-parser-ultra-critical
+    interval: 30s
+    rules:
+      # Latence de parsing Job critique
+      - alert: JobParsingLatencyHigh
+        expr: histogram_quantile(0.95, rate(job_parsing_duration_seconds_bucket[5m])) > 2
+        for: 2m
+        labels:
+          severity: critical
+          service: job-parser-ultra
+          team: parsing
+        annotations:
+          summary: "Job Parser Ultra: Latence de parsing élevée"
+          description: "Le parsing Job prend plus de 2 secondes en P95. Valeur: {{ $value }}s"
+          runbook: "https://docs.supersmartmatch.com/runbooks/job-parser-latency"
+          
+      # Erreurs de parsing Job élevées
+      - alert: JobParsingErrorRateHigh
+        expr: rate(job_parsing_requests_total{status="error"}[5m]) / rate(job_parsing_requests_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+          service: job-parser-ultra
+          team: parsing
+        annotations:
+          summary: "Job Parser Ultra: Taux d'erreur élevé"
+          description: "Plus de 10% des requêtes Job échouent. Taux: {{ $value | humanizePercentage }}"
+          
+      # WebSocket connections Job perdues
+      - alert: JobWebSocketConnectionsLost
+        expr: job_websocket_connections_active < 1 and rate(job_parsing_requests_total[5m]) > 0
+        for: 30s
+        labels:
+          severity: warning
+          service: job-parser-ultra
+          team: parsing
+        annotations:
+          summary: "Job Parser Ultra: Connexions WebSocket perdues"
+          description: "Aucune connexion WebSocket active pour le parsing Job"
+
+  # ===========================================
+  # PERFORMANCE ULTRA ALERTS 📊
+  # ===========================================
+  
+  - name: parsing-performance-critical
+    interval: 15s
+    rules:
+      # Débit de parsing faible
+      - alert: ParsingThroughputLow
+        expr: rate(cv_parsing_requests_total[5m]) + rate(job_parsing_requests_total[5m]) < 1
+        for: 5m
+        labels:
+          severity: warning
+          service: parsers-ultra
+          team: performance
+        annotations:
+          summary: "Parsers Ultra: Débit de parsing faible"
+          description: "Moins de 1 requête/seconde combinée CV+Job pendant 5 min"
+          
+      # Mémoire des parsers élevée
+      - alert: ParsersMemoryUsageHigh
+        expr: (container_memory_usage_bytes{name=~".*parser.*ultra"} / container_spec_memory_limit_bytes) > 0.9
+        for: 3m
+        labels:
+          severity: critical
+          service: parsers-ultra
+          team: infrastructure
+        annotations:
+          summary: "Parsers Ultra: Utilisation mémoire critique"
+          description: "Utilisation mémoire > 90% pour {{ $labels.name }}"
+          
+      # CPU des parsers élevé
+      - alert: ParsersCPUUsageHigh
+        expr: rate(container_cpu_usage_seconds_total{name=~".*parser.*ultra"}[5m]) > 1.5
+        for: 2m
+        labels:
+          severity: warning
+          service: parsers-ultra
+          team: infrastructure
+        annotations:
+          summary: "Parsers Ultra: Utilisation CPU élevée"
+          description: "CPU > 150% pour {{ $labels.name }}"
+
+  # ===========================================
+  # BUSINESS IMPACT ALERTS 💼
+  # ===========================================
+  
+  - name: business-impact-ultra
+    interval: 60s
+    rules:
+      # Confiance globale parsing faible
+      - alert: ParsingConfidenceLow
+        expr: avg(cv_parsing_accuracy_ratio) < 0.8 or avg(job_parsing_accuracy_ratio) < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: parsers-ultra
+          team: ai
+        annotations:
+          summary: "Parsers Ultra: Confiance de parsing faible"
+          description: "Confiance moyenne < 80% pendant 10 min"
+          
+      # Fallback rate élevé
+      - alert: FallbackRateHigh
+        expr: (rate(cv_file_processing_errors_total[10m]) + rate(job_file_processing_errors_total[10m])) / (rate(cv_parsing_requests_total[10m]) + rate(job_parsing_requests_total[10m])) > 0.3
+        for: 5m
+        labels:
+          severity: critical
+          service: parsers-ultra
+          team: ai
+        annotations:
+          summary: "Parsers Ultra: Taux de fallback élevé"
+          description: "Plus de 30% des parsings nécessitent un fallback manuel"
+          
+      # SLA de parsing non respecté
+      - alert: ParsingSLABreach
+        expr: histogram_quantile(0.95, rate(cv_parsing_duration_seconds_bucket[10m])) > 3 or histogram_quantile(0.95, rate(job_parsing_duration_seconds_bucket[10m])) > 2
+        for: 5m
+        labels:
+          severity: critical
+          service: parsers-ultra
+          team: sla
+        annotations:
+          summary: "Parsers Ultra: SLA de parsing non respecté"
+          description: "SLA P95 dépassé: CV > 3s ou Job > 2s pendant 5 min"
+          
+  # ===========================================
+  # INTEGRATION ALERTS 🔗
+  # ===========================================
+  
+  - name: ultra-integration-alerts
+    interval: 30s
+    rules:
+      # Redis inaccessible pour parsers
+      - alert: ParsersRedisDown
+        expr: up{job=~".*parser.*ultra"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: parsers-ultra
+          team: infrastructure
+        annotations:
+          summary: "Parsers Ultra: Redis inaccessible"
+          description: "Impossible d'accéder à Redis depuis les parsers"
+          
+      # OpenAI quota dépassé
+      - alert: OpenAIQuotaExceeded
+        expr: increase(cv_openai_api_calls_total{status="quota_exceeded"}[1h]) > 0 or increase(job_openai_api_calls_total{status="quota_exceeded"}[1h]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          service: parsers-ultra
+          team: ai
+        annotations:
+          summary: "Parsers Ultra: Quota OpenAI dépassé"
+          description: "Le quota OpenAI a été dépassé pour les parsers"
+
+  # ===========================================
+  # HEALTH CHECK ALERTS 🏥
+  # ===========================================
+  
+  - name: parsers-health-checks
+    interval: 30s
+    rules:
+      # Service CV Parser down
+      - alert: CVParserUltraDown
+        expr: up{job="cv-parser-ultra"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cv-parser-ultra
+          team: infrastructure
+        annotations:
+          summary: "CV Parser Ultra est down"
+          description: "Le service CV Parser Ultra ne répond plus aux health checks"
+          runbook: "https://docs.supersmartmatch.com/runbooks/service-down"
+          
+      # Service Job Parser down
+      - alert: JobParserUltraDown
+        expr: up{job="job-parser-ultra"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: job-parser-ultra
+          team: infrastructure
+        annotations:
+          summary: "Job Parser Ultra est down"
+          description: "Le service Job Parser Ultra ne répond plus aux health checks"
+          runbook: "https://docs.supersmartmatch.com/runbooks/service-down"
