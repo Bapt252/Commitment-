@@ -1,0 +1,401 @@
+# 🚀 SuperSmartMatch V2 - Docker Compose Ultra v2.0
+# PROMPT 2: Parsers ultra-optimisés avec streaming temps réel
+
+version: '3.8'
+
+services:
+  # ===========================================
+  # CV PARSER ULTRA v2.0 - Port 5051
+  # Features: WebSocket streaming, validation interactive, cache Redis intelligent
+  # ===========================================
+  cv-parser-ultra:
+    build:
+      context: ./services/cv-parser-ultra
+      dockerfile: Dockerfile
+    container_name: supersmartmatch_cv_parser_ultra_v2
+    ports:
+      - "5051:5051"
+      - "9091:9090"  # Métriques Prometheus
+    environment:
+      - NODE_ENV=production
+      - PORT=5051
+      - POSTGRES_URL=postgresql://ssm_user:${POSTGRES_PASSWORD}@postgres:5432/cv_parser_ultra_db
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_CV=cv-documents-ultra
+      # PROMPT 2 - Support multi-formats jusqu'à 10MB
+      - MAX_FILE_SIZE=10485760
+      - SUPPORTED_FORMATS=pdf,doc,docx,txt,jpg,jpeg,png
+      # PROMPT 2 - OCR haute performance
+      - ENABLE_OCR=true
+      - OCR_LANGUAGE=fra+eng
+      - OCR_ENGINE=tesseract
+      # PROMPT 2 - WebSocket streaming <500ms
+      - WEBSOCKET_TIMEOUT=500
+      - STREAMING_ENABLED=true
+      - REALTIME_FEEDBACK=true
+      # PROMPT 2 - Cache Redis intelligent
+      - CACHE_TTL=3600
+      - CACHE_ENABLED=true
+      - CACHE_HIT_RATIO_TARGET=0.85
+      # PROMPT 2 - OpenAI API côté serveur (sécurisé)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-4
+      - OPENAI_MAX_TOKENS=2000
+      # PROMPT 2 - Scoring de confiance
+      - CONFIDENCE_THRESHOLD=0.7
+      - AUTO_VALIDATION_THRESHOLD=0.9
+      - FALLBACK_THRESHOLD=0.5
+      # Monitoring selon PROMPT 2
+      - PROMETHEUS_METRICS_PORT=9090
+      - LOG_LEVEL=info
+      - ENABLE_PERFORMANCE_TRACKING=true
+    volumes:
+      - ./logs/cv-parser-ultra:/var/log/app
+      - ./temp/cv-uploads:/tmp/uploads
+      - ./cache/cv-parser:/var/cache/cv-parser
+    networks:
+      - microservices_network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5051/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # Augmenté pour les fonctionnalités IA
+          cpus: '2.0'   # Augmenté pour le streaming temps réel
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  # ===========================================
+  # JOB PARSER ULTRA v2.0 - Port 5053  
+  # Features: Extraction ciblée PROMPT 2, WebSocket streaming, validation interactive
+  # ===========================================
+  job-parser-ultra:
+    build:
+      context: ./services/job-parser-ultra
+      dockerfile: Dockerfile
+    container_name: supersmartmatch_job_parser_ultra_v2
+    ports:
+      - "5053:5053"
+      - "9093:9090"  # Métriques Prometheus
+    environment:
+      - NODE_ENV=production
+      - PORT=5053
+      - POSTGRES_URL=postgresql://ssm_user:${POSTGRES_PASSWORD}@postgres:5432/job_parser_ultra_db
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_JOBS=job-descriptions-ultra
+      # PROMPT 2 - Support multi-formats jusqu'à 5MB
+      - MAX_FILE_SIZE=5242880
+      - SUPPORTED_FORMATS=pdf,doc,docx,txt,html,jpg,jpeg,png
+      # PROMPT 2 - Extraction ciblée selon spécifications
+      - ENABLE_TARGETED_EXTRACTION=true
+      - EXTRACT_JOB_TITLE=true
+      - EXTRACT_JOB_LEVEL=true
+      - EXTRACT_REQUIRED_SKILLS=true
+      - EXTRACT_PREFERRED_SKILLS=true
+      - EXTRACT_EXPERIENCE_REQUIREMENTS=true
+      - EXTRACT_LOCATION_REMOTE=true
+      - EXTRACT_SALARY_RANGE=true
+      - EXTRACT_CONTRACT_TYPE=true
+      - EXTRACT_COMPANY_BENEFITS=true
+      - EXTRACT_COMPANY_CULTURE=true
+      # PROMPT 2 - NLP Processing avancé
+      - ENABLE_NLP_PROCESSING=true
+      - NLP_MODEL=fr_core_news_sm
+      - ENABLE_ENTITY_RECOGNITION=true
+      # PROMPT 2 - WebSocket streaming <500ms
+      - WEBSOCKET_TIMEOUT=500
+      - STREAMING_ENABLED=true
+      - REALTIME_FEEDBACK=true
+      # PROMPT 2 - Cache Redis intelligent
+      - CACHE_TTL=3600
+      - CACHE_ENABLED=true
+      - CACHE_HIT_RATIO_TARGET=0.85
+      # PROMPT 2 - OpenAI API côté serveur (sécurisé)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-4
+      - OPENAI_MAX_TOKENS=3000
+      # PROMPT 2 - Scoring de confiance
+      - CONFIDENCE_THRESHOLD=0.7
+      - AUTO_VALIDATION_THRESHOLD=0.9
+      - FALLBACK_THRESHOLD=0.5
+      # Monitoring selon PROMPT 2
+      - PROMETHEUS_METRICS_PORT=9090
+      - LOG_LEVEL=info
+      - ENABLE_PERFORMANCE_TRACKING=true
+    volumes:
+      - ./logs/job-parser-ultra:/var/log/app
+      - ./temp/job-uploads:/tmp/uploads
+      - ./cache/job-parser:/var/cache/job-parser
+    networks:
+      - microservices_network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5053/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # Augmenté pour les fonctionnalités IA
+          cpus: '2.0'   # Augmenté pour le streaming temps réel
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  # ===========================================
+  # UPGRADE API GATEWAY - Support WebSocket proxying
+  # ===========================================
+  api-gateway-ultra:
+    build:
+      context: ./services/api-gateway-ultra
+      dockerfile: Dockerfile
+    container_name: supersmartmatch_api_gateway_ultra
+    ports:
+      - "5050:5050"
+    environment:
+      - NODE_ENV=production
+      - PORT=5050
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY=24h
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_MAX=1000
+      - RATE_LIMIT_WINDOW=900000
+      # PROMPT 2 - Routes vers services Ultra v2.0
+      - CV_PARSER_ULTRA_URL=http://cv-parser-ultra:5051
+      - JOB_PARSER_ULTRA_URL=http://job-parser-ultra:5053
+      - MATCHING_SERVICE_URL=http://matching-service:5052
+      - USER_SERVICE_URL=http://user-service:5054
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5055
+      - ANALYTICS_SERVICE_URL=http://analytics-service:5056
+      # PROMPT 2 - Support WebSocket proxying
+      - ENABLE_WEBSOCKET_PROXY=true
+      - WEBSOCKET_PING_INTERVAL=30000
+      - WEBSOCKET_PONG_TIMEOUT=5000
+      # API v2 endpoints selon PROMPT 2
+      - API_VERSION=2.0
+      - ENABLE_V2_ENDPOINTS=true
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    volumes:
+      - ./logs/api-gateway-ultra:/var/log/app
+    networks:
+      - microservices_network
+    restart: unless-stopped
+    depends_on:
+      - cv-parser-ultra
+      - job-parser-ultra
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ===========================================
+  # SERVICES EXISTANTS (inchangés depuis PROMPT 1)
+  # ===========================================
+  
+  # Matching service (gardé de l'architecture existante)
+  matching-service:
+    build:
+      context: ./services/matching
+      dockerfile: Dockerfile
+    container_name: supersmartmatch_matching
+    ports:
+      - "5052:5052"
+    environment:
+      - NODE_ENV=production
+      - PORT=5052
+      - POSTGRES_URL=postgresql://ssm_user:${POSTGRES_PASSWORD}@postgres:5432/matching_db
+      - REDIS_URL=redis://redis:6379
+      - ALGORITHM_VERSION=v2_optimized
+      - ENABLE_ML_ENHANCEMENT=true
+      - SCORE_THRESHOLD=0.75
+      - MAX_CONCURRENT_MATCHES=100
+      - CACHE_TTL=3600
+      - LOG_LEVEL=info
+      - ENABLE_ANALYTICS_TRACKING=true
+    volumes:
+      - ./logs/matching:/var/log/app
+      - ./models:/var/models
+    networks:
+      - microservices_network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+
+  # Base de données (gardée de l'architecture existante)
+  postgres:
+    image: postgres:15-alpine
+    container_name: supersmartmatch_postgres
+    environment:
+      - POSTGRES_USER=ssm_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=supersmartmatch
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init-ultra:/docker-entrypoint-initdb.d
+      - ./database/backups:/backups
+    networks:
+      - microservices_network
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=200
+      -c shared_buffers=512MB
+      -c effective_cache_size=2GB
+      -c work_mem=8MB
+      -c maintenance_work_mem=128MB
+
+  # Cache Redis (amélioré pour PROMPT 2)
+  redis:
+    image: redis:7-alpine
+    container_name: supersmartmatch_redis
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --appendonly yes
+      --appendfsync everysec
+      --tcp-keepalive 300
+    volumes:
+      - redis_data:/data
+      - ./redis/redis-ultra.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - microservices_network
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # Augmenté pour le cache intelligent
+          cpus: '1.0'   # Augmenté pour les performances
+        reservations:
+          memory: 1G
+          cpus: '0.2'
+
+  # MinIO (gardé de l'architecture existante)
+  minio:
+    image: minio/minio:latest
+    container_name: supersmartmatch_minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+      - MINIO_BROWSER_REDIRECT_URL=http://localhost:9001
+    volumes:
+      - minio_data:/data
+    networks:
+      - microservices_network
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+
+  # Prometheus (amélioré pour PROMPT 2)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: supersmartmatch_prometheus
+    volumes:
+      - ./monitoring/prometheus/prometheus-ultra.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    networks:
+      - microservices_network
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--storage.tsdb.wal-compression'
+
+  # Grafana (amélioré pour PROMPT 2)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: supersmartmatch_grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_SECURITY_SECRET_KEY=${GRAFANA_SECRET_KEY}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel
+    volumes:
+      - ./monitoring/grafana/dashboards-ultra:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - microservices_network
+    restart: unless-stopped
+    ports:
+      - "3001:3000"  # Port modifié selon README existant
+    depends_on:
+      - prometheus
+
+# ===========================================
+# RÉSEAUX (inchangés)
+# ===========================================
+networks:
+  microservices_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ===========================================
+# VOLUMES (améliorés pour PROMPT 2)
+# ===========================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  # Nouveaux volumes pour cache intelligent
+  cv_parser_cache:
+    driver: local
+  job_parser_cache:
+    driver: local

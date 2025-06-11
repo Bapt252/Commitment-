@@ -1,0 +1,95 @@
+# 🚀 CV Parser Ultra v2.0 - PROMPT 2 Requirements
+# Dépendances optimisées pour streaming temps réel avec WebSocket
+
+# Framework Web FastAPI avec WebSocket
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+websockets==12.0
+
+# Async et Redis pour cache intelligent
+aioredis==2.0.1
+aiofiles==23.2.1
+asyncio-mqtt==0.13.0
+
+# Traitement de documents et OCR haute performance
+PyMuPDF==1.23.8  # PDF processing
+python-docx==0.8.11  # DOCX processing
+python-multipart==0.0.6  # File uploads
+Pillow==10.1.0  # Image processing
+pytesseract==0.3.10  # OCR
+pdf2image==1.16.3  # PDF to image conversion
+
+# Machine Learning et NLP
+openai==1.3.5  # GPT integration côté serveur
+spacy==3.7.2  # NLP processing
+transformers==4.35.2  # ML models
+torch==2.1.1  # PyTorch for ML
+sentence-transformers==2.2.2  # Embeddings
+
+# Validation et sérialisation
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Métriques et monitoring Prometheus
+prometheus-client==0.19.0
+prometheus-fastapi-instrumentator==6.1.0
+
+# Base de données et cache
+sqlalchemy==2.0.23
+alembic==1.12.1
+psycopg2-binary==2.9.9
+
+# Utilitaires et parsing
+python-dateutil==2.8.2
+python-magic==0.4.27
+chardet==5.2.0
+email-validator==2.1.0
+
+# Hashing et sécurité
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+cryptography==41.0.7
+
+# HTTP et requêtes
+httpx==0.25.2
+requests==2.31.0
+
+# Logging et monitoring
+structlog==23.2.0
+python-json-logger==2.0.7
+
+# Testing (dev)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2  # For testing async endpoints
+
+# Development tools
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# Configuration
+python-dotenv==1.0.0
+click==8.1.7
+
+# Performance optimization
+uvloop==0.19.0  # Faster event loop
+orjson==3.9.10  # Faster JSON serialization
+
+# File format detection
+filetype==1.2.0
+magic==0.6.0
+
+# Text processing and extraction
+nltk==3.8.1
+textstat==0.7.3
+langdetect==1.0.9
+
+# WebSocket et temps réel
+starlette==0.27.0  # WebSocket support
+python-socketio==5.10.0  # Advanced WebSocket features
+
+# Monitoring avancé selon PROMPT 2
+psutil==5.9.6  # System monitoring
+memory-profiler==0.61.0  # Memory usage tracking
