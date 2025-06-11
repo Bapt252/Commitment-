@@ -1,0 +1,91 @@
+{
+  "service_health": {
+    "cv-parser": {
+      "status": "down",
+      "last_seen": 1749027109.579
+    },
+    "job-parser": {
+      "status": "down",
+      "last_seen": 1749027109.587
+    },
+    "matching-api": {
+      "status": "down",
+      "last_seen": 1749027109.591
+    },
+    "backend": {
+      "status": "down",
+      "last_seen": 1749027109.61
+    },
+    "frontend": {
+      "status": "down",
+      "last_seen": 1749027109.612
+    }
+  },
+  "request_metrics": {
+    "total_request_rate": 0,
+    "error_rate_percent": 0,
+    "response_time_95th_percentile": 0,
+    "requests_by_service": {}
+  },
+  "ml_metrics": {
+    "ml_success_rate_percent": 0,
+    "ml_processing_time_95th_percentile": 0,
+    "openai_calls_rate": 0,
+    "openai_tokens_rate": 0,
+    "ml_errors_by_type": {}
+  },
+  "system_metrics": {
+    "avg_cpu_usage_percent": 0,
+    "avg_memory_usage_percent": 0,
+    "database_connections": 0,
+    "redis_connected_clients": 0
+  },
+  "performance_trends": {
+    "error_rate_trend": [],
+    "response_time_trend": []
+  },
+  "alerts": [
+    {
+      "severity": "critical",
+      "message": "Service cv-parser is down",
+      "metric": "service_health",
+      "value": "down",
+      "service": "cv-parser"
+    },
+    {
+      "severity": "critical",
+      "message": "Service job-parser is down",
+      "metric": "service_health",
+      "value": "down",
+      "service": "job-parser"
+    },
+    {
+      "severity": "critical",
+      "message": "Service matching-api is down",
+      "metric": "service_health",
+      "value": "down",
+      "service": "matching-api"
+    },
+    {
+      "severity": "critical",
+      "message": "Service backend is down",
+      "metric": "service_health",
+      "value": "down",
+      "service": "backend"
+    },
+    {
+      "severity": "critical",
+      "message": "Service frontend is down",
+      "metric": "service_health",
+      "value": "down",
+      "service": "frontend"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2025-06-04T10:51:49.652527",
+    "time_range_hours": 24,
+    "trend_days": 7,
+    "total_alerts": 5,
+    "critical_alerts": 5
+  }
+}

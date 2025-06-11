@@ -1,0 +1,82 @@
+{
+  "cv_parser": {
+    "service": "cv_parser",
+    "status": "NO_ENDPOINT"
+  },
+  "personalization": {
+    "service": "personalization",
+    "status": "NO_ENDPOINT"
+  },
+  "frontend": {
+    "/": {
+      "avg_latency": 50.823068618774414,
+      "min_latency": 12.448787689208984,
+      "max_latency": 157.44376182556152,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "/health": {
+      "avg_latency": 21.120023727416992,
+      "min_latency": 9.884119033813477,
+      "max_latency": 35.46595573425293,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    }
+  },
+  "system_metrics": {
+    "cpu_percent": 28.8,
+    "memory_analysis": {
+      "total_gb": 8,
+      "available_gb": 1,
+      "used_gb": 3,
+      "percent": 86.3,
+      "status": "\ud83d\udfe1 \u00c9LEV\u00c9"
+    },
+    "disk_usage_percent": 3.4,
+    "top_memory_processes": [
+      {
+        "name": "com.apple.Virtualization.VirtualMachine",
+        "pid": 76226,
+        "cpu_percent": 0.0,
+        "memory_percent": 2.3296356201171875
+      },
+      {
+        "name": "Cursor Helper (Renderer)",
+        "pid": 53136,
+        "cpu_percent": 0.0,
+        "memory_percent": 2.2800445556640625
+      },
+      {
+        "name": "Google Chrome Helper (Renderer)",
+        "pid": 74626,
+        "cpu_percent": 0.0,
+        "memory_percent": 1.5228271484375
+      },
+      {
+        "name": "Google Chrome",
+        "pid": 627,
+        "cpu_percent": 0.0,
+        "memory_percent": 1.3891220092773438
+      },
+      {
+        "name": "Claude Helper (Renderer)",
+        "pid": 20499,
+        "cpu_percent": 0.0,
+        "memory_percent": 1.3397216796875
+      }
+    ],
+    "load_average": 4.54736328125
+  },
+  "audit_duration": 1.4415102005004883,
+  "timestamp": 1749131665.19451
+}

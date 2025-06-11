@@ -1,0 +1,134 @@
+{
+  "test_session": {
+    "id": "ab_test_20250605_155411",
+    "start_time": "2025-06-05T15:54:11.222829",
+    "duration_seconds": 7.62172,
+    "total_tests": 18090,
+    "config": {
+      "sample_size_min": 10000,
+      "confidence_level": 0.95,
+      "test_duration_hours": 72,
+      "segments": [
+        "Enterprise",
+        "SMB",
+        "Individual"
+      ],
+      "geographies": [
+        "EU",
+        "US",
+        "APAC"
+      ],
+      "user_types": [
+        "recruiter",
+        "candidate",
+        "hr_manager"
+      ],
+      "precision_target": 95.0,
+      "precision_improvement_min": 13.0,
+      "latency_p95_max": 100.0,
+      "load_multipliers": [
+        1,
+        2,
+        5,
+        10
+      ],
+      "max_concurrent_requests": 1000,
+      "v1_url": "http://localhost:5062",
+      "v2_url": "http://localhost:5070"
+    }
+  },
+  "statistical_analysis": {
+    "global_metrics": {
+      "total_samples": 18090,
+      "v1_precision_mean": 80.64063136516651,
+      "v2_precision_mean": 92.48291239218727,
+      "precision_improvement_percent": 14.68525335992861,
+      "v1_latency_p95": 202.6436938489642,
+      "v2_latency_p95": 152.75542829023672,
+      "statistical_significance": {
+        "precision_p_value": 0.0,
+        "latency_p_value": 0.0,
+        "precision_significant": "True",
+        "latency_significant": "True"
+      },
+      "success_criteria": {
+        "precision_target_met": "False",
+        "precision_improvement_met": "True",
+        "latency_sla_met": "False"
+      }
+    },
+    "segment_analysis": {
+      "Enterprise": {
+        "sample_size": 6030,
+        "v1_precision_mean": 82.30777192120009,
+        "v2_precision_mean": 94.36177828842965,
+        "improvement_percent": 14.645040299195367
+      },
+      "SMB": {
+        "sample_size": 6030,
+        "v1_precision_mean": 80.66006896983447,
+        "v2_precision_mean": 92.42156564401608,
+        "improvement_percent": 14.581560398343102
+      },
+      "Individual": {
+        "sample_size": 6030,
+        "v1_precision_mean": 78.95516675755007,
+        "v2_precision_mean": 90.66390381028252,
+        "improvement_percent": 14.829602081250496
+      }
+    },
+    "load_testing_analysis": {
+      "1x": {
+        "sample_size": 9990,
+        "latency_p95": 116.9778529678485,
+        "precision_mean": 94.03499988853797,
+        "sla_compliance": "False"
+      },
+      "2x": {
+        "sample_size": 2700,
+        "latency_p95": 129.8383984834421,
+        "precision_mean": 92.69452072750994,
+        "sla_compliance": "False"
+      },
+      "5x": {
+        "sample_size": 2700,
+        "latency_p95": 145.70808777123548,
+        "precision_mean": 90.92346248063058,
+        "sla_compliance": "False"
+      },
+      "10x": {
+        "sample_size": 2700,
+        "latency_p95": 173.05848264491505,
+        "precision_mean": 88.08673778961439,
+        "sla_compliance": "False"
+      }
+    },
+    "confidence_level": 0.95
+  },
+  "recommendations": [
+    "❌ Objectif précision non atteint - Optimisations requises",
+    "🔧 Améliorer algorithmes de matching et seuils de décision",
+    "❌ SLA latence non respecté - Optimisations performance critiques",
+    "🚀 Implémenter cache intelligent et optimisation requêtes",
+    "🎯 Segment le plus performant: Individual (+14.8%)",
+    "⚠️ Segment à améliorer: SMB (+14.6%)",
+    "📈 Charge maximale supportée: 1x"
+  ],
+  "next_steps": {
+    "immediate": [
+      "Blocage déploiement V2",
+      "Investigation causes non-conformité",
+      "Plan d'optimisation urgente"
+    ],
+    "short_term": [
+      "Implémentation correctifs prioritaires",
+      "Nouveaux tests A/B validation",
+      "Ajustements architecture si nécessaire"
+    ],
+    "long_term": [
+      "Refonte approche matching si requis",
+      "Renforcement équipe développement",
+      "Audit complet infrastructure"
+    ]
+  }
+}
