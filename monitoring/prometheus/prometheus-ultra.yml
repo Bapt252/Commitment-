@@ -1,0 +1,176 @@
+# 📊 Prometheus Configuration Ultra v2.0 - PROMPT 2
+# SuperSmartMatch V2 - Métriques parsers ultra temps réel
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'supersmartmatch-ultra'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Rules files
+rule_files:
+  - "rules/*.yml"
+  - "ultra-rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # ===========================================
+  # INFRASTRUCTURE SERVICES
+  # ===========================================
+  
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+
+  # ===========================================
+  # PARSERS ULTRA v2.0 SERVICES ⚡
+  # ===========================================
+  
+  # CV Parser Ultra metrics
+  - job_name: 'cv-parser-ultra'
+    static_configs:
+      - targets: ['cv-parser-ultra:5051']
+    metrics_path: '/metrics'
+    scrape_interval: 10s  # Plus fréquent pour temps réel
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'cv_.*'
+        target_label: service
+        replacement: 'cv-parser-ultra'
+      - source_labels: [__name__]
+        regex: 'parsing_duration_seconds'
+        target_label: parser_type
+        replacement: 'cv'
+
+  # Job Parser Ultra metrics  
+  - job_name: 'job-parser-ultra'
+    static_configs:
+      - targets: ['job-parser-ultra:5053']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'job_.*'
+        target_label: service
+        replacement: 'job-parser-ultra'
+      - source_labels: [__name__]
+        regex: 'parsing_duration_seconds'
+        target_label: parser_type
+        replacement: 'job'
+
+  # ===========================================
+  # EXISTING SERVICES (Enhanced)
+  # ===========================================
+  
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:5050']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Matching Service (enhanced with ultra integration)
+  - job_name: 'matching-service'
+    static_configs:
+      - targets: ['matching-service:5052']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # User Service
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:5054']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Notification Service (WebSocket enhanced)
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:5055']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Analytics Service (Ultra metrics)
+  - job_name: 'analytics-service'
+    static_configs:
+      - targets: ['analytics-service:5056']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # ===========================================
+  # INFRASTRUCTURE MONITORING
+  # ===========================================
+  
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Nginx Load Balancer
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Node Exporter (système)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # ===========================================
+  # BUSINESS METRICS (Custom)
+  # ===========================================
+  
+  # Métriques business agrégées
+  - job_name: 'business-metrics'
+    static_configs:
+      - targets: ['analytics-service:5056']
+    metrics_path: '/business-metrics'
+    scrape_interval: 60s
+    
+  # Métriques de parsing performance
+  - job_name: 'parsing-performance'
+    static_configs:
+      - targets: 
+        - 'cv-parser-ultra:5051'
+        - 'job-parser-ultra:5053'
+    metrics_path: '/performance-metrics'
+    scrape_interval: 5s  # Très fréquent pour temps réel
+    
+  # Métriques utilisateur temps réel
+  - job_name: 'user-experience'
+    static_configs:
+      - targets: ['api-gateway:5050']
+    metrics_path: '/user-metrics'
+    scrape_interval: 30s
+
+# ===========================================
+# RECORDING RULES (Agrégations)
+# ===========================================
