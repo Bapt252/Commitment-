@@ -118,9 +118,9 @@ class SuperOptimizedParser {
 
         // === EXPÉRIENCE ===
         const expPatterns = [
-            /(\\d+)\\s*(?:ans?|années?)\\s*(?:d'|de\\s)?(?:expérience|exp)/i,
-            /expérience[\\s:]*(\\d+)\\s*(?:ans?|années?)/i,
-            /(\\d+)\\+?\\s*(?:years?)\\s*(?:of\\s)?experience/i
+            /(\d+)\s*(?:ans?|années?)\s*(?:d'|de\s)?(?:expérience|exp)/i,
+            /expérience[\s:]*(\d+)\s*(?:ans?|années?)/i,
+            /(\d+)\+?\s*(?:years?)\s*(?:of\s)?experience/i
         ];
         
         for (const pattern of expPatterns) {
@@ -134,8 +134,8 @@ class SuperOptimizedParser {
 
         // === LANGUES AMÉLIORÉES ===
         const languagePatterns = [
-            /(Français|Anglais|Espagnol|Allemand|Italien|Portugais|Chinois|Japonais|Arabe)[\\s\\-]*(?:\\([^)]*\\))?[\\s\\-]*(natif|native|courant|fluent|bilingue|bilingual|intermédiaire|intermediate|débutant|beginner|lu|écrit|parlé|spoken|written|read|scolaire|professionnel|business)?/gi,
-            /(French|English|Spanish|German|Italian|Portuguese|Chinese|Japanese|Arabic)[\\s\\-]*(?:\\([^)]*\\))?[\\s\\-]*(native|fluent|bilingual|intermediate|beginner|spoken|written|read|business|professional)?/gi
+            /(Français|Anglais|Espagnol|Allemand|Italien|Portugais|Chinois|Japonais|Arabe)[\s\-]*(?:\([^)]*\))?[\s\-]*(natif|native|courant|fluent|bilingue|bilingual|intermédiaire|intermediate|débutant|beginner|lu|écrit|parlé|spoken|written|read|scolaire|professionnel|business)?/gi,
+            /(French|English|Spanish|German|Italian|Portuguese|Chinese|Japanese|Arabic)[\s\-]*(?:\([^)]*\))?[\s\-]*(native|fluent|bilingual|intermediate|beginner|spoken|written|read|business|professional)?/gi
         ];
         
         const languagesFound = new Set();
@@ -165,10 +165,10 @@ class SuperOptimizedParser {
         // === TITRE DU POSTE AMÉLIORÉ ===
         const titlePatterns = [
             // Pattern spécifique qui a marché partiellement
-            /^([A-ZÀ-ÿ][A-Za-zà-ÿ\\s\\-\\/]{5,50})\\s*(?:\\n|Lieu|\\-|—|–)/m,
+            /^([A-ZÀ-ÿ][A-Za-zà-ÿ\s\-\/]{5,50})\s*(?:\n|Lieu|\-|—|–)/m,
             // Autres patterns
-            /(?:Poste|Offre|Job|Position)[\\s:]*([A-ZÀ-ÿ][A-Za-zà-ÿ\\s\\-\\/]+)/i,
-            /(Assistant|Développeur|Developer|Ingénieur|Engineer|Manager|Chef|Lead|Architecte|Consultant|Analyst|Designer|Commercial|Chargé|Responsable)[\\s\\-]?([A-Za-zà-ÿ\\s\\-\\/]*)/i
+            /(?:Poste|Offre|Job|Position)[\s:]*([A-ZÀ-ÿ][A-Za-zà-ÿ\s\-\/]+)/i,
+            /(Assistant|Développeur|Developer|Ingénieur|Engineer|Manager|Chef|Lead|Architecte|Consultant|Analyst|Designer|Commercial|Chargé|Responsable)[\s\-]?([A-Za-zà-ÿ\s\-\/]*)/i
         ];
         
         for (const pattern of titlePatterns) {
@@ -182,9 +182,9 @@ class SuperOptimizedParser {
 
         // === LOCALISATION AMÉLIORÉE ===
         const locationPatterns = [
-            /Lieu[\\s:]*([A-ZÀ-ÿ][a-zà-ÿ\\s\\-]+(?:\\(\\d{5}\\))?)/i,
-            /(\\d{5})\\s*([A-ZÀ-ÿ][a-zà-ÿ\\s\\-]+)/,
-            /(Paris|Lyon|Marseille|Toulouse|Nice|Nantes|Strasbourg|Montpellier|Bordeaux|Lille|Issy-les-Moulineaux)[^\\n]*/i
+            /Lieu[\s:]*([A-ZÀ-ÿ][a-zà-ÿ\s\-]+(?:\(\d{5}\))?)/i,
+            /(\d{5})\s*([A-ZÀ-ÿ][a-zà-ÿ\s\-]+)/,
+            /(Paris|Lyon|Marseille|Toulouse|Nice|Nantes|Strasbourg|Montpellier|Bordeaux|Lille|Issy-les-Moulineaux)[^\n]*/i
         ];
         
         for (const pattern of locationPatterns) {
@@ -198,10 +198,10 @@ class SuperOptimizedParser {
 
         // === SALAIRE AMÉLIORÉ ===
         const salaryPatterns = [
-            /Rémunération[\\s:]*([\\d\\-k€]+)/i,
-            /(\\d+)[\\s\\-]*k?[€$][\\s\\-]*(?:par\\s+an|annuel|yearly|brut)?/i,
-            /entre\\s*(\\d+)\\s*et\\s*(\\d+)\\s*k?[€$]/i,
-            /(\\d+)\\s*000\\s*[€$]/i
+            /Rémunération[\s:]*([\\d\\-k€]+)/i,
+            /(\d+)[\s\-]*k?[€$][\s\-]*(?:par\s+an|annuel|yearly|brut)?/i,
+            /entre\s*(\d+)\s*et\s*(\d+)\s*k?[€$]/i,
+            /(\d+)\s*000\s*[€$]/i
         ];
         
         for (const pattern of salaryPatterns) {
@@ -209,7 +209,7 @@ class SuperOptimizedParser {
             if (match) {
                 const salaryText = match[1];
                 // Extraire le nombre principal
-                const salaryMatch = salaryText.match(/(\\d+)/);
+                const salaryMatch = salaryText.match(/(\d+)/);
                 if (salaryMatch) {
                     job.salary.amount = parseInt(salaryMatch[1]);
                     job.salary.currency = 'EUR';
@@ -228,8 +228,8 @@ class SuperOptimizedParser {
 
         // === EXPÉRIENCE REQUISE ===
         const expPatterns = [
-            /(\\d+)\\s*(?:ans?|années?)\\s*(?:d'|de\\s)?(?:expérience|exp)/i,
-            /(?:minimum|mini)\\s*(\\d+)\\s*(?:ans?|années?)/i
+            /(\d+)\s*(?:ans?|années?)\s*(?:d'|de\s)?(?:expérience|exp)/i,
+            /(?:minimum|mini)\s*(\d+)\s*(?:ans?|années?)/i
         ];
         
         for (const pattern of expPatterns) {
@@ -244,7 +244,7 @@ class SuperOptimizedParser {
         // === TÉLÉTRAVAIL ===
         if (text.match(/télétravail|remote|hybride/i)) {
             job.benefits.remote_work = true;
-            const remoteDetails = text.match(/(\\d+)\\s*jours?[\\s\\/]*(semaine|week)/i);
+            const remoteDetails = text.match(/(\d+)\s*jours?[\s\/]*(semaine|week)/i);
             if (remoteDetails) {
                 job.benefits.remote_days = parseInt(remoteDetails[1]);
                 console.log(`   ✅ Télétravail: ${job.benefits.remote_days} jours/semaine`);
@@ -303,7 +303,7 @@ class SuperOptimizedParser {
                            finalScore > 50 ? 'Candidat à considérer' : 'Candidat peu adapté'
         };
 
-        console.log(`\\n🏆 Score final: ${finalScore}/100 (${matchingResult.confidence})`);
+        console.log(`\n🏆 Score final: ${finalScore}/100 (${matchingResult.confidence})`);
         console.log(`💡 ${matchingResult.recommendation}`);
 
         return matchingResult;
@@ -343,30 +343,30 @@ async function main() {
         }
 
         if (!cvText || !jobText) {
-            console.log('❌ Fichiers texte non trouvés. Lancez d\\'abord: node fix-pdf-extraction.js');
+            console.log('❌ Fichiers texte non trouvés. Lancez d\'abord: node fix-pdf-extraction.js');
             return;
         }
 
         // Parsing optimisé
-        console.log('\\n📄 === PARSING CV SUPER-OPTIMISÉ ===');
+        console.log('\n📄 === PARSING CV SUPER-OPTIMISÉ ===');
         const cvData = parser.parseEnhancedCV(cvText);
         
-        console.log('\\n💼 === PARSING JOB SUPER-OPTIMISÉ ==='); 
+        console.log('\n💼 === PARSING JOB SUPER-OPTIMISÉ ==='); 
         const jobData = parser.parseEnhancedJob(jobText);
 
         // Sauvegarder les données optimisées
         fs.writeFileSync('cv_parsed_optimized.json', JSON.stringify(cvData, null, 2));
         fs.writeFileSync('job_parsed_optimized.json', JSON.stringify(jobData, null, 2));
-        console.log('\\n💾 Données optimisées sauvegardées');
+        console.log('\n💾 Données optimisées sauvegardées');
 
         // Matching avancé
-        console.log('\\n🎯 === MATCHING SUPER-OPTIMISÉ ===');
+        console.log('\n🎯 === MATCHING SUPER-OPTIMISÉ ===');
         const matchingResult = parser.calculateAdvancedMatching(cvData, jobData);
         
         fs.writeFileSync('matching_optimized.json', JSON.stringify(matchingResult, null, 2));
         console.log('💾 Matching optimisé sauvegardé: matching_optimized.json');
 
-        console.log('\\n✅ Parsing super-optimisé terminé avec succès !');
+        console.log('\n✅ Parsing super-optimisé terminé avec succès !');
         console.log('📂 Fichiers générés:');
         console.log('   - cv_parsed_optimized.json');
         console.log('   - job_parsed_optimized.json'); 
