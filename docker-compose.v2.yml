@@ -1,0 +1,346 @@
+# SuperSmartMatch V2 - Configuration Docker Enrichie
+# ===================================================
+# 
+# Services V2 avec extraction missions détaillées
+# Architecture: CV Parser V2 + Job Parser V2 + Redis + Monitoring
+#
+# Ports:
+# - CV Parser V2: 5051
+# - Job Parser V2: 5053
+# - Redis: 6379
+# - Grafana: 3001
+# - Prometheus: 9091
+#
+# Version: 2.0.0
+# Author: Baptiste Coma
+# Created: June 2025
+
+version: '3.8'
+
+services:
+  # ================================
+  # CV PARSER V2 - ENRICHI MISSIONS
+  # ================================
+  cv-parser-v2:
+    build:
+      context: .
+      dockerfile: Dockerfile.cv-parser-v2
+    container_name: cv-parser-v2
+    ports:
+      - "5051:5051"
+    environment:
+      - NODE_ENV=production
+      - PARSER_VERSION=2.0.0
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+      - MISSION_EXTRACTION=enabled
+      - PARSER_TIMEOUT=30000
+      - MAX_FILE_SIZE=10MB
+    volumes:
+      - ./logs/cv-parser:/app/logs
+      - ./uploads:/app/uploads
+      - ./cache:/app/cache
+    depends_on:
+      - redis
+    networks:
+      - supersmartmatch-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5051/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ================================
+  # JOB PARSER V2 - ENRICHI MISSIONS
+  # ================================
+  job-parser-v2:
+    build:
+      context: .
+      dockerfile: Dockerfile.job-parser-v2
+    container_name: job-parser-v2
+    ports:
+      - "5053:5053"
+    environment:
+      - NODE_ENV=production
+      - PARSER_VERSION=2.0.0
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+      - MISSION_EXTRACTION=enabled
+      - PARSER_TIMEOUT=30000
+      - MAX_FILE_SIZE=10MB
+    volumes:
+      - ./logs/job-parser:/app/logs
+      - ./uploads:/app/uploads
+      - ./cache:/app/cache
+    depends_on:
+      - redis
+    networks:
+      - supersmartmatch-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5053/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ================================
+  # REDIS - CACHE OPTIMISÉ V2
+  # ================================
+  redis:
+    image: redis:7-alpine
+    container_name: redis-v2
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - supersmartmatch-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ================================
+  # SUPERSMARTMATCH V2 - ORCHESTRATEUR
+  # ================================
+  supersmartmatch-v2:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator-v2
+    container_name: supersmartmatch-v2
+    ports:
+      - "5070:5070"
+    environment:
+      - NODE_ENV=production
+      - ORCHESTRATOR_VERSION=2.0.0
+      - CV_PARSER_URL=http://cv-parser-v2:5051
+      - JOB_PARSER_URL=http://job-parser-v2:5053
+      - REDIS_URL=redis://redis:6379
+      - SCORING_WEIGHTS=missions:40,skills:30,experience:15,quality:15
+      - MISSION_MATCHING_ENABLED=true
+      - LOG_LEVEL=info
+    volumes:
+      - ./logs/orchestrator:/app/logs
+      - ./config:/app/config
+    depends_on:
+      - cv-parser-v2
+      - job-parser-v2
+      - redis
+    networks:
+      - supersmartmatch-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5070/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ================================
+  # MONITORING - PROMETHEUS
+  # ================================
+  prometheus:
+    image: prom/prometheus:v2.40.0
+    container_name: prometheus-v2
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - supersmartmatch-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================
+  # MONITORING - GRAFANA
+  # ================================
+  grafana:
+    image: grafana/grafana:9.3.0
+    container_name: grafana-v2
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=supersmartmatch2024
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_FEATURE_TOGGLES_ENABLE=ngalert
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - supersmartmatch-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================
+  # NGINX - LOAD BALANCER V2
+  # ================================
+  nginx:
+    image: nginx:1.23-alpine
+    container_name: nginx-v2
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - supersmartmatch-v2
+    networks:
+      - supersmartmatch-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================
+  # ELASTICSEARCH (LOGGING)
+  # ================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
+    container_name: elasticsearch-v2
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - supersmartmatch-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================
+  # KIBANA (LOG ANALYSIS)
+  # ================================
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.0
+    container_name: kibana-v2
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - xpack.security.enabled=false
+    depends_on:
+      - elasticsearch
+    networks:
+      - supersmartmatch-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 200 OK'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ================================
+# NETWORKS
+# ================================
+networks:
+  supersmartmatch-v2:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+# ================================
+# VOLUMES PERSISTANTS
+# ================================
+volumes:
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  elasticsearch-data:
+    driver: local
+
+# ================================
+# CONFIGURATION AVANCÉE
+# ================================
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+    labels: "service,version"
+
+x-deploy: &default-deploy
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+    window: 120s
+
+# ================================
+# HEALTHCHECKS CUSTOM
+# ================================
+x-healthcheck-defaults: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
