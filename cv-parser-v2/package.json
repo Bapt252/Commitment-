@@ -1,0 +1,101 @@
+{
+  "name": "supersmartmatch-cv-parser-v2",
+  "version": "2.0.0",
+  "description": "SuperSmartMatch V2 - CV Parser with Enhanced Mission Extraction",
+  "main": "app.py",
+  "scripts": {
+    "start": "python app.py",
+    "dev": "python app.py",
+    "test": "pytest tests/",
+    "test:watch": "pytest-watch",
+    "lint": "flake8 .",
+    "format": "black .",
+    "type-check": "mypy .",
+    "parse-cv": "node ../enhanced-mission-parser.js",
+    "health-check": "curl -f http://localhost:5051/health || exit 1",
+    "docker:build": "docker build -f ../Dockerfile.cv-parser-v2 -t cv-parser-v2 ..",
+    "docker:run": "docker run -p 5051:5051 cv-parser-v2",
+    "docker:push": "docker tag cv-parser-v2 registry/cv-parser-v2:2.0.0 && docker push registry/cv-parser-v2:2.0.0"
+  },
+  "keywords": [
+    "cv-parser",
+    "mission-extraction", 
+    "job-matching",
+    "nlp",
+    "ocr",
+    "fastapi",
+    "python",
+    "nodejs",
+    "docker",
+    "supersmartmatch"
+  ],
+  "author": {
+    "name": "Baptiste Coma",
+    "email": "baptiste.coma@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bapt252/Commitment-.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Bapt252/Commitment-/issues"
+  },
+  "homepage": "https://github.com/Bapt252/Commitment-#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.11.0"
+  },
+  "dependencies": {
+    "natural": "^6.7.0",
+    "compromise": "^14.10.0",
+    "franc": "^6.0.0",
+    "stemmer": "^2.0.1",
+    "stopword": "^2.0.8",
+    "leven": "^4.0.0",
+    "sentiment": "^5.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.0",
+    "@types/node": "^20.10.0"
+  },
+  "peerDependencies": {
+    "redis": "^5.0.0"
+  },
+  "config": {
+    "parser_version": "2.0.0",
+    "mission_extraction": "enabled",
+    "supported_formats": ["pdf", "docx", "doc", "txt", "jpg", "jpeg", "png", "bmp"],
+    "max_file_size": "10MB",
+    "timeout": "30000"
+  },
+  "directories": {
+    "lib": "./lib",
+    "test": "./tests",
+    "logs": "./logs",
+    "cache": "./cache"
+  },
+  "files": [
+    "app.py",
+    "requirements.txt",
+    "../enhanced-mission-parser.js",
+    "../fix-pdf-extraction.js",
+    "lib/",
+    "docs/"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/Bapt252"
+  },
+  "private": false,
+  "volta": {
+    "node": "18.17.0",
+    "yarn": "1.22.19"
+  }
+}
