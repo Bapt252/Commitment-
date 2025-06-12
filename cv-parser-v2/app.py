@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-🎯 SuperSmartMatch V2 - CV Parser API ENRICHI
+🎯 SuperSmartMatch V2 - CV Parser API ENRICHI - VERSION CORRIGÉE
 NOUVEAU : Extraction des missions détaillées du CV
+CORRECTIF : Chemins relatifs pour fonctionnement local
 """
 
 import os
@@ -22,12 +23,19 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 class CVParserEnriched:
     def __init__(self):
-        self.parsers_dir = Path("/app/parsers")
+        # CORRECTIF: Utiliser le chemin relatif au lieu de /app/parsers
+        current_dir = Path(__file__).parent
+        self.parsers_dir = current_dir / "parsers"
         self.temp_dir = Path("/tmp/cv_parsing")
         self.temp_dir.mkdir(exist_ok=True)
         
         self.fix_pdf_parser = self.parsers_dir / "fix-pdf-extraction.js"
         self.enhanced_parser = self.parsers_dir / "enhanced-mission-parser.js"
+        
+        # Log des chemins pour debug
+        logger.info(f"📁 Dossier parsers: {self.parsers_dir}")
+        logger.info(f"🔧 Fix PDF parser: {self.fix_pdf_parser} (existe: {self.fix_pdf_parser.exists()})")
+        logger.info(f"🧠 Enhanced parser: {self.enhanced_parser} (existe: {self.enhanced_parser.exists()})")
     
     def extract_clean_text(self, pdf_path):
         """Étape 1 : Extraction du texte propre"""
@@ -39,9 +47,10 @@ class CVParserEnriched:
         work_pdf = work_dir / "input.pdf"
         subprocess.run(['cp', str(pdf_path), str(work_pdf)], check=True)
         
+        # CORRECTIF: Utiliser le chemin absolu correct
         wrapper_script = f"""
 const fs = require('fs');
-const FixedPDFParser = require('{self.fix_pdf_parser}');
+const FixedPDFParser = require('{self.fix_pdf_parser.absolute()}');
 
 async function extractPDF() {{
     try {{
@@ -90,9 +99,10 @@ extractPDF();
         
         work_dir = Path(text_file_path).parent
         
+        # CORRECTIF: Utiliser le chemin absolu correct
         script_content = f"""
 const fs = require('fs');
-const EnhancedMissionParser = require('{self.enhanced_parser}');
+const EnhancedMissionParser = require('{self.enhanced_parser.absolute()}');
 
 async function parseCV() {{
     try {{
@@ -214,5 +224,5 @@ def parse_cv():
         return jsonify({'error': f'Impossible de parser le CV: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    logger.info("🚀 Démarrage CV Parser V2 Enrichi...")
+    logger.info("🚀 Démarrage CV Parser V2 Enrichi - VERSION CORRIGÉE...")
     app.run(host='0.0.0.0', port=5051, debug=False)
