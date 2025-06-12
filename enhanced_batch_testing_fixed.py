@@ -1,463 +1,390 @@
 #!/usr/bin/env python3
 """
-🧪 SuperSmartMatch V2.1 - Tests Massifs et Benchmarking (VERSION CORRIGÉE)
-Script avancé pour tester et optimiser le système en lot
-Supports: PDF, DOC, DOCX, PNG, JPG, JPEG
-
-CORRECTIONS V2.1.1:
-✅ Gestion correcte des espaces dans les noms de dossiers
-✅ Amélioration de la robustesse du parsing des chemins
-✅ Meilleure gestion des erreurs de fichiers
+Enhanced Batch Testing V2.1 - CORRIGÉ
+Tests massifs SuperSmartMatch avec gestion des espaces dans les chemins
 """
 
+import os
 import requests
 import json
-import os
 import time
-import pandas as pd
-from pathlib import Path
-from typing import List, Dict, Tuple
-import statistics
 from datetime import datetime
-import argparse
-import concurrent.futures
-from threading import Lock
-import urllib.parse
+import pandas as pd
+import sys
+from pathlib import Path
 
-class EnhancedTestSuite:
-    
-    def __init__(self, base_url="http://localhost:5055"):
-        self.base_url = base_url
+class EnhancedBatchTester:
+    def __init__(self):
+        self.base_url = "http://localhost:5055"
         self.results = []
-        self.stats = {}
-        self.lock = Lock()
+        self.start_time = None
         
-        # Formats de fichiers supportés
-        self.supported_cv_formats = {'.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg'}
-        self.supported_job_formats = {'.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg'}
+        # Chemins corrigés avec gestion des espaces
+        self.cv_folder = Path.home() / "Desktop" / "CV TEST"
+        self.job_folder = Path.home() / "Desktop" / "FDP TEST"
         
-    def normalize_path(self, folder_path: str) -> Path:
-        """Normalise un chemin en gérant correctement les espaces et la tilde"""
-        # Étape 1: Expansion de la tilde (~)
-        expanded_path = os.path.expanduser(folder_path)
+        # Extensions supportées
+        self.supported_extensions = ['.pdf', '.doc', '.docx']
         
-        # Étape 2: Résolution du chemin absolu
-        absolute_path = os.path.abspath(expanded_path)
+    def check_directories(self):
+        """
+        Vérification de l'existence des dossiers
+        """
+        print("🔍 VÉRIFICATION DES DOSSIERS:")
+        print(f"📁 Dossier CV: {self.cv_folder}")
         
-        # Étape 3: Conversion en objet Path pour une manipulation robuste
-        path_obj = Path(absolute_path)
-        
-        print(f"📁 Normalisation chemin:")
-        print(f"   Input: {folder_path}")
-        print(f"   Expanded: {expanded_path}")
-        print(f"   Absolute: {absolute_path}")
-        print(f"   Final Path: {path_obj}")
-        print(f"   Exists: {path_obj.exists()}")
-        
-        return path_obj
-        
-    def find_files_in_folder(self, folder_path: str, file_types: set) -> List[Path]:
-        """Trouve tous les fichiers supportés dans un dossier (version corrigée)"""
-        try:
-            folder = self.normalize_path(folder_path)
-            found_files = []
+        if not self.cv_folder.exists():
+            print(f"❌ Dossier CV non trouvé: {self.cv_folder}")
+            # Tentative de localisation automatique
+            potential_paths = [
+                Path.home() / "Desktop" / "CV TEST",
+                Path.home() / "Desktop" / "CV_TEST",
+                Path.home() / "Desktop" / "CVTEST",
+                Path("/Users/baptistecomas/Desktop/CV TEST"),
+                Path("/Users/baptistecomas/Desktop/CV_TEST")
+            ]
             
-            if not folder.exists():
-                print(f"⚠️  Dossier non trouvé: {folder}")
-                # Tentative de diagnostic
-                print(f"📊 Diagnostic:")
-                print(f"   - Dossier parent: {folder.parent}")
-                print(f"   - Parent existe: {folder.parent.exists()}")
-                if folder.parent.exists():
-                    print(f"   - Contenu parent: {list(folder.parent.iterdir())}")
-                return []
+            for path in potential_paths:
+                if path.exists():
+                    print(f"✅ Dossier CV trouvé: {path}")
+                    self.cv_folder = path
+                    break
+            else:
+                print("❌ Aucun dossier CV trouvé dans les emplacements possibles")
+                return False
+        else:
+            print(f"✅ Dossier CV trouvé")
             
-            print(f"✅ Dossier trouvé: {folder}")
+        print(f"📁 Dossier Jobs: {self.job_folder}")
+        if not self.job_folder.exists():
+            print(f"❌ Dossier Jobs non trouvé: {self.job_folder}")
+            # Tentative de localisation automatique
+            potential_paths = [
+                Path.home() / "Desktop" / "FDP TEST",
+                Path.home() / "Desktop" / "FDP_TEST",
+                Path.home() / "Desktop" / "FDPTEST", 
+                Path("/Users/baptistecomas/Desktop/FDP TEST"),
+                Path("/Users/baptistecomas/Desktop/FDP_TEST")
+            ]
             
-            # Méthode robuste pour trouver les fichiers
-            for file_type in file_types:
-                try:
-                    # Utilise rglob pour être plus permissif
-                    files = list(folder.rglob(f"*{file_type}"))
-                    found_files.extend(files)
-                    print(f"   📄 {file_type}: {len(files)} fichiers")
-                except Exception as e:
-                    print(f"   ❌ Erreur pour {file_type}: {e}")
+            for path in potential_paths:
+                if path.exists():
+                    print(f"✅ Dossier Jobs trouvé: {path}")
+                    self.job_folder = path
+                    break
+            else:
+                print("❌ Aucun dossier Jobs trouvé dans les emplacements possibles")
+                return False
+        else:
+            print(f"✅ Dossier Jobs trouvé")
             
-            # Éliminer les doublons et trier
-            found_files = sorted(list(set(found_files)))
-            print(f"📊 Total: {len(found_files)} fichiers trouvés")
-            
-            return found_files
-            
-        except Exception as e:
-            print(f"❌ Erreur dans find_files_in_folder: {e}")
-            return []
+        return True
     
-    def analyze_folder_content(self, folder_path: str) -> Dict:
-        """Analyse le contenu d'un dossier (version corrigée)"""
-        try:
-            folder = self.normalize_path(folder_path)
+    def get_files_list(self):
+        """
+        Récupération de la liste des fichiers avec gestion des espaces
+        """
+        print("📄 SCAN DES FICHIERS:")
+        
+        # Scan CV
+        cv_files = []
+        if self.cv_folder.exists():
+            for file_path in self.cv_folder.iterdir():
+                if file_path.is_file() and file_path.suffix.lower() in self.supported_extensions:
+                    cv_files.append(file_path)
+        
+        print(f"   📋 CV trouvés: {len(cv_files)}")
+        for cv in cv_files[:5]:  # Afficher les 5 premiers
+            print(f"      - {cv.name}")
+        if len(cv_files) > 5:
+            print(f"      ... et {len(cv_files) - 5} autres")
+        
+        # Scan Jobs
+        job_files = []
+        if self.job_folder.exists():
+            for file_path in self.job_folder.iterdir():
+                if file_path.is_file() and file_path.suffix.lower() in self.supported_extensions:
+                    job_files.append(file_path)
+        
+        print(f"   💼 Jobs trouvés: {len(job_files)}")
+        for job in job_files[:5]:  # Afficher les 5 premiers
+            print(f"      - {job.name}")
+        if len(job_files) > 5:
+            print(f"      ... et {len(job_files) - 5} autres")
             
-            if not folder.exists():
-                return {
-                    'exists': False,
-                    'path': str(folder),
-                    'error': f'Dossier non trouvé: {folder}',
-                    'parent_exists': folder.parent.exists(),
-                    'parent_content': list(folder.parent.iterdir()) if folder.parent.exists() else []
-                }
-            
-            files_by_type = {}
-            total_files = 0
-            
-            for item in folder.iterdir():
-                if item.is_file():
-                    ext = item.suffix.lower()
-                    if ext not in files_by_type:
-                        files_by_type[ext] = []
-                    files_by_type[ext].append(item.name)
-                    total_files += 1
-            
-            supported_files = []
-            all_supported = self.supported_cv_formats.union(self.supported_job_formats)
-            
-            for ext in all_supported:
-                if ext in files_by_type:
-                    supported_files.extend([f for f in files_by_type[ext]])
-            
-            return {
-                'exists': True,
-                'path': str(folder),
-                'total_files': total_files,
-                'files_by_type': files_by_type,
-                'supported_files': supported_files,
-                'supported_count': len(supported_files)
-            }
-            
-        except Exception as e:
-            return {
-                'exists': False,
-                'path': folder_path,
-                'error': f'Erreur analyse dossier: {str(e)}'
-            }
+        return cv_files, job_files
     
-    def test_cv_parsing_quality(self, cv_folder: str) -> Dict:
-        """Évalue la qualité du parsing des CV (version améliorée)"""
-        cv_files = self.find_files_in_folder(cv_folder, self.supported_cv_formats)
-        parsing_results = []
+    def check_api_health(self):
+        """
+        Vérification de l'état des APIs
+        """
+        print("🏥 VÉRIFICATION APIs:")
         
-        print(f"🔍 Test qualité parsing sur {len(cv_files)} fichiers...")
+        apis = [
+            ("CV Parser V2", "http://localhost:5051/health"),
+            ("Job Parser V2", "http://localhost:5053/health"),
+            ("Enhanced API V2.1", "http://localhost:5055/health")
+        ]
         
-        # Afficher les formats trouvés
-        formats_found = {}
-        for cv_file in cv_files:
-            ext = cv_file.suffix.lower()
-            formats_found[ext] = formats_found.get(ext, 0) + 1
-        
-        if formats_found:
-            print(f"   📄 Formats détectés: {dict(formats_found)}")
-        
-        for i, cv_file in enumerate(cv_files[:20]):  # Limiter à 20 pour les tests
+        all_healthy = True
+        for name, url in apis:
             try:
-                print(f"   📄 Test {i+1}/20: {cv_file.name}")
-                
-                with open(cv_file, 'rb') as f:
-                    response = requests.post(
-                        "http://localhost:5051/api/parse-cv/",
-                        files={'file': f},
-                        data={'force_refresh': 'true'},
-                        timeout=30
-                    )
-                
-                if response.ok:
-                    cv_data = response.json()
-                    quality_score = self.evaluate_cv_quality(cv_data)
-                    text_length = len(cv_data.get('raw_text', ''))
-                    
-                    parsing_results.append({
-                        'file': cv_file.name,
-                        'format': cv_file.suffix.lower(),
-                        'quality_score': quality_score,
-                        'text_length': text_length,
-                        'missions_count': len(cv_data.get('professional_experience', [{}])[0].get('missions', [])),
-                        'skills_count': len(cv_data.get('technical_skills', []) + cv_data.get('soft_skills', [])),
-                        'status': 'success'
-                    })
-                    
-                    # Diagnostic spécial pour BATU Sam.pdf
-                    if 'BATU Sam' in cv_file.name or 'batu sam' in cv_file.name.lower():
-                        print(f"   🎯 DIAGNOSTIC BATU SAM:")
-                        print(f"      - Texte extrait: {text_length} caractères")
-                        print(f"      - Score qualité: {quality_score:.1f}%")
-                        print(f"      - Nom candidat: {cv_data.get('candidate_name', 'NON TROUVÉ')}")
-                        print(f"      - Missions: {len(cv_data.get('professional_experience', [{}])[0].get('missions', []))}")
-                        if text_length < 100:
-                            print(f"      ⚠️  PROBLÈME: Très peu de texte extrait!")
+                response = requests.get(url, timeout=5)
+                if response.status_code == 200:
+                    print(f"   ✅ {name}: OK")
                 else:
-                    print(f"   ❌ Erreur HTTP {response.status_code}")
-                    parsing_results.append({
-                        'file': cv_file.name,
-                        'format': cv_file.suffix.lower(),
-                        'status': 'error',
-                        'error_code': response.status_code
-                    })
-                    
+                    print(f"   ❌ {name}: Erreur {response.status_code}")
+                    all_healthy = False
             except Exception as e:
-                print(f"   ❌ Exception: {str(e)}")
-                parsing_results.append({
-                    'file': cv_file.name,
-                    'format': cv_file.suffix.lower(),
-                    'status': 'exception',
-                    'error': str(e)
-                })
-        
-        return {
-            'total_files': len(cv_files),
-            'tested_files': len(parsing_results),
-            'successful_parses': len([r for r in parsing_results if r.get('status') == 'success']),
-            'average_quality': statistics.mean([r.get('quality_score', 0) for r in parsing_results if r.get('quality_score')]) if parsing_results else 0,
-            'formats_found': formats_found,
-            'detailed_results': parsing_results
-        }
-    
-    def evaluate_cv_quality(self, cv_data: Dict) -> float:
-        """Évalue la qualité d'un CV parsé"""
-        score = 0
-        
-        # Nom du candidat (20%)
-        if cv_data.get('candidate_name'):
-            score += 20
-            
-        # Expérience professionnelle (30%)
-        exp = cv_data.get('professional_experience', [])
-        if exp and len(exp) > 0:
-            score += 15
-            missions = exp[0].get('missions', [])
-            if missions and len(missions) >= 3:
-                score += 15
+                print(f"   ❌ {name}: Non accessible ({e})")
+                all_healthy = False
                 
-        # Compétences (25%)
-        tech_skills = cv_data.get('technical_skills', [])
-        soft_skills = cv_data.get('soft_skills', [])
-        if tech_skills:
-            score += 15
-        if soft_skills:
-            score += 10
-            
-        # Texte extrait (15%)
-        raw_text = cv_data.get('raw_text', '')
-        if len(raw_text) > 500:
-            score += 15
-        elif len(raw_text) > 200:
-            score += 10
-            
-        # Formation (10%)
-        if cv_data.get('education'):
-            score += 10
-            
-        return min(score, 100)
+        return all_healthy
     
-    def test_problematic_file(self, file_path: str) -> Dict:
-        """Test spécifique pour un fichier problématique (version améliorée)"""
+    def test_single_match(self, cv_path, job_path):
+        """
+        Test d'un matching individual avec gestion robuste des chemins
+        """
         try:
-            file_path = self.normalize_path(file_path)
-            
-            if not file_path.exists():
-                return {
-                    'file': file_path.name,
-                    'status': 'file_not_found',
-                    'error': f'Fichier non trouvé: {file_path}',
-                    'path_tried': str(file_path),
-                    'parent_exists': file_path.parent.exists(),
-                    'parent_content': list(file_path.parent.iterdir()) if file_path.parent.exists() else []
+            # Utilisation de Path pour gérer les espaces correctement
+            with open(cv_path, 'rb') as cv_file, open(job_path, 'rb') as job_file:
+                files = {
+                    'cv_file': (cv_path.name, cv_file, 'application/pdf'),
+                    'job_file': (job_path.name, job_file, 'application/pdf')
                 }
-            
-            # Vérifier le format
-            file_format = file_path.suffix.lower()
-            if file_format not in self.supported_cv_formats:
-                return {
-                    'file': file_path.name,
-                    'format': file_format,
-                    'status': 'unsupported_format',
-                    'error': f'Format non supporté: {file_format}',
-                    'supported_formats': list(self.supported_cv_formats)
-                }
-            
-            print(f"🔍 Test spécifique: {file_path.name}")
-            print(f"   📁 Chemin: {file_path}")
-            print(f"   📊 Taille: {file_path.stat().st_size} bytes")
-            
-            # Test parsing CV
-            with open(file_path, 'rb') as f:
-                cv_response = requests.post(
-                    "http://localhost:5051/api/parse-cv/",
-                    files={'file': f},
-                    data={'force_refresh': 'true'},
+                
+                response = requests.post(
+                    f"{self.base_url}/api/matching/files",
+                    files=files,
                     timeout=30
                 )
             
-            if not cv_response.ok:
+            if response.status_code == 200:
+                return response.json()
+            else:
                 return {
-                    'file': file_path.name,
-                    'format': file_format,
-                    'status': 'parsing_error',
-                    'error_code': cv_response.status_code,
-                    'error_message': cv_response.text[:200] if cv_response.text else 'Erreur inconnue'
+                    'error': f"HTTP {response.status_code}",
+                    'details': response.text[:200]
                 }
-            
-            cv_data = cv_response.json()
-            
-            # Analyse détaillée
-            analysis = {
-                'file': file_path.name,
-                'format': file_format,
-                'status': 'success',
-                'file_size_bytes': file_path.stat().st_size,
-                'text_extraction': {
-                    'raw_text_length': len(cv_data.get('raw_text', '')),
-                    'raw_text_preview': cv_data.get('raw_text', '')[:200] + '...' if cv_data.get('raw_text') else '',
-                    'quality_score': self.evaluate_cv_quality(cv_data)
-                },
-                'content_analysis': {
-                    'candidate_name': cv_data.get('candidate_name', 'Non trouvé'),
-                    'professional_experience_count': len(cv_data.get('professional_experience', [])),
-                    'missions_count': len(cv_data.get('professional_experience', [{}])[0].get('missions', [])) if cv_data.get('professional_experience') else 0,
-                    'technical_skills_count': len(cv_data.get('technical_skills', [])),
-                    'soft_skills_count': len(cv_data.get('soft_skills', []))
-                },
-                'raw_parsing_response': cv_data,  # Pour diagnostic approfondi
-                'potential_issues': []
-            }
-            
-            # Détection des problèmes
-            if analysis['text_extraction']['raw_text_length'] < 50:
-                analysis['potential_issues'].append({
-                    'type': 'critical_low_text_extraction',
-                    'description': f"CRITIQUE: Très peu de texte extrait ({analysis['text_extraction']['raw_text_length']} caractères)",
-                    'recommendation': f"Le fichier {file_format} ne peut pas être lu correctement. Vérifier l'intégrité du fichier ou essayer un autre format."
-                })
-            elif analysis['text_extraction']['raw_text_length'] < 200:
-                analysis['potential_issues'].append({
-                    'type': 'low_text_extraction',
-                    'description': f"Peu de texte extrait ({analysis['text_extraction']['raw_text_length']} caractères)",
-                    'recommendation': f"Vérifier le format {file_format} ou les permissions de lecture"
-                })
-            
-            if analysis['content_analysis']['missions_count'] == 0:
-                analysis['potential_issues'].append({
-                    'type': 'no_missions_found',
-                    'description': "Aucune mission détectée",
-                    'recommendation': "Vérifier le parsing des expériences professionnelles"
-                })
-            
-            if analysis['content_analysis']['candidate_name'] == 'Non trouvé':
-                analysis['potential_issues'].append({
-                    'type': 'no_candidate_name',
-                    'description': "Nom du candidat non détecté",
-                    'recommendation': "Vérifier la structure du document"
-                })
-            
-            return analysis
-            
+                
         except Exception as e:
             return {
-                'file': Path(file_path).name if file_path else 'unknown',
-                'status': 'exception',
-                'error': str(e)
+                'error': str(e),
+                'details': f"Erreur lors du test {cv_path.name} vs {job_path.name}"
             }
-
-    def discover_files(self, cv_folder: str, job_folder: str) -> Dict:
-        """Découvre et analyse les fichiers dans les dossiers (version améliorée)"""
-        print("🔍 DÉCOUVERTE DES FICHIERS (Version Corrigée)")
-        print("="*50)
+    
+    def run_focused_tests(self, max_cv=10, max_jobs=5):
+        """
+        Tests focalisés pour validation rapide
+        """
+        print(f"🎯 TESTS FOCALISÉS ({max_cv} CV × {max_jobs} Jobs):")
         
-        cv_analysis = self.analyze_folder_content(cv_folder)
-        job_analysis = self.analyze_folder_content(job_folder)
+        cv_files, job_files = self.get_files_list()
         
-        print(f"📁 Dossier CV: {cv_analysis['path']}")
-        if cv_analysis['exists']:
-            print(f"   ✅ {cv_analysis['total_files']} fichiers trouvés")
-            print(f"   📄 {cv_analysis['supported_count']} fichiers supportés")
-            print(f"   📊 Types: {dict(cv_analysis['files_by_type'])}")
-        else:
-            print(f"   ❌ {cv_analysis['error']}")
-            if 'parent_exists' in cv_analysis and cv_analysis['parent_exists']:
-                print(f"   📁 Parent existe, contenu: {cv_analysis.get('parent_content', [])}")
+        # Limitation pour tests rapides
+        test_cvs = cv_files[:max_cv]
+        test_jobs = job_files[:max_jobs]
         
-        print(f"\n📁 Dossier Jobs: {job_analysis['path']}")
-        if job_analysis['exists']:
-            print(f"   ✅ {job_analysis['total_files']} fichiers trouvés")
-            print(f"   📄 {job_analysis['supported_count']} fichiers supportés")
-            print(f"   📊 Types: {dict(job_analysis['files_by_type'])}")
-        else:
-            print(f"   ❌ {job_analysis['error']}")
-            if 'parent_exists' in job_analysis and job_analysis['parent_exists']:
-                print(f"   📁 Parent existe, contenu: {job_analysis.get('parent_content', [])}")
+        total_tests = len(test_cvs) * len(test_jobs)
+        print(f"📊 Total tests: {total_tests}")
         
-        return {
-            'cv_folder': cv_analysis,
-            'job_folder': job_analysis
-        }
+        self.start_time = time.time()
+        test_count = 0
+        
+        for cv_path in test_cvs:
+            for job_path in test_jobs:
+                test_count += 1
+                print(f"🔄 Test {test_count}/{total_tests}: {cv_path.name} ↔ {job_path.name}")
+                
+                result = self.test_single_match(cv_path, job_path)
+                
+                # Enrichissement des résultats
+                result['cv_file'] = cv_path.name
+                result['job_file'] = job_path.name
+                result['test_number'] = test_count
+                result['timestamp'] = datetime.now().isoformat()
+                
+                self.results.append(result)
+                
+                # Affichage du score si disponible
+                if 'total_score' in result:
+                    score = result['total_score']
+                    status = "🎯" if score >= 70 else "⚠️" if score >= 50 else "❌"
+                    print(f"   {status} Score: {score}%")
+                elif 'error' in result:
+                    print(f"   ❌ Erreur: {result['error']}")
+                
+                # Pause pour éviter la surcharge
+                time.sleep(0.1)
+        
+        elapsed = time.time() - self.start_time
+        print(f"⏱️ Tests terminés en {elapsed:.2f}s")
+        
+    def run_full_batch(self):
+        """
+        Tests complets sur tous les fichiers
+        """
+        print("🚀 TESTS COMPLETS:")
+        
+        cv_files, job_files = self.get_files_list()
+        total_tests = len(cv_files) * len(job_files)
+        
+        print(f"📊 Total tests: {total_tests}")
+        print("⚠️ Cela peut prendre du temps...")
+        
+        confirm = input("Continuer? (y/N): ").lower()
+        if confirm != 'y':
+            print("❌ Tests annulés")
+            return
+        
+        self.start_time = time.time()
+        test_count = 0
+        
+        for cv_path in cv_files:
+            for job_path in job_files:
+                test_count += 1
+                
+                if test_count % 10 == 0:
+                    elapsed = time.time() - self.start_time
+                    avg_time = elapsed / test_count
+                    remaining = (total_tests - test_count) * avg_time
+                    print(f"🔄 Progress: {test_count}/{total_tests} - ETA: {remaining/60:.1f}min")
+                
+                result = self.test_single_match(cv_path, job_path)
+                result['cv_file'] = cv_path.name
+                result['job_file'] = job_path.name
+                result['test_number'] = test_count
+                result['timestamp'] = datetime.now().isoformat()
+                
+                self.results.append(result)
+    
+    def analyze_results(self):
+        """
+        Analyse des résultats de tests
+        """
+        if not self.results:
+            print("❌ Aucun résultat à analyser")
+            return
+        
+        print("\n📊 ANALYSE DES RÉSULTATS:")
+        print("=" * 50)
+        
+        # Statistiques de base
+        total_tests = len(self.results)
+        successful_tests = len([r for r in self.results if 'total_score' in r])
+        error_tests = total_tests - successful_tests
+        
+        print(f"📈 Tests réussis: {successful_tests}/{total_tests} ({successful_tests/total_tests*100:.1f}%)")
+        print(f"❌ Tests en erreur: {error_tests}")
+        
+        if successful_tests > 0:
+            scores = [r['total_score'] for r in self.results if 'total_score' in r]
+            print(f"🎯 Score moyen: {sum(scores)/len(scores):.1f}%")
+            print(f"🏆 Score max: {max(scores):.1f}%")
+            print(f"📉 Score min: {min(scores):.1f}%")
+            
+            # Distribution des scores
+            high_scores = len([s for s in scores if s >= 70])
+            medium_scores = len([s for s in scores if 50 <= s < 70])
+            low_scores = len([s for s in scores if s < 50])
+            
+            print(f"\n📊 DISTRIBUTION:")
+            print(f"   🎯 Scores élevés (≥70%): {high_scores}")
+            print(f"   ⚠️ Scores moyens (50-69%): {medium_scores}")
+            print(f"   ❌ Scores faibles (<50%): {low_scores}")
+        
+        # Top 5 des meilleurs matchs
+        if successful_tests > 0:
+            best_matches = sorted(
+                [r for r in self.results if 'total_score' in r],
+                key=lambda x: x['total_score'],
+                reverse=True
+            )[:5]
+            
+            print(f"\n🏆 TOP 5 MEILLEURS MATCHS:")
+            for i, match in enumerate(best_matches, 1):
+                print(f"   {i}. {match['cv_file']} ↔ {match['job_file']}: {match['total_score']}%")
+    
+    def save_results(self):
+        """
+        Sauvegarde des résultats
+        """
+        if not self.results:
+            return
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Sauvegarde JSON
+        json_file = f"batch_results_{timestamp}.json"
+        with open(json_file, 'w', encoding='utf-8') as f:
+            json.dump(self.results, f, indent=2, ensure_ascii=False)
+        
+        print(f"💾 Résultats sauvegardés: {json_file}")
+        
+        # Sauvegarde CSV si pandas disponible
+        try:
+            df = pd.DataFrame(self.results)
+            csv_file = f"batch_results_{timestamp}.csv"
+            df.to_csv(csv_file, index=False, encoding='utf-8')
+            print(f"📊 CSV généré: {csv_file}")
+        except:
+            print("⚠️ Pandas non disponible, pas de CSV généré")
 
 def main():
-    parser = argparse.ArgumentParser(description='Tests massifs SuperSmartMatch V2.1 - Support multi-formats (VERSION CORRIGÉE)')
-    parser.add_argument('--cv-folder', default='~/Desktop/CV TEST', help='Dossier des CV (gestion espaces corrigée)')
-    parser.add_argument('--job-folder', default='~/Desktop/FDP TEST', help='Dossier des Jobs (gestion espaces corrigée)')
-    parser.add_argument('--max-tests', type=int, default=50, help='Nombre max de combinaisons')
-    parser.add_argument('--output', help='Fichier de sortie du rapport')
-    parser.add_argument('--parsing-quality', action='store_true', help='Test qualité parsing')
-    parser.add_argument('--test-file', help='Test un fichier spécifique')
-    parser.add_argument('--discover', action='store_true', help='Découvrir les fichiers dans les dossiers')
+    print("🚀 SuperSmartMatch V2.1 - Enhanced Batch Testing CORRIGÉ")
+    print("=" * 60)
     
-    args = parser.parse_args()
+    tester = EnhancedBatchTester()
     
-    test_suite = EnhancedTestSuite()
+    # Vérifications préliminaires
+    if not tester.check_directories():
+        print("❌ Impossible de continuer sans les dossiers")
+        return
     
-    print("🚀 SuperSmartMatch V2.1 - Suite de Tests Avancés (VERSION CORRIGÉE)")
-    print("="*70)
-    print("🔧 CORRECTIONS APPORTÉES:")
-    print("   ✅ Gestion correcte des espaces dans les noms de dossiers")
-    print("   ✅ Amélioration de la robustesse du parsing des chemins")
-    print("   ✅ Diagnostic amélioré pour fichiers problématiques")
-    print("   ✅ Meilleure gestion des erreurs de fichiers")
-    print("📄 Formats supportés: PDF, DOC, DOCX, PNG, JPG, JPEG")
-    print("="*70)
-    
-    # Découverte des fichiers
-    discovery = test_suite.discover_files(args.cv_folder, args.job_folder)
-    
-    # Test d'un fichier spécifique
-    if args.test_file:
-        print(f"\n🔍 TEST FICHIER SPÉCIFIQUE: {args.test_file}")
-        print("-" * 50)
-        file_analysis = test_suite.test_problematic_file(args.test_file)
-        print(f"📄 Fichier: {file_analysis['file']}")
-        print(f"📊 Statut: {file_analysis['status']}")
+    if not tester.check_api_health():
+        print("⚠️ Certaines APIs ne sont pas accessibles")
+        print("💡 Vérifiez que les services sont démarrés sur ports 5051, 5053, 5055")
         
-        if file_analysis['status'] == 'success':
-            text_info = file_analysis['text_extraction']
-            print(f"📝 Texte extrait: {text_info['raw_text_length']} caractères")
-            print(f"🏆 Score qualité: {text_info['quality_score']:.1f}%")
-            
-            if file_analysis['potential_issues']:
-                print("\n⚠️  PROBLÈMES DÉTECTÉS:")
-                for issue in file_analysis['potential_issues']:
-                    print(f"   • {issue['description']}")
-                    print(f"     → {issue['recommendation']}")
-            else:
-                print("\n✅ Aucun problème détecté")
+        continue_anyway = input("Continuer quand même? (y/N): ").lower()
+        if continue_anyway != 'y':
+            return
     
-    # Test qualité parsing
-    if args.parsing_quality:
-        print("\n1️⃣ TEST QUALITÉ PARSING")
-        print("-" * 30)
-        parsing_results = test_suite.test_cv_parsing_quality(args.cv_folder)
+    # Menu des options
+    print("\n🎯 OPTIONS DE TEST:")
+    print("1. Tests focalisés (10 CV × 5 Jobs = 50 tests)")
+    print("2. Tests complets (tous les fichiers)")
+    print("3. Test spécifique BATU Sam.pdf")
+    print("4. Quitter")
+    
+    choice = input("Choix (1-4): ").strip()
+    
+    if choice == "1":
+        tester.run_focused_tests()
+    elif choice == "2":
+        tester.run_full_batch()
+    elif choice == "3":
+        # Test spécifique pour BATU Sam
+        cv_files, job_files = tester.get_files_list()
+        batu_file = None
+        for cv in cv_files:
+            if "BATU" in cv.name and "Sam" in cv.name:
+                batu_file = cv
+                break
         
-        print(f"✅ {parsing_results['successful_parses']}/{parsing_results['tested_files']} fichiers parsés avec succès")
-        print(f"📊 Qualité moyenne: {parsing_results['average_quality']:.1f}%")
+        if batu_file and job_files:
+            print(f"🎯 Test spécifique: {batu_file.name}")
+            result = tester.test_single_match(batu_file, job_files[0])
+            print(f"📊 Résultat: {result}")
+        else:
+            print("❌ BATU Sam.pdf non trouvé")
+    else:
+        print("👋 Au revoir!")
+        return
     
-    print(f"\n🎯 SuperSmartMatch V2.1 Enhanced (Corrigé) - Tests terminés!")
+    # Analyse et sauvegarde
+    if tester.results:
+        tester.analyze_results()
+        tester.save_results()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
