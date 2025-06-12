@@ -1,0 +1,60 @@
+{
+  "status": "success",
+  "data": {
+    "job_info": {
+      "title": "Développeur Full Stack Senior",
+      "company": "TechStart",
+      "location": "Paris, France",
+      "contract_type": "CDI",
+      "remote_policy": "Hybride (3j/semaine télétravail)",
+      "salary_range": "55k-70k€ selon expérience",
+      "department": "Engineering",
+      "team_size": "10-15 personnes"
+    },
+    "requirements": {
+      "required_skills": [
+        "React", "Node.js", "Python", "Docker", 
+        "Kubernetes", "AWS", "PostgreSQL", "TypeScript",
+        "JavaScript", "Git", "FastAPI"
+      ],
+      "optional_skills": ["Azure", "Redis", "Next.js", "Prometheus", "Grafana"],
+      "experience_required": "5+ ans",
+      "languages": ["Français", "Anglais (courant)"],
+      "education": "Bac+5 en informatique ou équivalent",
+      "management_required": true,
+      "soft_skills": ["Esprit d'équipe", "Capacité d'adaptation", "Communication"]
+    },
+    "responsibilities": [
+      "Développer des applications web performantes et scalables",
+      "Participer à l'architecture technique des nouveaux projets", 
+      "Encadrer et mentorer les développeurs juniors",
+      "Participer aux revues de code et amélioration continue",
+      "Collaborer avec les équipes produit et design",
+      "Maintenir et optimiser l'infrastructure existante"
+    ],
+    "benefits": [
+      "Télétravail hybride (3j/semaine au bureau)",
+      "Formation continue et conférences",
+      "Stock-options de la startup", 
+      "Assurance santé premium",
+      "RTT et congés flexibles",
+      "Équipement MacBook Pro + écrans"
+    ],
+    "extracted_metrics": {
+      "seniority_level": "senior",
+      "team_size": "moyenne (10-15 personnes)",
+      "technical_complexity": "élevée",
+      "industry": "tech/startup",
+      "remote_friendliness": "high",
+      "growth_potential": "high",
+      "required_skills_count": 11,
+      "competitive_salary": true
+    },
+    "recruitment_process": [
+      "Entretien RH (30 min)",
+      "Test technique (2h)", 
+      "Entretien technique avec l'équipe (1h)",
+      "Entretien final avec le CTO (45 min)"
+    ]
+  }
+}

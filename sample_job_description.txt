@@ -1,0 +1,49 @@
+DÉVELOPPEUR FULL STACK SENIOR
+TechStart - Paris, France
+
+Nous recherchons un Développeur Full Stack Senior passionné pour rejoindre notre équipe en pleine croissance. Vous travaillerez sur des projets innovants dans un environnement dynamique et collaboratif.
+
+PROFIL RECHERCHÉ:
+• 5+ ans d'expérience en développement web
+• Maîtrise de React, Node.js, Python
+• Expérience avec Docker et Kubernetes
+• Connaissance des services cloud (AWS/Azure)
+• Anglais courant requis
+• Esprit d'équipe et capacité d'adaptation
+
+RESPONSABILITÉS:
+• Développer des applications web performantes et scalables
+• Participer à l'architecture technique des nouveaux projets
+• Encadrer et mentorer les développeurs juniors
+• Participer aux revues de code et amélioration continue
+• Collaborer avec les équipes produit et design
+• Maintenir et optimiser l'infrastructure existante
+
+STACK TECHNIQUE:
+• Frontend: React, TypeScript, Next.js
+• Backend: Node.js, Python, FastAPI
+• Base de données: PostgreSQL, Redis
+• Infrastructure: Docker, Kubernetes, AWS
+• CI/CD: GitHub Actions, Docker Registry
+• Monitoring: Prometheus, Grafana
+
+AVANTAGES:
+• Télétravail hybride (3 jours/semaine au bureau)
+• Formation continue et conférences
+• Stock-options de la startup
+• Assurance santé premium
+• RTT et congés flexibles
+• Équipement MacBook Pro + écrans
+
+PROCESSUS DE RECRUTEMENT:
+1. Entretien RH (30 min)
+2. Test technique (2h)
+3. Entretien technique avec l'équipe (1h)
+4. Entretien final avec le CTO (45 min)
+
+Salaire: 55k-70k€ selon expérience
+Type de contrat: CDI
+Localisation: Paris 11ème (Métro République)
+Prise de poste: Dès que possible
+
+Pour postuler, envoyez CV + lettre de motivation à recrutement@techstart.fr

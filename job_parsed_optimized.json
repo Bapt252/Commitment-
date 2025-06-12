@@ -1,0 +1,27 @@
+{
+  "job_info": {
+    "title": "Bcom HR - Fiche de poste Assistant Facturation",
+    "contract_type": "CDD",
+    "contract_duration": "6 mois",
+    "location": "Issy-les-Moulineaux (92130)"
+  },
+  "requirements": {
+    "technical_skills": [
+      "peoplesoft",
+      "oracle",
+      "excel",
+      "erp"
+    ],
+    "experience_years": 5
+  },
+  "benefits": {
+    "remote_work": true,
+    "remote_days": 2
+  },
+  "company": {},
+  "salary": {
+    "amount": 25,
+    "max_amount": 30,
+    "currency": "EUR"
+  }
+}

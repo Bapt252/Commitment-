@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: ssm_redis_v2
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ssm_network
+
+  cv-parser-v2:
+    build:
+      context: ./cv-parser-v2
+      dockerfile: Dockerfile
+    container_name: ssm_cv_parser_v2
+    ports:
+      - "5051:5051"
+    volumes:
+      - "./fix-pdf-extraction.js:/app/parsers/fix-pdf-extraction.js:ro"
+      - "./super-optimized-parser.js:/app/parsers/super-optimized-parser.js:ro"
+      - "/tmp/cv_parsing:/tmp/cv_parsing"
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5051/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - redis
+    networks:
+      - ssm_network
+    restart: unless-stopped
+
+  job-parser-v2:
+    build:
+      context: ./job-parser-v2
+      dockerfile: Dockerfile
+    container_name: ssm_job_parser_v2
+    ports:
+      - "5053:5053"
+    volumes:
+      - "./fix-pdf-extraction.js:/app/parsers/fix-pdf-extraction.js:ro"
+      - "./super-optimized-parser.js:/app/parsers/super-optimized-parser.js:ro"
+      - "/tmp/job_parsing:/tmp/job_parsing"
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5053/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - redis
+    networks:
+      - ssm_network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  ssm_network:
+    driver: bridge

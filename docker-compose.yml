@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # SuperSmartMatch V1 (Legacy)
   supersmartmatch-v1:
@@ -74,7 +76,7 @@ services:
       - supersmartmatch-v1
       - supersmartmatch-v2
 
-  # Redis Cache
+  # Redis
   redis:
     image: redis:7-alpine
     container_name: ssm_redis
@@ -84,7 +86,7 @@ services:
       - ssm_network
     restart: unless-stopped
 
-  # Monitoring - Prometheus
+  # Monitoring Stack
   prometheus:
     image: prom/prometheus:latest
     container_name: ssm_prometheus
@@ -97,7 +99,6 @@ services:
       - ssm_network
     restart: unless-stopped
 
-  # Monitoring - Grafana  
   grafana:
     image: grafana/grafana:latest
     container_name: ssm_grafana

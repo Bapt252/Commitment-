@@ -1,94 +1,29 @@
-# Prometheus configuration for SuperSmartMatch V2
-# Configured for current container names with supersmartmatch- prefix
-
 global:
   scrape_interval: 15s
-  evaluation_interval: 15s
-  external_labels:
-    environment: 'production'
-    project: 'supersmartmatch-v2'
 
-# Alertmanager configuration (optionnel)
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-          # - alertmanager:9093
-
-# Load rules once and periodically evaluate them
-rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
-
-# A scrape configuration containing exactly one endpoint to scrape
 scrape_configs:
-  # Prometheus self-monitoring
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-    scrape_interval: 15s
-    metrics_path: '/metrics'
-
-  # SuperSmartMatch V1 Service (port 5062)
   - job_name: 'supersmartmatch-v1'
     static_configs:
-      - targets: ['host.docker.internal:5062']
-    scrape_interval: 10s
-    metrics_path: '/metrics'
-    scrape_timeout: 10s
+      - targets: ['supersmartmatch-v1:5062']
+    labels:
+      service: 'supersmartmatch'
+      version: 'v1'
 
-  # SuperSmartMatch V2 Service (port 5070) - TARGET
-  - job_name: 'supersmartmatch-v2' 
+  - job_name: 'supersmartmatch-v2'
     static_configs:
-      - targets: ['host.docker.internal:5070']
-    scrape_interval: 5s  # Plus fréquent pour le service principal
-    metrics_path: '/metrics'
-    scrape_timeout: 10s
+      - targets: ['supersmartmatch-v2:5070']
+    labels:
+      service: 'supersmartmatch'
+      version: 'v2'
 
-  # Nexten Matcher Service (port 5052)
   - job_name: 'nexten-matcher'
     static_configs:
-      - targets: ['host.docker.internal:5052']
-    scrape_interval: 10s
-    metrics_path: '/metrics'
-    scrape_timeout: 10s
+      - targets: ['nexten-matcher:5052']
+    labels:
+      service: 'nexten-matcher'
 
-  # Redis monitoring (si redis_exporter est configuré)
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['supersmartmatch-redis:6379']
-    scrape_interval: 30s
-    metrics_path: '/metrics'
-
-  # PostgreSQL monitoring (si postgres_exporter est configuré)
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['supersmartmatch-postgres:5432']
-    scrape_interval: 30s
-    metrics_path: '/metrics'
-
-  # NGINX monitoring (si nginx-prometheus-exporter est configuré)
   - job_name: 'nginx'
     static_configs:
-      - targets: ['supersmartmatch-nginx:9113']  
-    scrape_interval: 30s
-    metrics_path: '/metrics'
-
-  # MinIO monitoring
-  - job_name: 'minio'
-    static_configs:
-      - targets: ['supersmartmatch-minio:9000']
-    scrape_interval: 30s
-    metrics_path: '/minio/v2/metrics/cluster'
-    scrape_timeout: 10s
-
-# Configuration avancée pour les métriques SuperSmartMatch
-# Utilise les labels pour identifier les services
-relabel_configs:
-  # Ajouter des labels personnalisés
-  - source_labels: [__address__]
-    target_label: __param_target
-  - source_labels: [__param_target]
-    target_label: instance
-  - target_label: __address__
-    replacement: 127.0.0.1:9090  # Adresse du prometheus exporter
+      - targets: ['nginx:80']
+    labels:
+      service: 'nginx'
