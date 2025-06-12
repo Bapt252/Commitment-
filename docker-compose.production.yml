@@ -59,7 +59,7 @@ services:
       dockerfile: Dockerfile
     container_name: supersmartmatch_cv_parser
     ports:
-      - "5051:5051"
+      - "5061:5051"
     environment:
       - NODE_ENV=production
       - PORT=5051
@@ -107,7 +107,7 @@ services:
       dockerfile: Dockerfile
     container_name: supersmartmatch_job_parser
     ports:
-      - "5053:5053"
+      - "5063:5053"
     environment:
       - NODE_ENV=production
       - PORT=5053
@@ -155,7 +155,7 @@ services:
       dockerfile: Dockerfile
     container_name: supersmartmatch_matching
     ports:
-      - "5052:5052"
+      - "5062:5052"
     environment:
       - NODE_ENV=production
       - PORT=5052
@@ -496,7 +496,7 @@ services:
       - microservices_network
     restart: unless-stopped
     ports:
-      - "9090:9090"
+      - "9091:9090"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
