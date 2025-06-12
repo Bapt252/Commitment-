@@ -1,0 +1,242 @@
+# SuperSmartMatch V2 - Job Parser Enrichi
+# =========================================
+#
+# Image Docker optimisée pour Job Parser V2 avec extraction missions détaillées
+# - Base Python 3.11 avec Node.js 18
+# - Enhanced mission parser intégré
+# - NLP et parsing avancé
+# - Cache Redis intégré
+# - Monitoring et health checks
+#
+# Version: 2.0.0
+# Author: Baptiste Coma
+# Created: June 2025
+
+FROM python:3.11-slim
+
+# Métadonnées
+LABEL maintainer="Baptiste Coma <baptiste.coma@gmail.com>"
+LABEL version="2.0.0"
+LABEL description="SuperSmartMatch V2 - Job Parser with Enhanced Mission Extraction"
+LABEL service="job-parser-v2"
+
+# Variables d'environnement
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    NODE_VERSION=18.17.0 \
+    APP_ENV=production \
+    PARSER_VERSION=2.0.0
+
+# Installation des dépendances système
+RUN apt-get update && apt-get install -y \
+    # Outils de base
+    curl \
+    wget \
+    git \
+    build-essential \
+    # Node.js et npm
+    nodejs \
+    npm \
+    # Traitement PDF et texte
+    poppler-utils \
+    # Nettoyage
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Mise à jour npm et installation yarn
+RUN npm install -g npm@latest yarn
+
+# Création utilisateur non-root
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Création des répertoires
+WORKDIR /app
+RUN mkdir -p /app/logs /app/uploads /app/cache /app/temp && \
+    chown -R appuser:appuser /app
+
+# Copie des fichiers requirements
+COPY job-parser-v2/requirements.txt /app/
+COPY job-parser-v2/package.json /app/
+COPY job-parser-v2/yarn.lock /app/
+
+# Installation dépendances Python
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Installation dépendances Node.js
+RUN yarn install --production --frozen-lockfile
+
+# Copie du code source
+COPY job-parser-v2/ /app/
+COPY enhanced-mission-parser.js /app/
+COPY fix-pdf-extraction.js /app/
+
+# Configuration des permissions
+RUN chown -R appuser:appuser /app && \
+    chmod +x /app/*.py /app/*.js
+
+# Installation des binaires spécialisés
+RUN pip install --no-cache-dir \
+    # PDF processing
+    pdfplumber==0.9.0 \
+    PyPDF2==3.0.1 \
+    pymupdf==1.23.0 \
+    # NLP et parsing avancé
+    spacy==3.6.1 \
+    nltk==3.8.1 \
+    textblob==0.17.1 \
+    # API et web
+    fastapi==0.103.0 \
+    uvicorn==0.23.2 \
+    python-multipart==0.0.6 \
+    # Cache et database
+    redis==4.6.0 \
+    # Monitoring
+    prometheus-client==0.17.1 \
+    # Utilities
+    python-json-logger==2.0.7 \
+    # Analyse sémantique
+    scikit-learn==1.3.2 \
+    transformers==4.34.0
+
+# Installation modèles spaCy
+RUN python -m spacy download fr_core_news_sm && \
+    python -m spacy download en_core_web_sm
+
+# Configuration NLTK
+RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('vader_lexicon')"
+
+# Script de santé
+COPY <<EOF /app/healthcheck.py
+#!/usr/bin/env python3
+import sys
+import requests
+import json
+from datetime import datetime
+
+def health_check():
+    try:
+        # Test API health endpoint
+        response = requests.get('http://localhost:5053/health', timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Health check passed: {data}")
+            return 0
+        else:
+            print(f"❌ Health check failed: HTTP {response.status_code}")
+            return 1
+    except Exception as e:
+        print(f"❌ Health check error: {e}")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(health_check())
+EOF
+
+RUN chmod +x /app/healthcheck.py
+
+# Script d'entrypoint
+COPY <<EOF /app/entrypoint.sh
+#!/bin/bash
+set -e
+
+echo "🚀 Starting SuperSmartMatch V2 - Job Parser"
+echo "Version: ${PARSER_VERSION}"
+echo "Environment: ${APP_ENV}"
+echo "Timestamp: $(date)"
+
+# Vérification des dépendances
+echo "📋 Checking dependencies..."
+python -c "import spacy, nltk, redis, fastapi; print('✅ Python dependencies OK')"
+node -e "console.log('✅ Node.js dependencies OK')"
+
+# Initialisation des répertoires
+mkdir -p /app/logs /app/uploads /app/cache /app/temp
+chmod 755 /app/logs /app/uploads /app/cache /app/temp
+
+# Démarrage du serveur
+echo "🌐 Starting Job Parser V2 server on port 5053..."
+exec python app.py
+EOF
+
+RUN chmod +x /app/entrypoint.sh
+
+# Configuration logging
+RUN mkdir -p /app/logs && \
+    touch /app/logs/job-parser.log /app/logs/mission-extraction.log /app/logs/error.log
+
+# Changement vers utilisateur non-root
+USER appuser
+
+# Exposition du port
+EXPOSE 5053
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python /app/healthcheck.py
+
+# Point d'entrée
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# Métriques Docker
+LABEL metrics.port="5053" \
+      metrics.path="/metrics" \
+      logs.path="/app/logs" \
+      config.path="/app/config"
+
+# Build arguments pour optimisation
+ARG BUILD_DATE
+ARG GIT_COMMIT
+ARG VERSION=2.0.0
+
+LABEL build-date=$BUILD_DATE \
+      git-commit=$GIT_COMMIT \
+      version=$VERSION
+
+# Optimisations finales
+RUN find /app -name "*.pyc" -delete && \
+    find /app -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# Volume pour persistence
+VOLUME ["/app/logs", "/app/uploads", "/app/cache"]
+
+# Signal handling
+STOPSIGNAL SIGTERM
+
+# Documentation
+COPY <<EOF /app/README_DOCKER.md
+# Job Parser V2 Docker Image
+
+## Features
+- Python 3.11 + Node.js 18
+- Enhanced mission extraction for job descriptions
+- Advanced NLP processing (spaCy, NLTK, transformers)
+- Multi-format parsing (PDF, DOCX, TXT)
+- Redis cache integration
+- Prometheus metrics
+- Health checks
+
+## Usage
+\`\`\`bash
+docker run -p 5053:5053 job-parser-v2
+\`\`\`
+
+## API Endpoints
+- GET /health - Health check
+- POST /api/parse-job - Parse job with mission extraction
+- GET /metrics - Prometheus metrics
+
+## Environment Variables
+- PARSER_VERSION=2.0.0
+- REDIS_URL=redis://localhost:6379
+- LOG_LEVEL=info
+- MISSION_EXTRACTION=enabled
+
+## Volumes
+- /app/logs - Log files
+- /app/uploads - Uploaded files
+- /app/cache - Cache directory
+EOF
