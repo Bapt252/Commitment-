@@ -94,19 +94,27 @@ extractPDF();
         
         work_dir = Path(text_file_path).parent
         
-        # ✅ CORRECTION MAJEURE : Utiliser le chemin ABSOLU des parsers
+        # ✅ CORRECTION MAJEURE : Utiliser le chemin ABSOLU et corriger l'import
         enhanced_parser_absolute = str(self.enhanced_parser.absolute())
         
         script_content = f"""
 const fs = require('fs');
-const EnhancedMissionParser = require('{enhanced_parser_absolute}');
+
+// ✅ CORRECTION : Import et instanciation corrigés
+const EnhancedMissionParserClass = require('{enhanced_parser_absolute}');
+const parser = new EnhancedMissionParserClass();
 
 async function parseJob() {{
     try {{
-        const parser = new EnhancedMissionParser();
         const text = fs.readFileSync('{text_file_path}', 'utf8');
         
         console.log('💼 Début parsing Job enrichi...');
+        
+        // ✅ VÉRIFICATION : S'assurer que la fonction existe
+        if (typeof parser.parseEnhancedJobWithMissions !== 'function') {{
+            throw new Error('parseEnhancedJobWithMissions is not a function. Available methods: ' + Object.getOwnPropertyNames(Object.getPrototypeOf(parser)));
+        }}
+        
         const jobData = parser.parseEnhancedJobWithMissions(text);
         
         console.log('✅ Parsing Job enrichi terminé');
@@ -118,6 +126,7 @@ async function parseJob() {{
         
     }} catch (error) {{
         console.error('❌ Erreur parsing Job enrichi:', error.message);
+        console.error('Stack:', error.stack);
         process.exit(1);
     }}
 }}
