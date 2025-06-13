@@ -1,9 +1,80 @@
+# 🚀 SuperSmartMatch V2.1 Universal Parsers - Requirements
+# Dépendances pour parsers universels multi-formats
+
+# === CORE FLASK ===
 Flask==2.3.3
 Werkzeug==2.3.7
-PyPDF2==3.0.1
-pdfplumber==0.9.0
-requests==2.31.0
-python-dotenv==1.0.0
 gunicorn==21.2.0
+python-dotenv==1.0.0
 markupsafe==2.1.3
 jsonschema==4.19.1
+requests==2.31.0
+
+# === DÉTECTION DE FORMAT ===
+python-magic==0.4.27
+# Note: Nécessite libmagic-dev sur Ubuntu/Debian
+
+# === PDF PROCESSING ===
+PyPDF2==3.0.1
+pdfplumber==0.9.0
+
+# === MICROSOFT WORD ===
+python-docx==0.8.11
+mammoth==1.6.0
+
+# === OCR POUR IMAGES ===
+Pillow==10.0.1
+pytesseract==0.3.10
+# Note: Nécessite tesseract-ocr installé système
+
+# === HTML PROCESSING ===
+beautifulsoup4==4.12.2
+html5lib==1.1
+lxml==4.9.3
+
+# === RTF PROCESSING ===
+striprtf==0.0.26
+
+# === OPENOFFICE ODT ===
+odfpy==1.4.1
+
+# === UTILITAIRES ===
+pathlib2==2.3.7
+typing-extensions==4.8.0
+
+# === MONITORING & LOGGING ===
+structlog==23.1.0
+
+# === DÉVELOPPEMENT (optionnel) ===
+pytest==7.4.3
+pytest-cov==4.1.0
+black==23.9.1
+flake8==6.1.0
+
+# === DÉPENDANCES SYSTÈME REQUISES ===
+# Sur Ubuntu/Debian :
+# sudo apt-get update
+# sudo apt-get install -y libmagic-dev tesseract-ocr tesseract-ocr-fra tesseract-ocr-eng libreoffice
+#
+# Sur CentOS/RHEL :
+# sudo yum install -y file-devel tesseract tesseract-langpack-fra tesseract-langpack-eng libreoffice
+#
+# Sur macOS :
+# brew install libmagic tesseract tesseract-lang libreoffice
+#
+# Sur Windows :
+# - Installer Tesseract depuis : https://github.com/UB-Mannheim/tesseract/wiki
+# - Ajouter Tesseract au PATH
+# - Installer LibreOffice depuis : https://www.libreoffice.org/
+
+# === NOTES DE COMPATIBILITÉ ===
+# python-magic nécessite libmagic (package système)
+# pytesseract nécessite tesseract-ocr (package système)  
+# Conversion PDF fallback nécessite LibreOffice (optionnel)
+# Tests OCR nécessitent langues tesseract-ocr-fra tesseract-ocr-eng
+
+# === VERSIONS TESTÉES ===
+# Python 3.8+
+# Flask 2.3+
+# Tesseract 4.0+
+# LibreOffice 6.0+ (optionnel)
