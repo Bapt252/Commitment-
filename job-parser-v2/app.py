@@ -22,7 +22,8 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 class JobParserEnriched:
     def __init__(self):
-        self.parsers_dir = Path("/app/parsers")
+        # ✅ CORRECTION : Utilisation d'un chemin relatif au lieu de Docker
+        self.parsers_dir = Path("./parsers")
         self.temp_dir = Path("/tmp/job_parsing")
         self.temp_dir.mkdir(exist_ok=True)
         
