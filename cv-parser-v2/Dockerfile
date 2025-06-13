@@ -2,6 +2,8 @@ FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
+# FIX OCR: Variable d'environnement Tesseract
+ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
 
 RUN apt-get update && apt-get install -y \
     curl wget git build-essential \
