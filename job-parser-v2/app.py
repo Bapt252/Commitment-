@@ -40,9 +40,12 @@ class JobParserEnriched:
         work_pdf = work_dir / "input.pdf"
         subprocess.run(['cp', str(pdf_path), str(work_pdf)], check=True)
         
+        # ✅ CORRECTION MAJEURE : Utiliser le chemin ABSOLU des parsers
+        fix_pdf_parser_absolute = str(self.fix_pdf_parser.absolute())
+        
         wrapper_script = f"""
 const fs = require('fs');
-const FixedPDFParser = require('{self.fix_pdf_parser}');
+const FixedPDFParser = require('{fix_pdf_parser_absolute}');
 
 async function extractPDF() {{
     try {{
@@ -91,9 +94,12 @@ extractPDF();
         
         work_dir = Path(text_file_path).parent
         
+        # ✅ CORRECTION MAJEURE : Utiliser le chemin ABSOLU des parsers
+        enhanced_parser_absolute = str(self.enhanced_parser.absolute())
+        
         script_content = f"""
 const fs = require('fs');
-const EnhancedMissionParser = require('{self.enhanced_parser}');
+const EnhancedMissionParser = require('{enhanced_parser_absolute}');
 
 async function parseJob() {{
     try {{
