@@ -2,6 +2,8 @@ FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
+# FIX OCR: Variable d'environnement Tesseract
+ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
 
 RUN apt-get update && apt-get install -y \
     curl wget git build-essential \
@@ -25,8 +27,8 @@ RUN chmod +x /app/parsers/*.js
 COPY app.py .
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5051/health || exit 1
+    CMD curl -f http://localhost:5053/health || exit 1
 
-EXPOSE 5051
+EXPOSE 5053
 
 CMD ["python", "app.py"]
