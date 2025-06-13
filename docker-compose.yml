@@ -1,117 +1,226 @@
 version: '3.8'
 
 services:
-  # SuperSmartMatch V1 (Legacy)
-  supersmartmatch-v1:
-    image: supersmartmatch-v1:latest
-    container_name: ssm_v1
+  # 🎯 CV Parser Universal V2.1
+  cv-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PARSER_TYPE: cv
+    image: supersmartmatch/cv-parser:v2.1
+    container_name: cv-parser-universal
     ports:
-      - "5062:5062"
+      - "5051:5051"
     environment:
-      - ENVIRONMENT=production
-      - SERVICE_VERSION=v1
-      - REDIS_URL=redis://redis:6379
-      - LOG_LEVEL=INFO
-      - METRICS_ENABLED=true
-    networks:
-      - ssm_network
+      - FLASK_ENV=production
+      - MAX_CONTENT_LENGTH=52428800
+      - TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+    volumes:
+      - ./cv-parser-v2/parsers:/app/parsers:ro
+      - cv_temp:/tmp/cv_parsing
+      - logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5062/health"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:5051/health"]
+      interval: 30s
+      timeout: 10s
       retries: 3
-
-  # SuperSmartMatch V2 (Target)
-  supersmartmatch-v2:
-    image: supersmartmatch-v2:2.0.0
-    container_name: ssm_v2
-    ports:
-      - "5070:5070"
-    environment:
-      - ENVIRONMENT=production
-      - SERVICE_VERSION=v2
-      - REDIS_URL=redis://redis:6379
-      - V1_SERVICE_URL=http://supersmartmatch-v1:5062
-      - NEXTEN_SERVICE_URL=http://nexten-matcher:5052
-      - LOG_LEVEL=INFO
-      - METRICS_ENABLED=true
-      - FEATURE_FLAGS_ENABLED=true
+      start_period: 40s
     networks:
-      - ssm_network
-    restart: unless-stopped
-    depends_on:
-      - redis
-      - supersmartmatch-v1
-      - nexten-matcher
+      - supersmartmatch
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cv-parser.rule=PathPrefix(/api/parse-cv/)"
+      - "traefik.http.services.cv-parser.loadbalancer.server.port=5051"
 
-  # Nexten Matcher
-  nexten-matcher:
-    image: nexten-matcher:latest
-    container_name: nexten_matcher
+  # 💼 Job Parser Universal V2.1
+  job-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PARSER_TYPE: job
+    image: supersmartmatch/job-parser:v2.1
+    container_name: job-parser-universal
     ports:
-      - "5052:5052"
+      - "5053:5053"
     environment:
-      - ENVIRONMENT=production
-      - SERVICE_VERSION=nexten
-      - REDIS_URL=redis://redis:6379
-    networks:
-      - ssm_network
-    restart: unless-stopped
-
-  # Load Balancer
-  nginx:
-    image: nginx:alpine
-    container_name: ssm_nginx
-    ports:
-      - "80:80"
-      - "443:443"
+      - FLASK_ENV=production
+      - MAX_CONTENT_LENGTH=52428800
+      - TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-    networks:
-      - ssm_network
+      - ./job-parser-v2/parsers:/app/parsers:ro
+      - job_temp:/tmp/job_parsing
+      - logs:/app/logs
     restart: unless-stopped
-    depends_on:
-      - supersmartmatch-v1
-      - supersmartmatch-v2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5053/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - supersmartmatch
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.job-parser.rule=PathPrefix(/api/parse-job)"
+      - "traefik.http.services.job-parser.loadbalancer.server.port=5053"
 
-  # Redis
+  # 🔍 API Enhanced V2.1 (optionnel - si présent)
+  api-enhanced:
+    image: supersmartmatch/api-enhanced:v2.1
+    container_name: api-enhanced-v2.1
+    ports:
+      - "5055:5055"
+    environment:
+      - CV_PARSER_URL=http://cv-parser:5051
+      - JOB_PARSER_URL=http://job-parser:5053
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://postgres:password@postgres:5432/commitment
+    depends_on:
+      - cv-parser
+      - job-parser
+      - redis
+      - postgres
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-enhanced.rule=PathPrefix(/api/match/)"
+      - "traefik.http.services.api-enhanced.loadbalancer.server.port=5055"
+
+  # 📊 Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: ssm_redis
+    container_name: supersmartmatch-redis
     ports:
       - "6379:6379"
-    networks:
-      - ssm_network
+    volumes:
+      - redis_data:/data
     restart: unless-stopped
+    networks:
+      - supersmartmatch
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
 
-  # Monitoring Stack
+  # 🗄️ PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: supersmartmatch-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=commitment
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+
+  # 📈 Monitoring (optionnel)
   prometheus:
     image: prom/prometheus:latest
-    container_name: ssm_prometheus
+    container_name: supersmartmatch-prometheus
     ports:
       - "9090:9090"
     volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
     networks:
-      - ssm_network
-    restart: unless-stopped
+      - supersmartmatch
+    profiles:
+      - monitoring
 
   grafana:
     image: grafana/grafana:latest
-    container_name: ssm_grafana
+    container_name: supersmartmatch-grafana
     ports:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
+      - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
     networks:
-      - ssm_network
-    restart: unless-stopped
+      - supersmartmatch
+    profiles:
+      - monitoring
 
+# Volumes persistants
+volumes:
+  cv_temp:
+    driver: local
+  job_temp:
+    driver: local
+  logs:
+    driver: local
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# Réseau isolé
 networks:
-  ssm_network:
+  supersmartmatch:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# === UTILISATION ===
+#
+# Démarrage complet :
+# docker-compose up -d
+#
+# Démarrage parsers uniquement :
+# docker-compose up -d cv-parser job-parser
+#
+# Démarrage avec monitoring :
+# docker-compose --profile monitoring up -d
+#
+# Reconstruction des images :
+# docker-compose build --no-cache
+#
+# Logs en temps réel :
+# docker-compose logs -f cv-parser job-parser
+#
+# Test des endpoints :
+# curl http://localhost:5051/health
+# curl http://localhost:5053/health
+#
+# Arrêt des services :
+# docker-compose down
+#
+# Nettoyage complet :
+# docker-compose down -v --rmi all
+#
+# === MONITORING ===
+# - Grafana: http://localhost:3000 (admin/admin)
+# - Prometheus: http://localhost:9090
+# - CV Parser Health: http://localhost:5051/health
+# - Job Parser Health: http://localhost:5053/health
+#
+# === SCALING ===
+# docker-compose up -d --scale cv-parser=3 --scale job-parser=2
+#
+# === PRODUCTION ===
+# - Utiliser un reverse proxy (Traefik labels inclus)
+# - Configurer SSL/TLS
+# - Ajuster les limites de ressources
+# - Monitoring et alerting
+# - Backup des volumes
