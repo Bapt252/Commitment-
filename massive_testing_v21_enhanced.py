@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-🚀 SuperSmartMatch V2.1 Enhanced - Tests Massifs COMPLETS
+🚀 SuperSmartMatch V2.1 Enhanced - Tests Massifs CORRIGÉS
 Objectif: 2,812 matchings (74 CV × 38 Jobs) avec anti-faux positifs
+CORRECTIONS: GET pour Hugo Salvat, upload de fichiers pour matching
 """
 
 import os
@@ -49,6 +50,15 @@ class SuperSmartMatchMassiveTesting:
     
     def get_files(self):
         """Récupérer les listes de fichiers CV et Jobs"""
+        # Vérifier que les répertoires existent
+        if not os.path.exists(self.cv_dir):
+            print(f"❌ Répertoire CV non trouvé: {self.cv_dir}")
+            return [], []
+        
+        if not os.path.exists(self.job_dir):
+            print(f"❌ Répertoire Jobs non trouvé: {self.job_dir}")
+            return [], []
+        
         cv_files = [f for f in os.listdir(self.cv_dir) if f.endswith('.pdf')]
         job_files = [f for f in os.listdir(self.job_dir) if f.endswith('.pdf')]
         
@@ -64,10 +74,13 @@ class SuperSmartMatchMassiveTesting:
         print("-" * 50)
         
         try:
-            response = requests.post(f"{self.api_base}/api/test/hugo-salvat", timeout=30)
+            # ✅ CORRECTION: Utiliser GET au lieu de POST
+            response = requests.get(f"{self.api_base}/api/test/hugo-salvat", timeout=30)
             if response.status_code == 200:
                 data = response.json()
-                score = data.get('matching_score', 0)
+                score = data.get('enhanced_result', {}).get('matching_score', 0)
+                if score == 0:
+                    score = data.get('matching_score', 0)
                 print(f"   ✅ Hugo Salvat vs Facturation: {score}%")
                 if score <= 30:
                     print(f"   ✅ Rejet correct (score ≤ 30%)")
@@ -89,6 +102,10 @@ class SuperSmartMatchMassiveTesting:
         
         cv_files, job_files = self.get_files()
         
+        if not cv_files or not job_files:
+            print("❌ Aucun fichier trouvé pour les tests")
+            return []
+        
         # Prendre un échantillon
         cv_sample = cv_files[:5]  # 5 CV
         job_sample = job_files[:5]  # 5 Jobs = 25 matchings
@@ -102,12 +119,24 @@ class SuperSmartMatchMassiveTesting:
                 completed += 1
                 print(f"🔄 Test {completed}/{total_tests}: {cv[:20]}... vs {job[:20]}...")
                 
+                cv_path = os.path.join(self.cv_dir, cv)
+                job_path = os.path.join(self.job_dir, job)
+                
+                # Vérifier que les fichiers existent
+                if not os.path.exists(cv_path) or not os.path.exists(job_path):
+                    print(f"   ❌ Fichier manquant")
+                    continue
+                
                 try:
-                    response = requests.post(f"{self.api_base}/api/matching/files", 
-                        json={
-                            'cv_path': os.path.join(self.cv_dir, cv),
-                            'job_path': os.path.join(self.job_dir, job)
-                        }, timeout=45)
+                    # ✅ CORRECTION: Upload de fichiers au lieu de chemins JSON
+                    with open(cv_path, 'rb') as cv_file, open(job_path, 'rb') as job_file:
+                        files = {
+                            'cv_file': (cv, cv_file, 'application/pdf'),
+                            'job_file': (job, job_file, 'application/pdf')
+                        }
+                        
+                        response = requests.post(f"{self.api_base}/api/matching/files", 
+                            files=files, timeout=60)
                     
                     if response.status_code == 200:
                         data = response.json()
@@ -130,6 +159,7 @@ class SuperSmartMatchMassiveTesting:
                         
                     else:
                         print(f"   ❌ Erreur HTTP: {response.status_code}")
+                        print(f"   Détail: {response.text[:100]}...")
                         results.append({
                             'cv_file': cv,
                             'job_file': job,
@@ -156,10 +186,15 @@ class SuperSmartMatchMassiveTesting:
         print("=" * 60)
         
         cv_files, job_files = self.get_files()
+        
+        if not cv_files or not job_files:
+            print("❌ Aucun fichier trouvé pour les tests")
+            return []
+        
         total_tests = len(cv_files) * len(job_files)
         
         print(f"⚠️  ATTENTION: {total_tests} tests vont être lancés!")
-        print(f"⏱️  Temps estimé: ~{total_tests * 2 // 60} minutes")
+        print(f"⏱️  Temps estimé: ~{total_tests * 3 // 60} minutes")
         
         response = input("Continuer ? (y/N): ")
         if response.lower() != 'y':
@@ -181,12 +216,23 @@ class SuperSmartMatchMassiveTesting:
                     print(f"\n📊 Progression: {completed}/{total_tests} ({completed/total_tests*100:.1f}%)")
                     print(f"⏱️  Temps restant: ~{remaining:.1f} minutes")
                 
+                cv_path = os.path.join(self.cv_dir, cv)
+                job_path = os.path.join(self.job_dir, job)
+                
+                # Vérifier que les fichiers existent
+                if not os.path.exists(cv_path) or not os.path.exists(job_path):
+                    continue
+                
                 try:
-                    response = requests.post(f"{self.api_base}/api/matching/files", 
-                        json={
-                            'cv_path': os.path.join(self.cv_dir, cv),
-                            'job_path': os.path.join(self.job_dir, job)
-                        }, timeout=60)
+                    # ✅ CORRECTION: Upload de fichiers
+                    with open(cv_path, 'rb') as cv_file, open(job_path, 'rb') as job_file:
+                        files = {
+                            'cv_file': (cv, cv_file, 'application/pdf'),
+                            'job_file': (job, job_file, 'application/pdf')
+                        }
+                        
+                        response = requests.post(f"{self.api_base}/api/matching/files", 
+                            files=files, timeout=90)
                     
                     if response.status_code == 200:
                         data = response.json()
@@ -225,7 +271,7 @@ class SuperSmartMatchMassiveTesting:
                     })
                 
                 # Petite pause pour ne pas surcharger
-                time.sleep(0.5)
+                time.sleep(0.8)
         
         return results
     
@@ -271,7 +317,7 @@ class SuperSmartMatchMassiveTesting:
         
         # Sauvegarder les résultats
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"massive_test_results_{timestamp}.json"
+        filename = f"massive_test_results_corrected_{timestamp}.json"
         
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
@@ -281,8 +327,8 @@ class SuperSmartMatchMassiveTesting:
         return df
 
 def main():
-    print("🚀 SuperSmartMatch V2.1 Enhanced - Tests Massifs")
-    print("=" * 60)
+    print("🚀 SuperSmartMatch V2.1 Enhanced - Tests Massifs CORRIGÉS")
+    print("=" * 65)
     
     tester = SuperSmartMatchMassiveTesting()
     
@@ -302,7 +348,7 @@ def main():
     # 3. Menu de choix
     print(f"\n🎯 CHOIX DU TYPE DE TEST:")
     print(f"   1. Test échantillon (25 matchings)")
-    print(f"   2. Tests massifs complets (2,812 matchings)")
+    print(f"   2. Tests massifs complets (~213 matchings)")
     print(f"   3. Quitter")
     
     choice = input("Votre choix (1-3): ")
