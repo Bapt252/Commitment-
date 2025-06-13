@@ -2,188 +2,203 @@
 # -*- coding: utf-8 -*-
 
 """
-🔧 Diagnostic Enhanced API V2.1 - Identifier pourquoi les scores sont à 0%
+🔍 DIAGNOSTIC ENHANCED API V2.1 - Identifier le problème de matching
+Test spécifique de l'API Enhanced pour comprendre pourquoi tous les matchings échouent
 """
 
 import requests
-import os
 import json
+from pathlib import Path
 
-def test_enhanced_api_matching():
-    """Tester l'Enhanced API V2.1 en détail"""
-    print("🔍 DIAGNOSTIC ENHANCED API V2.1 - Scores à 0%")
+def test_enhanced_api_detailed():
+    """Test détaillé de l'Enhanced API pour identifier le problème"""
+    print("🔍 DIAGNOSTIC ENHANCED API V2.1 - PROBLÈME MATCHING")
     print("=" * 55)
     
-    api_url = "http://localhost:5055"
-    
-    # 1. Test du health check détaillé
-    print("1️⃣ TEST HEALTH CHECK DÉTAILLÉ")
-    print("-" * 35)
+    # 1. Test health check
+    print("1️⃣ Test Health Check Enhanced API...")
     try:
-        response = requests.get(f"{api_url}/health")
+        response = requests.get("http://localhost:5055/health", timeout=10)
+        print(f"   Status: {response.status_code}")
         if response.status_code == 200:
-            data = response.json()
-            print("✅ Enhanced API healthy")
-            print(f"Version: {data.get('version', 'unknown')}")
-            print(f"Service: {data.get('service', 'unknown')}")
-            print("Endpoints disponibles:")
-            for key, endpoint in data.get('endpoints', {}).items():
-                print(f"   - {key}: {endpoint}")
-            print("Features:")
-            for feature in data.get('features', []):
-                print(f"   - {feature}")
+            print("   ✅ Health check OK")
+            print(f"   Response: {response.json()}")
         else:
-            print(f"❌ API non healthy: {response.status_code}")
+            print("   ❌ Health check échoué")
             return False
     except Exception as e:
-        print(f"❌ Erreur connexion: {e}")
+        print(f"   ❌ Erreur health check: {e}")
         return False
     
-    # 2. Test avec des fichiers spécifiques
-    print(f"\n2️⃣ TEST MATCHING AVEC FICHIERS RÉELS")
-    print("-" * 35)
+    # 2. Test parsing CV individuel
+    print("\n2️⃣ Test parsing CV individuel...")
+    cv_file = Path("/Users/baptistecomas/Desktop/CV TEST/SALVAT Hugo_CV.pdf")
     
-    cv_path = "/Users/baptistecomas/Desktop/CV TEST/SALVAT Hugo_CV.pdf"
-    job_path = "/Users/baptistecomas/Desktop/FDP TEST/Bcom HR - Fiche de poste Assistant Facturation.pdf"
-    
-    if not os.path.exists(cv_path):
-        print(f"❌ CV non trouvé: {cv_path}")
-        # Essayer de trouver d'autres CV
-        cv_dir = "/Users/baptistecomas/Desktop/CV TEST/"
-        if os.path.exists(cv_dir):
-            cv_files = [f for f in os.listdir(cv_dir) if f.endswith('.pdf')]
-            if cv_files:
-                cv_path = os.path.join(cv_dir, cv_files[0])
-                print(f"✅ CV alternatif trouvé: {cv_files[0]}")
-            else:
-                print("❌ Aucun CV trouvé")
-                return False
-        else:
-            print("❌ Répertoire CV non trouvé")
-            return False
-    
-    if not os.path.exists(job_path):
-        print(f"❌ Job non trouvé: {job_path}")
-        # Essayer de trouver d'autres Jobs
-        job_dir = "/Users/baptistecomas/Desktop/FDP TEST/"
-        if os.path.exists(job_dir):
-            job_files = [f for f in os.listdir(job_dir) if f.endswith('.pdf')]
-            if job_files:
-                job_path = os.path.join(job_dir, job_files[0])
-                print(f"✅ Job alternatif trouvé: {job_files[0]}")
-            else:
-                print("❌ Aucun Job trouvé")
-                return False
-        else:
-            print("❌ Répertoire Job non trouvé")
-            return False
-    
-    # 3. Test de l'endpoint matching/files
-    print(f"\n3️⃣ TEST ENDPOINT /api/matching/files")
-    print("-" * 35)
+    if not cv_file.exists():
+        print(f"   ❌ Fichier CV test non trouvé: {cv_file}")
+        return False
     
     try:
-        with open(cv_path, 'rb') as cv_file, open(job_path, 'rb') as job_file:
-            files = {
-                'cv_file': (os.path.basename(cv_path), cv_file, 'application/pdf'),
-                'job_file': (os.path.basename(job_path), job_file, 'application/pdf')
-            }
-            
-            response = requests.post(f"{api_url}/api/matching/files", 
-                                   files=files, timeout=90)
+        with open(cv_file, 'rb') as f:
+            files = {'file': (cv_file.name, f, 'application/pdf')}
+            response = requests.post(
+                "http://localhost:5051/api/parse-cv",
+                files=files,
+                timeout=30
+            )
         
-        print(f"Status: {response.status_code}")
-        
+        print(f"   Status CV: {response.status_code}")
         if response.status_code == 200:
-            try:
-                data = response.json()
-                print("✅ Matching réussi!")
-                print(f"📊 Score: {data.get('matching_score', 'N/A')}%")
-                print(f"🔧 Version algo: {data.get('algorithm_version', 'N/A')}")
-                print(f"🎯 Compatibilité: {data.get('domain_compatibility', 'N/A')}")
-                print(f"🚨 Alertes: {len(data.get('alerts', []))}")
-                
-                # Détails du matching
-                matching_details = data.get('matching_details', {})
-                if matching_details:
-                    print("\n📋 DÉTAILS DU MATCHING:")
-                    for key, value in matching_details.items():
-                        print(f"   {key}: {value}")
-                
-                # CV Data analysé
-                cv_analysis = data.get('cv_analysis', {})
-                if cv_analysis:
-                    print(f"\n👤 ANALYSE CV:")
-                    print(f"   Nom: {cv_analysis.get('personal_info', {}).get('name', 'N/A')}")
-                    print(f"   Compétences: {len(cv_analysis.get('skills', []))}")
-                    print(f"   Expériences: {len(cv_analysis.get('professional_experience', []))}")
-                
-                # Job Data analysé
-                job_analysis = data.get('job_analysis', {})
-                if job_analysis:
-                    print(f"\n💼 ANALYSE JOB:")
-                    print(f"   Titre: {job_analysis.get('job_info', {}).get('title', 'N/A')}")
-                    print(f"   Missions: {len(job_analysis.get('missions', []))}")
-                    print(f"   Skills requis: {len(job_analysis.get('requirements', {}).get('technical_skills', []))}")
-                
-                # Afficher la réponse complète si le score est 0
-                if data.get('matching_score', 0) == 0:
-                    print(f"\n⚠️ SCORE 0% - RÉPONSE COMPLÈTE:")
-                    print(json.dumps(data, indent=2, ensure_ascii=False)[:1000] + "...")
-                
-            except json.JSONDecodeError:
-                print(f"❌ Réponse non-JSON: {response.text[:200]}...")
+            cv_data = response.json().get('data', {})
+            print("   ✅ CV parsé avec succès")
+            print(f"   📝 Clés CV: {list(cv_data.keys())}")
         else:
-            print(f"❌ Erreur {response.status_code}")
-            print(f"Détail: {response.text[:300]}...")
+            print(f"   ❌ Erreur parsing CV: {response.text[:100]}")
+            return False
             
     except Exception as e:
-        print(f"❌ Erreur: {str(e)}")
+        print(f"   ❌ Erreur CV: {e}")
+        return False
     
-    # 4. Test des autres endpoints
-    print(f"\n4️⃣ TEST AUTRES ENDPOINTS")
-    print("-" * 35)
+    # 3. Test parsing Job individuel
+    print("\n3️⃣ Test parsing Job individuel...")
+    job_file = Path("/Users/baptistecomas/Desktop/FDP TEST/Bcom HR  Opportunité de poste Assistant Juridique.pdf")
     
+    if not job_file.exists():
+        # Essayer avec les autres fichiers
+        job_files = list(Path("/Users/baptistecomas/Desktop/FDP TEST/").glob("*.pdf"))
+        if job_files:
+            job_file = job_files[0]
+        else:
+            print("   ❌ Aucun fichier Job trouvé")
+            return False
+    
+    try:
+        with open(job_file, 'rb') as f:
+            files = {'file': (job_file.name, f, 'application/pdf')}
+            response = requests.post(
+                "http://localhost:5053/api/parse-job",
+                files=files,
+                timeout=30
+            )
+        
+        print(f"   Status Job: {response.status_code}")
+        if response.status_code == 200:
+            job_data = response.json().get('data', {})
+            print("   ✅ Job parsé avec succès")
+            print(f"   📝 Clés Job: {list(job_data.keys())}")
+        else:
+            print(f"   ❌ Erreur parsing Job: {response.text[:100]}")
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ Erreur Job: {e}")
+        return False
+    
+    # 4. Test API Enhanced - Calculate Matching
+    print("\n4️⃣ Test Enhanced API Calculate Matching...")
+    
+    payload = {
+        "cv_data": cv_data,
+        "job_data": job_data
+    }
+    
+    try:
+        response = requests.post(
+            "http://localhost:5055/api/calculate-matching",
+            json=payload,
+            timeout=15
+        )
+        
+        print(f"   Status Matching: {response.status_code}")
+        print(f"   Response headers: {dict(response.headers)}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            print("   ✅ Matching calculé avec succès")
+            print(f"   📊 Score: {result.get('matching_score', 'N/A')}")
+            print(f"   🎯 Confidence: {result.get('confidence', 'N/A')}")
+            return True
+        else:
+            print(f"   ❌ Erreur matching:")
+            print(f"   Status: {response.status_code}")
+            print(f"   Text: {response.text}")
+            
+            # Essayer de voir si c'est un problème d'endpoint
+            print(f"\n   🔍 Test endpoints alternatifs...")
+            
+            # Test endpoint racine
+            try:
+                root_response = requests.get("http://localhost:5055/", timeout=5)
+                print(f"   Root endpoint status: {root_response.status_code}")
+            except Exception as e:
+                print(f"   Root endpoint error: {e}")
+            
+            # Test avec un payload simple
+            try:
+                simple_payload = {"test": "data"}
+                simple_response = requests.post(
+                    "http://localhost:5055/api/calculate-matching",
+                    json=simple_payload,
+                    timeout=5
+                )
+                print(f"   Simple payload status: {simple_response.status_code}")
+                print(f"   Simple payload response: {simple_response.text[:200]}")
+            except Exception as e:
+                print(f"   Simple payload error: {e}")
+            
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ Erreur requête matching: {e}")
+        return False
+
+def check_enhanced_api_endpoints():
+    """Vérifier quels endpoints sont disponibles sur l'Enhanced API"""
+    print("\n5️⃣ Vérification des endpoints Enhanced API...")
+    
+    base_url = "http://localhost:5055"
     endpoints_to_test = [
-        "/api/matching/complete",
-        "/api/matching/enhanced"
+        "/",
+        "/health", 
+        "/api/",
+        "/api/calculate-matching",
+        "/docs",
+        "/openapi.json"
     ]
     
     for endpoint in endpoints_to_test:
-        print(f"\n🔍 Test {endpoint}:")
         try:
-            with open(cv_path, 'rb') as cv_file, open(job_path, 'rb') as job_file:
-                files = {
-                    'cv_file': (os.path.basename(cv_path), cv_file, 'application/pdf'),
-                    'job_file': (os.path.basename(job_path), job_file, 'application/pdf')
-                }
-                
-                response = requests.post(f"{api_url}{endpoint}", 
-                                       files=files, timeout=60)
-            
-            print(f"   Status: {response.status_code}")
-            if response.status_code == 200:
-                try:
-                    data = response.json()
-                    score = data.get('matching_score', 0)
-                    print(f"   Score: {score}%")
-                    if score == 0:
-                        print(f"   ⚠️ Score 0% aussi sur cet endpoint")
-                except:
-                    print(f"   ⚠️ Réponse non-JSON")
-            else:
-                print(f"   ❌ Erreur: {response.text[:100]}...")
-                
+            response = requests.get(f"{base_url}{endpoint}", timeout=5)
+            print(f"   {endpoint}: {response.status_code}")
+            if response.status_code == 200 and len(response.text) < 200:
+                print(f"      Content: {response.text[:100]}")
         except Exception as e:
-            print(f"   ❌ Erreur: {str(e)[:50]}...")
+            print(f"   {endpoint}: ERREUR ({str(e)[:30]})")
 
-    print(f"\n5️⃣ RECOMMANDATIONS")
-    print("-" * 35)
-    print("🔧 Problèmes possibles :")
-    print("   1. L'algorithme de matching retourne toujours 0")
-    print("   2. Les données CV/Job ne sont pas correctement parsées")
-    print("   3. Les seuils de scoring sont trop élevés")
-    print("   4. L'Enhanced API V2.1 a un bug de calcul")
+def main():
+    """Fonction principale"""
+    print("🎯 OBJECTIF: Identifier pourquoi tous les 213 matchings échouent")
+    print("Même si les services individuels fonctionnent...")
+    print()
+    
+    success = test_enhanced_api_detailed()
+    check_enhanced_api_endpoints()
+    
+    print("\n" + "=" * 55)
+    if success:
+        print("✅ Enhanced API fonctionne - Le problème est ailleurs")
+        print("💡 Vérifier la logique du script de test massif")
+    else:
+        print("❌ Enhanced API défaillante - Problème identifié")
+        print("💡 L'Enhanced API ne traite pas correctement les matchings")
+        
+    print("\n🔧 SOLUTIONS POSSIBLES:")
+    print("   1. Redémarrer l'Enhanced API V2.1")
+    print("   2. Vérifier l'endpoint /api/calculate-matching")
+    print("   3. Tester avec des données simplifiées")
+    
+    return success
 
 if __name__ == "__main__":
-    test_enhanced_api_matching()
+    main()
