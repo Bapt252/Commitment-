@@ -3,10 +3,9 @@ services:
   api-gateway:
     build:
       context: ./services/api-gateway
-      dockerfile: Dockerfile
-      target: development
-    image: supersmartmatch/api-gateway:v2.1
-    container_name: supersmartmatch-gateway
+      dockerfile: Dockerfile.simple
+    image: supersmartmatch/api-gateway:v2.1-simple
+    container_name: supersmartmatch-gateway-simple
     ports:
       - "5050:5050"
     environment:
@@ -42,24 +41,20 @@ services:
     volumes:
       - gateway_logs:/app/logs
       - gateway_temp:/app/temp
-      - ./services/api-gateway:/app:ro  # Pour le développement
-    depends_on:
-      - redis
-      - postgres
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5050/api/gateway/status"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 40s
     networks:
       - supersmartmatch
 
-  # 📊 Redis Cache
+  # 📊 Redis Cache (optionnel)
   redis:
     image: redis:7-alpine
-    container_name: supersmartmatch-redis
+    container_name: supersmartmatch-redis-simple
     ports:
       - "6379:6379"
     volumes:
@@ -74,10 +69,10 @@ services:
       timeout: 10s
       retries: 3
 
-  # 🗄️ PostgreSQL Database
+  # 🗄️ PostgreSQL Database (optionnel)
   postgres:
     image: postgres:15-alpine
-    container_name: supersmartmatch-postgres
+    container_name: supersmartmatch-postgres-simple
     ports:
       - "5432:5432"
     environment:
@@ -118,32 +113,45 @@ networks:
         - subnet: 172.20.0.0/16
           gateway: 172.20.0.1
 
-# === DÉMARRAGE RAPIDE ===
+# === DÉMARRAGE RAPIDE SuperSmartMatch V2 API Gateway ===
 #
-# 1. Démarrage API Gateway + infrastructure :
-#    docker-compose up -d
+# 🚀 Commandes principales :
 #
-# 2. Vérifier le statut :
-#    curl http://localhost:5050/api/gateway/health
+# 1. Démarrage API Gateway seul :
+#    docker-compose -f docker-compose.simple.yml up -d api-gateway --build
 #
-# 3. Documentation :
-#    http://localhost:5050/api/gateway/docs
+# 2. Démarrage avec infrastructure :
+#    docker-compose -f docker-compose.simple.yml up -d --build
 #
-# 4. Tests :
-#    docker-compose logs -f api-gateway
+# 3. Vérification :
+#    curl http://localhost:5050/api/gateway/status
+#
+# 4. Documentation :
+#    open http://localhost:5050/api/gateway/docs
+#
+# 5. Logs :
+#    docker-compose -f docker-compose.simple.yml logs -f api-gateway
 #
 # === ENDPOINTS DISPONIBLES ===
 #
 # 🌟 API Gateway: http://localhost:5050/api/gateway/
-# 🔐 Auth: http://localhost:5050/api/gateway/auth/
+# 🔧 Status: http://localhost:5050/api/gateway/status
 # 🏥 Health: http://localhost:5050/api/gateway/health
 # 📊 Metrics: http://localhost:5050/api/gateway/metrics
 # 📚 Docs: http://localhost:5050/api/gateway/docs
+# 🔐 Auth: http://localhost:5050/api/gateway/auth/*
+# 📄 Parse CV: http://localhost:5050/api/gateway/parse-cv
+# 💼 Parse Job: http://localhost:5050/api/gateway/parse-job
+# 🎯 Matching: http://localhost:5050/api/gateway/match
 #
-# === SERVICES ===
-# - API Gateway: localhost:5050
-# - Redis: localhost:6379  
-# - PostgreSQL: localhost:5432
+# === MODE DÉGRADÉ ===
+#
+# L'API Gateway fonctionne en mode de base et affiche des messages
+# informatifs pour les services non connectés. Cela permet de :
+# - Valider l'architecture
+# - Tester les endpoints
+# - Voir la documentation
+# - Ajouter progressivement les services
 #
 # === ARRÊT ===
-# docker-compose down
+# docker-compose -f docker-compose.simple.yml down
