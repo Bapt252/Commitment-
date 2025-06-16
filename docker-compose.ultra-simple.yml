@@ -1,0 +1,17 @@
+services:
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile.simple
+    container_name: api-gateway-simple
+    ports:
+      - "5050:5050"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+    restart: unless-stopped
+
+# === COMMANDES ===
+# docker-compose -f docker-compose.ultra-simple.yml up -d --build
+# curl http://localhost:5050/api/gateway/status
+# docker-compose -f docker-compose.ultra-simple.yml logs -f
