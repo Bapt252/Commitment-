@@ -1,19 +1,149 @@
-version: '3'
-
 services:
-  feedback-service-simple:
+  # 🌟 API Gateway Unifié - Point d'entrée principal (PORT 5050)
+  api-gateway:
     build:
-      context: ./feedback_service
-      dockerfile: Dockerfile.simple
-    container_name: nexten-feedback-simple
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+      target: development
+    image: supersmartmatch/api-gateway:v2.1
+    container_name: supersmartmatch-gateway
     ports:
-      - "5058:5058"
+      - "5050:5050"
     environment:
-      DEBUG: "true"
-      PORT: 5058
+      # Configuration générale
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=debug
+      
+      # Services endpoints (en mode dégradé si pas disponibles)
+      - CV_PARSER_URL=http://cv-parser:5051
+      - JOB_PARSER_URL=http://job-parser:5053
+      - MATCHING_SERVICE_URL=http://matching-service:5060
+      
+      # Sécurité JWT
+      - JWT_SECRET=${JWT_SECRET:-supersecure-jwt-secret-change-in-production}
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRE_HOURS=24
+      
+      # Infrastructure
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+      
+      # Rate limiting
+      - RATE_LIMIT_PER_MINUTE=1000
+      - RATE_LIMIT_BURST=50
+      
+      # CORS
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000
+      
+      # Monitoring
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_INTERVAL=30
+    volumes:
+      - gateway_logs:/app/logs
+      - gateway_temp:/app/temp
+      - ./services/api-gateway:/app:ro  # Pour le développement
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/api/gateway/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     networks:
-      - default
+      - supersmartmatch
 
+  # 📊 Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: supersmartmatch-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 🗄️ PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: supersmartmatch-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=supersmartmatch
+      - POSTGRES_USER=supersmartmatch
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supersmartmatch"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Volumes persistants
+volumes:
+  # API Gateway
+  gateway_logs:
+    driver: local
+  gateway_temp:
+    driver: local
+  
+  # Infrastructure
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+# Réseau isolé
 networks:
-  default:
+  supersmartmatch:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+# === DÉMARRAGE RAPIDE ===
+#
+# 1. Démarrage API Gateway + infrastructure :
+#    docker-compose up -d
+#
+# 2. Vérifier le statut :
+#    curl http://localhost:5050/api/gateway/health
+#
+# 3. Documentation :
+#    http://localhost:5050/api/gateway/docs
+#
+# 4. Tests :
+#    docker-compose logs -f api-gateway
+#
+# === ENDPOINTS DISPONIBLES ===
+#
+# 🌟 API Gateway: http://localhost:5050/api/gateway/
+# 🔐 Auth: http://localhost:5050/api/gateway/auth/
+# 🏥 Health: http://localhost:5050/api/gateway/health
+# 📊 Metrics: http://localhost:5050/api/gateway/metrics
+# 📚 Docs: http://localhost:5050/api/gateway/docs
+#
+# === SERVICES ===
+# - API Gateway: localhost:5050
+# - Redis: localhost:6379  
+# - PostgreSQL: localhost:5432
+#
+# === ARRÊT ===
+# docker-compose down
