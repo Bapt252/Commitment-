@@ -1,0 +1,270 @@
+version: '3.8'
+
+services:
+  # 🌟 API Gateway Unifié SuperSmartMatch V2 (PORT 5055)
+  api-gateway-simple:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile.simple
+    image: supersmartmatch/api-gateway-simple:v2.1
+    container_name: api-gateway-simple
+    ports:
+      - "5055:5055"
+    environment:
+      # Configuration générale
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=info
+      
+      # Services endpoints - URLs corrigées pour résolution réseau
+      - CV_PARSER_URL=http://cv-parser:5051
+      - JOB_PARSER_URL=http://job-parser:5053
+      - MATCHING_SERVICE_URL=http://matching-service:5060
+      
+      # Sécurité JWT
+      - JWT_SECRET=${JWT_SECRET:-supersecure-jwt-secret-change-in-production}
+      - JWT_ALGORITHM=HS256
+      - - JWT_EXPIRE_HOURS=24
+      
+      # Infrastructure
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+      
+      # Rate limiting
+      - RATE_LIMIT_PER_MINUTE=100
+      - RATE_LIMIT_BURST=20
+      
+      # CORS
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000
+      
+      # Monitoring
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_INTERVAL=30
+    volumes:
+      - gateway_logs:/app/logs
+      - gateway_temp:/app/temp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5055/api/gateway/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - redis
+      - postgres
+
+  # 🎯 CV Parser Universal V2.1 (PORT 5051)
+  cv-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PARSER_TYPE: cv
+    image: supersmartmatch/cv-parser:v2.1
+    container_name: cv-parser-universal
+    ports:
+      - "5051:5051"
+    environment:
+      - FLASK_ENV=production
+      - MAX_CONTENT_LENGTH=52428800
+      - TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+    volumes:
+      - ./cv-parser-v2/parsers:/app/parsers:ro
+      - cv_temp:/tmp/cv_parsing
+      - logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5051/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - redis
+      - postgres
+    profiles:
+      - parsing
+
+  # 💼 Job Parser Universal V2.1 (PORT 5053)
+  job-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PARSER_TYPE: job
+    image: supersmartmatch/job-parser:v2.1
+    container_name: job-parser-universal
+    ports:
+      - "5053:5053"
+    environment:
+      - FLASK_ENV=production
+      - MAX_CONTENT_LENGTH=52428800
+      - TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+    volumes:
+      - ./job-parser-v2/parsers:/app/parsers:ro
+      - job_temp:/tmp/job_parsing
+      - logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5053/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - redis
+      - postgres
+    profiles:
+      - parsing
+
+  # 🤖 Matching Service avec 9 Algorithmes ML (PORT 5060)
+  matching-service:
+    build:
+      context: ../SuperSmartMatch-Service
+      dockerfile: Dockerfile
+    image: supersmartmatch/matching-service:v2.1
+    container_name: matching-service-ml
+    ports:
+      - "5060:5060"
+    environment:
+      - ENVIRONMENT=production
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+      - API_VERSION=v1
+      - ML_MODEL_PATH=/app/models
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - CACHE_TTL=3600
+    volumes:
+      - ml_models:/app/models
+      - matching_logs:/app/logs
+      - matching_cache:/app/cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5060/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - redis
+      - postgres
+    profiles:
+      - matching
+
+  # 📊 Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: supersmartmatch-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 🗄️ PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: supersmartmatch-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=supersmartmatch
+      - POSTGRES_USER=supersmartmatch
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supersmartmatch"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Volumes persistants
+volumes:
+  # API Gateway
+  gateway_logs:
+    driver: local
+  gateway_temp:
+    driver: local
+  
+  # Services de parsing
+  cv_temp:
+    driver: local
+  job_temp:
+    driver: local
+  logs:
+    driver: local
+  
+  # Matching service
+  ml_models:
+    driver: local
+  matching_logs:
+    driver: local
+  matching_cache:
+    driver: local
+  
+  # Infrastructure
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+# Réseau unifié pour tous les services
+networks:
+  supersmartmatch:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+# === COMMANDES DE DÉMARRAGE WORKING VERSION ===
+#
+# 🚀 Infrastructure de base :
+# docker-compose -f docker-compose-working.yml up -d redis postgres
+#
+# 🌟 API Gateway :
+# docker-compose -f docker-compose-working.yml up -d api-gateway-simple
+#
+# 🎯 Services de parsing :
+# docker-compose -f docker-compose-working.yml --profile parsing up -d
+#
+# 🤖 Service de matching :
+# docker-compose -f docker-compose-working.yml --profile matching up -d
+#
+# 🎉 Tout ensemble (après infra) :
+# docker-compose -f docker-compose-working.yml --profile parsing --profile matching up -d
+#
+# === ENDPOINTS SUPERSMARTMATCH V2 ===
+# 
+# 🌟 API Gateway: http://localhost:5055/api/gateway/
+# 🎯 CV Parser: http://localhost:5051
+# 💼 Job Parser: http://localhost:5053  
+# 🤖 Matching Service: http://localhost:5060
+# 📊 Redis: localhost:6379
+# 🗄️ PostgreSQL: localhost:5432
