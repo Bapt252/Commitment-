@@ -1,6 +1,69 @@
 version: '3.8'
 
 services:
+  # 🌟 API Gateway Unifié - Point d'entrée principal (PORT 5050)
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+      target: production
+    image: supersmartmatch/api-gateway:v2.1
+    container_name: supersmartmatch-gateway
+    ports:
+      - "5050:5050"
+    environment:
+      # Configuration générale
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=info
+      
+      # Services endpoints
+      - CV_PARSER_URL=http://cv-parser:5051
+      - JOB_PARSER_URL=http://job-parser:5053
+      - MATCHING_SERVICE_URL=http://matching-service:5060
+      
+      # Sécurité JWT
+      - JWT_SECRET=${JWT_SECRET:-supersecure-jwt-secret-change-in-production}
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRE_HOURS=24
+      
+      # Infrastructure
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+      
+      # Rate limiting
+      - RATE_LIMIT_PER_MINUTE=100
+      - RATE_LIMIT_BURST=20
+      
+      # CORS
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000
+      
+      # Monitoring
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_INTERVAL=30
+    volumes:
+      - gateway_logs:/app/logs
+      - gateway_temp:/app/temp
+    depends_on:
+      - redis
+      - postgres
+      - cv-parser
+      - job-parser
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/api/gateway/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - supersmartmatch
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-gateway.rule=PathPrefix(/api/gateway/)"
+      - "traefik.http.services.api-gateway.loadbalancer.server.port=5050"
+      - "traefik.http.middlewares.api-gateway-strip.stripprefix.prefixes=/api/gateway"
+
   # 🎯 CV Parser Universal V2.1
   cv-parser:
     build:
@@ -67,29 +130,43 @@ services:
       - "traefik.http.routers.job-parser.rule=PathPrefix(/api/parse-job)"
       - "traefik.http.services.job-parser.loadbalancer.server.port=5053"
 
-  # 🔍 API Enhanced V2.1 (optionnel - si présent)
-  api-enhanced:
-    image: supersmartmatch/api-enhanced:v2.1
-    container_name: api-enhanced-v2.1
+  # 🤖 Matching Service avec 9 Algorithmes ML (PORT 5060)
+  matching-service:
+    build:
+      context: ../SuperSmartMatch-Service
+      dockerfile: Dockerfile
+    image: supersmartmatch/matching-service:v2.1
+    container_name: matching-service-ml
     ports:
-      - "5055:5055"
+      - "5060:5060"
     environment:
-      - CV_PARSER_URL=http://cv-parser:5051
-      - JOB_PARSER_URL=http://job-parser:5053
+      - ENVIRONMENT=production
       - REDIS_URL=redis://redis:6379
-      - POSTGRES_URL=postgresql://postgres:password@postgres:5432/commitment
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+      - API_VERSION=v1
+      - ML_MODEL_PATH=/app/models
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - CACHE_TTL=3600
+    volumes:
+      - ml_models:/app/models
+      - matching_logs:/app/logs
+      - matching_cache:/app/cache
     depends_on:
-      - cv-parser
-      - job-parser
       - redis
       - postgres
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5060/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     networks:
       - supersmartmatch
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api-enhanced.rule=PathPrefix(/api/match/)"
-      - "traefik.http.services.api-enhanced.loadbalancer.server.port=5055"
+      - "traefik.http.routers.matching-service.rule=PathPrefix(/api/v1/match)"
+      - "traefik.http.services.matching-service.loadbalancer.server.port=5060"
 
   # 📊 Redis Cache
   redis:
@@ -102,7 +179,12 @@ services:
     restart: unless-stopped
     networks:
       - supersmartmatch
-    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # 🗄️ PostgreSQL Database
   postgres:
@@ -111,17 +193,41 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=commitment
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=supersmartmatch
+      - POSTGRES_USER=supersmartmatch
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     restart: unless-stopped
     networks:
       - supersmartmatch
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supersmartmatch"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # 📈 Monitoring (optionnel)
+  # 🌐 Nginx Load Balancer & SSL Termination
+  nginx:
+    image: nginx:alpine
+    container_name: supersmartmatch-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+    profiles:
+      - production
+
+  # 📈 Monitoring - Prometheus
   prometheus:
     image: prom/prometheus:latest
     container_name: supersmartmatch-prometheus
@@ -141,86 +247,167 @@ services:
     profiles:
       - monitoring
 
+  # 📊 Monitoring - Grafana
   grafana:
     image: grafana/grafana:latest
     container_name: supersmartmatch-grafana
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_DISABLE_GRAVATAR=true
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
     networks:
       - supersmartmatch
     profiles:
       - monitoring
 
+  # 📧 Notification Service (optionnel)
+  notification-service:
+    image: supersmartmatch/notifications:v2.1
+    container_name: notification-service
+    ports:
+      - "5070:5070"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+    depends_on:
+      - redis
+    networks:
+      - supersmartmatch
+    profiles:
+      - notifications
+
 # Volumes persistants
 volumes:
+  # API Gateway
+  gateway_logs:
+    driver: local
+  gateway_temp:
+    driver: local
+  
+  # Services de parsing
   cv_temp:
     driver: local
   job_temp:
     driver: local
   logs:
     driver: local
+  
+  # Matching service
+  ml_models:
+    driver: local
+  matching_logs:
+    driver: local
+  matching_cache:
+    driver: local
+  
+  # Infrastructure
   redis_data:
     driver: local
   postgres_data:
     driver: local
+  
+  # Monitoring
   prometheus_data:
     driver: local
   grafana_data:
     driver: local
+  
+  # Nginx
+  nginx_logs:
+    driver: local
 
-# Réseau isolé
+# Réseau isolé avec configuration IP
 networks:
   supersmartmatch:
     driver: bridge
     ipam:
       config:
         - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
 
+# === ARCHITECTURE SuperSmartMatch V2 ===
+#
+# 🌟 API Gateway (Port 5050) - Point d'entrée unifié
+# ├── 🎯 CV Parser (Port 5051) - Parsing de CV universel
+# ├── 💼 Job Parser (Port 5053) - Parsing d'offres d'emploi
+# ├── 🤖 Matching Service (Port 5060) - 9 algorithmes ML
+# ├── 📊 Redis (Port 6379) - Cache et sessions
+# └── 🗄️ PostgreSQL (Port 5432) - Base de données principale
+#
 # === UTILISATION ===
 #
-# Démarrage complet :
+# 🚀 Démarrage complet :
 # docker-compose up -d
 #
-# Démarrage parsers uniquement :
-# docker-compose up -d cv-parser job-parser
+# 🎯 Démarrage core services uniquement :
+# docker-compose up -d api-gateway cv-parser job-parser matching-service redis postgres
 #
-# Démarrage avec monitoring :
+# 📈 Démarrage avec monitoring :
 # docker-compose --profile monitoring up -d
 #
-# Reconstruction des images :
+# 📧 Démarrage avec notifications :
+# docker-compose --profile notifications up -d
+#
+# 🏭 Démarrage production (avec Nginx) :
+# docker-compose --profile production up -d
+#
+# 🔧 Reconstruction des images :
 # docker-compose build --no-cache
 #
-# Logs en temps réel :
-# docker-compose logs -f cv-parser job-parser
+# 📋 Logs en temps réel :
+# docker-compose logs -f api-gateway
 #
-# Test des endpoints :
-# curl http://localhost:5051/health
-# curl http://localhost:5053/health
+# === ENDPOINTS PRINCIPAUX ===
+# 
+# 🌟 API Gateway Unifié: http://localhost:5050/api/gateway/
+# ├── 🔐 Auth: http://localhost:5050/api/gateway/auth/
+# ├── 📄 Parse CV: http://localhost:5050/api/gateway/parse-cv
+# ├── 💼 Parse Job: http://localhost:5050/api/gateway/parse-job
+# ├── 🎯 Matching: http://localhost:5050/api/gateway/match
+# ├── 🏥 Health: http://localhost:5050/api/gateway/health
+# ├── 📊 Metrics: http://localhost:5050/api/gateway/metrics
+# └── 📚 Docs: http://localhost:5050/api/gateway/docs
 #
-# Arrêt des services :
-# docker-compose down
-#
-# Nettoyage complet :
-# docker-compose down -v --rmi all
+# === ACCÈS DIRECT AUX SERVICES ===
+# - CV Parser: http://localhost:5051/health
+# - Job Parser: http://localhost:5053/health  
+# - Matching Service: http://localhost:5060/health
+# - Redis: localhost:6379
+# - PostgreSQL: localhost:5432
 #
 # === MONITORING ===
 # - Grafana: http://localhost:3000 (admin/admin)
 # - Prometheus: http://localhost:9090
-# - CV Parser Health: http://localhost:5051/health
-# - Job Parser Health: http://localhost:5053/health
+# - API Gateway Metrics: http://localhost:5050/api/gateway/metrics
 #
-# === SCALING ===
-# docker-compose up -d --scale cv-parser=3 --scale job-parser=2
+# === SCALING HORIZONTAL ===
+# docker-compose up -d --scale cv-parser=3 --scale job-parser=2 --scale matching-service=2
 #
 # === PRODUCTION ===
-# - Utiliser un reverse proxy (Traefik labels inclus)
-# - Configurer SSL/TLS
-# - Ajuster les limites de ressources
-# - Monitoring et alerting
-# - Backup des volumes
+# 1. Configurer les variables d'environnement dans .env
+# 2. Utiliser SSL/TLS avec Nginx (profile production)
+# 3. Configurer monitoring et alerting
+# 4. Backup automatique des volumes
+# 5. Load balancer externe (HAProxy/Traefik)
+#
+# === SÉCURITÉ ===
+# - JWT Authentication via API Gateway
+# - Rate limiting par utilisateur/IP
+# - CORS configuré
+# - Health checks sur tous services
+# - Logs structurés pour audit
+#
+# === ARRÊT ET NETTOYAGE ===
+# docker-compose down
+# docker-compose down -v --rmi all  # Nettoyage complet
