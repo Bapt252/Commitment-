@@ -234,14 +234,10 @@ volumes:
   postgres_data:
     driver: local
 
-# Réseau unifié pour tous les services
+# Réseau unifié pour tous les services - UTILISE LE RÉSEAU EXTERNE DÉJÀ CRÉÉ
 networks:
   supersmartmatch:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.25.0.0/16
-          gateway: 172.25.0.1
+    external: true
 
 # === COMMANDES DE DÉMARRAGE WORKING VERSION ===
 #
