@@ -1,0 +1,407 @@
+version: '3.8'
+
+services:
+  # 🌟 API Gateway Unifié SuperSmartMatch V2 (PORT 5055)
+  api-gateway-simple:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile.simple
+    image: supersmartmatch/api-gateway-simple:v2.1
+    container_name: api-gateway-simple
+    ports:
+      - "5055:5055"
+    environment:
+      # Configuration générale
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=info
+      
+      # Services endpoints - URLs corrigées pour résolution réseau
+      - CV_PARSER_URL=http://cv-parser:5051
+      - JOB_PARSER_URL=http://job-parser:5053
+      - MATCHING_SERVICE_URL=http://matching-service:5060
+      - NEXTEN_API_URL=http://nexten-api:5000
+      - NEXTEN_DATA_ADAPTER_URL=http://nexten-data-adapter:5052
+      
+      # Sécurité JWT
+      - JWT_SECRET=${JWT_SECRET:-supersecure-jwt-secret-change-in-production}
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRE_HOURS=24
+      
+      # Infrastructure
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+      
+      # Rate limiting
+      - RATE_LIMIT_PER_MINUTE=100
+      - RATE_LIMIT_BURST=20
+      
+      # CORS
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000
+      
+      # Monitoring
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_INTERVAL=30
+    volumes:
+      - gateway_logs:/app/logs
+      - gateway_temp:/app/temp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5055/api/gateway/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - redis
+      - postgres
+
+  # 🌐 Frontend NexTen (PORT 3000)
+  nexten-frontend:
+    image: nginx:alpine
+    container_name: nexten-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./Nexten-Project:/usr/share/nginx/html:ro
+      - ./nginx/frontend.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+    depends_on:
+      - api-gateway-simple
+
+  # 📊 Nexten API Backend (PORT 5000)
+  nexten-api:
+    build:
+      context: ./nexten-backend
+      dockerfile: Dockerfile
+    image: nexten/api:latest
+    container_name: nexten-api
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+      - REDIS_URL=redis://redis:6379
+      - API_VERSION=v1
+    volumes:
+      - nexten_logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - redis
+      - postgres
+    profiles:
+      - nexten
+
+  # 📊 Nexten Data Adapter (PORT 5052)
+  nexten-data-adapter:
+    build:
+      context: ./nexten-data-adapter
+      dockerfile: Dockerfile
+    image: nexten/data-adapter:latest
+    container_name: nexten-data-adapter
+    ports:
+      - "5052:5052"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+      - REDIS_URL=redis://redis:6379
+      - NEXTEN_API_URL=http://nexten-api:5000
+    volumes:
+      - adapter_logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5052/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - postgres
+      - nexten-api
+    profiles:
+      - nexten
+
+  # 🎯 CV Parser Universal V2.1 (PORT 5051)
+  cv-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PARSER_TYPE: cv
+    image: supersmartmatch/cv-parser:v2.1
+    container_name: cv-parser-universal
+    ports:
+      - "5051:5051"
+    environment:
+      - FLASK_ENV=production
+      - MAX_CONTENT_LENGTH=52428800
+      - TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+    volumes:
+      - ./cv-parser-v2/parsers:/app/parsers:ro
+      - cv_temp:/tmp/cv_parsing
+      - logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5051/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - redis
+      - postgres
+    profiles:
+      - parsing
+
+  # 💼 Job Parser Universal V2.1 (PORT 5053)
+  job-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PARSER_TYPE: job
+    image: supersmartmatch/job-parser:v2.1
+    container_name: job-parser-universal
+    ports:
+      - "5053:5053"
+    environment:
+      - FLASK_ENV=production
+      - MAX_CONTENT_LENGTH=52428800
+      - TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+    volumes:
+      - ./job-parser-v2/parsers:/app/parsers:ro
+      - job_temp:/tmp/job_parsing
+      - logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5053/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - redis
+      - postgres
+    profiles:
+      - parsing
+
+  # 🤖 Matching Service avec 9 Algorithmes ML (PORT 5060)
+  matching-service:
+    build:
+      context: ../SuperSmartMatch-Service
+      dockerfile: Dockerfile
+    image: supersmartmatch/matching-service:v2.1
+    container_name: matching-service-ml
+    ports:
+      - "5060:5060"
+    environment:
+      - ENVIRONMENT=production
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://supersmartmatch:${POSTGRES_PASSWORD:-password}@postgres:5432/supersmartmatch
+      - API_VERSION=v1
+      - ML_MODEL_PATH=/app/models
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - CACHE_TTL=3600
+    volumes:
+      - ml_models:/app/models
+      - matching_logs:/app/logs
+      - matching_cache:/app/cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5060/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - supersmartmatch
+    depends_on:
+      - redis
+      - postgres
+    profiles:
+      - matching
+
+  # 📊 Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: supersmartmatch-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 🗄️ PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: supersmartmatch-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=supersmartmatch
+      - POSTGRES_USER=supersmartmatch
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    networks:
+      - supersmartmatch
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supersmartmatch"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 📈 Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: supersmartmatch-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - supersmartmatch
+    profiles:
+      - monitoring
+
+  # 📊 Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: supersmartmatch-grafana
+    ports:
+      - "3001:3000"  # Changé pour éviter conflit avec frontend
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - supersmartmatch
+    profiles:
+      - monitoring
+
+# Volumes persistants
+volumes:
+  # API Gateway
+  gateway_logs:
+    driver: local
+  gateway_temp:
+    driver: local
+  
+  # Nexten services
+  nexten_logs:
+    driver: local
+  adapter_logs:
+    driver: local
+  
+  # Services de parsing
+  cv_temp:
+    driver: local
+  job_temp:
+    driver: local
+  logs:
+    driver: local
+  
+  # Matching service
+  ml_models:
+    driver: local
+  matching_logs:
+    driver: local
+  matching_cache:
+    driver: local
+  
+  # Infrastructure
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  
+  # Monitoring
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# Réseau unifié pour tous les services
+networks:
+  supersmartmatch:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+# === COMMANDES DE DÉMARRAGE ===
+#
+# 🚀 Démarrage complet intégré :
+# docker-compose -f docker-compose-integrated.yml up -d
+#
+# 🎯 Démarrage services core uniquement :
+# docker-compose -f docker-compose-integrated.yml up -d api-gateway-simple redis postgres
+#
+# 🔧 Reconstruction des images :
+# docker-compose -f docker-compose-integrated.yml build --no-cache
+#
+# 📋 Logs en temps réel :
+# docker-compose -f docker-compose-integrated.yml logs -f api-gateway-simple
+#
+# 🧹 Nettoyage complet :
+# docker-compose -f docker-compose-integrated.yml down -v --rmi all
+#
+# === ENDPOINTS UNIFIÉS ===
+# 
+# 🌟 API Gateway SuperSmartMatch V2: http://localhost:5055/api/gateway/
+# 🌐 Frontend NexTen: http://localhost:3000
+# 📊 Nexten API: http://localhost:5000
+# 📊 Nexten Data Adapter: http://localhost:5052
+# 🎯 CV Parser: http://localhost:5051
+# 💼 Job Parser: http://localhost:5053  
+# 🤖 Matching Service: http://localhost:5060
+# 📊 Redis: localhost:6379
+# 🗄️ PostgreSQL: localhost:5432
+# 📈 Grafana: http://localhost:3001 (avec monitoring profile)
+# 📊 Prometheus: http://localhost:9090 (avec monitoring profile)
