@@ -1,56 +1,56 @@
-# SuperSmartMatch V2 API Gateway - Dockerfile Simplifié
-# Version de démarrage rapide pour démonstration immédiate
+# API Gateway Simple - SuperSmartMatch V2
+# Optimisé pour démarrage rapide avec connectivité réseau
 
 FROM python:3.11-slim
 
 # Métadonnées
 LABEL maintainer="SuperSmartMatch Team"
 LABEL version="2.1.0"
-LABEL description="API Gateway SuperSmartMatch V2 - Version démarrage rapide"
+LABEL description="API Gateway Simple pour SuperSmartMatch V2"
 
 # Variables d'environnement
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=app_simple.py
+ENV FLASK_ENV=production
 
-# Installer les dépendances système essentielles
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Création utilisateur non-root
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Installation dépendances système
+RUN apt-get update && apt-get install -y \
     curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && rm -rf /var/lib/apt/lists/*
 
-# Créer un utilisateur non-root pour la sécurité
-RUN useradd --create-home --shell /bin/bash --uid 1000 gateway
-
-# Créer les répertoires nécessaires
-RUN mkdir -p /app /app/logs /app/temp && \
-    chown -R gateway:gateway /app
-
-# Passer à l'utilisateur non-root
-USER gateway
+# Répertoire de travail
 WORKDIR /app
 
-# Installer les dépendances Python de base
-RUN pip install --user --no-cache-dir \
-    fastapi==0.104.1 \
-    uvicorn[standard]==0.24.0 \
-    pydantic==2.5.0
+# Installation dépendances Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier l'application simplifiée
-COPY --chown=gateway:gateway app_simple.py /app/app.py
+# Copie du code source
+COPY app_simple.py .
+COPY config/ config/
+COPY middleware/ middleware/
+COPY routes/ routes/
+COPY utils/ utils/
 
-# Variables d'environnement par défaut
-ENV ENVIRONMENT=development \
-    PORT=5050 \
-    DEBUG=true \
-    LOG_LEVEL=info
+# Création des répertoires
+RUN mkdir -p logs temp
+
+# Permissions
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Exposition du port 5055
+EXPOSE 5055
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:5050/api/gateway/status || exit 1
-
-# Exposer le port
-EXPOSE 5050
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:5055/api/gateway/status || exit 1
 
 # Commande de démarrage
-CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5050", "--reload"]
+CMD ["uvicorn", "app_simple:app", "--host", "0.0.0.0", "--port", "5055", "--workers", "1"]
