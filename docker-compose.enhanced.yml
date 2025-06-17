@@ -1,0 +1,301 @@
+version: '3.8'
+
+services:
+  # Infrastructure Services
+  redis:
+    image: redis:7-alpine
+    container_name: supersmartmatch-redis
+    ports:
+      - "6380:6379"  # Port alternatif pour éviter conflits
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - supersmartmatch-network
+    restart: unless-stopped
+
+  postgresql:
+    image: postgres:15-alpine
+    container_name: supersmartmatch-postgres
+    environment:
+      POSTGRES_DB: supersmartmatch
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"  # Port alternatif pour éviter conflits
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - supersmartmatch-network
+    restart: unless-stopped
+
+  # Application Services
+  cv-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile.cv-parser
+    container_name: supersmartmatch-cv-parser
+    ports:
+      - "5051:5051"
+    environment:
+      - PORT=5051
+      - REDIS_URL=redis://redis:6379
+      - DB_URL=postgresql://postgres:password@postgresql:5432/supersmartmatch
+    volumes:
+      - ./uploads:/app/uploads
+      - ./test_data:/app/test_data
+      - ./logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+    networks:
+      - supersmartmatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5051/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  job-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile.job-parser
+    container_name: supersmartmatch-job-parser
+    ports:
+      - "5053:5053"
+    environment:
+      - PORT=5053
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - supersmartmatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5053/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  supersmartmatch-v3:
+    build:
+      context: ../SuperSmartMatch-Service
+      dockerfile: Dockerfile
+    container_name: supersmartmatch-v3-engine
+    ports:
+      - "5067:5067"  # Port alternatif pour éviter conflits
+    environment:
+      - PORT=5067
+      - ALGORITHM_VERSION=Enhanced_V3.0
+      - REDIS_URL=redis://redis:6379
+      - DB_URL=postgresql://postgres:password@postgresql:5432/supersmartmatch
+      - CV_PARSER_URL=http://cv-parser:5051
+      - JOB_PARSER_URL=http://job-parser:5053
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./test_data:/app/test_data
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      cv-parser:
+        condition: service_healthy
+      job-parser:
+        condition: service_healthy
+    networks:
+      - supersmartmatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5067/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.api-gateway
+    container_name: supersmartmatch-api-gateway
+    ports:
+      - "5065:5065"
+    environment:
+      - PORT=5065
+      - CV_PARSER_URL=http://cv-parser:5051
+      - JOB_PARSER_URL=http://job-parser:5053
+      - SUPERSMARTMATCH_URL=http://supersmartmatch-v3:5067
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      cv-parser:
+        condition: service_healthy
+      job-parser:
+        condition: service_healthy
+      supersmartmatch-v3:
+        condition: service_healthy
+    networks:
+      - supersmartmatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5065/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: supersmartmatch-dashboard
+    ports:
+      - "5070:5070"  # Port évite conflit AirPlay macOS
+    environment:
+      - PORT=5070
+      - SUPERSMARTMATCH_URL=http://supersmartmatch-v3:5067
+      - API_GATEWAY_URL=http://api-gateway:5065
+      - REDIS_URL=redis://redis:6379
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_ENABLE_CORS=false
+    depends_on:
+      supersmartmatch-v3:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - supersmartmatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5070/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Test Runner Service (optionnel)
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-runner
+    container_name: supersmartmatch-test-runner
+    environment:
+      - API_GATEWAY_URL=http://api-gateway:5065
+      - CV_PARSER_URL=http://cv-parser:5051
+      - JOB_PARSER_URL=http://job-parser:5053
+      - SUPERSMARTMATCH_URL=http://supersmartmatch-v3:5067
+      - DASHBOARD_URL=http://dashboard:5070
+    volumes:
+      - ./test_data:/app/test_data
+      - ./logs:/app/logs
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+      dashboard:
+        condition: service_healthy
+    networks:
+      - supersmartmatch-network
+    profiles:
+      - testing  # Service activé seulement avec --profile testing
+    restart: "no"
+
+  # Monitoring (optionnel)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: supersmartmatch-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - supersmartmatch-network
+    profiles:
+      - monitoring
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: supersmartmatch-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=supersmartmatch
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - supersmartmatch-network
+    profiles:
+      - monitoring
+    restart: unless-stopped
+
+networks:
+  supersmartmatch-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# Configuration de développement
+x-development: &development
+  build:
+    context: .
+    target: development
+  volumes:
+    - .:/app
+    - /app/node_modules
+  environment:
+    - NODE_ENV=development
+    - DEBUG=true
+
+# Configuration de production
+x-production: &production
+  build:
+    context: .
+    target: production
+  environment:
+    - NODE_ENV=production
+    - DEBUG=false
+  restart: unless-stopped
+  deploy:
+    resources:
+      limits:
+        memory: 512M
+        cpus: '0.5'
+      reservations:
+        memory: 256M
+        cpus: '0.25'
