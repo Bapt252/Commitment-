@@ -33,16 +33,14 @@ from psycopg2.extras import RealDictCursor
 import PyPDF2
 import docx
 from PIL import Image
-import pytesseract
+# import pytesseract  # Optionnel pour OCR
 
 # Data processing
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+# import nltk  # Optionnel pour NLP avancé
 
 # Pydantic models
 from pydantic import BaseModel, Field
@@ -240,15 +238,21 @@ class DocumentParser:
     def extract_text_from_image(file_content: bytes) -> str:
         """Extraction texte image avec OCR"""
         try:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                tmp_file.write(file_content)
-                tmp_file.flush()
-                
-                image = Image.open(tmp_file.name)
-                text = pytesseract.image_to_string(image, lang='fra+eng')
-                
-                os.unlink(tmp_file.name)
-                return text
+            # OCR optionnel - retourne texte vide si pytesseract non disponible
+            try:
+                import pytesseract
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                    tmp_file.write(file_content)
+                    tmp_file.flush()
+                    
+                    image = Image.open(tmp_file.name)
+                    text = pytesseract.image_to_string(image, lang='fra+eng')
+                    
+                    os.unlink(tmp_file.name)
+                    return text
+            except ImportError:
+                logger.warning("pytesseract non disponible - OCR désactivé")
+                return "Contenu image - OCR non disponible"
         except Exception as e:
             logger.error(f"Erreur extraction image: {e}")
             return ""
@@ -349,10 +353,10 @@ class CVParser:
     
     def _extract_experience(self, text: str) -> int:
         """Extraction années d'expérience"""
-        # Patterns pour années d'expérience
+        # Patterns pour années d'expérience (corrigés)
         patterns = [
-            r'(\d+)\s*ans?\s*d[\'']expérience',
-            r'(\d+)\s*années?\s*d[\'']expérience',
+            r'(\d+)\s*ans?\s*d.expérience',
+            r'(\d+)\s*années?\s*d.expérience',
             r'(\d+)\s*ans?\s*dans',
             r'expérience.*?(\d+)\s*ans?'
         ]
@@ -482,9 +486,9 @@ class JobParser:
     def _extract_required_experience(self, text: str) -> int:
         """Extraction expérience requise"""
         patterns = [
-            r'(\d+)\s*ans?\s*d[\'']expérience\s*minimum',
+            r'(\d+)\s*ans?\s*d.expérience\s*minimum',
             r'minimum\s*(\d+)\s*ans?',
-            r'(\d+)\s*années?\s*d[\'']expérience',
+            r'(\d+)\s*années?\s*d.expérience',
             r'(\d+)\+\s*ans?'
         ]
         
