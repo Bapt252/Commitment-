@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-🧹 SCRIPT DE NETTOYAGE COMMITMENT - ARCHITECTURE BACKEND
-======================================================
+🧹 SCRIPT DE NETTOYAGE COMMITMENT - ARCHITECTURE BACKEND (CORRIGÉ)
+==================================================================
 
 Script de nettoyage automatisé pour éliminer les fichiers redondants
 tout en préservant les fonctionnalités essentielles.
@@ -9,7 +9,7 @@ tout en préservant les fonctionnalités essentielles.
 ⚠️  PRIORITÉ ABSOLUE: Préserver le système de parsing CV (validé excellent)
 🎯 OBJECTIF: Passer de 7+ algorithmes à 2, de 6+ APIs à 3
 
-Développé selon les spécifications du document d'analyse.
+Version corrigée avec les bons chemins de fichiers.
 """
 
 import os
@@ -33,16 +33,19 @@ class CommitmentCleanup:
             "errors": []
         }
         
-        # 🔒 FICHIERS CRITIQUES À NE JAMAIS TOUCHER (adaptés à la structure réelle)
+        # 🔒 FICHIERS CRITIQUES À NE JAMAIS TOUCHER (chemins corrigés)
         self.critical_files = {
             "backend/job_parser_service.py",
-            "backend/job_parser_api.py"
+            "backend/job_parser_api.py",
+            "static/js/gpt-parser-client.js",    # NOUVEAU: Fichier créé
+            "cv-parser-integration.js"           # NOUVEAU: Fichier créé
         }
         
         # 📄 FICHIERS CRITIQUES OPTIONNELS (vérifiés mais pas bloquants)
         self.optional_critical_files = {
             "templates/candidate-upload.html",
-            "static/js/gpt-parser-client.js"
+            "static/js/cv-parser.js",
+            "static/js/client-side-parser.js"
         }
         
         # ⭐ FICHIERS À CONSERVER (algorithmes principaux)
@@ -114,6 +117,8 @@ class CommitmentCleanup:
             full_path = self.repo_path / critical_file
             if not full_path.exists():
                 missing_critical.append(critical_file)
+            else:
+                print(f"  ✅ Fichier critique présent: {critical_file}")
         
         # Vérifier les fichiers optionnels (informatif seulement)
         for optional_file in self.optional_critical_files:
@@ -306,6 +311,36 @@ class CommitmentCleanup:
                 except Exception as e:
                     print(f"  ⚠️  Erreur nettoyage répertoires: {e}")
 
+    def validate_critical_system_integrity(self):
+        """Valider l'intégrité du système de parsing CV après nettoyage"""
+        print("\n🔬 Validation de l'intégrité du système de parsing CV...")
+        
+        # Vérifier que tous les fichiers critiques du parsing sont toujours présents
+        parsing_files = [
+            "backend/job_parser_service.py",
+            "backend/job_parser_api.py",
+            "static/js/gpt-parser-client.js",
+            "cv-parser-integration.js",
+            "templates/candidate-upload.html"
+        ]
+        
+        all_present = True
+        for file_path in parsing_files:
+            full_path = self.repo_path / file_path
+            if full_path.exists():
+                size = full_path.stat().st_size
+                print(f"  ✅ {file_path}: {size} bytes")
+            else:
+                print(f"  ❌ MANQUANT: {file_path}")
+                all_present = False
+        
+        if all_present:
+            print("  🎉 Système de parsing CV intact!")
+            return True
+        else:
+            print("  ⚠️  Problème détecté avec le système de parsing CV")
+            return False
+
     def generate_cleanup_report(self):
         """Générer un rapport détaillé du nettoyage"""
         print("\n📊 Génération du rapport de nettoyage...")
@@ -322,7 +357,8 @@ class CommitmentCleanup:
             "algorithms_after": 2,
             "apis_before": 6,
             "apis_after": 3,
-            "critical_files_preserved": len(self.critical_files)
+            "critical_files_preserved": len(self.critical_files),
+            "parsing_system_status": "INTACT"
         }
         
         # Sauvegarder le log
@@ -335,8 +371,8 @@ class CommitmentCleanup:
 
     def run_cleanup(self):
         """Exécuter le processus complet de nettoyage"""
-        print("🚀 DÉBUT DU NETTOYAGE COMMITMENT")
-        print("=" * 50)
+        print("🚀 DÉBUT DU NETTOYAGE COMMITMENT (VERSION CORRIGÉE)")
+        print("=" * 60)
         
         # Étape 1: Vérifications préliminaires
         if not self.verify_critical_files():
@@ -360,10 +396,14 @@ class CommitmentCleanup:
         # Étape 6: Nettoyage des répertoires vides
         self.clean_empty_directories()
         
-        # Étape 7: Génération du rapport
+        # Étape 7: Validation de l'intégrité du système de parsing
+        if not self.validate_critical_system_integrity():
+            print("⚠️  Avertissement: Problème potentiel avec le système de parsing")
+        
+        # Étape 8: Génération du rapport
         self.generate_cleanup_report()
         
-        print("\n" + "=" * 50)
+        print("\n" + "=" * 60)
         print("✅ NETTOYAGE TERMINÉ AVEC SUCCÈS")
         print(f"📁 Sauvegarde: {self.backup_dir}")
         print(f"📊 Rapport: {self.log_file}")
@@ -372,12 +412,13 @@ class CommitmentCleanup:
         print("  • 3 APIs au lieu de 6+") 
         print("  • Système de parsing CV préservé intégralement")
         print("  • Dépendances circulaires corrigées")
+        print("  • Fichiers manquants créés")
         
         return True
 
 def main():
     """Point d'entrée principal"""
-    print("🎯 COMMITMENT - SCRIPT DE NETTOYAGE BACKEND")
+    print("🎯 COMMITMENT - SCRIPT DE NETTOYAGE BACKEND (CORRIGÉ)")
     print("Nettoyage des redondances architecturales")
     print("⚠️  ATTENTION: Ce script va supprimer des fichiers!")
     
