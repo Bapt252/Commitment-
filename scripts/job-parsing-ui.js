@@ -119,9 +119,9 @@ function initJobParsingSection() {
                 fileBadge.style.display = 'flex';
             }
             
-            // Activer le bouton d'analyse GPT
+            // Activer le bouton d'analyse GPT - Non fonctionnel dans cette version
             if (analyzeGptButton) {
-                analyzeGptButton.disabled = false;
+                analyzeGptButton.disabled = true; // Garder désactivé pour clarification
             }
             
             // Si le fichier est un PDF et que l'API de parsing est disponible,
@@ -157,40 +157,32 @@ function initJobParsingSection() {
         }
     }
     
-    // Activer/désactiver le bouton d'analyse GPT selon le contenu
+    // Activer/désactiver le bouton d'analyse GPT selon le contenu - Mais garder désactivé
     if (jobTextarea && analyzeGptButton) {
         jobTextarea.addEventListener('input', function() {
-            analyzeGptButton.disabled = !this.value.trim();
+            // Garder désactivé pour le moment car cette fonctionnalité n'est pas encore disponible
+            analyzeGptButton.disabled = true;
         });
         
-        // Initialiser l'état du bouton
-        analyzeGptButton.disabled = !jobTextarea.value.trim() && (!fileInput || !fileInput.files.length);
+        // Initialiser l'état du bouton - toujours désactivé
+        analyzeGptButton.disabled = true;
     }
     
-    // Bouton d'analyse de texte
+    // Bouton d'analyse de texte principal
     if (analyzeButton && jobTextarea) {
         analyzeButton.addEventListener('click', function() {
             if (jobTextarea.value.trim()) {
                 parseJobText(jobTextarea.value);
             } else {
-                alert("Veuillez entrer le texte de la fiche de poste à analyser.");
+                showNotification("Veuillez entrer le texte de la fiche de poste à analyser.", 'info');
             }
         });
     }
     
-    // Bouton d'analyse GPT
+    // Bouton d'analyse GPT - Amélioration du message
     if (analyzeGptButton) {
         analyzeGptButton.addEventListener('click', function() {
-            const text = jobTextarea && jobTextarea.value.trim() ? jobTextarea.value.trim() : null;
-            const file = fileInput && fileInput.files.length ? fileInput.files[0] : null;
-            
-            if (text) {
-                parseJobText(text);
-            } else if (file) {
-                parseJobFile(file);
-            } else {
-                alert("Veuillez fournir un texte ou un fichier à analyser.");
-            }
+            showNotification("Cette fonctionnalité sera bientôt disponible. Utilisez le bouton d'analyse standard (🔍) pour analyser votre fiche de poste.", 'info');
         });
     }
     
@@ -218,14 +210,14 @@ function initJobParsingSection() {
                     })
                     .catch(error => {
                         console.error("Erreur lors de l'analyse:", error);
-                        alert("Une erreur est survenue lors de l'analyse. Veuillez réessayer.");
+                        showNotification("Une erreur est survenue lors de l'analyse. Veuillez réessayer.", 'error');
                         
                         // Cacher le loader
                         if (loader) loader.style.display = 'none';
                     });
             } catch (error) {
                 console.error("Erreur lors de l'appel à l'API:", error);
-                alert("Une erreur est survenue lors de l'appel à l'API de parsing.");
+                showNotification("Une erreur est survenue lors de l'appel à l'API de parsing.", 'error');
                 
                 // Cacher le loader
                 if (loader) loader.style.display = 'none';
@@ -285,14 +277,14 @@ function initJobParsingSection() {
                     })
                     .catch(error => {
                         console.error("Erreur lors de l'analyse du fichier:", error);
-                        alert("Une erreur est survenue lors de l'analyse du fichier. Veuillez réessayer.");
+                        showNotification("Une erreur est survenue lors de l'analyse du fichier. Veuillez réessayer.", 'error');
                         
                         // Cacher le loader
                         if (loader) loader.style.display = 'none';
                     });
             } catch (error) {
                 console.error("Erreur lors de l'appel à l'API pour le fichier:", error);
-                alert("Une erreur est survenue lors de l'appel à l'API de parsing pour le fichier.");
+                showNotification("Une erreur est survenue lors de l'appel à l'API de parsing pour le fichier.", 'error');
                 
                 // Cacher le loader
                 if (loader) loader.style.display = 'none';
@@ -410,8 +402,8 @@ function showJobResults(data) {
         }
     }
     
-    // Afficher une notification de succès
-    showNotification('Analyse de la fiche de poste terminée avec succès!', 'success');
+    // Afficher une notification de succès améliorée
+    showNotification('🎯 Extraction réussie ! Toutes les informations ont été analysées automatiquement par le parser local.', 'success');
 }
 
 /**
