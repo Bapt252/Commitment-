@@ -12,6 +12,42 @@
 - **🏢 Questionnaire Entreprise** : https://bapt252.github.io/Commitment-/templates/client-questionnaire.html
 - **💼 Recommandations** : https://bapt252.github.io/Commitment-/templates/candidate-recommendation.html
 
+## 🧹 Outils de Nettoyage Backend
+
+### 🛠️ Scripts Automatisés Disponibles
+
+#### **Script de Nettoyage** (`commitment_cleanup.py`)
+- Suppression automatisée des fichiers redondants
+- Sauvegarde complète avant toute modification  
+- Simplification : 7+ algorithmes → 2 fichiers essentiels
+- Réduction : 6+ APIs → 3 APIs principales
+- **Préservation intégrale** du système de parsing CV
+
+```bash
+# Exécuter le nettoyage
+python3 commitment_cleanup.py
+```
+
+#### **Script de Validation** (`commitment_test.py`)
+- Tests automatisés post-nettoyage
+- Validation des fonctionnalités critiques
+- Vérification des pages frontend
+- Rapport de conformité détaillé
+
+```bash
+# Valider après nettoyage
+python3 commitment_test.py
+```
+
+#### **Documentation Complète**
+- [`CLEANUP_GUIDE.md`](CLEANUP_GUIDE.md) - Guide d'exécution étape par étape
+- [`VALIDATION_PLAN.md`](VALIDATION_PLAN.md) - Plan de validation complet
+
+### ⚠️ **Priorité Absolue**
+**Système de parsing CV** : Validé excellent - **préservé intégralement** lors du nettoyage
+
+---
+
 ## 🏗️ Architecture Simplifiée
 
 ### Frontend (GitHub Pages)
@@ -114,6 +150,15 @@ GOOGLE_MAPS_API_KEY=your_key_here
 DATABASE_URL=your_database_url
 ```
 
+### 4. Nettoyage Backend (Optionnel)
+```bash
+# Simplifier l'architecture redondante
+python3 commitment_cleanup.py
+
+# Valider les fonctionnalités après nettoyage  
+python3 commitment_test.py
+```
+
 ## 📈 Performance
 
 - **Temps de réponse** : < 2 secondes pour le matching
@@ -135,6 +180,7 @@ Pour toute question ou problème :
 1. Vérifiez la documentation dans le code
 2. Testez les pages frontend déployées
 3. Consultez les logs des services backend
+4. Utilisez les outils de validation disponibles
 
 ---
 
