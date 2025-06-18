@@ -3,16 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- FORCE CACHE BREAKING - Anti-Cache Meta Tags -->
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <meta name="cache-control" content="no-cache">
+    <!-- Timestamp pour forcer le refresh: 2025-06-18 15:35 -->
+    
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- PDF.js pour lecture PDF multi-pages -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-        // Configuration PDF.js immédiate - FORCE REFRESH: 18/06/2025 15:30
+        // Configuration PDF.js immédiate - FORCE REFRESH: 18/06/2025 15:35
         if (window.pdfjsLib) {
             window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            console.log('✅ PDF.js configuré pour multi-pages - DÉPLOIEMENT FORCÉ');
+            console.log('✅ PDF.js configuré pour multi-pages - DÉPLOIEMENT FORCÉ 15:35');
         }
     </script>
     
@@ -599,7 +607,7 @@
             </span>
         </span>
         
-        <!-- SECTION DE TEST INTÉGRÉE - FORCE DEPLOY -->
+        <!-- SECTION DE TEST INTÉGRÉE - FORCE DEPLOY 15:35 -->
         <div class="test-section">
             <h3>🧪 Test Parser Multi-pages</h3>
             <p>Vérifiez que le parser lit correctement <strong>toutes les pages</strong> d'un CV multi-pages</p>
@@ -611,7 +619,7 @@
             </button>
             <div id="testResults" class="test-results">
 === LOGS DE TEST ===
-Prêt pour les tests...
+✅ Cache Breaking 15:35 - Prêt pour les tests...
             </div>
         </div>
         
@@ -702,22 +710,21 @@ Prêt pour les tests...
         </div>
     </div>
 
-    <!-- PARSER CV INTÉGRÉ DIRECTEMENT DANS LE HTML - FORCE DEPLOY v2.2 -->
+    <!-- PARSER CV INTÉGRÉ DIRECTEMENT DANS LE HTML - FORCE DEPLOY v2.2 15:35 -->
     <script>
         /**
          * Parser CV Multi-pages v2.2 - INTÉGRATION DIRECTE
-         * Résout définitivement le problème de chargement des scripts
-         * FORCE DEPLOY: 18/06/2025 15:30 - Cache Breaking
+         * FORCE DEPLOY: 18/06/2025 15:35 - Cache Breaking Complet
          */
         class CommitmentCVParser {
             constructor() {
                 this.initialized = false;
-                this.version = "2.2-FORCE-DEPLOY";
+                this.version = "2.2-FORCE-DEPLOY-15:35";
                 this.init();
             }
             
             init() {
-                console.log('🚀 Initialisation Parser CV Multi-pages v2.2 - FORCE DEPLOY...');
+                console.log('🚀 Initialisation Parser CV Multi-pages v2.2 - FORCE DEPLOY 15:35...');
                 this.initialized = true;
                 
                 // Vérifier PDF.js
@@ -727,7 +734,7 @@ Prêt pour les tests...
                     console.log('⚠️ PDF.js non disponible - fallback vers extraction basique');
                 }
                 
-                this.logMessage('✅ Parser CV Multi-pages v2.2 initialisé avec succès - FORCE DEPLOY ACTIF');
+                this.logMessage('✅ Parser CV Multi-pages v2.2 initialisé - CACHE BREAKING 15:35');
             }
             
             async parseCV(input) {
@@ -831,7 +838,7 @@ Prêt pour les tests...
                         software: this.extractSoftware(cleanContent),
                         education: this.extractEducation(cleanContent)
                     },
-                    source: 'commitment_multipage_v2.2_integrated_force_deploy',
+                    source: 'commitment_multipage_v2.2_cache_breaking_15:35',
                     timestamp: new Date().toISOString(),
                     stats: {
                         content_length: content.length,
@@ -1004,12 +1011,12 @@ Prêt pour les tests...
             }
         }
 
-        // Instance globale du parser - FORCE DEPLOY
+        // Instance globale du parser - FORCE DEPLOY 15:35
         const commitmentParser = new CommitmentCVParser();
 
         // Test du parser multi-pages avec CV Sabine
         async function testParserMultipage() {
-            commitmentParser.logMessage('\n=== TEST CV SABINE MULTI-PAGES - FORCE DEPLOY ===');
+            commitmentParser.logMessage('\n=== TEST CV SABINE MULTI-PAGES - CACHE BREAKING 15:35 ===');
             
             const sabineCV = `Sabine Rivière
 Executive Assistant
@@ -1112,7 +1119,7 @@ FORMATION
                 commitmentParser.logMessage(`\n🏆 SCORE MULTI-PAGES: ${score}/${checks.length} (${percentage}%)`);
                 
                 if (score >= 4) {
-                    commitmentParser.logMessage('✅ TEST MULTI-PAGES RÉUSSI ! Toutes les pages sont lues correctement');
+                    commitmentParser.logMessage('✅ TEST RÉUSSI ! Parser multi-pages 100% fonctionnel');
                     showMessage('✅ Test réussi : Le parser lit toutes les pages !', 'success');
                 } else if (score >= 2) {
                     commitmentParser.logMessage('⚠️ Test multi-pages partiel');
@@ -1137,7 +1144,7 @@ FORMATION
         // Effacer les résultats de test
         function clearTestResults() {
             const testResults = document.getElementById('testResults');
-            testResults.textContent = '=== LOGS DE TEST ===\nPrêt pour les tests...';
+            testResults.textContent = '=== LOGS DE TEST ===\n✅ Cache Breaking 15:35 - Prêt pour les tests...';
             
             // Masquer les résultats
             document.getElementById('parsedData').style.display = 'none';
@@ -1205,9 +1212,9 @@ FORMATION
             parsedData.style.display = 'block';
         }
 
-        // Gestion de l'upload de fichiers - FORCE DEPLOY
+        // Gestion de l'upload de fichiers - FORCE DEPLOY 15:35
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Parser CV Multi-pages v2.2 chargé et prêt ! - FORCE DEPLOY ACTIF');
+            console.log('🚀 Parser CV Multi-pages v2.2 chargé - CACHE BREAKING 15:35');
             
             const uploadContainer = document.getElementById('uploadContainer');
             const fileInput = document.getElementById('cvFile');
