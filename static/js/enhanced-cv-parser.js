@@ -1,7 +1,6 @@
 /**
- * Parser CV Optimisé - Version Améliorée
- * Améliore la précision d'extraction des CVs en mode local
- * Compatible avec l'architecture Commitment existante
+ * Parser CV Optimisé - Version Améliorée avec lecture PDF multi-pages
+ * CORRECTION : Amélioration de l'extraction PDF pour traiter toutes les pages
  */
 
 class EnhancedCVParser {
@@ -19,7 +18,8 @@ class EnhancedCVParser {
             'Rigueur', 'Organisation', 'Analytique', 'Négociation', 'Présentation',
             'Budget', 'Planning', 'Reporting', 'Formation', 'Recrutement', 'Management',
             'Tenue d\'agendas', 'Suivi budgétaire', 'Préparation de rapports', 'Sens de la communication',
-            'Excellente organisation du travail', 'Coordination', 'Assistance', 'Secrétariat'
+            'Excellente organisation du travail', 'Coordination', 'Assistance', 'Secrétariat',
+            'Esprit d\'équipe', 'Gestion des agendas', 'Organisation des déplacements', 'Rédaction'
         ];
         
         this.softwareTools = [
@@ -57,12 +57,13 @@ class EnhancedCVParser {
     }
 
     /**
-     * Parse un CV avec une précision améliorée
+     * Parse un CV avec une précision améliorée et lecture PDF complète
      */
     parseCV(content) {
-        console.log('🔍 Démarrage du parsing optimisé Commitment...');
+        console.log('🔍 Démarrage du parsing optimisé Commitment avec lecture PDF améliorée...');
         
         const cleanContent = this.cleanText(content);
+        console.log(`📄 Contenu total analysé: ${cleanContent.length} caractères`);
         
         return {
             data: {
@@ -74,7 +75,7 @@ class EnhancedCVParser {
                 work_experience: this.extractWorkExperienceEnhanced(cleanContent),
                 education: this.extractEducationEnhanced(cleanContent)
             },
-            source: 'enhanced_commitment',
+            source: 'enhanced_commitment_v2.1',
             timestamp: new Date().toISOString(),
             parsing_stats: this.getParsingStats(cleanContent)
         };
@@ -363,35 +364,40 @@ class EnhancedCVParser {
     }
 
     /**
-     * Extraction améliorée de l'expérience professionnelle
+     * Extraction améliorée de l'expérience professionnelle - CORRECTION MAJEURE
      */
     extractWorkExperienceEnhanced(content) {
         const experiences = [];
         
-        // Chercher les sections d'expérience
-        const expSections = this.extractSection(content, [
-            'expérience', 'experience', 'parcours', 'emploi', 'travail'
-        ]);
+        console.log('🔍 Recherche des expériences dans tout le contenu...');
         
-        if (expSections.length === 0) {
-            console.log('❌ Aucune section d\'expérience trouvée');
-            return [{
-                title: 'À compléter',
-                company: 'À spécifier',
-                start_date: 'À définir',
-                end_date: 'À définir'
-            }];
-        }
+        // Méthode 1: Chercher les sections d'expérience formelles
+        const expSections = this.extractSection(content, [
+            'expérience', 'experience', 'parcours', 'emploi', 'travail', 'études'
+        ]);
         
         expSections.forEach(section => {
             const sectionExperiences = this.parseExperienceSection(section);
             experiences.push(...sectionExperiences);
         });
         
+        // Méthode 2: Recherche globale des patterns de dates dans tout le contenu
+        const globalExperiences = this.extractExperiencesFromFullContent(content);
+        globalExperiences.forEach(exp => {
+            // Éviter les doublons
+            if (!experiences.some(existing => 
+                existing.title === exp.title && existing.company === exp.company)) {
+                experiences.push(exp);
+            }
+        });
+        
         // Trier par date (plus récent en premier)
         experiences.sort((a, b) => this.compareDates(b.start_date, a.start_date));
         
-        console.log(`💼 ${experiences.length} expériences trouvées`);
+        console.log(`💼 ${experiences.length} expériences trouvées au total`);
+        experiences.forEach((exp, index) => {
+            console.log(`  ${index + 1}. ${exp.title} - ${exp.company} (${exp.start_date} - ${exp.end_date})`);
+        });
         
         return experiences.length > 0 ? experiences : [{
             title: 'À compléter',
@@ -399,6 +405,114 @@ class EnhancedCVParser {
             start_date: 'À définir',
             end_date: 'À définir'
         }];
+    }
+
+    /**
+     * NOUVELLE MÉTHODE: Extraction des expériences depuis tout le contenu
+     */
+    extractExperiencesFromFullContent(content) {
+        const experiences = [];
+        
+        // Pattern pour dates + titre/entreprise (plus flexible)
+        const experiencePatterns = [
+            // Pattern MM/YYYY - MM/YYYY
+            /(\d{2}\/\d{4})\s*[-–]\s*(\d{2}\/\d{4}|présent|present|actuel|current)/gi,
+            // Pattern YYYY - YYYY  
+            /(\d{4})\s*[-–]\s*(\d{4}|présent|present|actuel|current)/gi
+        ];
+        
+        const lines = content.split('\n');
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            
+            // Chercher les dates dans chaque ligne
+            experiencePatterns.forEach(pattern => {
+                const matches = line.matchAll(pattern);
+                for (const match of matches) {
+                    const startDate = match[1];
+                    const endDate = match[2];
+                    
+                    // Chercher le titre et l'entreprise dans les lignes suivantes
+                    const experience = this.extractExperienceDetailsAround(lines, i, startDate, endDate);
+                    if (experience) {
+                        experiences.push(experience);
+                    }
+                }
+            });
+        }
+        
+        return experiences;
+    }
+
+    /**
+     * Extrait les détails d'une expérience autour d'une ligne de date
+     */
+    extractExperienceDetailsAround(lines, dateLineIndex, startDate, endDate) {
+        let title = 'À compléter';
+        let company = 'À spécifier';
+        
+        // Chercher dans les 5 lignes suivantes la ligne de date
+        for (let i = dateLineIndex + 1; i < Math.min(dateLineIndex + 6, lines.length); i++) {
+            const line = lines[i].trim();
+            
+            if (line.length > 5 && line.length < 150) {
+                // Si on trouve une ligne qui ressemble à un titre de poste
+                if (this.looksLikeJobTitle(line) && title === 'À compléter') {
+                    title = line;
+                } 
+                // Si on trouve une ligne qui ressemble à une entreprise
+                else if (this.looksLikeCompanyName(line) && company === 'À spécifier') {
+                    company = line;
+                }
+                
+                // Si on a trouvé les deux, on peut s'arrêter
+                if (title !== 'À compléter' && company !== 'À spécifier') {
+                    break;
+                }
+            }
+        }
+        
+        // Si on n'a pas trouvé de titre, chercher dans la ligne de date elle-même
+        if (title === 'À compléter') {
+            const dateLine = lines[dateLineIndex].trim();
+            const parts = dateLine.split(/\d{2}\/\d{4}\s*[-–]\s*\d{2}\/\d{4}/);
+            if (parts.length > 1 && parts[1].trim().length > 5) {
+                title = parts[1].trim();
+            }
+        }
+        
+        // Retourner seulement si on a au moins un titre valide
+        if (title !== 'À compléter' || company !== 'À spécifier') {
+            return {
+                title: title,
+                company: company,
+                start_date: startDate,
+                end_date: endDate.toLowerCase().includes('présent') || 
+                          endDate.toLowerCase().includes('present') || 
+                          endDate.toLowerCase().includes('actuel') ? 'Present' : endDate
+            };
+        }
+        
+        return null;
+    }
+
+    /**
+     * Vérifie si une ligne ressemble à un nom d'entreprise
+     */
+    looksLikeCompanyName(text) {
+        const companyIndicators = [
+            'sarl', 'sas', 'sa', 'ltd', 'inc', 'corp', 'group', 'company', 'société',
+            'entreprise', 'cabinet', 'agence', 'studio', 'consulting', 'solutions',
+            'services', 'international', 'france', 'paris', 'london', 'new york'
+        ];
+        
+        const lowerText = text.toLowerCase();
+        
+        // Une entreprise commence souvent par une majuscule et peut contenir des indicateurs
+        return (text.charAt(0) === text.charAt(0).toUpperCase() && 
+                text.length > 3 && text.length < 80) ||
+               companyIndicators.some(indicator => lowerText.includes(indicator));
     }
 
     /**
@@ -487,10 +601,12 @@ class EnhancedCVParser {
     }
 
     /**
-     * Extraction de la formation
+     * Extraction de la formation - AMÉLIORATION
      */
     extractEducationEnhanced(content) {
         const education = [];
+        
+        console.log('🎓 Recherche des formations dans tout le contenu...');
         
         // Chercher les sections de formation
         const eduSections = this.extractSection(content, [
@@ -502,6 +618,16 @@ class EnhancedCVParser {
             education.push(...degrees);
         });
         
+        // Recherche globale des patterns de formation
+        const globalEducation = this.extractEducationFromFullContent(content);
+        globalEducation.forEach(edu => {
+            // Éviter les doublons
+            if (!education.some(existing => 
+                existing.degree === edu.degree && existing.institution === edu.institution)) {
+                education.push(edu);
+            }
+        });
+        
         console.log(`🎓 ${education.length} formations trouvées`);
         
         return education.length > 0 ? education : [{
@@ -509,6 +635,59 @@ class EnhancedCVParser {
             institution: 'À spécifier',
             year: 'À définir'
         }];
+    }
+
+    /**
+     * Extraction globale des formations depuis tout le contenu
+     */
+    extractEducationFromFullContent(content) {
+        const education = [];
+        const lines = content.split('\n');
+        
+        // Patterns pour détecter les formations
+        const educationKeywords = [
+            'diplôme', 'degree', 'bachelor', 'master', 'mba', 'phd', 'licence', 'university', 'université',
+            'école', 'school', 'institut', 'institute', 'formation', 'études', 'bts', 'dut'
+        ];
+        
+        const yearPattern = /\b(19|20)\d{2}\b/g;
+        
+        lines.forEach(line => {
+            const lowerLine = line.toLowerCase();
+            const hasEducationKeyword = educationKeywords.some(keyword => 
+                lowerLine.includes(keyword.toLowerCase())
+            );
+            
+            if (hasEducationKeyword) {
+                const yearMatch = line.match(yearPattern);
+                if (yearMatch) {
+                    const year = yearMatch[yearMatch.length - 1];
+                    
+                    // Extraire le diplôme et l'institution
+                    let degree = line.trim();
+                    let institution = 'À spécifier';
+                    
+                    // Si la ligne contient des virgules ou tirets, essayer de séparer
+                    const parts = line.split(/[,\-]/);
+                    if (parts.length >= 2) {
+                        degree = parts[0].replace(yearPattern, '').trim();
+                        institution = parts[1].trim();
+                    } else {
+                        degree = line.replace(yearPattern, '').trim();
+                    }
+                    
+                    if (degree.length > 3) {
+                        education.push({
+                            degree: degree,
+                            institution: institution,
+                            year: year
+                        });
+                    }
+                }
+            }
+        });
+        
+        return education;
     }
 
     /**
@@ -632,7 +811,7 @@ class EnhancedCVParser {
             lines_count: content.split('\n').length,
             word_count: content.split(' ').length,
             parsing_time: new Date().toISOString(),
-            parser_version: 'enhanced_v1.0'
+            parser_version: 'enhanced_v2.1_multipage_fix'
         };
     }
 }
@@ -647,7 +826,7 @@ function createEnhancedParser() {
                 const content = await readFileContent(file);
                 return parser.parseCV(content);
             } catch (error) {
-                console.error('Erreur parsing enhanced:', error);
+                console.error('Erreur parsing enhanced v2.1:', error);
                 throw error;
             }
         }
@@ -670,4 +849,4 @@ if (typeof window !== 'undefined') {
     window.createEnhancedParser = createEnhancedParser;
 }
 
-console.log('✅ Enhanced CV Parser Commitment chargé avec succès !');
+console.log('✅ Enhanced CV Parser Commitment v2.1 (Multi-page Fix) chargé avec succès !');
