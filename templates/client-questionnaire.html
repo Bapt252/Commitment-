@@ -223,7 +223,7 @@
             position: absolute;
             right: 10px;
             bottom: 10px;
-            background-color: var(--primary);
+            background: linear-gradient(45deg, #7c4dff, #9c27b0);
             color: white;
             border: none;
             border-radius: 50%;
@@ -233,13 +233,13 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: var(--transition);
-            box-shadow: 0 3px 8px rgba(124, 58, 237, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(124, 77, 255, 0.3);
         }
 
         .analyze-button:hover {
-            background-color: var(--primary-dark);
-            transform: scale(1.1);
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(124, 77, 255, 0.4);
         }
 
         /* Loader */
@@ -279,7 +279,18 @@
             padding: 1.5rem;
             margin-top: 1.5rem;
             border-left: 4px solid var(--primary);
-            animation: fadeIn 0.5s ease;
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .job-info-container h3 {
@@ -340,35 +351,85 @@
             margin: 0;
         }
 
-        /* Style pour le bouton "Analyser avec GPT" */
+        /* Instructions de parsing améliorées */
+        .parsing-instructions {
+            background: linear-gradient(135deg, #E3F2FD, #F3E5F5);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #7c4dff;
+        }
+
+        .instruction-card h4 {
+            color: #7c4dff;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instruction-card ol {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .instruction-card ol li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .success-badge {
+            background: rgba(76, 175, 80, 0.1);
+            color: #2E7D32;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .analysis-status {
+            color: #4CAF50;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Style pour le bouton \"Analyser avec GPT\" - Version améliorée */
         .gpt-analyze-btn-container {
             display: flex;
             align-items: center;
             margin-top: 10px;
+            opacity: 0.6;
         }
         
         #analyze-with-gpt {
             padding: 8px 16px;
-            background-color: #4CAF50;
-            color: white;
+            background-color: #cccccc;
+            color: #666;
             border: none;
             border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        #analyze-with-gpt:hover {
-            background-color: #45a049;
-        }
-        
-        #analyze-with-gpt:disabled {
-            background-color: #cccccc;
             cursor: not-allowed;
+            transition: background-color 0.3s;
         }
         
         #gpt-analyze-status {
             margin-left: 10px;
             font-style: italic;
+            color: #666;
+            display: none;
         }
         
         /* Responsive pour mobile */
@@ -409,27 +470,17 @@
             }
         }
         
-        /* Banner pour afficher l'état de la connexion au backend */
+        /* Banner pour afficher l'état de la connexion au backend - Masquée par défaut */
         .backend-status-banner {
-            background-color: #f8f9fa;
+            background-color: #f0fdf4;
             border-radius: 8px;
-            border-left: 4px solid #ccc;
+            border-left: 4px solid #10b981;
             padding: 10px 15px;
             margin: 10px 0 20px 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
             font-size: 0.9rem;
-        }
-        
-        .backend-status-banner.connected {
-            border-left-color: #10b981;
-            background-color: #f0fdf4;
-        }
-        
-        .backend-status-banner.disconnected {
-            border-left-color: #ef4444;
-            background-color: #fef2f2;
         }
         
         .backend-status-banner .status-info {
@@ -442,15 +493,7 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background-color: #ccc;
-        }
-        
-        .backend-status-banner.connected .status-indicator {
             background-color: #10b981;
-        }
-        
-        .backend-status-banner.disconnected .status-indicator {
-            background-color: #ef4444;
         }
         
         .backend-status-banner .get-help-btn {
@@ -725,13 +768,13 @@
             <div id="debug-content"></div>
         </div>
         
-        <!-- Bannière d'état du backend -->
+        <!-- Bannière d'état du backend améliorée -->
         <div id="backend-status-banner" class="backend-status-banner">
             <div class="status-info">
                 <div class="status-indicator"></div>
-                <span id="backend-status-text">Vérification de la connexion au backend...</span>
+                <span id="backend-status-text">Parser de fiche de poste local activé - Prêt à analyser vos documents !</span>
             </div>
-            <button class="get-help-btn" id="backend-help-btn">Aide à la configuration</button>
+            <button class="get-help-btn" id="backend-help-btn" style="display: none;">Aide à la configuration</button>
         </div>
 
         <main>
@@ -885,7 +928,24 @@
                     <!-- Section conditionnelle pour le parser de fiche de poste -->
                     <div id="job-parsing-section" class="conditional-section">
                         <h3>Fiche de poste</h3>
-                        <p>Analysez votre fiche de poste pour en extraire automatiquement les informations clés.</p>
+                        
+                        <!-- Instructions d'utilisation améliorées -->
+                        <div class="parsing-instructions">
+                            <div class="instruction-card">
+                                <h4><i class="fas fa-lightbulb"></i> Comment utiliser l'analyse automatique :</h4>
+                                <ol>
+                                    <li><strong>Uploadez</strong> votre fiche de poste (PDF, DOCX, TXT) <em>OU</em></li>
+                                    <li><strong>Collez</strong> le texte dans la zone de saisie ci-dessous</li>
+                                    <li><strong>Cliquez</strong> sur le bouton d'analyse <i class="fas fa-search"></i></li>
+                                    <li><strong>Consultez</strong> les informations extraites automatiquement !</li>
+                                </ol>
+                                <div class="success-badge">
+                                    <i class="fas fa-robot"></i> Parser local intégré - Aucune configuration requise
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>Notre système d'analyse automatique extrait intelligemment les informations clés de votre fiche de poste : titre, compétences, lieu, salaire, etc. <strong>Parsing local intégré - aucune configuration requise !</strong></p>
                         
                         <div class="upload-container" id="job-drop-zone">
                             <i class="fas fa-file-upload upload-icon"></i>
@@ -909,15 +969,23 @@
                         
                         <div class="textarea-container">
                             <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse automatique..."></textarea>
-                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyser">
+                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyse automatique locale - Extraction immédiate des informations">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
                         
-                        <!-- Bouton d'analyse GPT -->
+                        <!-- Contrôles d'analyse améliorés -->
+                        <div class="analysis-controls">
+                            <div class="analysis-status">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Analyse automatique locale activée</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Bouton d'analyse GPT - Version améliorée -->
                         <div class="gpt-analyze-btn-container">
-                            <button type="button" id="analyze-with-gpt" class="btn btn-success" disabled>
-                                Analyser avec GPT
+                            <button type="button" id="analyze-with-gpt" class="btn" title="Fonctionnalité en développement - Utilisez le bouton d'analyse standard">
+                                Analyse avancée (bientôt disponible)
                             </button>
                             <span id="gpt-analyze-status"></span>
                         </div>
@@ -1316,6 +1384,8 @@
                 sessionStorage.setItem('clientFormData', JSON.stringify(formData));
                 console.log("Données du formulaire sauvegardées:", formData);
             }
+            
+            console.log('✅ Job Parser UX amélioré - parsing local activé');
         });
     </script>
     
