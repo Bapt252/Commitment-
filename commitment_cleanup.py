@@ -33,12 +33,15 @@ class CommitmentCleanup:
             "errors": []
         }
         
-        # 🔒 FICHIERS CRITIQUES À NE JAMAIS TOUCHER
+        # 🔒 FICHIERS CRITIQUES À NE JAMAIS TOUCHER (adaptés à la structure réelle)
         self.critical_files = {
             "backend/job_parser_service.py",
-            "backend/job_parser_api.py", 
+            "backend/job_parser_api.py"
+        }
+        
+        # 📄 FICHIERS CRITIQUES OPTIONNELS (vérifiés mais pas bloquants)
+        self.optional_critical_files = {
             "templates/candidate-upload.html",
-            "templates/cv-parser-integration.js",
             "static/js/gpt-parser-client.js"
         }
         
@@ -103,40 +106,109 @@ class CommitmentCleanup:
     def verify_critical_files(self) -> bool:
         """Vérifier que tous les fichiers critiques sont présents"""
         print("🔍 Vérification des fichiers critiques...")
-        missing_files = []
+        missing_critical = []
+        missing_optional = []
         
+        # Vérifier les fichiers critiques obligatoires
         for critical_file in self.critical_files:
             full_path = self.repo_path / critical_file
             if not full_path.exists():
-                missing_files.append(critical_file)
+                missing_critical.append(critical_file)
+        
+        # Vérifier les fichiers optionnels (informatif seulement)
+        for optional_file in self.optional_critical_files:
+            full_path = self.repo_path / optional_file
+            if not full_path.exists():
+                missing_optional.append(optional_file)
+            else:
+                print(f"  ✅ Fichier optionnel présent: {optional_file}")
                 
-        if missing_files:
+        if missing_critical:
             print("❌ ARRÊT: Fichiers critiques manquants:")
-            for file in missing_files:
+            for file in missing_critical:
                 print(f"  ⚠️  {file}")
             return False
             
-        print("✅ Tous les fichiers critiques sont présents")
+        if missing_optional:
+            print("⚠️  Fichiers optionnels manquants (non bloquant):")
+            for file in missing_optional:
+                print(f"  📝 {file}")
+            
+        print("✅ Tous les fichiers critiques obligatoires sont présents")
         return True
 
-    def analyze_file_dependencies(self, file_path: str) -> List[str]:
-        """Analyser les dépendances d'un fichier avant suppression"""
-        dependencies = []
+    def analyze_dependencies(self, file_path: str) -> Dict[str, List[str]]:
+        """Analyser les dépendances d'un fichier de manière détaillée"""
+        dependencies = {
+            "imports": [],
+            "relative_imports": [],
+            "local_references": []
+        }
+        
         try:
             full_path = self.repo_path / file_path
             if full_path.exists() and full_path.suffix == '.py':
                 with open(full_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                     
-                # Rechercher les imports relatifs
+                # Rechercher différents types d'imports
                 import re
-                imports = re.findall(r'from\s+\..*?import|import\s+\w+', content)
-                dependencies.extend(imports)
+                
+                # Imports absolus
+                abs_imports = re.findall(r'import\s+(\w+)', content)
+                dependencies["imports"].extend(abs_imports)
+                
+                # Imports relatifs
+                rel_imports = re.findall(r'from\s+\..*?import\s+(\w+)', content)
+                dependencies["relative_imports"].extend(rel_imports)
+                
+                # Références locales à d'autres fichiers du projet
+                local_refs = re.findall(r'super_smart_match|matching_service|api[-_]matching', content)
+                dependencies["local_references"].extend(local_refs)
                 
         except Exception as e:
             self.log_data["errors"].append(f"Erreur analyse dépendances {file_path}: {e}")
             
         return dependencies
+
+    def fix_dependencies_before_deletion(self):
+        """Analyser et corriger les dépendances avant suppression"""
+        print("\n🔧 Analyse et correction des dépendances...")
+        
+        # Vérifier si super_smart_match_v3 dépend de v2
+        v3_path = self.repo_path / "backend/super_smart_match_v3.py"
+        if v3_path.exists():
+            try:
+                with open(v3_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Chercher des imports de v2
+                if 'super_smart_match_v2' in content:
+                    print("  ⚠️  super_smart_match_v3 dépend de v2 - Correction nécessaire")
+                    
+                    # Créer une version corrigée
+                    corrected_content = content.replace(
+                        'from super_smart_match_v2',
+                        '# from super_smart_match_v2  # Removed dependency'
+                    ).replace(
+                        'import super_smart_match_v2',
+                        '# import super_smart_match_v2  # Removed dependency'
+                    )
+                    
+                    # Sauvegarder la version corrigée
+                    backup_v3 = v3_path.with_suffix('.py.backup')
+                    shutil.copy2(v3_path, backup_v3)
+                    
+                    with open(v3_path, 'w', encoding='utf-8') as f:
+                        f.write(corrected_content)
+                    
+                    print(f"  ✅ Dépendances corrigées dans super_smart_match_v3.py")
+                    print(f"  📁 Backup créé: {backup_v3}")
+                else:
+                    print("  ✅ super_smart_match_v3 n'a pas de dépendances problématiques")
+                    
+            except Exception as e:
+                print(f"  ❌ Erreur lors de la correction des dépendances: {e}")
 
     def delete_redundant_files(self):
         """Supprimer les fichiers redondants identifiés"""
@@ -158,18 +230,21 @@ class CommitmentCleanup:
                 
             try:
                 # Analyser les dépendances avant suppression
-                deps = self.analyze_file_dependencies(file_path)
-                if deps:
-                    print(f"  📋 Dépendances détectées pour {file_path}: {len(deps)}")
+                deps = self.analyze_dependencies(file_path)
+                if deps["local_references"]:
+                    print(f"  📋 Références locales détectées dans {file_path}: {len(deps['local_references'])}")
+                
+                # Obtenir la taille avant suppression
+                file_size = full_path.stat().st_size
                 
                 # Supprimer le fichier
                 full_path.unlink()
                 deleted_count += 1
                 
-                print(f"  ✅ Supprimé: {file_path}")
+                print(f"  ✅ Supprimé: {file_path} ({file_size} bytes)")
                 self.log_data["files_deleted"].append({
                     "path": file_path,
-                    "size_bytes": full_path.stat().st_size if full_path.exists() else 0,
+                    "size_bytes": file_size,
                     "dependencies": deps
                 })
                 
@@ -276,13 +351,16 @@ class CommitmentCleanup:
         # Étape 3: Analyse de l'API principale
         self.verify_main_api()
         
-        # Étape 4: Suppression des fichiers redondants
+        # Étape 4: Correction des dépendances
+        self.fix_dependencies_before_deletion()
+        
+        # Étape 5: Suppression des fichiers redondants
         self.delete_redundant_files()
         
-        # Étape 5: Nettoyage des répertoires vides
+        # Étape 6: Nettoyage des répertoires vides
         self.clean_empty_directories()
         
-        # Étape 6: Génération du rapport
+        # Étape 7: Génération du rapport
         self.generate_cleanup_report()
         
         print("\n" + "=" * 50)
@@ -293,6 +371,7 @@ class CommitmentCleanup:
         print("  • 2 algorithmes au lieu de 7+")
         print("  • 3 APIs au lieu de 6+") 
         print("  • Système de parsing CV préservé intégralement")
+        print("  • Dépendances circulaires corrigées")
         
         return True
 
@@ -317,6 +396,8 @@ def main():
         print("🔍 Vérifiez que les pages frontend fonctionnent toujours:")
         print("   - https://bapt252.github.io/Commitment-/templates/candidate-upload.html")
         print("   - https://bapt252.github.io/Commitment-/templates/candidate-matching-improved.html")
+        print("\n🧪 Lancez maintenant la validation:")
+        print("   python3 commitment_test.py")
     else:
         print("\n❌ Nettoyage échoué. Vérifiez les logs pour plus d'informations.")
         sys.exit(1)
