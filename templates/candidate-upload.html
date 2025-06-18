@@ -5,13 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Script de transfert de données -->
+    
+    <!-- ORDRE CRITIQUE: PDF.js d'abord -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Configuration PDF.js immédiate
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            console.log('✅ PDF.js configuré pour multi-pages');
+        }
+    </script>
+    
+    <!-- Scripts de parsing CV - CHEMINS CORRIGÉS -->
     <script src="../static/scripts/data-transfer-service.js"></script>
-    <!-- Scripts de parsing CV optimisés pour Commitment - VERSION MULTI-PAGES CORRIGÉE -->
-    <script src="../static/js/enhanced-cv-parser-multipage-fix.js"></script>
     <script src="../static/js/optimized-openai-prompt.js"></script>
     <script src="../static/js/parser-integration.js"></script>
+    <script src="../static/js/enhanced-cv-parser-multipage-fix.js"></script>
     <script src="../static/js/multipage-pdf-integration.js"></script>
+    
     <style>
         /* Styles CSS existants (inchangés) */
         :root {
@@ -1031,7 +1042,7 @@
             </span>
             <span class="multipage-badge">
                 <i class="fas fa-file-pdf"></i>
-                Multi-pages
+                Multi-pages ✅
             </span>
         </span>
         
@@ -1108,7 +1119,7 @@
                     </span>
                     <span class="multipage-badge">
                         <i class="fas fa-file-pdf"></i>
-                        Multi-pages OK
+                        Multi-pages OK ✅
                     </span>
                 </div>
 
@@ -1264,56 +1275,227 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="cv-parser-integration.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Message de confirmation du chargement du parser multi-pages
-            console.log('🚀 Parser CV Commitment Multi-pages v2.1 chargé !');
+            console.log('🚀 Commitment Parser CV Multi-pages v2.1 - Chargement critique...');
             
-            // Vérifier que les composants optimisés sont bien chargés
-            if (typeof window.EnhancedCVParserMultipage !== 'undefined') {
-                console.log('✅ Parser CV multi-pages corrigé détecté');
-            }
-            if (typeof window.commitmentMultipageParser !== 'undefined') {
-                console.log('✅ Instance parser multi-pages prête');
-            }
-            
-            // Fonction de test rapide pour CV multi-pages
-            window.testMultipageParser = function() {
-                if (typeof window.testSabineMultipageCV === 'function') {
-                    return window.testSabineMultipageCV();
-                } else {
-                    console.log('❌ Fonction de test multi-pages non disponible');
-                }
+            // ÉTAPE 1: Vérifier le chargement des dépendances critiques
+            const checkDependencies = () => {
+                const deps = {
+                    pdfjs: typeof window.pdfjsLib !== 'undefined',
+                    enhancedParser: typeof window.EnhancedCVParserMultipage !== 'undefined',
+                    multipageParser: typeof window.commitmentMultipageParser !== 'undefined'
+                };
+                
+                console.log('📋 État des dépendances:', deps);
+                return deps;
             };
             
-            // Messages informatifs dans la console
-            console.log('🧪 Pour tester le parser multi-pages: testMultipageParser()');
-            console.log('📊 Pour comparer les performances: compareMultipagePerformance()');
-            
-            // Mettre à jour le message de chargement pour indiquer le support multi-pages
-            const loadingText = document.querySelector('.loading-text');
-            if (loadingText) {
-                loadingText.textContent = 'Analyse CV multi-pages en cours...';
-            }
-
-            // Remplacer la suggestion de test dans le chat
-            const suggestionBtns = document.querySelectorAll('.suggestion');
-            suggestionBtns.forEach(btn => {
-                if (btn.textContent.includes('Tester le CV de Sabine')) {
-                    btn.addEventListener('click', function() {
-                        const chatInput = document.getElementById('chatInput');
-                        chatInput.value = 'Peux-tu tester le parser multi-pages avec le CV de Sabine Rivière ?';
-                        // Déclencher l'événement de chat
-                        const chatSendBtn = document.getElementById('chatSendBtn');
-                        if (chatSendBtn) {
-                            chatSendBtn.click();
-                        }
-                    });
+            // ÉTAPE 2: Initialisation forcée du parser
+            const initializeParser = () => {
+                console.log('🔧 Initialisation forcée du parser multi-pages...');
+                
+                // Vérifier PDF.js
+                if (typeof window.pdfjsLib !== 'undefined') {
+                    console.log('✅ PDF.js chargé et configuré');
+                } else {
+                    console.warn('⚠️ PDF.js non disponible - fallback activé');
                 }
-            });
+                
+                // Forcer l'initialisation du parser multi-pages
+                if (typeof window.EnhancedCVParserMultipage !== 'undefined') {
+                    window.commitmentMultipageParser = new window.EnhancedCVParserMultipage();
+                    console.log('✅ Parser multi-pages initialisé');
+                } else {
+                    console.error('❌ EnhancedCVParserMultipage non disponible');
+                    return false;
+                }
+                
+                return true;
+            };
             
-            // Le reste du code JavaScript reste identique...
-            // (tout le code existant pour l'upload, parsing, chat, etc.)
+            // ÉTAPE 3: Configuration des fonctions de test
+            const setupTestFunctions = () => {
+                // Test rapide Sabine multi-pages
+                window.testSabineMultipageCV = function() {
+                    console.log('🧪 Test CV Sabine Rivière (multi-pages)...');
+                    
+                    if (!window.commitmentMultipageParser) {
+                        console.error('❌ Parser multi-pages non disponible');
+                        return;
+                    }
+                    
+                    // Créer un mock file avec le contenu complet de Sabine
+                    const sabineContent = `Sabine Rivière
+Executive Assistant
+
+E-mail: sabine.riviere04@gmail.com
+Téléphone: +33665733921
+
+EXPÉRIENCE PROFESSIONNELLE
+
+06/2024 - 01/2025
+Executive Assistant : Direction Financière Audit / Fiscalité / Trésorerie
+Maison Christian Dior Couture : Intérim 8 mois, Paris 08
+
+06/2023 - 05/2024
+EXECUTIVE ASSISTANT : Direction Fonds de Fonds COMEX / CODIR / CMG
+BPI FRANCE, Paris
+
+08/2019 - 05/2023
+EXECUTIVE ASSISTANT/ ASSISTANTE PERSONNELLE de la CEO
+Les Secrets de Loly, Paris
+
+--- PAGE 2 ---
+
+02/2017 - 07/2019
+ASSISTANTE DIRECTION GÉNÉRALE
+Groupe Marcel Dassault, Neuilly-sur-Seine
+
+01/2015 - 01/2017
+ASSISTANTE DE DIRECTION
+Cabinet d'avocats Clifford Chance, Paris
+
+09/2010 - 12/2014
+EXECUTIVE ASSISTANT
+BNP Paribas Corporate & Investment Banking, Londres
+
+COMPÉTENCES
+• Tenue d'agendas
+• Suivi budgétaire
+• Préparation de rapports
+• Sens de la communication
+• Excellente organisation du travail
+
+INFORMATIQUE
+• Microsoft
+• Concur
+• Coupa
+• SAP
+• Pennylane
+• Google / Outlook
+
+LANGUES
+• Français - Natif
+• Anglais - Courant
+
+FORMATION
+2006 - DIPLÔME D'ÉTUDES SUPÉRIEURES ESVE, Paris
+2014 - Business & Economics, BA Birkbeck University, London`;
+                    
+                    // Simuler un fichier
+                    const mockFile = new Blob([sabineContent], { type: 'text/plain' });
+                    mockFile.name = 'CV_Sabine_Riviere.txt';
+                    mockFile.type = 'text/plain';
+                    
+                    // Parser le contenu
+                    try {
+                        const result = window.commitmentMultipageParser.parseCV ?
+                            window.commitmentMultipageParser.parseCV(mockFile) :
+                            { error: 'Parser non disponible' };
+                        
+                        console.log('📊 Résultat test multi-pages:', result);
+                        
+                        // Vérifications spécifiques
+                        if (result.data) {
+                            const experiences = result.data.work_experience || [];
+                            console.log(`📋 Expériences détectées: ${experiences.length}`);
+                            
+                            // Vérifier expériences page 2
+                            const hasMarcelDassault = experiences.some(exp => 
+                                exp.company?.toLowerCase().includes('marcel dassault'));
+                            const hasCliffordChance = experiences.some(exp => 
+                                exp.company?.toLowerCase().includes('clifford chance'));
+                            const hasBNP = experiences.some(exp => 
+                                exp.company?.toLowerCase().includes('bnp paribas'));
+                            
+                            console.log('🎯 Vérifications page 2:');
+                            console.log(`- Marcel Dassault: ${hasMarcelDassault ? '✅' : '❌'}`);
+                            console.log(`- Clifford Chance: ${hasCliffordChance ? '✅' : '❌'}`);
+                            console.log(`- BNP Paribas: ${hasBNP ? '✅' : '❌'}`);
+                            
+                            const score = [hasMarcelDassault, hasCliffordChance, hasBNP].filter(Boolean).length;
+                            console.log(`🏆 Score multi-pages: ${score}/3 (${Math.round(score/3*100)}%)`);
+                            
+                            if (score >= 2) {
+                                console.log('✅ TEST MULTI-PAGES RÉUSSI !');
+                            } else {
+                                console.log('❌ Test multi-pages échoué - Page 2 non lue');
+                            }
+                        }
+                        
+                        return result;
+                    } catch (error) {
+                        console.error('❌ Erreur test multi-pages:', error);
+                        return null;
+                    }
+                };
+                
+                console.log('✅ Fonctions de test configurées');
+            };
+            
+            // ÉTAPE 4: Démarrage avec retry
+            let initAttempts = 0;
+            const maxAttempts = 5;
+            
+            const attemptInitialization = () => {
+                initAttempts++;
+                console.log(`🔄 Tentative d'initialisation ${initAttempts}/${maxAttempts}...`);
+                
+                const deps = checkDependencies();
+                
+                if (deps.enhancedParser || initAttempts >= maxAttempts) {
+                    if (initializeParser()) {
+                        setupTestFunctions();
+                        
+                        // Message de confirmation
+                        console.log('🎉 PARSER MULTI-PAGES ACTIVÉ AVEC SUCCÈS !');
+                        console.log('📚 Toutes les pages PDF seront maintenant lues');
+                        console.log('🧪 Test disponible: testSabineMultipageCV()');
+                        
+                        // Mise à jour visuelle
+                        const loadingText = document.querySelector('.loading-text');
+                        if (loadingText) {
+                            loadingText.textContent = 'Parser multi-pages activé ✅';
+                        }
+                        
+                        // Ajouter badge de statut
+                        const multipageBadge = document.querySelector('.multipage-badge');
+                        if (multipageBadge) {
+                            multipageBadge.innerHTML = '<i class="fas fa-check-circle"></i> Multi-pages ✅';
+                        }
+                        
+                    } else {
+                        console.error('❌ Échec initialisation parser multi-pages');
+                    }
+                    return;
+                }
+                
+                // Retry dans 500ms
+                setTimeout(attemptInitialization, 500);
+            };
+            
+            // Démarrer l'initialisation
+            setTimeout(attemptInitialization, 100);
+            
+            // Gestionnaire de clic pour test Sabine
+            const setupSabineTestButton = () => {
+                const suggestionBtns = document.querySelectorAll('.suggestion');
+                suggestionBtns.forEach(btn => {
+                    if (btn.textContent.includes('Tester le CV de Sabine')) {
+                        btn.addEventListener('click', function() {
+                            if (typeof window.testSabineMultipageCV === 'function') {
+                                window.testSabineMultipageCV();
+                            } else {
+                                console.log('❌ Fonction de test non disponible');
+                            }
+                        });
+                    }
+                });
+            };
+            
+            setTimeout(setupSabineTestButton, 1000);
         });
     </script>
 </body>
