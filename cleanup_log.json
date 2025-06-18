@@ -1,0 +1,150 @@
+{
+  "timestamp": "2025-06-18T14:40:56.579885",
+  "files_deleted": [
+    {
+      "path": "api-matching-advanced.py",
+      "size_bytes": 433,
+      "dependencies": {
+        "imports": [],
+        "relative_imports": [],
+        "local_references": [
+          "api-matching",
+          "api-matching",
+          "api-matching"
+        ]
+      }
+    },
+    {
+      "path": "api-matching-enhanced-v2.py",
+      "size_bytes": 429,
+      "dependencies": {
+        "imports": [],
+        "relative_imports": [],
+        "local_references": [
+          "api-matching",
+          "api-matching",
+          "api-matching"
+        ]
+      }
+    },
+    {
+      "path": "backend/super_smart_match_v2_nexten_integration.py",
+      "size_bytes": 39711,
+      "dependencies": {
+        "imports": [
+          "os",
+          "sys",
+          "json",
+          "time",
+          "asyncio",
+          "logging",
+          "requests",
+          "Dict",
+          "dataclass",
+          "Enum",
+          "ABC"
+        ],
+        "relative_imports": [],
+        "local_references": [
+          "super_smart_match",
+          "matching_service"
+        ]
+      }
+    },
+    {
+      "path": "backend/super_smart_match.py",
+      "size_bytes": 0,
+      "dependencies": {
+        "imports": [],
+        "relative_imports": [],
+        "local_references": []
+      }
+    },
+    {
+      "path": "matching_service_v2.py",
+      "size_bytes": 450,
+      "dependencies": {
+        "imports": [],
+        "relative_imports": [],
+        "local_references": [
+          "matching_service",
+          "api-matching"
+        ]
+      }
+    },
+    {
+      "path": "matching_service_v1.py",
+      "size_bytes": 455,
+      "dependencies": {
+        "imports": [],
+        "relative_imports": [],
+        "local_references": [
+          "matching_service",
+          "api-matching"
+        ]
+      }
+    },
+    {
+      "path": "api-matching-enhanced-v2-no-cors.py",
+      "size_bytes": 471,
+      "dependencies": {
+        "imports": [],
+        "relative_imports": [],
+        "local_references": [
+          "api-matching",
+          "api-matching",
+          "api-matching"
+        ]
+      }
+    },
+    {
+      "path": "backend/super_smart_match_v2.py",
+      "size_bytes": 59497,
+      "dependencies": {
+        "imports": [
+          "os",
+          "sys",
+          "json",
+          "time",
+          "asyncio",
+          "logging",
+          "requests",
+          "Dict",
+          "dataclass",
+          "Enum",
+          "ABC",
+          "aiohttp",
+          "datetime",
+          "re"
+        ],
+        "relative_imports": [],
+        "local_references": [
+          "super_smart_match",
+          "matching_service"
+        ]
+      }
+    },
+    {
+      "path": "backend/health_app.py",
+      "size_bytes": 0,
+      "dependencies": {
+        "imports": [],
+        "relative_imports": [],
+        "local_references": []
+      }
+    }
+  ],
+  "files_preserved": [],
+  "backup_location": "backup_cleanup_20250618_144056",
+  "errors": [],
+  "statistics": {
+    "files_deleted": 9,
+    "files_preserved": 0,
+    "algorithms_before": 7,
+    "algorithms_after": 2,
+    "apis_before": 6,
+    "apis_after": 3,
+    "critical_files_preserved": 4,
+    "parsing_system_status": "INTACT"
+  }
+}

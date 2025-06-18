@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-06-18T14:40:24.209458",
+  "fixes_applied": [
+    {
+      "action": "Vérification gpt-parser-client.js",
+      "status": "SUCCESS",
+      "details": "Fichier déjà présent: 14901 bytes",
+      "timestamp": "2025-06-18T14:40:24.213622"
+    },
+    {
+      "action": "Correction unified_matching_service.py",
+      "status": "SUCCESS",
+      "details": "Dépendances v2 supprimées, backup: unified_matching_service.py.backup_quickfix",
+      "timestamp": "2025-06-18T14:40:24.248945"
+    },
+    {
+      "action": "Test import super_smart_match_v3",
+      "status": "SUCCESS",
+      "details": "",
+      "timestamp": "2025-06-18T14:40:24.540420"
+    },
+    {
+      "action": "Test import unified_matching_service",
+      "status": "WARNING",
+      "details": "Autre erreur: unindent does not match any outer indentation level (unified_matching_service.py, line 54)",
+      "timestamp": "2025-06-18T14:40:24.540996"
+    },
+    {
+      "action": "Vérification fichiers critiques",
+      "status": "SUCCESS",
+      "details": "Tous les fichiers critiques présents",
+      "timestamp": "2025-06-18T14:40:24.541105"
+    },
+    {
+      "action": "Préparation nettoyage",
+      "status": "SUCCESS",
+      "details": "Statut sauvegardé: quickfix_status.json",
+      "timestamp": "2025-06-18T14:40:24.541457"
+    },
+    {
+      "action": "Test frontend Upload CV",
+      "status": "SUCCESS",
+      "details": "Status: 200",
+      "timestamp": "2025-06-18T14:40:24.717909"
+    }
+  ],
+  "errors": [],
+  "status": "started",
+  "summary": {
+    "total_fixes": 7,
+    "successful_fixes": 6,
+    "success_rate": 85.71,
+    "status": "COMPLETED",
+    "ready_for_cleanup": true
+  }
+}

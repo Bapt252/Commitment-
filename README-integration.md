@@ -1,9 +1,9 @@
-# FICHIER SUPPRIMÉ - INTÉGRATION DOCUMENTÉE AILLEURS
+# FICHIER SUPPRIMÉ - DOUBLON DE CASSE MASSIF
 
-Ce fichier `README-integration.md` contenait de la documentation d'intégration redondante.
+Ce fichier `README-Integration.md` était un doublon de `README-integration.md` avec une casse différente.
 
 **Date de suppression :** 18/06/2025
-**Raison :** Nettoyage architecture - Intégration documentée dans README.md principal (4.1KB économisés)
+**Raison :** Nettoyage architecture - Doublon de casse redondant (7.5KB économisés !)
 **Backup :** Disponible sur la branche `backup-before-cleanup`
 
 Consulter le README.md principal pour la documentation à jour.
