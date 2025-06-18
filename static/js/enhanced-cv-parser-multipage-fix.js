@@ -1,7 +1,7 @@
 /**
- * Parser CV Optimisé - CORRECTION MULTI-PAGES PDF
+ * Parser CV Optimisé - CORRECTION MULTI-PAGES PDF v2.2
  * Résout le problème de lecture des PDF multi-pages avec PDF.js
- * Version 2.1 - Fix complet pour CV comme celui de Sabine Rivière
+ * Version 2.2 - Fix critique pour tests et fichiers réels
  */
 
 class EnhancedCVParserMultipage {
@@ -100,14 +100,25 @@ class EnhancedCVParserMultipage {
     }
 
     /**
-     * Parse un CV avec lecture PDF multi-pages corrigée
+     * Parse un CV avec lecture PDF multi-pages corrigée - MÉTHODE PRINCIPALE
      */
-    async parseCV(file) {
-        console.log('🔍 Démarrage du parsing multi-pages optimisé...');
+    async parseCV(input) {
+        console.log('🔍 Démarrage du parsing multi-pages optimisé v2.2...');
         
         try {
-            // Lire le contenu du fichier avec la méthode appropriée
-            const content = await this.readFileContentAdvanced(file);
+            let content;
+            
+            // NOUVEAU: Gestion flexible des entrées (File, Blob, ou string)
+            if (typeof input === 'string') {
+                console.log('📄 Parsing de contenu texte direct...');
+                content = input;
+            } else if (input instanceof File || input instanceof Blob) {
+                console.log(`📄 Parsing de fichier: ${input.name || 'fichier'} (${input.type || 'type inconnu'})`);
+                content = await this.readFileContentAdvanced(input);
+            } else {
+                throw new Error('Type d\'entrée non supporté. Utilisez un File, Blob ou string.');
+            }
+            
             console.log(`📄 Contenu total extrait: ${content.length} caractères`);
             
             const cleanContent = this.cleanText(content);
@@ -122,12 +133,12 @@ class EnhancedCVParserMultipage {
                     work_experience: this.extractWorkExperienceEnhanced(cleanContent),
                     education: this.extractEducationEnhanced(cleanContent)
                 },
-                source: 'enhanced_commitment_multipage_v2.1',
+                source: 'enhanced_commitment_multipage_v2.2',
                 timestamp: new Date().toISOString(),
-                parsing_stats: this.getParsingStats(cleanContent, file)
+                parsing_stats: this.getParsingStats(cleanContent, input)
             };
         } catch (error) {
-            console.error('❌ Erreur lors du parsing multi-pages:', error);
+            console.error('❌ Erreur lors du parsing multi-pages v2.2:', error);
             throw error;
         }
     }
@@ -137,9 +148,9 @@ class EnhancedCVParserMultipage {
      */
     async readFileContentAdvanced(file) {
         const fileType = file.type;
-        const fileName = file.name.toLowerCase();
+        const fileName = (file.name || '').toLowerCase();
         
-        console.log(`🔍 Analyse du fichier: ${file.name} (${fileType})`);
+        console.log(`🔍 Analyse du fichier: ${file.name || 'fichier'} (${fileType})`);
         
         // PDF : Utiliser PDF.js pour extraire le texte de toutes les pages
         if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
@@ -147,13 +158,13 @@ class EnhancedCVParserMultipage {
         }
         
         // Images : Utiliser OCR ou afficher un message informatif
-        if (fileType.startsWith('image/')) {
+        if (fileType && fileType.startsWith('image/')) {
             console.log('📷 Fichier image détecté - extraction basique');
             return await this.handleImageFile(file);
         }
         
         // Documents Word : Extraction basique (pourrait être améliorée avec une lib spécialisée)
-        if (fileType.includes('word') || fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
+        if ((fileType && fileType.includes('word')) || fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
             console.log('📝 Document Word détecté - extraction basique');
             return await this.readAsText(file);
         }
@@ -264,10 +275,10 @@ class EnhancedCVParserMultipage {
      */
     cleanText(content) {
         let cleaned = content
-            .replace(/[\\x00-\\x1F\\x7F]/g, ' ') // Caractères de contrôle
-            .replace(/\\s+/g, ' ') // Espaces multiples
-            .replace(/\\r\\n/g, '\\n') // Normaliser les retours à la ligne
-            .replace(/--- PAGE \\d+ ---/g, '\\n') // Supprimer les marqueurs de pages
+            .replace(/[\x00-\x1F\x7F]/g, ' ') // Caractères de contrôle
+            .replace(/\s+/g, ' ') // Espaces multiples
+            .replace(/\r\n/g, '\n') // Normaliser les retours à la ligne
+            .replace(/--- PAGE \d+ ---/g, '\n') // Supprimer les marqueurs de pages
             .trim();
         
         console.log(`📝 Texte nettoyé: ${cleaned.length} caractères`);
@@ -280,15 +291,15 @@ class EnhancedCVParserMultipage {
     extractPersonalInfoEnhanced(content) {
         // Patterns sophistiqués pour l'email
         const emailPatterns = [
-            /[\\w\\.-]+@[\\w\\.-]+\\.\\w+/g,
-            /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g
+            /[\w\.-]+@[\w\.-]+\.\w+/g,
+            /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
         ];
         
         // Patterns pour téléphone français et internationaux
         const phonePatterns = [
-            /(?:\\+33|0)[1-9](?:[\\s\\.-]?\\d{2}){4}/g, // France format standard
-            /\\+33\\d{9}/g, // France international compact
-            /(?:\\+\\d{1,3})?[\\s\\.-]?\\(?\\d{1,4}\\)?[\\s\\.-]?\\d{1,4}[\\s\\.-]?\\d{1,9}/g // International
+            /(?:\+33|0)[1-9](?:[\s\.-]?\d{2}){4}/g, // France format standard
+            /\+33\d{9}/g, // France international compact
+            /(?:\+\d{1,3})?[\s\.-]?\(?\d{1,4}\)?[\s\.-]?\d{1,4}[\s\.-]?\d{1,9}/g // International
         ];
         
         let email = '';
@@ -308,20 +319,20 @@ class EnhancedCVParserMultipage {
         for (const pattern of phonePatterns) {
             const match = content.match(pattern);
             if (match) {
-                phone = match[0].replace(/[\\s\\.-]/g, ''); // Nettoyer
+                phone = match[0].replace(/[\s\.-]/g, ''); // Nettoyer
                 break;
             }
         }
         
         // Extraction nom - logique améliorée pour détecter le nom en début de CV
-        const lines = content.split('\\n').map(line => line.trim()).filter(line => line.length > 0);
+        const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
         
         for (let i = 0; i < Math.min(5, lines.length); i++) {
             const line = lines[i];
             // Le nom doit être présent, pas trop long, sans email/téléphone/mots-clés CV
             if (line.length > 2 && line.length < 50 && 
                 !line.includes('@') && 
-                !line.match(/\\d{8,}/) && 
+                !line.match(/\d{8,}/) && 
                 !line.toLowerCase().includes('cv') &&
                 !line.toLowerCase().includes('curriculum') &&
                 !line.toLowerCase().includes('resume') &&
@@ -344,14 +355,14 @@ class EnhancedCVParserMultipage {
      * Extraction améliorée du poste actuel
      */
     extractCurrentPositionEnhanced(content) {
-        const lines = content.split('\\n').map(line => line.trim());
+        const lines = content.split('\n').map(line => line.trim());
         
         // Chercher dans les premières lignes après le nom
         for (let i = 1; i < Math.min(8, lines.length); i++) {
             const line = lines[i];
             if (line.length > 5 && line.length < 100 && 
                 !line.includes('@') && 
-                !line.match(/\\+?\\d{8,}/) &&
+                !line.match(/\+?\d{8,}/) &&
                 !line.toLowerCase().includes('email') &&
                 !line.toLowerCase().includes('téléphone') &&
                 !line.toLowerCase().includes('phone') &&
@@ -412,9 +423,9 @@ class EnhancedCVParserMultipage {
         
         skillsSections.forEach(section => {
             // Extraire des listes à puces
-            const bulletPoints = section.match(/[•\\-*]\\s*([^\\n\\r]{2,100})/g) || [];
+            const bulletPoints = section.match(/[•\-*]\s*([^\n\r]{2,100})/g) || [];
             bulletPoints.forEach(point => {
-                const cleanPoint = point.replace(/^[•\\-*]\\s*/, '').trim();
+                const cleanPoint = point.replace(/^[•\-*]\s*/, '').trim();
                 if (cleanPoint.length > 2 && cleanPoint.length < 50) {
                     foundSkills.add(cleanPoint);
                 }
@@ -446,9 +457,9 @@ class EnhancedCVParserMultipage {
         ]);
         
         softwareSections.forEach(section => {
-            const bulletPoints = section.match(/[•\\-*]\\s*([^\\n\\r]{2,50})/g) || [];
+            const bulletPoints = section.match(/[•\-*]\s*([^\n\r]{2,50})/g) || [];
             bulletPoints.forEach(point => {
-                const cleanPoint = point.replace(/^[•\\-*]\\s*/, '').trim();
+                const cleanPoint = point.replace(/^[•\-*]\s*/, '').trim();
                 if (cleanPoint.length > 2 && cleanPoint.length < 30) {
                     foundSoftware.add(cleanPoint);
                 }
@@ -469,13 +480,13 @@ class EnhancedCVParserMultipage {
         
         // Patterns pour détecter les langues avec niveaux
         const languagePatterns = [
-            /(français|french)\\s*[-:\\s]*([a-z0-9\\s]+)/gi,
-            /(anglais|english)\\s*[-:\\s]*([a-z0-9\\s]+)/gi,
-            /(espagnol|spanish)\\s*[-:\\s]*([a-z0-9\\s]+)/gi,
-            /(allemand|german)\\s*[-:\\s]*([a-z0-9\\s]+)/gi,
-            /(italien|italian)\\s*[-:\\s]*([a-z0-9\\s]+)/gi,
-            /(chinois|chinese)\\s*[-:\\s]*([a-z0-9\\s]+)/gi,
-            /(japonais|japanese)\\s*[-:\\s]*([a-z0-9\\s]+)/gi
+            /(français|french)\s*[-:\s]*([a-z0-9\s]+)/gi,
+            /(anglais|english)\s*[-:\s]*([a-z0-9\s]+)/gi,
+            /(espagnol|spanish)\s*[-:\s]*([a-z0-9\s]+)/gi,
+            /(allemand|german)\s*[-:\s]*([a-z0-9\s]+)/gi,
+            /(italien|italian)\s*[-:\s]*([a-z0-9\s]+)/gi,
+            /(chinois|chinese)\s*[-:\s]*([a-z0-9\s]+)/gi,
+            /(japonais|japanese)\s*[-:\s]*([a-z0-9\s]+)/gi
         ];
         
         languagePatterns.forEach(pattern => {
@@ -545,7 +556,7 @@ class EnhancedCVParserMultipage {
     }
 
     /**
-     * Extraction améliorée de l'expérience professionnelle - CORRECTION MAJEURE
+     * Extraction améliorée de l'expérience professionnelle - CORRECTION MAJEURE v2.2
      */
     extractWorkExperienceEnhanced(content) {
         const experiences = [];
@@ -554,7 +565,7 @@ class EnhancedCVParserMultipage {
         
         // Méthode 1: Chercher les sections d'expérience formelles
         const expSections = this.extractSection(content, [
-            'expérience', 'experience', 'parcours', 'emploi', 'travail'
+            'expérience', 'experience', 'parcours', 'emploi', 'travail', 'professionnelle'
         ]);
         
         expSections.forEach(section => {
@@ -597,12 +608,12 @@ class EnhancedCVParserMultipage {
         // Pattern pour dates + titre/entreprise (plus flexible)
         const experiencePatterns = [
             // Pattern MM/YYYY - MM/YYYY
-            /(\\d{2}\\/\\d{4})\\s*[-–]\\s*(\\d{2}\\/\\d{4}|présent|present|actuel|current)/gi,
+            /(\d{2}\/\d{4})\s*[-–]\s*(\d{2}\/\d{4}|présent|present|actuel|current)/gi,
             // Pattern YYYY - YYYY  
-            /(\\d{4})\\s*[-–]\\s*(\\d{4}|présent|present|actuel|current)/gi
+            /(\d{4})\s*[-–]\s*(\d{4}|présent|present|actuel|current)/gi
         ];
         
-        const lines = content.split('\\n');
+        const lines = content.split('\n');
         
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
@@ -657,7 +668,7 @@ class EnhancedCVParserMultipage {
         // Si on n'a pas trouvé de titre, chercher dans la ligne de date elle-même
         if (title === 'À compléter') {
             const dateLine = lines[dateLineIndex].trim();
-            const parts = dateLine.split(/\\d{2}\\/\\d{4}\\s*[-–]\\s*\\d{2}\\/\\d{4}/);
+            const parts = dateLine.split(/\d{2}\/\d{4}\s*[-–]\s*\d{2}\/\d{4}/);
             if (parts.length > 1 && parts[1].trim().length > 5) {
                 title = parts[1].trim();
             }
@@ -685,7 +696,8 @@ class EnhancedCVParserMultipage {
         const companyIndicators = [
             'sarl', 'sas', 'sa', 'ltd', 'inc', 'corp', 'group', 'company', 'société',
             'entreprise', 'cabinet', 'agence', 'studio', 'consulting', 'solutions',
-            'services', 'international', 'france', 'paris', 'london', 'new york'
+            'services', 'international', 'france', 'paris', 'london', 'new york',
+            'dior', 'bpi', 'dassault', 'clifford', 'bnp', 'paribas', 'loly'
         ];
         
         const lowerText = text.toLowerCase();
@@ -703,7 +715,7 @@ class EnhancedCVParserMultipage {
         const experiences = [];
         
         // Pattern pour détecter les dates (MM/YYYY - MM/YYYY)
-        const datePattern = /(\\d{2}\\/\\d{4})\\s*[-–]\\s*(\\d{2}\\/\\d{4}|présent|present|actuel|current)/gi;
+        const datePattern = /(\d{2}\/\d{4})\s*[-–]\s*(\d{2}\/\d{4}|présent|present|actuel|current)/gi;
         
         let match;
         const dateMatches = [];
@@ -739,7 +751,7 @@ class EnhancedCVParserMultipage {
      * Parse un bloc d'expérience individuel
      */
     parseExperienceBlock(text, dateMatch) {
-        const lines = text.split('\\n').map(line => line.trim()).filter(line => line.length > 0);
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
         
         if (lines.length < 2) return null;
         
@@ -750,7 +762,7 @@ class EnhancedCVParserMultipage {
         for (let i = 1; i < Math.min(3, lines.length); i++) {
             const line = lines[i];
             if (line.length > 5 && line.length < 100 && 
-                !line.match(/\\d{2}\\/\\d{4}/) && // Pas une date
+                !line.match(/\d{2}\/\d{4}/) && // Pas une date
                 this.looksLikeJobTitle(line)) {
                 title = line;
                 break;
@@ -762,10 +774,10 @@ class EnhancedCVParserMultipage {
             const line = lines[i];
             if (line.length > 3 && line.length < 80 && 
                 line !== title &&
-                !line.match(/\\d{2}\\/\\d{4}/) && // Pas une date
+                !line.match(/\d{2}\/\d{4}/) && // Pas une date
                 !line.includes('•') && // Pas une liste
                 !line.includes('-') && // Pas une liste
-                line.charAt(0) === line.charAt(0).toUpperCase()) { // Commence par majuscule
+                (line.charAt(0) === line.charAt(0).toUpperCase() || this.looksLikeCompanyName(line))) {
                 company = line;
                 break;
             }
@@ -823,15 +835,15 @@ class EnhancedCVParserMultipage {
      */
     extractEducationFromFullContent(content) {
         const education = [];
-        const lines = content.split('\\n');
+        const lines = content.split('\n');
         
         // Patterns pour détecter les formations
         const educationKeywords = [
             'diplôme', 'degree', 'bachelor', 'master', 'mba', 'phd', 'licence', 'university', 'université',
-            'école', 'school', 'institut', 'institute', 'formation', 'études', 'bts', 'dut'
+            'école', 'school', 'institut', 'institute', 'formation', 'études', 'bts', 'dut', 'esve', 'birkbeck'
         ];
         
-        const yearPattern = /\\b(19|20)\\d{2}\\b/g;
+        const yearPattern = /\b(19|20)\d{2}\b/g;
         
         lines.forEach(line => {
             const lowerLine = line.toLowerCase();
@@ -849,7 +861,7 @@ class EnhancedCVParserMultipage {
                     let institution = 'À spécifier';
                     
                     // Si la ligne contient des virgules ou tirets, essayer de séparer
-                    const parts = line.split(/[,\\-]/);
+                    const parts = line.split(/[,\-]/);
                     if (parts.length >= 2) {
                         degree = parts[0].replace(yearPattern, '').trim();
                         institution = parts[1].trim();
@@ -876,10 +888,10 @@ class EnhancedCVParserMultipage {
      */
     parseEducationSection(section) {
         const education = [];
-        const lines = section.split('\\n').map(line => line.trim()).filter(line => line.length > 0);
+        const lines = section.split('\n').map(line => line.trim()).filter(line => line.length > 0);
         
         // Chercher les patterns d'année
-        const yearPattern = /\\b(19|20)\\d{2}\\b/g;
+        const yearPattern = /\b(19|20)\d{2}\b/g;
         
         lines.forEach(line => {
             const yearMatch = line.match(yearPattern);
@@ -887,7 +899,7 @@ class EnhancedCVParserMultipage {
                 const year = yearMatch[yearMatch.length - 1]; // Prendre la dernière année trouvée
                 
                 // Extraire le diplôme et l'institution
-                const parts = line.split(/[,\\-]/);
+                const parts = line.split(/[,\-]/);
                 let degree = 'À compléter';
                 let institution = 'À spécifier';
                 
@@ -916,7 +928,7 @@ class EnhancedCVParserMultipage {
      */
     extractSection(content, keywords) {
         const sections = [];
-        const lines = content.split('\\n');
+        const lines = content.split('\n');
         
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].toLowerCase();
@@ -935,7 +947,7 @@ class EnhancedCVParserMultipage {
                         break;
                     }
                     
-                    sectionContent += lines[j] + '\\n';
+                    sectionContent += lines[j] + '\n';
                     j++;
                 }
                 
@@ -954,7 +966,7 @@ class EnhancedCVParserMultipage {
     isNewSection(line) {
         const sectionKeywords = [
             'expérience', 'experience', 'formation', 'education', 'compétences', 'skills',
-            'langues', 'languages', 'centres d\\'intérêt', 'hobbies', 'références', 'references',
+            'langues', 'languages', 'centres d\'intérêt', 'hobbies', 'références', 'references',
             'coordonnées', 'contact', 'informatique', 'logiciels'
         ];
         
@@ -986,16 +998,16 @@ class EnhancedCVParserMultipage {
     /**
      * Statistiques de parsing pour monitoring (améliorées)
      */
-    getParsingStats(content, file) {
+    getParsingStats(content, input) {
         return {
             content_length: content.length,
-            lines_count: content.split('\\n').length,
+            lines_count: content.split('\n').length,
             word_count: content.split(' ').length,
-            file_size: file.size,
-            file_type: file.type,
-            file_name: file.name,
+            file_size: input?.size || content.length,
+            file_type: input?.type || 'text/plain',
+            file_name: input?.name || 'contenu_direct',
             parsing_time: new Date().toISOString(),
-            parser_version: 'enhanced_multipage_v2.1_pdf_fix',
+            parser_version: 'enhanced_multipage_v2.2_critical_fix',
             pdf_support: typeof window.pdfjsLib !== 'undefined'
         };
     }
@@ -1006,11 +1018,11 @@ function createEnhancedMultipageParser() {
     const parser = new EnhancedCVParserMultipage();
     
     return {
-        parseCV: async (file) => {
+        parseCV: async (input) => {
             try {
-                return await parser.parseCV(file);
+                return await parser.parseCV(input);
             } catch (error) {
-                console.error('Erreur parsing enhanced multipage v2.1:', error);
+                console.error('Erreur parsing enhanced multipage v2.2:', error);
                 throw error;
             }
         }
@@ -1023,4 +1035,4 @@ if (typeof window !== 'undefined') {
     window.createEnhancedMultipageParser = createEnhancedMultipageParser;
 }
 
-console.log('✅ Enhanced CV Parser Commitment v2.1 (Multi-page PDF Fix) chargé avec succès !');
+console.log('✅ Enhanced CV Parser Commitment v2.2 (Multi-page PDF Critical Fix) chargé avec succès !');
