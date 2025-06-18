@@ -1,4 +1,4 @@
-// Créer un service de parsing amélioré de fiches de poste
+// JobParserAPI v2.3 - Version améliorée avec règles d'extraction optimisées pour les fiches de poste françaises
 class JobParserAPI {
     constructor(options = {}) {
         this.apiUrl = options.apiUrl || '/api/parse-job';
@@ -6,7 +6,7 @@ class JobParserAPI {
         this.enablePDFCleaning = options.enablePDFCleaning || false;
         
         if (this.debug) {
-            console.log('JobParserAPI initialized with options:', options);
+            console.log('JobParserAPI v2.3 Enhanced initialized with options:', options);
         }
     }
     
@@ -17,7 +17,7 @@ class JobParserAPI {
      */
     async parseJobText(text) {
         if (this.debug) {
-            console.log('Parsing job text...');
+            console.log('🚀 Parsing job text with enhanced v2.3...');
         }
         
         try {
@@ -27,7 +27,7 @@ class JobParserAPI {
             if (apiAvailable) {
                 return await this.sendTextToApi(text);
             } else {
-                console.warn('API not available, using local fallback');
+                console.warn('API not available, using enhanced local fallback v2.3');
                 return this.analyzeJobLocally(text);
             }
         } catch (error) {
@@ -43,7 +43,7 @@ class JobParserAPI {
      */
     async parseJobFile(file) {
         if (this.debug) {
-            console.log('Parsing job file:', file.name);
+            console.log('📄 Parsing job file with enhanced v2.3:', file.name);
         }
         
         try {
@@ -149,41 +149,89 @@ class JobParserAPI {
     
     /**
      * Nettoie le texte HTML en supprimant les balises et en normalisant
-     * @param {string} text - Le texte à nettoyer
-     * @returns {string} - Le texte nettoyé
+     * Version améliorée v2.3 avec meilleur traitement des entités HTML françaises
      */
     cleanHtmlText(text) {
-        // Supprimer les balises HTML
-        let cleaned = text.replace(/<[^>]*>/g, ' ');
+        if (this.debug) {
+            console.log('🧹 Nettoyage HTML avancé v2.3...');
+        }
         
-        // Normaliser les espaces
+        let cleaned = text;
+        
+        // Remplacer les balises de paragraphe par des sauts de ligne
+        cleaned = cleaned.replace(/<\/p>/gi, '\n');
+        cleaned = cleaned.replace(/<br\s*\/?>/gi, '\n');
+        cleaned = cleaned.replace(/<\/div>/gi, '\n');
+        cleaned = cleaned.replace(/<\/li>/gi, '\n');
+        cleaned = cleaned.replace(/<\/h[1-6]>/gi, '\n');
+        
+        // Supprimer toutes les autres balises HTML
+        cleaned = cleaned.replace(/<[^>]*>/g, ' ');
+        
+        // Nettoyer les entités HTML étendues (spécialement pour le français)
+        const htmlEntities = {
+            '&nbsp;': ' ',
+            '&amp;': '&',
+            '&lt;': '<',
+            '&gt;': '>',
+            '&quot;': '"',
+            '&apos;': "'",
+            '&agrave;': 'à',
+            '&aacute;': 'á',
+            '&eacute;': 'é',
+            '&egrave;': 'è',
+            '&ecirc;': 'ê',
+            '&euml;': 'ë',
+            '&iacute;': 'í',
+            '&igrave;': 'ì',
+            '&icirc;': 'î',
+            '&iuml;': 'ï',
+            '&oacute;': 'ó',
+            '&ograve;': 'ò',
+            '&ocirc;': 'ô',
+            '&ouml;': 'ö',
+            '&uacute;': 'ú',
+            '&ugrave;': 'ù',
+            '&ucirc;': 'û',
+            '&uuml;': 'ü',
+            '&ccedil;': 'ç'
+        };
+        
+        Object.keys(htmlEntities).forEach(entity => {
+            const regex = new RegExp(entity, 'gi');
+            cleaned = cleaned.replace(regex, htmlEntities[entity]);
+        });
+        
+        // Nettoyer les entités numériques
+        cleaned = cleaned.replace(/&#(\d+);/g, (match, num) => {
+            return String.fromCharCode(parseInt(num));
+        });
+        
+        // Normaliser les espaces multiples
         cleaned = cleaned.replace(/\s+/g, ' ');
         
-        // Nettoyer les caractères spéciaux HTML
-        cleaned = cleaned.replace(/&nbsp;/g, ' ')
-                        .replace(/&amp;/g, '&')
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                        .replace(/&quot;/g, '"');
+        // Nettoyer les espaces autour des sauts de ligne
+        cleaned = cleaned.replace(/\s*\n\s*/g, '\n');
         
         return cleaned.trim();
     }
     
     /**
-     * Analyse localement un texte de fiche de poste (fallback amélioré)
+     * Analyse localement un texte de fiche de poste (fallback amélioré v2.3)
      * @param {string} text - Le texte à analyser
      * @returns {Object} - Les résultats de l'analyse
      */
     analyzeJobLocally(text) {
         if (this.debug) {
-            console.log('Analyzing job locally with enhanced rules...');
+            console.log('🔍 Analyzing job locally with enhanced rules v2.3...');
         }
         
         // Nettoyer le HTML d'abord
         const cleanedText = this.cleanHtmlText(text);
         
         if (this.debug) {
-            console.log('Cleaned text length:', cleanedText.length);
+            console.log('📝 Cleaned text length:', cleanedText.length);
+            console.log('📝 Cleaned text sample (300 chars):', cleanedText.substring(0, 300));
         }
         
         const result = {
@@ -200,72 +248,246 @@ class JobParserAPI {
         };
         
         if (this.debug) {
-            console.log('Parsing results:', result);
+            console.log('📊 Enhanced parsing results v2.3:', result);
         }
         
         return result;
     }
     
-    // Méthodes d'extraction améliorées
+    // Méthodes d'extraction améliorées v2.3
     
+    /**
+     * Extraction du titre de poste améliorée spécialement pour les fiches françaises
+     */
     extractJobTitle(text) {
+        if (this.debug) {
+            console.log('🎯 Enhanced title extraction for French job posts...');
+        }
+        
         const titleRegexList = [
-            // Pattern spécifique "Fiche de poste XYZ"
-            /fiche\s+de\s+poste\s+(.+?)(?:\n|$)/i,
-            // Pattern "Poste : XYZ"
-            /poste\s*[:]\s*([^\n.]+)/i,
-            // Pattern "Titre : XYZ"
-            /titre\s*[:]\s*([^\n.]+)/i,
-            // Pattern "Recrute XYZ"
-            /recrute\s*(?:un|une)?\s*([^\n.]+)/i,
-            // Pattern "Recherche XYZ"
-            /recherch(?:e|ons)\s*(?:un|une)?\s*([^\n.]+)/i,
-            // Pattern pour les titres en début de ligne (après nettoyage HTML)
-            /^([A-Z][^.\n]{5,50})(?:\s+et\s+[A-Z][^.\n]{3,30})?$/im
+            // Patterns spécifiques français
+            /fiche\s+de\s+poste\s*[:\-]?\s*(.+?)(?:\n|$)/i,
+            /offre\s+d?[''']?emploi\s*[:\-]?\s*(.+?)(?:\n|$)/i,
+            /poste\s*[:\-]\s*([^\n.]+)/i,
+            /titre\s*[:\-]\s*([^\n.]+)/i,
+            /intitulé\s*[:\-]?\s*([^\n.]+)/i,
+            
+            // Patterns pour actions de recrutement
+            /recrute\s*(?:un[e]?)?\s*([^\n.]+?)(?:\s+\(|$|\n)/i,
+            /recherche\s*(?:un[e]?)?\s*([^\n.]+?)(?:\s+\(|$|\n)/i,
+            /cherche\s*(?:un[e]?)?\s*([^\n.]+?)(?:\s+\(|$|\n)/i,
+            
+            // Patterns pour métiers spécifiques français
+            /(gestionnaire\s+(?:paie|rh|administration|comptabilité|stock|clientèle)[^\n]*)/i,
+            /(responsable\s+(?:commercial|marketing|rh|paie|comptabilité|administration|communication)[^\n]*)/i,
+            /(chef\s+(?:de\s+(?:projet|service|vente|rayon|produit)|comptable|d'équipe)[^\n]*)/i,
+            /(directeur\s+(?:commercial|marketing|administratif|général|financier)[^\n]*)/i,
+            /(assistant[e]?\s+(?:commercial|administratif|rh|comptable|direction|marketing)[^\n]*)/i,
+            /(conseiller[ère]?\s+(?:commercial|clientèle|vente|immobilier|financier)[^\n]*)/i,
+            /(technicien[ne]?\s+(?:maintenance|informatique|qualité|support)[^\n]*)/i,
+            /(ingénieur\s+(?:commercial|système|qualité|développement|informatique)[^\n]*)/i,
+            /(développeur\s+(?:web|mobile|frontend|backend|fullstack|javascript)[^\n]*)/i,
+            /(analyste\s+(?:financier|système|données|programmeur)[^\n]*)/i,
+            /(consultant[e]?\s+(?:rh|marketing|système|commercial)[^\n]*)/i,
+            /(coordinateur[trice]?\s+(?:projet|qualité|logistique|marketing)[^\n]*)/i,
+            /(manager\s+(?:commercial|équipe|projet|retail)[^\n]*)/i,
+            /(chargé[e]?\s+(?:de\s+(?:communication|marketing|clientèle|projet)|d'affaires)[^\n]*)/i,
+            
+            // Pattern générique pour titres en début de ligne (plus permissif)
+            /^([A-Z][A-Za-z\s&.-]{5,60})(?:\s*[-–—]\s*[A-Z]|$)/m,
+            
+            // Pattern pour lignes courtes en majuscules
+            /^([A-Z\s&]{8,40})$/m
         ];
         
         for (const regex of titleRegexList) {
             const match = text.match(regex);
-            if (match && match[1] && match[1].trim()) {
+            if (match && match[1]) {
                 let title = match[1].trim();
-                // Nettoyer les mots parasites
-                title = title.replace(/^\s*(le|la|les|un|une|des)\s+/i, '');
-                if (title.length > 3 && title.length < 100) {
+                
+                // Nettoyer le titre extrait
+                title = title.replace(/^(le|la|les|un|une|des)\s+/i, '');
+                title = title.replace(/\s*[(.]\s*h\/f\s*[).]?\s*$/i, '');
+                title = title.replace(/\s*[(.]\s*f\/h\s*[).]?\s*$/i, '');
+                title = title.replace(/\s*[(.]\s*cdi\s*[).]?\s*$/i, '');
+                title = title.replace(/\s*[(.]\s*cdd\s*[).]?\s*$/i, '');
+                title = title.replace(/\s*[(.]\s*temps\s+(?:plein|partiel)\s*[).]?\s*$/i, '');
+                
+                if (title.length >= 5 && title.length <= 80 && !title.includes('©') && !title.includes('@')) {
+                    if (this.debug) {
+                        console.log('✅ Title found:', title);
+                    }
                     return title;
                 }
             }
         }
         
-        // Fallback : chercher des mots-clés de métiers courants en début de texte
-        const commonJobs = [
-            'gestionnaire', 'développeur', 'chef', 'responsable', 'directeur', 
-            'assistant', 'conseiller', 'technicien', 'ingénieur', 'commercial',
-            'comptable', 'analyste', 'consultant', 'coordinateur', 'superviseur'
-        ];
-        
-        const lines = text.split('\n').slice(0, 5); // Chercher dans les 5 premières lignes
+        // Fallback : chercher des mots-clés métier dans les premières lignes
+        const lines = text.split('\n').slice(0, 8);
         for (const line of lines) {
             const cleanLine = line.trim();
             if (cleanLine.length > 5 && cleanLine.length < 80) {
-                for (const job of commonJobs) {
-                    if (cleanLine.toLowerCase().includes(job)) {
+                const jobKeywords = [
+                    'gestionnaire', 'responsable', 'chef', 'directeur', 'assistant',
+                    'conseiller', 'technicien', 'ingénieur', 'développeur', 'commercial',
+                    'comptable', 'analyste', 'consultant', 'coordinateur', 'superviseur',
+                    'manager', 'chargé', 'adjoint', 'secrétaire', 'vendeur', 'employé'
+                ];
+                
+                for (const keyword of jobKeywords) {
+                    if (cleanLine.toLowerCase().includes(keyword)) {
+                        if (this.debug) {
+                            console.log('✅ Title found (fallback):', cleanLine);
+                        }
                         return cleanLine;
                     }
                 }
             }
         }
         
+        if (this.debug) {
+            console.log('❌ No title detected');
+        }
         return 'Titre non détecté';
+    }
+    
+    /**
+     * Extraction du lieu améliorée pour les adresses françaises
+     */
+    extractLocation(text) {
+        if (this.debug) {
+            console.log('📍 Enhanced location extraction for French addresses...');
+        }
+        
+        const locationRegexList = [
+            // Patterns spécifiques français
+            /lieu\s+de\s+travail\s*[:\-]?\s*([^\n.]+)/i,
+            /localisation\s*[:\-]?\s*([^\n.]+)/i,
+            /adresse\s*[:\-]?\s*([^\n.]+)/i,
+            /situé[e]?\s+(?:à|au|en)\s+([^\n.]+)/i,
+            /poste\s+basé\s+(?:à|au|en)\s+([^\n.]+)/i,
+            /poste\s+localisé\s+(?:à|au|en)\s+([^\n.]+)/i,
+            /travail\s+(?:à|au|en)\s+([^\n.]+)/i,
+            /secteur\s*[:\-]?\s*([^\n.]+)/i,
+            
+            // Patterns pour codes postaux français (5 chiffres + ville)
+            /(\d{5})\s+([A-Z][a-zéèêëïîôöùûüç]+(?:[\s-][A-Z][a-zéèêëïîôöùûüç]+)*)/,
+            
+            // Patterns pour grandes villes françaises
+            /(paris\s*(?:\d{1,2}[èe]?)?(?:\s*arrondissement)?)/i,
+            /(lyon\s*\d?)/i,
+            /(marseille\s*\d?)/i,
+            /(toulouse\s*\d?)/i,
+            /(lille\s*\d?)/i,
+            /(bordeaux\s*\d?)/i,
+            /(nantes\s*\d?)/i,
+            /(strasbourg\s*\d?)/i,
+            /(rennes\s*\d?)/i,
+            /(montpellier\s*\d?)/i,
+            /(nice\s*\d?)/i,
+            /(grenoble\s*\d?)/i,
+            
+            // Pattern pour "à Paris", "sur Lyon", etc.
+            /(?:à|sur|dans|en)\s+((?:[A-Z][a-zéèêëïîôöùûüç]+)(?:[\s-][A-Z][a-zéèêëïîôöùûüç]+)*)/,
+            
+            // Pattern pour département (2 chiffres)
+            /(\d{2})\s*[-–]?\s*([A-Z][a-zéèêëïîôöùûüç]+(?:[\s-][A-Z][a-zéèêëïîôöùûüç]+)*)/,
+            
+            // Pattern générique pour lieu avec ponctuation
+            /(?:lieu|zone|région)\s*[:\-]?\s*([A-Z][a-zA-Zéèêëïîôöùûüç\s-]+)/i
+        ];
+        
+        for (const regex of locationRegexList) {
+            const match = text.match(regex);
+            if (match) {
+                let location = '';
+                
+                if (match[1] && match[2]) {
+                    // Code postal + ville ou département + région
+                    location = `${match[1]} ${match[2]}`;
+                } else if (match[1]) {
+                    location = match[1];
+                } else {
+                    location = match[0];
+                }
+                
+                location = location.trim();
+                
+                // Valider la longueur et exclure les résultats aberrants
+                if (location.length >= 2 && location.length <= 100 && !location.includes('©') && !location.includes('@')) {
+                    if (this.debug) {
+                        console.log('✅ Location found:', location);
+                    }
+                    return location;
+                }
+            }
+        }
+        
+        if (this.debug) {
+            console.log('❌ No location detected');
+        }
+        return '';
+    }
+    
+    /**
+     * Extraction de l'expérience améliorée pour les formulations françaises
+     */
+    extractExperience(text) {
+        if (this.debug) {
+            console.log('💼 Enhanced experience extraction for French job requirements...');
+        }
+        
+        const experienceRegexList = [
+            // Patterns spécifiques français améliorés
+            /exp[ée]rience\s*[:\-]?\s*((?:minimum|requis[e]?)?\s*\d+\s*(?:à\s*\d+\s*)?an[s]?[^\n]*)/i,
+            /exp[ée]rience\s*[:\-]?\s*(minimum\s*[^\n]+)/i,
+            /minimum\s*(\d+\s*(?:à\s*\d+\s*)?\s*an[s]?\s*(?:d[''']?exp[ée]rience)?[^\n]*)/i,
+            /(\d+\s*(?:à\s*\d+\s*)?\s*an[s]?\s*d[''']?exp[ée]rience[^\n]*)/i,
+            /(?:justifier|avoir|posséder)\s*(?:d[''']?)?\s*(?:au\s*)?minimum\s*(\d+\s*an[s]?[^\n]*)/i,
+            /(?:justifier|avoir|posséder)\s*(?:d[''']?)?\s*(\d+\s*(?:à\s*\d+\s*)?\s*an[s]?\s*d[''']?exp[ée]rience[^\n]*)/i,
+            
+            // Patterns pour niveaux d'expérience
+            /profil\s+(junior|débutant[e]?|confirm[ée]|senior|expert)[^\n]*/i,
+            /niveau\s+(junior|débutant[e]?|confirm[ée]|senior|expert)[^\n]*/i,
+            /candidat\s+(junior|débutant[e]?|confirm[ée]|senior|expert)[^\n]*/i,
+            
+            // Patterns pour expérience secteur spécifique
+            /exp[ée]rience\s+(?:dans|en|sur)\s+([^\n]+)/i,
+            /connaissance\s+(?:du|des|de)\s+([^\n]+)/i,
+            
+            // Pattern générique pour "X ans" avec contexte
+            /(\d+\s*(?:à\s*\d+\s*)?\s*an[s]?)\s*(?:minimum|requis|souhaité|d[''']?exp[ée]rience|dans\s+le\s+domaine)?/i,
+            
+            // Patterns pour première expérience
+            /(première\s+exp[ée]rience|d[ée]butant[e]?\s+accept[ée]|sans\s+exp[ée]rience)/i
+        ];
+        
+        for (const regex of experienceRegexList) {
+            const match = text.match(regex);
+            if (match && match[1]) {
+                let experience = match[1].trim();
+                
+                // Valider et nettoyer l'expérience
+                if (experience.length >= 3 && experience.length <= 200 && !experience.includes('©') && !experience.includes('@')) {
+                    if (this.debug) {
+                        console.log('✅ Experience found:', experience);
+                    }
+                    return experience;
+                }
+            }
+        }
+        
+        if (this.debug) {
+            console.log('❌ No experience detected');
+        }
+        return '';
     }
     
     extractCompany(text) {
         const companyRegexList = [
-            // Patterns spécifiques
-            /(?:le|la)\s+([A-Z][A-Z\s&]+)\s+est\s+(?:la\s+)?référence/i,
-            /(?:société|entreprise|cabinet|groupe|association)\s*[:]\s*([^\n.]+)/i,
+            /(?:société|entreprise|cabinet|groupe|association)\s*[:]?\s*([^\n.]+)/i,
             /(?:chez|pour)\s+([A-Z][A-Za-z\s&.-]+?)(?:\s|,|\.|\n)/,
-            // Pattern pour détecter des noms d'entreprise en majuscules
-            /\b([A-Z]{2,}(?:\s+[A-Z]{2,})*)\b/g
+            /\b([A-Z]{2,}(?:\s+[A-Z]{2,})*)(?:\s+(?:recrute|recherche))/i
         ];
         
         for (const regex of companyRegexList) {
@@ -275,29 +497,6 @@ class JobParserAPI {
                 if (company.length > 2 && company.length < 100) {
                     return company;
                 }
-            }
-        }
-        
-        return '';
-    }
-    
-    extractLocation(text) {
-        const locationRegexList = [
-            // Pattern spécifique "Lieu de travail : 75014 Paris"
-            /lieu\s+de\s+travail\s*[:]\s*([^\n.]+)/i,
-            // Patterns génériques
-            /(?:lieu|localisation|adresse|situé[e]?\s+à)\s*[:]\s*([^\n.]+)/i,
-            // Pattern pour codes postaux français
-            /\b(\d{5})\s+([A-Z][a-zéèêëïîôöùûüç]+(?:\s+[A-Z][a-zéèêëïîôöùûüç]+)*)\b/,
-            // Pattern pour les villes
-            /(?:à|sur|dans)\s+((?:[A-Z][a-zéèêëïîôöùûüç]+)(?:[\s-][A-Z][a-zéèêëïîôöùûüç]+)*)/,
-            /(?:poste\s*basé\s*à|poste\s*localisé\s*à)\s+([^\n.]+)/i
-        ];
-        
-        for (const regex of locationRegexList) {
-            const match = text.match(regex);
-            if (match && match[1] && match[1].trim()) {
-                return match[1].trim();
             }
         }
         
@@ -322,11 +521,15 @@ class JobParserAPI {
     }
     
     extractSkills(text) {
+        const skillsList = [];
+        
+        // Chercher une section dédiée aux compétences
         const skillSectionRegexList = [
-            // Patterns pour les sections de compétences
-            /comp[ée]tences(?:\s+(?:requises|techniques|et\s+savoir-faire))?(?:\s*[:]\s*)([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i,
-            /(?:maîtrise\s+des?\s+outils?|outils?\s+de\s+gestion)([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i,
-            /savoir-faire(?:\s*[:]\s*)([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i
+            /comp[ée]tences(?:\s+(?:requises|techniques|et\s+savoir-faire))?(?:\s*[:]?\s*)([^]*?)(?:\n\s*\n|$)/i,
+            /savoir-faire(?:\s*[:]?\s*)([^]*?)(?:\n\s*\n|$)/i,
+            /qualifications(?:\s*[:]?\s*)([^]*?)(?:\n\s*\n|$)/i,
+            /outils?\s+(?:maitrisés?|utilisés?)(?:\s*[:]?\s*)([^]*?)(?:\n\s*\n|$)/i,
+            /logiciels?\s+(?:maitrisés?|utilisés?)(?:\s*[:]?\s*)([^]*?)(?:\n\s*\n|$)/i
         ];
         
         let skillsSection = '';
@@ -338,92 +541,86 @@ class JobParserAPI {
             }
         }
         
-        const skillsList = [];
-        
-        // Chercher des technologies/outils spécifiques
+        // Technologies et outils spécifiques français
         const techSkills = [
-            'Excel', 'Cegid', 'SAP', 'Word', 'PowerPoint', 'Outlook', 'Teams',
-            'JavaScript', 'Python', 'React', 'Vue', 'Angular', 'Node.js',
-            'SQL', 'MySQL', 'PostgreSQL', 'MongoDB', 'Git', 'Docker',
-            'Photoshop', 'Illustrator', 'Figma', 'Sketch'
+            // Logiciels de gestion/paie français
+            'ADP', 'Sage', 'Cegid', 'Silae', 'Paie Plus', 'Meta4', 'SAP HCM', 'SIRH',
+            // Suite Office
+            'Excel', 'Word', 'PowerPoint', 'Outlook', 'Access', 'SharePoint', 'Teams',
+            // Technologies web
+            'JavaScript', 'HTML', 'CSS', 'React', 'Vue.js', 'Angular', 'Node.js',
+            'Python', 'Java', 'C#', 'PHP', 'Ruby', 'TypeScript',
+            // Bases de données
+            'SQL', 'MySQL', 'PostgreSQL', 'MongoDB', 'Oracle',
+            // Design
+            'Photoshop', 'Illustrator', 'InDesign', 'Figma', 'Sketch', 'Canva',
+            // CRM/ERP français
+            'Salesforce', 'Zoho', 'HubSpot', 'Pipedrive',
+            // Autres
+            'Git', 'Docker', 'AWS', 'Azure', 'Google Analytics'
         ];
         
-        for (const skill of techSkills) {
-            if (text.toLowerCase().includes(skill.toLowerCase())) {
+        // Ajouter les technologies trouvées
+        techSkills.forEach(skill => {
+            const regex = new RegExp(`\\b${skill}\\b`, 'i');
+            if (text.match(regex)) {
                 skillsList.push(skill);
             }
-        }
+        });
         
-        // Extraire des compétences de la section identifiée
+        // Extraire des compétences de la section dédiée
         if (skillsSection) {
-            // Chercher des puces ou des listes
+            // Chercher des listes à puces
             const bulletItems = skillsSection.match(/(?:^|[\n\r])\s*[-•*]\s*([^\n\r]+)/g);
             if (bulletItems) {
-                for (const item of bulletItems) {
+                bulletItems.forEach(item => {
                     const skill = item.replace(/^[\s\n\r]*[-•*]\s*/, '').trim();
                     if (skill && skill.length > 2 && skill.length < 100) {
                         skillsList.push(skill);
                     }
-                }
-            }
-            
-            // Si pas de puces, chercher des phrases avec des compétences
-            const skillKeywords = [
-                'connaissance', 'maîtrise', 'expérience avec', 'utilisation de',
-                'rigueur', 'organisation', 'autonomie', 'communication', 'gestion'
-            ];
-            
-            for (const keyword of skillKeywords) {
-                const regex = new RegExp(`${keyword}[^.]*`, 'gi');
-                const matches = skillsSection.match(regex);
-                if (matches) {
-                    matches.forEach(match => {
-                        if (match.length > 10 && match.length < 150) {
-                            skillsList.push(match.trim());
-                        }
-                    });
-                }
+                });
             }
         }
+        
+        // Compétences transversales françaises
+        const softSkills = [
+            'autonomie', 'rigueur', 'organisation', 'communication',
+            'travail en équipe', 'adaptabilité', 'sens du service',
+            'gestion du stress', 'proactivité', 'diplomatie', 'polyvalence'
+        ];
+        
+        softSkills.forEach(skill => {
+            const regex = new RegExp(`\\b${skill}\\b`, 'i');
+            if (text.match(regex)) {
+                skillsList.push(skill);
+            }
+        });
         
         return [...new Set(skillsList)]; // Supprimer les doublons
     }
     
-    extractExperience(text) {
-        const experienceRegexList = [
-            // Patterns spécifiques améliorés
-            /exp[ée]rience\s*[:]\s*minimum\s*([^.\n]+)/i,
-            /minimum\s*([0-9]+(?:[,-]\s*[0-9]+)?)\s*an(?:s|nées?)\s*d['']?exp[ée]rience/i,
-            /([0-9]+(?:[,-]\s*[0-9]+)?)\s*an(?:s|nées?)\s*d['']?exp[ée]rience/i,
-            /exp[ée]rience(?:\s+requise)?(?:\s*[:]\s*)([^.\n]+)/i,
-            /(?:justifier\s+d['']|avoir)\s*([0-9]+(?:[,-]\s*[0-9]+)?)\s*an(?:s|nées?)/i
-        ];
-        
-        for (const regex of experienceRegexList) {
-            const match = text.match(regex);
-            if (match && match[1] && match[1].trim()) {
-                return match[1].trim();
-            }
-        }
-        
-        return '';
-    }
-    
     extractEducation(text) {
         const educationRegexList = [
-            // Patterns spécifiques améliorés
-            /formation\s*[:]\s*([^.\n]+)/i,
-            /(bac\s*\+\s*[0-9]+(?:\/[0-9]+)?[^.\n]*)/i,
-            /(?:diplôme|qualification)(?:\s+requis)?(?:\s*[:]\s*)([^.\n]+)/i,
-            /((?:bac|master|licence|doctorat|ingénieur|école)[^.\n]{0,50})/i,
-            /(BTS|DUT|Master|Licence)[^.\n]*/i
+            // Patterns spécifiques français
+            /formation\s*[:\-]?\s*([^\n.]+)/i,
+            /diplôme\s*[:\-]?\s*([^\n.]+)/i,
+            /qualification\s*[:\-]?\s*([^\n.]+)/i,
+            /niveau\s*(?:d[''']?études?)?\s*[:\-]?\s*([^\n.]+)/i,
+            
+            // Patterns pour niveaux BAC
+            /(bac\s*\+\s*\d+(?:\/\d+)?[^\n]*)/i,
+            /(niveau\s+bac\s*\+?\s*\d*[^\n]*)/i,
+            
+            // Diplômes spécifiques
+            /((?:BTS|DUT|Licence|Master|Doctorat|Ingénieur)[^\n]*)/i,
+            /((?:CAP|BEP|Bac\s+Pro)[^\n]*)/i
         ];
         
         for (const regex of educationRegexList) {
             const match = text.match(regex);
-            if (match && (match[1] || match[0])) {
+            if (match) {
                 const education = (match[1] || match[0]).trim();
-                if (education.length > 3 && education.length < 200) {
+                if (education.length > 3 && education.length < 200 && !education.includes('©')) {
                     return education;
                 }
             }
@@ -434,19 +631,28 @@ class JobParserAPI {
     
     extractSalary(text) {
         const salaryRegexList = [
-            // Patterns spécifiques améliorés
-            /r[ée]mun[ée]ration\s*[:]\s*([^.\n]+)/i,
-            /salaire(?:\s+proposé)?\s*[:]\s*([^.\n]+)/i,
-            /(à\s+partir\s+de\s+[0-9]+\s*k?€?[^.\n]*)/i,
-            /([0-9]+\s*k?€?\s*(?:brut|net)?\s*(?:\/|\s*par)?\s*(?:an|mois|année))/i,
-            /([0-9]+(?:[,.-]\s*[0-9]+)*\s*(?:à|au?|et|-)\s*[0-9]+(?:[,.-]\s*[0-9]+)*\s*k?€?[^.\n]*)/i
+            // Patterns spécifiques français
+            /r[ée]mun[ée]ration\s*[:\-]?\s*([^\n.]+)/i,
+            /salaire\s*(?:proposé|offert)?\s*[:\-]?\s*([^\n.]+)/i,
+            /package\s*(?:salarial)?\s*[:\-]?\s*([^\n.]+)/i,
+            
+            // Patterns pour montants en K€
+            /(\d+\s*k?€?\s*(?:brut|net)?\s*(?:\/|par)?\s*(?:an|année|mois))/i,
+            /(?:à\s+partir\s+de|entre|de)\s*(\d+\s*k?€?[^\n]*)/i,
+            
+            // Patterns pour fourchettes
+            /(\d+\s*(?:k?€?)?\s*(?:à|au?|et|-)?\s*\d+\s*k?€?\s*(?:brut|net)?[^\n]*)/i,
+            
+            // Pattern pour "selon profil"
+            /(selon\s+(?:profil|expérience)[^\n]*)/i,
+            /(à\s+négocier[^\n]*)/i
         ];
         
         for (const regex of salaryRegexList) {
             const match = text.match(regex);
-            if (match && (match[1] || match[0])) {
+            if (match) {
                 const salary = (match[1] || match[0]).trim();
-                if (salary.length > 2 && salary.length < 100) {
+                if (salary.length > 2 && salary.length < 100 && !salary.includes('©')) {
                     return salary;
                 }
             }
@@ -457,11 +663,10 @@ class JobParserAPI {
     
     extractResponsibilities(text) {
         const respSectionRegexList = [
-            // Patterns spécifiques améliorés
-            /missions?\s+principales?\s*[:]\s*([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i,
-            /(?:responsabilit[ée]s|missions|tâches)(?:\s*[:]\s*)([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i,
-            /(?:vous\s+serez\s+chargé|vos\s+missions)([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i,
-            /(?:descriptif|description)(?:\s+du\s+poste)?(?:\s*[:]\s*)([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i
+            /missions?\s+principales?\s*[:]?\s*([^]*?)(?:\n\s*\n|$)/i,
+            /(?:responsabilit[ée]s|missions|tâches)(?:\s*[:]?\s*)([^]*?)(?:\n\s*\n|$)/i,
+            /(?:vous\s+serez\s+chargé|vos\s+missions)([^]*?)(?:\n\s*\n|$)/i,
+            /(?:descriptif|description)(?:\s+du\s+poste)?(?:\s*[:]?\s*)([^]*?)(?:\n\s*\n|$)/i
         ];
         
         let respSection = '';
@@ -490,7 +695,7 @@ class JobParserAPI {
             }
         }
         
-        // Si pas de liste à puces, découper par phrases ou paragraphes
+        // Si pas de liste à puces, découper par phrases
         if (respList.length === 0) {
             const sentences = respSection.split(/[.!?]\s+/);
             for (const sentence of sentences) {
@@ -506,10 +711,8 @@ class JobParserAPI {
     
     extractBenefits(text) {
         const benefitSectionRegexList = [
-            // Patterns spécifiques améliorés
-            /avantages\s*[:]\s*([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i,
-            /(?:bénéfices|nous\s+(?:vous\s+)?offrons|nous\s+proposons)(?:\s*[:]\s*)([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i,
-            /(?:package|rémunération\s+et\s+avantages)(?:\s*[:]\s*)([^]*?)(?:\n\s*\n|\n\s*[A-Z][^:]*[:]\s*|\Z)/i
+            /avantages\s*[:]?\s*([^]*?)(?:\n\s*\n|$)/i,
+            /(?:bénéfices|nous\s+(?:vous\s+)?offrons|nous\s+proposons)(?:\s*[:]?\s*)([^]*?)(?:\n\s*\n|$)/i
         ];
         
         let benefitSection = '';
@@ -523,11 +726,11 @@ class JobParserAPI {
         
         const benefitList = [];
         
-        // Chercher des avantages spécifiques même sans section dédiée
+        // Chercher des avantages spécifiques français
         const commonBenefits = [
             'télétravail', 'restaurant d\'entreprise', 'mutuelle', 'prévoyance',
-            'congés', 'RTT', '13e mois', 'prime', 'augmentation', 'évolution',
-            'formation', 'tickets restaurant', 'transport', 'parking'
+            'congés', 'RTT', '13e mois', 'prime', 'tickets restaurant', 
+            'transport', 'parking', 'formation', 'véhicule de fonction'
         ];
         
         for (const benefit of commonBenefits) {
@@ -543,33 +746,11 @@ class JobParserAPI {
             }
         }
         
-        if (benefitSection) {
-            // Traiter les listes à puces
-            const bulletItems = benefitSection.match(/(?:^|[\n\r])\s*[-•*]\s*([^\n\r]+)/g);
-            if (bulletItems) {
-                for (const item of bulletItems) {
-                    const benefit = item.replace(/^[\s\n\r]*[-•*]\s*/, '').trim();
-                    if (benefit && benefit.length > 2 && benefit.length < 200) {
-                        benefitList.push(benefit);
-                    }
-                }
-            }
-            
-            // Si pas de puces, découper par lignes ou virgules
-            if (bulletItems === null || bulletItems.length === 0) {
-                const items = benefitSection.split(/[,\n]/);
-                for (const item of items) {
-                    const benefit = item.trim();
-                    if (benefit && benefit.length > 5 && benefit.length < 200) {
-                        benefitList.push(benefit);
-                    }
-                }
-            }
-        }
-        
         return [...new Set(benefitList)]; // Supprimer les doublons
     }
 }
 
 // Créer une instance globale pour l'utiliser dans d'autres scripts
 window.JobParserAPI = JobParserAPI;
+
+console.log('✅ JobParserAPI v2.3 Enhanced chargé avec succès - Optimisé pour fiches françaises !');
