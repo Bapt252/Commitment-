@@ -1,14 +1,14 @@
-// JobParserAPI v2.9 HOTFIX - CORRECTION TITRE GARANTIE + CACHE BUSTER
-// Timestamp: 2025-06-19 10:45:00 - FORCE RELOAD
+// JobParserAPI v2.10 ÉQUILIBRÉE - CORRECTION PARSING COMPLET
+// Fix: Restauration de l'extraction complète + titre corrigé
 class JobParserAPI {
     constructor(options = {}) {
         this.apiUrl = options.apiUrl || '/api/parse-job';
         this.debug = options.debug || false;
         this.enablePDFCleaning = options.enablePDFCleaning || false;
-        this.version = '2.9-HOTFIX-' + Date.now();
+        this.version = '2.10-BALANCED-' + Date.now();
         
         if (this.debug) {
-            console.log('🔥 JobParserAPI v2.9 HOTFIX - CORRECTION TITRE GARANTIE');
+            console.log('🔥 JobParserAPI v2.10 ÉQUILIBRÉE - PARSING COMPLET RESTAURÉ');
             console.log('⏰ Version:', this.version);
         }
     }
@@ -18,7 +18,7 @@ class JobParserAPI {
      */
     async parseJobText(text) {
         if (this.debug) {
-            console.log('🚀 Parsing avec v2.9 HOTFIX...');
+            console.log('🚀 Parsing avec v2.10 ÉQUILIBRÉE...');
             console.log('📝 Texte reçu (100 premiers chars):', text.substring(0, 100));
         }
         
@@ -28,7 +28,7 @@ class JobParserAPI {
             if (apiAvailable) {
                 return await this.sendTextToApi(text);
             } else {
-                console.warn('API not available, using v2.9 HOTFIX local');
+                console.warn('API not available, using v2.10 ÉQUILIBRÉE local');
                 return this.analyzeJobLocally(text);
             }
         } catch (error) {
@@ -39,7 +39,7 @@ class JobParserAPI {
     
     async parseJobFile(file) {
         if (this.debug) {
-            console.log('📄 Parsing fichier avec v2.9 HOTFIX:', file.name);
+            console.log('📄 Parsing fichier avec v2.10 ÉQUILIBRÉE:', file.name);
         }
         
         try {
@@ -115,7 +115,7 @@ class JobParserAPI {
     
     cleanHtmlText(text) {
         if (this.debug) {
-            console.log('🧹 Nettoyage HTML v2.9...');
+            console.log('🧹 Nettoyage HTML v2.10...');
         }
         
         let cleaned = text;
@@ -190,11 +190,11 @@ class JobParserAPI {
     }
     
     /**
-     * Analyse localement - VERSION HOTFIX v2.9
+     * Analyse localement - VERSION ÉQUILIBRÉE v2.10
      */
     analyzeJobLocally(text) {
         if (this.debug) {
-            console.log('🔍 Analyzing with v2.9 HOTFIX rules...');
+            console.log('🔍 Analyzing with v2.10 ÉQUILIBRÉE rules...');
         }
         
         const cleanedText = this.cleanHtmlText(text);
@@ -206,7 +206,7 @@ class JobParserAPI {
         }
         
         const result = {
-            title: this.extractJobTitleHotfix(cleanedText, sections),
+            title: this.extractJobTitleBalanced(cleanedText, sections),
             company: this.extractCompany(cleanedText, sections),
             location: this.extractLocation(cleanedText, sections),
             contract_type: this.extractContractType(cleanedText, sections),
@@ -219,7 +219,7 @@ class JobParserAPI {
         };
         
         if (this.debug) {
-            console.log('📊 v2.9 HOTFIX parsing results:', result);
+            console.log('📊 v2.10 ÉQUILIBRÉE parsing results:', result);
             console.log('🎯 TITRE EXTRAIT:', result.title);
         }
         
@@ -227,73 +227,136 @@ class JobParserAPI {
     }
     
     /**
-     * 🔥 EXTRACTION TITRE HOTFIX v2.9 - SOLUTION ULTRA-SIMPLIFIÉE
-     * Cette version ne peut PAS échouer et retourne TOUJOURS un titre court
+     * 🔥 EXTRACTION TITRE ÉQUILIBRÉE v2.10
+     * Version équilibrée : détecte bien MAIS titre limité à 25 caractères max
      */
-    extractJobTitleHotfix(text, sections = {}) {
+    extractJobTitleBalanced(text, sections = {}) {
         if (this.debug) {
-            console.log('🎯 v2.9 HOTFIX - Extraction titre ULTRA-SIMPLIFIÉE');
-            console.log('📝 Texte original (50 chars):', text.substring(0, 50));
+            console.log('🎯 v2.10 ÉQUILIBRÉE - Extraction titre équilibrée');
+            console.log('📝 Texte original (100 chars):', text.substring(0, 100));
         }
         
-        // ===== RÈGLE ABSOLUE: 20 CARACTÈRES MAXIMUM =====
-        const MAX_LENGTH = 20;
+        // ===== RÈGLE ABSOLUE: 25 CARACTÈRES MAXIMUM =====
+        const MAX_LENGTH = 25;
         
-        // ===== CAS SPÉCIFIQUE: Assistant juridique =====
-        if (text.toLowerCase().includes('assistant') && text.toLowerCase().includes('juridique')) {
-            const result = 'Assistant Juridique';
-            if (this.debug) {
-                console.log('✅ TITRE SPÉCIFIQUE DÉTECTÉ:', result);
-            }
-            return result;
-        }
-        
-        // ===== PATTERNS ULTRA-SIMPLES =====
-        const simplePatterns = [
+        // ===== STRATÉGIE 1: PATTERNS PROFESSIONNELS ÉTENDUS =====
+        const jobPatterns = [
+            // Assistants
+            { pattern: /assistant[^a-z]*juridique/i, title: 'Assistant Juridique' },
             { pattern: /assistant[^a-z]*commercial/i, title: 'Assistant Commercial' },
             { pattern: /assistant[^a-z]*administratif/i, title: 'Assistant Admin' },
+            { pattern: /assistant[^a-z]*technique/i, title: 'Assistant Technique' },
+            { pattern: /assistant[^a-z]*marketing/i, title: 'Assistant Marketing' },
+            { pattern: /assistant[^a-z]*rh/i, title: 'Assistant RH' },
+            
+            // Responsables
+            { pattern: /responsable[^a-z]*commercial/i, title: 'Resp. Commercial' },
             { pattern: /responsable[^a-z]*marketing/i, title: 'Resp. Marketing' },
+            { pattern: /responsable[^a-z]*vente/i, title: 'Resp. Vente' },
+            { pattern: /responsable[^a-z]*projet/i, title: 'Resp. Projet' },
+            
+            // Chefs
             { pattern: /chef[^a-z]*projet/i, title: 'Chef de Projet' },
+            { pattern: /chef[^a-z]*vente/i, title: 'Chef de Vente' },
+            { pattern: /chef[^a-z]*équipe/i, title: 'Chef d\'Équipe' },
+            
+            // Consultants
             { pattern: /consultant[^a-z]*commercial/i, title: 'Consultant Com.' },
+            { pattern: /consultant[^a-z]*technique/i, title: 'Consultant Tech.' },
+            
+            // Autres
+            { pattern: /manager[^a-z]*commercial/i, title: 'Manager Commercial' },
+            { pattern: /directeur[^a-z]*commercial/i, title: 'Dir. Commercial' },
+            { pattern: /chargé[^a-z]*clientèle/i, title: 'Chargé Clientèle' },
+            { pattern: /développeur[^a-z]*web/i, title: 'Développeur Web' },
+            { pattern: /comptable/i, title: 'Comptable' },
+            { pattern: /secrétaire/i, title: 'Secrétaire' }
         ];
         
-        for (const {pattern, title} of simplePatterns) {
+        for (const {pattern, title} of jobPatterns) {
             if (pattern.test(text)) {
                 if (this.debug) {
-                    console.log('✅ PATTERN SIMPLE DÉTECTÉ:', title);
+                    console.log('✅ PATTERN DÉTECTÉ:', title);
                 }
                 return title;
             }
         }
         
-        // ===== EXTRACTION PREMIERS MOTS AVEC LIMITE STRICTE =====
+        // ===== STRATÉGIE 2: EXTRACTION INTELLIGENTE PREMIERS MOTS =====
         const words = text.split(/\s+/);
-        const professionalWords = ['assistant', 'responsable', 'chef', 'consultant', 'manager'];
+        const professionalWords = ['assistant', 'assistante', 'responsable', 'chef', 'consultant', 'consultante', 'manager', 'directeur', 'directrice', 'chargé', 'chargée'];
         
-        for (let i = 0; i < Math.min(words.length, 3); i++) {
+        for (let i = 0; i < Math.min(words.length, 6); i++) {
             const word = words[i].toLowerCase().replace(/[()]/g, '');
             
             if (professionalWords.includes(word)) {
-                let title = words[i];
+                let titleParts = [words[i]];
                 
-                // Ajouter un mot suivant si pertinent et court
-                if (i + 1 < words.length) {
-                    const nextWord = words[i + 1].toLowerCase();
-                    if (['commercial', 'juridique', 'admin'].includes(nextWord)) {
-                        title += ' ' + words[i + 1];
+                // Ajouter des mots suivants pertinents
+                for (let j = i + 1; j < Math.min(words.length, i + 4); j++) {
+                    const nextWord = words[j].toLowerCase();
+                    const relevantWords = ['juridique', 'commercial', 'commerciale', 'administratif', 'administrative', 'technique', 'marketing', 'de', 'projet', 'vente', 'équipe', 'clientèle'];
+                    
+                    if (relevantWords.includes(nextWord)) {
+                        titleParts.push(words[j]);
+                        
+                        // Cas spéciaux avec "de"
+                        if (nextWord === 'de' && j + 1 < words.length) {
+                            const thirdWord = words[j + 1].toLowerCase();
+                            if (['projet', 'vente', 'marketing', 'équipe'].includes(thirdWord)) {
+                                titleParts.push(words[j + 1]);
+                                break;
+                            }
+                        }
+                    } else {
+                        break; // Arrêter si le mot n'est pas pertinent
                     }
                 }
                 
-                // Nettoyer et limiter
-                title = title.replace(/[()]/g, '').trim();
-                title = title.charAt(0).toUpperCase() + title.slice(1).toLowerCase();
+                let title = titleParts.join(' ');
+                title = title.replace(/\([hf\/\s]*\)/gi, ''); // Supprimer (H/F)
+                title = title.replace(/\s+/g, ' ').trim();
                 
-                if (title.length <= MAX_LENGTH) {
+                // Capitaliser correctement
+                title = title.split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ');
+                
+                if (title.length >= 3 && title.length <= MAX_LENGTH) {
                     if (this.debug) {
-                        console.log('✅ TITRE EXTRAIT (premiers mots):', title);
+                        console.log('✅ TITRE EXTRAIT (mots intelligents):', title);
                     }
                     return title;
                 }
+            }
+        }
+        
+        // ===== STRATÉGIE 3: PREMIÈRE LIGNE NETTOYÉE =====
+        const firstLine = text.split('\n')[0].trim();
+        if (firstLine && firstLine.length <= 50) { // Plus permissif pour la détection
+            let cleanFirstLine = firstLine.replace(/\([hf\/\s]*\)/gi, '');
+            cleanFirstLine = cleanFirstLine.replace(/[^\w\sàâäéèêëîïôöùûüç-]/gi, '');
+            cleanFirstLine = cleanFirstLine.trim();
+            
+            if (cleanFirstLine.length >= 3) {
+                // Limiter à MAX_LENGTH caractères
+                if (cleanFirstLine.length > MAX_LENGTH) {
+                    const words = cleanFirstLine.split(' ');
+                    cleanFirstLine = words.slice(0, 3).join(' '); // Max 3 mots
+                    if (cleanFirstLine.length > MAX_LENGTH) {
+                        cleanFirstLine = cleanFirstLine.substring(0, MAX_LENGTH).trim();
+                    }
+                }
+                
+                // Capitaliser
+                cleanFirstLine = cleanFirstLine.split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ');
+                
+                if (this.debug) {
+                    console.log('✅ TITRE EXTRAIT (première ligne):', cleanFirstLine);
+                }
+                return cleanFirstLine;
             }
         }
         
@@ -305,11 +368,12 @@ class JobParserAPI {
         return fallback;
     }
     
-    // Autres méthodes d'extraction (identiques)
+    // Méthodes d'extraction restaurées et améliorées
     extractLocation(text, sections = {}) {
         const locationPatterns = [
-            /(Panchéraccía|Corsica|Paris|Lyon|Marseille|Toulouse|Lille|Bordeaux)/gi,
-            /(\d{5})\s+([A-Z][A-Za-zéèêëîïôöùûüç\s\-]{3,20})/g
+            /(Panchéraccía|Corsica|Paris|Lyon|Marseille|Toulouse|Lille|Bordeaux|Nice|Nantes|Strasbourg|Montpellier|Rennes)/gi,
+            /(\d{5})\s+([A-Z][A-Za-zéèêëîïôöùûüç\s\-]{3,20})/g,
+            /(France|Corse)/gi
         ];
         
         for (const pattern of locationPatterns) {
@@ -327,7 +391,12 @@ class JobParserAPI {
     
     extractSkills(text, sections = {}) {
         const skillsList = [];
-        const skillsToFind = ['Droit', 'Juridique', 'Excel', 'Word', 'Organisation', 'Autonomie', 'Communication'];
+        const skillsToFind = [
+            'Droit', 'Juridique', 'Commercial', 'Vente', 'Marketing',
+            'Excel', 'Word', 'PowerPoint', 'Outlook', 'Pack Office',
+            'Organisation', 'Autonomie', 'Communication', 'Relationnel',
+            'Rigueur', 'Polyvalence', 'Dynamisme', 'Anglais', 'Espagnol'
+        ];
         
         skillsToFind.forEach(skill => {
             if (new RegExp(`\\b${skill}\\b`, 'i').test(text)) {
@@ -335,56 +404,117 @@ class JobParserAPI {
             }
         });
         
-        return skillsList.slice(0, 5);
+        return skillsList.slice(0, 8); // Max 8 compétences
     }
     
     extractExperience(text, sections = {}) {
-        const expPattern = /(\d+\s*(?:à\s*\d+\s*)?an[s]?\s*(?:d[''']?expérience)?)/i;
-        const match = text.match(expPattern);
-        return match ? match[1].trim() : '';
+        const expPatterns = [
+            /(\d+\s*(?:à\s*\d+\s*)?an[s]?\s*(?:d[''']?expérience)?)/i,
+            /(débutant[e]?)/i,
+            /(junior)/i,
+            /(senior)/i,
+            /(expérience\s+(?:souhaitée|requise|exigée))/i
+        ];
+        
+        for (const pattern of expPatterns) {
+            const match = text.match(pattern);
+            if (match) {
+                return match[1].trim();
+            }
+        }
+        return '';
     }
     
     extractCompany(text, sections = {}) {
-        const companyPattern = /(Corsica\s+Sole)/i;
-        const match = text.match(companyPattern);
-        return match ? match[1].trim() : '';
+        const companyPatterns = [
+            /(Corsica\s+Sole)/i,
+            /(Bcom\s*HR)/i,
+            /([A-Z][A-Za-z\s]{2,30}(?:SARL|SAS|SA|EURL))/g,
+            /(Groupe\s+[A-Z][A-Za-z\s]{2,20})/i
+        ];
+        
+        for (const pattern of companyPatterns) {
+            const match = text.match(pattern);
+            if (match) {
+                return match[1].trim();
+            }
+        }
+        return '';
     }
     
     extractContractType(text, sections = {}) {
-        const contractTypes = ['CDI', 'CDD', 'INTERIM', 'STAGE'];
+        const contractTypes = ['CDI', 'CDD', 'INTERIM', 'INTÉRIM', 'STAGE', 'FREELANCE', 'TEMPS PARTIEL', 'TEMPS PLEIN'];
         const regex = new RegExp(`\\b(${contractTypes.join('|')})\\b`, 'i');
         const match = text.match(regex);
         return match ? match[1].toUpperCase() : '';
     }
     
     extractEducation(text, sections = {}) {
-        const educationPattern = /((?:bac|licence|master|bts|dut)[^\n.]{0,30})/i;
-        const match = text.match(educationPattern);
-        return match ? match[1].trim() : '';
+        const educationPatterns = [
+            /((?:bac|licence|master|bts|dut|cap)[^\\n.]{0,40})/i,
+            /(niveau\s+(?:bac|licence|master|bts|dut))/i,
+            /(formation\s+(?:juridique|commerciale|administrative))/i
+        ];
+        
+        for (const pattern of educationPatterns) {
+            const match = text.match(pattern);
+            if (match) {
+                return match[1].trim();
+            }
+        }
+        return '';
     }
     
     extractSalary(text, sections = {}) {
-        const salaryPattern = /(\d+k?€?|selon\s+(?:profil|expérience)|à\s+négocier)/i;
-        const match = text.match(salaryPattern);
-        return match ? match[1].trim() : '';
+        const salaryPatterns = [
+            /(\d+\s*k?€?(?:\s*(?:brut|net))?(?:\s*\/\s*an)?)/i,
+            /(selon\s+(?:profil|expérience|convention))/i,
+            /(à\s+négocier)/i,
+            /(salaire\s+(?:attractif|motivant))/i,
+            /(\d+\s*-\s*\d+\s*k?€?)/i
+        ];
+        
+        for (const pattern of salaryPatterns) {
+            const match = text.match(pattern);
+            if (match) {
+                return match[1].trim();
+            }
+        }
+        return '';
     }
     
     extractResponsibilities(text, sections = {}) {
-        const jobSection = sections.jobDescription || '';
-        if (jobSection.length > 20) {
-            const sentences = jobSection.split(/[.!?]/).filter(s => s.trim().length > 10);
-            return sentences.slice(0, 2).map(s => s.trim()).filter(s => s.length > 5);
-        }
-        return [];
+        const responsibilities = [];
+        const responsibilityKeywords = [
+            'gérer', 'assurer', 'participer', 'contribuer', 'développer',
+            'organiser', 'coordonner', 'suivre', 'analyser', 'optimiser'
+        ];
+        
+        const sentences = text.split(/[.!?]/).filter(s => s.trim().length > 15);
+        
+        sentences.forEach(sentence => {
+            const lowerSentence = sentence.toLowerCase();
+            if (responsibilityKeywords.some(keyword => lowerSentence.includes(keyword))) {
+                const cleanSentence = sentence.trim();
+                if (cleanSentence.length > 10 && cleanSentence.length < 150) {
+                    responsibilities.push(cleanSentence);
+                }
+            }
+        });
+        
+        return responsibilities.slice(0, 5);
     }
     
     extractBenefits(text, sections = {}) {
         const benefits = [];
-        const commonBenefits = ['télétravail', 'mutuelle', 'tickets restaurant', 'formation'];
+        const commonBenefits = [
+            'télétravail', 'remote', 'mutuelle', 'tickets restaurant', 'formation',
+            'évolution', 'prime', 'bonus', 'véhicule', 'parking', 'ce', 'rtt'
+        ];
         
         commonBenefits.forEach(benefit => {
             if (new RegExp(benefit, 'i').test(text)) {
-                benefits.push(benefit);
+                benefits.push(benefit.charAt(0).toUpperCase() + benefit.slice(1));
             }
         });
         
@@ -393,43 +523,48 @@ class JobParserAPI {
 }
 
 // ===== FONCTION DE TEST POUR VALIDATION =====
-function testTitleExtractionHotfix() {
-    console.log('🧪 TEST v2.9 HOTFIX - Extraction titre');
+function testTitleExtractionBalanced() {
+    console.log('🧪 TEST v2.10 ÉQUILIBRÉE - Extraction complète');
     
     const testText = "Assistant(e) juridique Qui sommes-nous ?Corsica Sole est une PME créée en 2009 spécialisée dans le développement & l'exploitation de projets photovoltaïques...";
     
     const parser = new JobParserAPI({ debug: true });
     const result = parser.analyzeJobLocally(testText);
     
-    console.log('🎯 RÉSULTAT TEST HOTFIX:');
+    console.log('🎯 RÉSULTAT TEST ÉQUILIBRÉ:');
     console.log('📋 Titre extrait:', result.title);
     console.log('📏 Longueur:', result.title.length);
-    console.log('✅ Test réussi:', result.title.length <= 20 && result.title !== testText);
+    console.log('🏢 Entreprise:', result.company);
+    console.log('📍 Lieu:', result.location);
+    console.log('📄 Contrat:', result.contract_type);
+    console.log('🎯 Compétences:', result.skills);
+    console.log('✅ Test titre réussi:', result.title.length <= 25 && result.title !== testText);
     
     return result;
 }
 
 // ===== FORCE RELOAD ET REMPLACEMENT =====
 if (typeof window !== 'undefined') {
-    // Supprimer l'ancienne version
+    // Supprimer les anciennes versions
     delete window.JobParserAPI;
     delete window.testTitleExtraction;
+    delete window.testTitleExtractionHotfix;
     
     // Créer la nouvelle instance
     window.JobParserAPI = JobParserAPI;
-    window.testTitleExtractionHotfix = testTitleExtractionHotfix;
+    window.testTitleExtractionBalanced = testTitleExtractionBalanced;
     
     // Remplacer l'instance globale si elle existe
     if (window.jobParserInstance) {
         window.jobParserInstance = new JobParserAPI({ debug: true });
     }
     
-    console.log('🔥 JobParserAPI v2.9 HOTFIX chargé - Extraction titre ULTRA-SIMPLIFIÉE !');
-    console.log('🧪 Tapez testTitleExtractionHotfix() dans la console pour tester');
+    console.log('🔥 JobParserAPI v2.10 ÉQUILIBRÉE chargé - Parsing complet restauré !');
+    console.log('🧪 Tapez testTitleExtractionBalanced() dans la console pour tester');
     
     // Test automatique
     setTimeout(() => {
-        console.log('🚀 Lancement du test automatique...');
-        testTitleExtractionHotfix();
+        console.log('🚀 Lancement du test automatique équilibré...');
+        testTitleExtractionBalanced();
     }, 1000);
 }
