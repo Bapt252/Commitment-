@@ -1,12 +1,41 @@
 /**
- * Script pour activer le parsing de fiche de poste
+ * Script pour activer le parsing de fiche de poste - VERSION CORRIGÉE
  * Ce script assure que la section de parsing de fiche de poste est correctement affichée
  * et initialisée lorsqu'un utilisateur indique qu'il a un besoin de recrutement.
  */
 
+// Variable globale pour l'instance de l'API
+let jobParserInstance = null;
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Initialisation du job parsing UI corrigé...');
+    
+    // Initialiser l'API de parsing
+    initJobParserAPI();
+    
+    // Initialiser l'interface
     initJobParsingSection();
 });
+
+/**
+ * Initialise l'API de parsing avec la bonne configuration
+ */
+function initJobParserAPI() {
+    if (window.JobParserAPI) {
+        console.log('✅ JobParserAPI trouvée, initialisation...');
+        
+        // Créer une instance avec la bonne configuration
+        jobParserInstance = new window.JobParserAPI({
+            apiUrl: 'http://localhost:5055/api/parse-job', // Port corrigé : 5055 au lieu de 5053
+            debug: true,
+            enablePDFCleaning: true
+        });
+        
+        console.log('✅ Instance JobParserAPI créée avec succès');
+    } else {
+        console.error('❌ JobParserAPI non trouvée - vérifiez que job-parser-api.js est chargé');
+    }
+}
 
 /**
  * Initialise la section de parsing de fiche de poste
@@ -119,14 +148,8 @@ function initJobParsingSection() {
                 fileBadge.style.display = 'flex';
             }
             
-            // Activer le bouton d'analyse GPT - Non fonctionnel dans cette version
-            if (analyzeGptButton) {
-                analyzeGptButton.disabled = true; // Garder désactivé pour clarification
-            }
-            
-            // Si le fichier est un PDF et que l'API de parsing est disponible,
-            // on peut proposer une analyse immédiate
-            if (file.type === 'application/pdf' && window.jobParserAPI) {
+            // Proposer une analyse immédiate pour les PDF
+            if (file.type === 'application/pdf' && jobParserInstance) {
                 const confirmAnalysis = confirm("Voulez-vous analyser ce fichier PDF maintenant?");
                 if (confirmAnalysis) {
                     parseJobFile(file);
@@ -148,31 +171,18 @@ function initJobParsingSection() {
                 if (fileBadge) {
                     fileBadge.style.display = 'none';
                 }
-                
-                // Désactiver le bouton d'analyse GPT si le textarea est aussi vide
-                if (analyzeGptButton && (!jobTextarea || !jobTextarea.value.trim())) {
-                    analyzeGptButton.disabled = true;
-                }
             });
         }
     }
     
-    // Activer/désactiver le bouton d'analyse GPT selon le contenu - Mais garder désactivé
-    if (jobTextarea && analyzeGptButton) {
-        jobTextarea.addEventListener('input', function() {
-            // Garder désactivé pour le moment car cette fonctionnalité n'est pas encore disponible
-            analyzeGptButton.disabled = true;
-        });
-        
-        // Initialiser l'état du bouton - toujours désactivé
-        analyzeGptButton.disabled = true;
-    }
-    
-    // Bouton d'analyse de texte principal
+    // Bouton d'analyse de texte principal - CORRIGÉ
     if (analyzeButton && jobTextarea) {
         analyzeButton.addEventListener('click', function() {
-            if (jobTextarea.value.trim()) {
-                parseJobText(jobTextarea.value);
+            const textContent = jobTextarea.value.trim();
+            
+            if (textContent) {
+                console.log('🔍 Analyse du texte déclenchée...');
+                parseJobText(textContent);
             } else {
                 showNotification("Veuillez entrer le texte de la fiche de poste à analyser.", 'info');
             }
@@ -186,59 +196,57 @@ function initJobParsingSection() {
         });
     }
     
-    // Fonction pour analyser le texte
+    // Fonction pour analyser le texte - VERSION CORRIGÉE
     function parseJobText(text) {
-        console.log("Analyse du texte...");
+        console.log("🔍 Début de l'analyse du texte...");
+        console.log("📝 Longueur du texte:", text.length);
         
         // Afficher l'indicateur de chargement
         const loader = document.getElementById('analysis-loader');
         if (loader) loader.style.display = 'flex';
         
-        // Si l'API de parsing est disponible, l'utiliser
-        if (window.jobParserAPI) {
-            try {
-                window.jobParserAPI.parseJobText(text)
-                    .then(result => {
-                        // Sauvegarder les résultats
-                        sessionStorage.setItem('parsedJobData', JSON.stringify(result));
-                        
-                        // Afficher les résultats
-                        showJobResults(result);
-                        
-                        // Cacher le loader
-                        if (loader) loader.style.display = 'none';
-                    })
-                    .catch(error => {
-                        console.error("Erreur lors de l'analyse:", error);
-                        showNotification("Une erreur est survenue lors de l'analyse. Veuillez réessayer.", 'error');
-                        
-                        // Cacher le loader
-                        if (loader) loader.style.display = 'none';
-                    });
-            } catch (error) {
-                console.error("Erreur lors de l'appel à l'API:", error);
-                showNotification("Une erreur est survenue lors de l'appel à l'API de parsing.", 'error');
-                
-                // Cacher le loader
-                if (loader) loader.style.display = 'none';
-            }
-        } else {
-            // Fallback si l'API n'est pas disponible
-            console.warn("API de parsing non disponible, utilisation du fallback local");
+        // Utiliser l'instance correcte de l'API
+        if (jobParserInstance) {
+            console.log("✅ Utilisation de l'API JobParser...");
             
-            // Simuler une analyse basique
+            jobParserInstance.parseJobText(text)
+                .then(result => {
+                    console.log("✅ Analyse terminée avec succès:", result);
+                    
+                    // Sauvegarder les résultats
+                    sessionStorage.setItem('parsedJobData', JSON.stringify(result));
+                    
+                    // Afficher les résultats
+                    showJobResults(result);
+                    
+                    // Cacher le loader
+                    if (loader) loader.style.display = 'none';
+                    
+                    showNotification('🎯 Analyse terminée ! Les informations ont été extraites avec succès.', 'success');
+                })
+                .catch(error => {
+                    console.error("❌ Erreur lors de l'analyse:", error);
+                    showNotification("Une erreur est survenue lors de l'analyse. Veuillez réessayer.", 'error');
+                    
+                    // Cacher le loader
+                    if (loader) loader.style.display = 'none';
+                });
+        } else {
+            console.warn("⚠️ API de parsing non initialisée, utilisation du fallback");
+            
+            // Fallback amélioré avec des données plus réalistes
             setTimeout(() => {
                 const result = {
-                    title: "Titre extrait du texte",
-                    company: "Entreprise extraite du texte",
-                    location: "Lieu extrait du texte",
-                    contract_type: "Type de contrat extrait",
-                    skills: ["Compétence 1", "Compétence 2", "Compétence 3"],
-                    experience: "Expérience extraite du texte",
-                    education: "Formation extraite du texte",
-                    salary: "Salaire extrait du texte",
-                    responsibilities: ["Responsabilité 1", "Responsabilité 2"],
-                    benefits: ["Avantage 1", "Avantage 2"]
+                    title: "Poste à analyser",
+                    company: "",
+                    location: "À déterminer",
+                    contract_type: "À préciser",
+                    skills: ["Analyse en cours..."],
+                    experience: "À définir selon le poste",
+                    education: "",
+                    salary: "Selon profil",
+                    responsibilities: ["Responsabilités en cours d'extraction..."],
+                    benefits: []
                 };
                 
                 // Sauvegarder les résultats
@@ -249,63 +257,62 @@ function initJobParsingSection() {
                 
                 // Cacher le loader
                 if (loader) loader.style.display = 'none';
+                
+                showNotification('⚠️ Analyse fallback utilisée. Pour une analyse complète, vérifiez que l\'API backend est démarrée.', 'info');
             }, 1500);
         }
     }
     
-    // Fonction pour analyser un fichier
+    // Fonction pour analyser un fichier - VERSION CORRIGÉE
     function parseJobFile(file) {
-        console.log("Analyse du fichier:", file.name);
+        console.log("📄 Début de l'analyse du fichier:", file.name);
         
         // Afficher l'indicateur de chargement
         const loader = document.getElementById('analysis-loader');
         if (loader) loader.style.display = 'flex';
         
-        // Si l'API de parsing est disponible, l'utiliser
-        if (window.jobParserAPI) {
-            try {
-                window.jobParserAPI.parseJobFile(file)
-                    .then(result => {
-                        // Sauvegarder les résultats
-                        sessionStorage.setItem('parsedJobData', JSON.stringify(result));
-                        
-                        // Afficher les résultats
-                        showJobResults(result);
-                        
-                        // Cacher le loader
-                        if (loader) loader.style.display = 'none';
-                    })
-                    .catch(error => {
-                        console.error("Erreur lors de l'analyse du fichier:", error);
-                        showNotification("Une erreur est survenue lors de l'analyse du fichier. Veuillez réessayer.", 'error');
-                        
-                        // Cacher le loader
-                        if (loader) loader.style.display = 'none';
-                    });
-            } catch (error) {
-                console.error("Erreur lors de l'appel à l'API pour le fichier:", error);
-                showNotification("Une erreur est survenue lors de l'appel à l'API de parsing pour le fichier.", 'error');
-                
-                // Cacher le loader
-                if (loader) loader.style.display = 'none';
-            }
-        } else {
-            // Fallback si l'API n'est pas disponible
-            console.warn("API de parsing non disponible, utilisation du fallback local");
+        // Utiliser l'instance correcte de l'API
+        if (jobParserInstance) {
+            console.log("✅ Utilisation de l'API JobParser pour fichier...");
             
-            // Simuler une analyse basique
+            jobParserInstance.parseJobFile(file)
+                .then(result => {
+                    console.log("✅ Analyse de fichier terminée avec succès:", result);
+                    
+                    // Sauvegarder les résultats
+                    sessionStorage.setItem('parsedJobData', JSON.stringify(result));
+                    
+                    // Afficher les résultats
+                    showJobResults(result);
+                    
+                    // Cacher le loader
+                    if (loader) loader.style.display = 'none';
+                    
+                    showNotification('🎯 Analyse de fichier terminée ! Les informations ont été extraites avec succès.', 'success');
+                })
+                .catch(error => {
+                    console.error("❌ Erreur lors de l'analyse du fichier:", error);
+                    showNotification("Une erreur est survenue lors de l'analyse du fichier. Veuillez réessayer.", 'error');
+                    
+                    // Cacher le loader
+                    if (loader) loader.style.display = 'none';
+                });
+        } else {
+            console.warn("⚠️ API de parsing non initialisée, utilisation du fallback");
+            
+            // Fallback pour fichier
             setTimeout(() => {
                 const result = {
-                    title: "Titre extrait du fichier",
-                    company: "Entreprise extraite du fichier",
-                    location: "Lieu extrait du fichier",
-                    contract_type: "Type de contrat extrait",
-                    skills: ["Compétence 1", "Compétence 2", "Compétence 3"],
-                    experience: "Expérience extraite du fichier",
-                    education: "Formation extraite du fichier",
-                    salary: "Salaire extrait du fichier",
-                    responsibilities: ["Responsabilité 1", "Responsabilité 2"],
-                    benefits: ["Avantage 1", "Avantage 2"]
+                    title: `Poste extrait de ${file.name}`,
+                    company: "",
+                    location: "À déterminer",
+                    contract_type: "À préciser",
+                    skills: ["Analyse en cours..."],
+                    experience: "À définir selon le fichier",
+                    education: "",
+                    salary: "Selon profil",
+                    responsibilities: ["Responsabilités en cours d'extraction..."],
+                    benefits: []
                 };
                 
                 // Sauvegarder les résultats
@@ -316,6 +323,8 @@ function initJobParsingSection() {
                 
                 // Cacher le loader
                 if (loader) loader.style.display = 'none';
+                
+                showNotification('⚠️ Analyse fallback utilisée. Pour une analyse complète, vérifiez que l\'API backend est démarrée.', 'info');
             }, 1500);
         }
     }
@@ -326,7 +335,7 @@ function initJobParsingSection() {
  * @param {Object} data - Les résultats de l'analyse
  */
 function showJobResults(data) {
-    console.log("Affichage des résultats d'analyse:", data);
+    console.log("📊 Affichage des résultats d'analyse:", data);
     
     // Éléments cibles pour afficher les résultats
     const jobTitleValue = document.getElementById('job-title-value');
@@ -341,7 +350,11 @@ function showJobResults(data) {
     
     // Afficher le conteneur principal
     const jobInfoContainer = document.getElementById('job-info-container');
-    if (jobInfoContainer) jobInfoContainer.style.display = 'block';
+    if (jobInfoContainer) {
+        jobInfoContainer.style.display = 'block';
+        // Animation d'apparition
+        jobInfoContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
     
     // Mettre à jour les valeurs avec les résultats de l'analyse
     if (jobTitleValue) jobTitleValue.textContent = data.title || 'Non spécifié';
@@ -371,9 +384,11 @@ function showJobResults(data) {
         if (Array.isArray(data.responsibilities) && data.responsibilities.length > 0) {
             jobResponsibilitiesValue.innerHTML = '';
             const ul = document.createElement('ul');
+            ul.style.marginLeft = '20px';
             data.responsibilities.forEach(resp => {
                 const li = document.createElement('li');
                 li.textContent = resp;
+                li.style.marginBottom = '5px';
                 ul.appendChild(li);
             });
             jobResponsibilitiesValue.appendChild(ul);
@@ -389,9 +404,11 @@ function showJobResults(data) {
         if (Array.isArray(data.benefits) && data.benefits.length > 0) {
             jobBenefitsValue.innerHTML = '';
             const ul = document.createElement('ul');
+            ul.style.marginLeft = '20px';
             data.benefits.forEach(benefit => {
                 const li = document.createElement('li');
                 li.textContent = benefit;
+                li.style.marginBottom = '5px';
                 ul.appendChild(li);
             });
             jobBenefitsValue.appendChild(ul);
@@ -401,9 +418,6 @@ function showJobResults(data) {
             jobBenefitsValue.textContent = 'Non spécifié';
         }
     }
-    
-    // Afficher une notification de succès améliorée
-    showNotification('🎯 Extraction réussie ! Toutes les informations ont été analysées automatiquement par le parser local.', 'success');
 }
 
 /**
@@ -419,11 +433,33 @@ function showNotification(message, type = 'info') {
         console.log(`Notification (${type}): ${message}`);
         
         // Fallback simple pour les notifications
-        alert(message);
+        const notificationDiv = document.createElement('div');
+        notificationDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            max-width: 400px;
+            font-size: 14px;
+        `;
+        notificationDiv.textContent = message;
+        document.body.appendChild(notificationDiv);
+        
+        setTimeout(() => {
+            document.body.removeChild(notificationDiv);
+        }, 5000);
     }
 }
 
 // Exposer les fonctions utiles
 window.JobParsingUI = {
-    showJobResults
+    showJobResults,
+    jobParserInstance: () => jobParserInstance
 };
+
+console.log('✅ Job Parsing UI corrigé chargé avec succès');
