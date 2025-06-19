@@ -1,473 +1,256 @@
-// test-pdf-parser.js - Script de test pour parsing PDF local
-// Utilisation: node test-pdf-parser.js
-
 const fs = require('fs');
+const pdf = require('pdf-parse');
 const path = require('path');
 
-// ===== SIMULATION EXTRACTION PDF =====
-// Contenu simulé de votre PDF "Bcom HR Opportunité de poste Assistant Juridique.pdf"
-const simulatedPdfContent = `
-Bcom HR
-Opportunité de poste Assistant Juridique
+// Chemin vers ton PDF de test
+const PDF_PATH = path.join(require('os').homedir(), 'Desktop', 'Bcom HR Opportunité de poste Assistant Juridique.pdf');
 
-Assistant(e) juridique
+console.log('🔍 TEST EXTRACTION TITRE - JobParserAPI');
+console.log('=====================================');
+console.log(`📁 PDF Test: ${PDF_PATH}`);
 
-Qui sommes-nous ?
-Corsica Sole est une PME créée en 2009 spécialisée dans le développement & l'exploitation de projets photovoltaïques en Corse. Nous sommes aujourd'hui un acteur majeur du secteur énergétique corse avec plus de 100 MW installés.
-
-Poste à pourvoir :
-Dans le cadre de notre développement, nous recherchons un(e) Assistant(e) Juridique pour rejoindre notre équipe dynamique.
-
-Missions principales :
-- Assistance juridique auprès des équipes
-- Gestion des contrats et conventions
-- Suivi des dossiers réglementaires
-- Veille juridique et réglementaire
-
-Profil recherché :
-- Formation juridique (Master 2 Droit ou équivalent)
-- Première expérience en droit des affaires ou droit de l'énergie
-- Maîtrise des outils bureautiques (Pack Office)
-- Rigueur, autonomie et sens de l'organisation
-- Excellent relationnel
-
-Conditions :
-- Type de contrat : Intérim
-- Lieu : Panchéraccía, Corse
-- Rémunération : Selon profil et expérience
-- Avantages : Mutuelle, tickets restaurant
-
-Contact :
-Bcom HR - Recrutement
-Email : recrutement@bcom-hr.fr
-Tél : 04 95 XX XX XX
-`;
-
-// ===== CLASSE DE PARSING TEST =====
-class JobParserTest {
-    constructor() {
-        this.debug = true;
-        console.log('🔧 JobParserTest initialisé pour debugging');
-    }
-
-    // Test avec 4 stratégies différentes d'extraction de titre
-    testTitleExtraction(text) {
-        console.log('\n🎯 === TEST EXTRACTION TITRE ===');
-        console.log('📄 Texte source (100 chars):', text.substring(0, 100) + '...');
-        
-        const strategies = [
-            { name: 'Stratégie 1: Pattern exact', func: this.extractTitle_Strategy1.bind(this) },
-            { name: 'Stratégie 2: Première ligne intelligente', func: this.extractTitle_Strategy2.bind(this) },
-            { name: 'Stratégie 3: Mots-clés professionnels', func: this.extractTitle_Strategy3.bind(this) },
-            { name: 'Stratégie 4: Multi-patterns robuste', func: this.extractTitle_Strategy4.bind(this) }
-        ];
-
-        const results = [];
-        
-        strategies.forEach((strategy) => {
-            console.log(`\n--- ${strategy.name} ---`);
-            try {
-                const result = strategy.func(text);
-                console.log(`✅ Résultat: "${result}" (${result.length} chars)`);
-                results.push({ strategy: strategy.name, result, length: result.length });
-            } catch (error) {
-                console.log(`❌ Erreur: ${error.message}`);
-                results.push({ strategy: strategy.name, result: 'ERREUR', error: error.message });
-            }
-        });
-
-        console.log('\n📊 === RÉSUMÉ DES TESTS ===');
-        results.forEach((r) => {
-            const status = r.length <= 25 && r.result !== text && !r.result.includes('Non détecté') ? '✅' : '❌';
-            console.log(`${status} ${r.strategy}: "${r.result}" (${r.length || 0} chars)`);
-        });
-
-        return results;
-    }
-
-    // Stratégie 1: Pattern exact pour "Assistant juridique"
-    extractTitle_Strategy1(text) {
-        const patterns = [
-            /Assistant\([eé]*\)\s*juridique/i,
-            /Assistant[eé]*\s*juridique/i,
-        ];
-
-        const lines = text.split('\n').filter(line => line.trim().length > 0);
-        console.log('🔍 Lignes analysées:', lines.slice(0, 5).map(l => `"${l.trim()}"`));
-
-        for (const line of lines) {
-            for (const pattern of patterns) {
-                const match = line.match(pattern);
-                if (match) {
-                    let title = match[0];
-                    title = title.replace(/\([hf\/\s]*\)/gi, '');
-                    title = title.replace(/\s+/g, ' ').trim();
-                    title = title.split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                        .join(' ');
-                    console.log('🎯 Pattern trouvé dans ligne:', line.trim());
-                    console.log('🎯 Titre extrait:', title);
-                    return title;
-                }
-            }
-        }
-        
-        return 'Non détecté (Strategy 1)';
-    }
-
-    // Stratégie 2: Analyse ligne par ligne intelligente
-    extractTitle_Strategy2(text) {
-        const lines = text.split('\n').filter(line => line.trim().length > 0);
-        console.log('📋 Toutes les lignes:', lines.map((l, i) => `${i}: "${l.trim()}"`));
-
-        // Ignorer les en-têtes d'entreprise et sections
-        const ignoredPatterns = [
-            /bcom\s*hr/i, /opportunité/i, /qui\s*sommes/i, /poste\s*à\s*pourvoir/i,
-            /missions\s*principales/i, /profil\s*recherché/i, /conditions/i, /contact/i
-        ];
-        
-        for (let i = 0; i < lines.length; i++) {
-            const cleanLine = lines[i].trim();
-            
-            // Ignorer les lignes d'en-tête et de section
-            const isIgnored = ignoredPatterns.some(pattern => pattern.test(cleanLine));
-            if (isIgnored) {
-                console.log(`🚫 Ligne ${i} ignorée (en-tête/section):`, cleanLine);
-                continue;
-            }
-
-            // Ignorer les lignes trop courtes ou qui commencent par un tiret
-            if (cleanLine.length < 5 || cleanLine.startsWith('-')) {
-                console.log(`🚫 Ligne ${i} ignorée (format):`, cleanLine);
-                continue;
-            }
-
-            // Chercher une ligne qui ressemble à un titre de poste
-            if (cleanLine.length >= 5 && cleanLine.length <= 50) {
-                let title = cleanLine.replace(/\([hf\/\s]*\)/gi, '');
-                title = title.replace(/[^\w\sàâäéèêëîïôöùûüç-]/gi, '');
-                title = title.trim();
-
-                if (title.length > 3) {
-                    if (title.length > 25) {
-                        const words = title.split(' ');
-                        title = words.slice(0, 3).join(' '); // Limiter à 3 mots
-                        if (title.length > 25) {
-                            title = title.substring(0, 25).trim();
-                        }
-                    }
-                    
-                    title = title.split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                        .join(' ');
-                    
-                    console.log(`🎯 Ligne ${i} sélectionnée:`, cleanLine);
-                    console.log('🎯 Titre extrait:', title);
-                    return title;
-                }
-            }
-        }
-
-        return 'Non détecté (Strategy 2)';
-    }
-
-    // Stratégie 3: Recherche par mots-clés professionnels
-    extractTitle_Strategy3(text) {
-        const professionalKeywords = ['assistant', 'assistante', 'responsable', 'chef', 'consultant', 'manager', 'directeur'];
-        const specializations = ['juridique', 'commercial', 'commerciale', 'administratif', 'administrative', 'technique', 'marketing'];
-
-        const words = text.split(/\s+/);
-        console.log('🔍 Premiers 20 mots:', words.slice(0, 20));
-
-        for (let i = 0; i < Math.min(words.length, 30); i++) {
-            const word = words[i].toLowerCase().replace(/[()]/g, '');
-            
-            if (professionalKeywords.includes(word)) {
-                console.log(`🎯 Mot-clé professionnel trouvé à position ${i}:`, word);
-                let titleParts = [words[i]];
-                
-                // Chercher une spécialisation dans les mots suivants
-                for (let j = i + 1; j < Math.min(words.length, i + 5); j++) {
-                    const nextWord = words[j].toLowerCase().replace(/[()]/g, '');
-                    if (specializations.includes(nextWord)) {
-                        titleParts.push(words[j]);
-                        console.log(`🎯 Spécialisation trouvée:`, nextWord);
-                        break;
-                    }
-                }
-
-                let title = titleParts.join(' ');
-                title = title.replace(/\([hf\/\s]*\)/gi, '');
-                title = title.trim();
-
-                if (title.length <= 25 && title.length >= 3) {
-                    title = title.split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                        .join(' ');
-                    
-                    console.log('🎯 Titre final par mots-clés:', title);
-                    return title;
-                }
-            }
-        }
-
-        return 'Non détecté (Strategy 3)';
-    }
-
-    // Stratégie 4: Multi-patterns robuste avec fallback intelligent
-    extractTitle_Strategy4(text) {
-        console.log('🧹 Texte original (150 chars):', text.substring(0, 150));
-
-        // Patterns spécifiques pour différents types de postes
-        const jobPatterns = [
-            { regex: /assistant[^a-z]*juridique/i, title: 'Assistant Juridique' },
-            { regex: /assistant[^a-z]*commercial/i, title: 'Assistant Commercial' },
-            { regex: /assistant[^a-z]*administratif/i, title: 'Assistant Administratif' },
-            { regex: /responsable[^a-z]*commercial/i, title: 'Responsable Commercial' },
-            { regex: /responsable[^a-z]*marketing/i, title: 'Responsable Marketing' },
-            { regex: /chef[^a-z]*projet/i, title: 'Chef de Projet' },
-            { regex: /consultant[^a-z]*commercial/i, title: 'Consultant Commercial' }
-        ];
-
-        // Test des patterns sur tout le texte
-        for (const {regex, title} of jobPatterns) {
-            if (regex.test(text)) {
-                console.log('🎯 Pattern multi détecté:', title);
-                console.log('🎯 Pattern utilisé:', regex.toString());
-                return title;
-            }
-        }
-
-        // Fallback: extraction intelligente ligne par ligne
-        const lines = text.split('\n').filter(line => line.trim().length > 0);
-        console.log('📋 Fallback - lignes candidates:', lines.slice(0, 10));
-        
-        const excludePatterns = [
-            /^(bcom|qui|poste|dans|missions|profil|conditions|contact|email|tél)/i,
-            /^-/,  // Lignes qui commencent par un tiret
-            /@/,   // Lignes avec email
-            /\d{2}\s*\d{2}/  // Lignes avec numéros de téléphone
-        ];
-        
-        for (let i = 0; i < Math.min(lines.length, 10); i++) {
-            const line = lines[i].trim();
-            
-            // Ignorer les lignes qui ne ressemblent pas à des titres
-            const shouldExclude = excludePatterns.some(pattern => pattern.test(line));
-            if (shouldExclude) {
-                console.log(`🚫 Fallback ligne ${i} exclue:`, line);
-                continue;
-            }
-            
-            if (line.length >= 8 && line.length <= 50) {
-                let title = line.replace(/[()]/g, '').trim();
-                
-                // Limiter à 3 mots maximum pour éviter les titres trop longs
-                const words = title.split(' ');
-                if (words.length > 3) {
-                    title = words.slice(0, 3).join(' ');
-                }
-                
-                if (title.length <= 25 && title.length >= 3) {
-                    title = title.split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                        .join(' ');
-                    
-                    console.log(`🎯 Fallback ligne ${i} sélectionnée:`, title);
-                    return title;
-                }
-            }
-        }
-
-        return 'Assistant Juridique'; // Fallback final pour le cas spécifique
-    }
-
-    // Test complet de tous les champs
-    testFullParsing(text) {
-        console.log('\n🔍 === TEST PARSING COMPLET ===');
-        
-        const result = {
-            title: this.extractTitle_Strategy4(text), // Utiliser la stratégie la plus robuste
-            company: this.extractCompany(text),
-            location: this.extractLocation(text),
-            contract_type: this.extractContractType(text),
-            skills: this.extractSkills(text),
-            experience: this.extractExperience(text),
-            salary: this.extractSalary(text)
-        };
-
-        console.log('\n📊 === RÉSULTATS COMPLETS ===');
-        Object.entries(result).forEach(([key, value]) => {
-            const displayValue = Array.isArray(value) ? value.join(', ') : value;
-            console.log(`${key.toUpperCase().padEnd(15)}: ${displayValue || 'Non détecté'}`);
-        });
-
-        return result;
-    }
-
-    // === MÉTHODES D'EXTRACTION AMÉLIORÉES ===
-
-    extractCompany(text) {
-        const patterns = [
-            /(bcom\s*hr)/i, 
-            /(corsica\s*sole)/i,
-            /([A-Z][A-Za-z\s]{2,20}(?:SARL|SAS|SA|EURL))/
-        ];
-        
-        for (const pattern of patterns) {
-            const match = text.match(pattern);
-            if (match) {
-                console.log('🏢 Entreprise détectée:', match[1]);
-                return match[1].trim();
-            }
-        }
-        return '';
-    }
-
-    extractLocation(text) {
-        const patterns = [
-            /(panchéraccía)/i, 
-            /(corse)/i,
-            /(corsica)/i,
-            /(\d{5})\s+([A-Za-z\s]{3,20})/
-        ];
-        
-        for (const pattern of patterns) {
-            const match = text.match(pattern);
-            if (match) {
-                const location = match[1] && match[2] ? `${match[1]} ${match[2]}` : match[1];
-                console.log('📍 Lieu détecté:', location);
-                return location.trim();
-            }
-        }
-        return '';
-    }
-
-    extractContractType(text) {
-        const match = text.match(/(cdi|cdd|interim|intérim|stage|freelance)/i);
+// Stratégie 1: Pattern exact pour "Assistant juridique"
+function extractTitleByPattern(text) {
+    console.log('\n📋 STRATÉGIE 1: Pattern exact');
+    console.log('------------------------------');
+    
+    const patterns = [
+        /Assistant(?:\(e\))?\s+juridique/i,
+        /Assistant(?:e)?\s+juridique/i,
+        /Juriste/i,
+        /Conseiller(?:\(ère\))?\s+juridique/i
+    ];
+    
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
         if (match) {
-            console.log('📄 Type contrat détecté:', match[1]);
-            return match[1].toUpperCase();
+            const title = match[0].trim();
+            console.log(`✅ Pattern trouvé: "${title}"`);
+            console.log(`📏 Longueur: ${title.length} caractères`);
+            return title.length <= 25 ? title : title.substring(0, 25);
         }
-        return '';
     }
-
-    extractSkills(text) {
-        const skills = [];
-        const skillsPattern = [
-            'droit', 'juridique', 'pack office', 'bureautique', 'excel', 'word',
-            'rigueur', 'autonomie', 'organisation', 'relationnel', 'communication'
-        ];
-        
-        skillsPattern.forEach(skill => {
-            if (new RegExp(`\\b${skill}\\b`, 'i').test(text)) {
-                const capitalizedSkill = skill.charAt(0).toUpperCase() + skill.slice(1);
-                skills.push(capitalizedSkill);
-            }
-        });
-        
-        if (skills.length > 0) {
-            console.log('🎯 Compétences détectées:', skills);
-        }
-        
-        return skills;
-    }
-
-    extractExperience(text) {
-        const patterns = [
-            /(première\s*expérience)/i,
-            /(\d+\s*an[s]?\s*(?:d[''']?expérience)?)/i,
-            /(master\s*\d+)/i,
-            /(débutant[e]?)/i,
-            /(junior|senior)/i
-        ];
-        
-        for (const pattern of patterns) {
-            const match = text.match(pattern);
-            if (match) {
-                console.log('💼 Expérience détectée:', match[1]);
-                return match[1].trim();
-            }
-        }
-        return '';
-    }
-
-    extractSalary(text) {
-        const patterns = [
-            /(selon\s*profil)/i,
-            /(\d+\s*k?€?)/i,
-            /(à\s*négocier)/i,
-            /(salaire\s*attractif)/i
-        ];
-        
-        for (const pattern of patterns) {
-            const match = text.match(pattern);
-            if (match) {
-                console.log('💰 Salaire détecté:', match[1]);
-                return match[1].trim();
-            }
-        }
-        return '';
-    }
+    
+    console.log('❌ Aucun pattern trouvé');
+    return 'Poste à pourvoir';
 }
 
-// ===== FONCTION PRINCIPALE =====
-function main() {
-    console.log('🚀 === TEST PARSING PDF ASSISTANT JURIDIQUE ===');
-    console.log('📁 Fichier simulé: "Bcom HR Opportunité de poste Assistant Juridique.pdf"\n');
+// Stratégie 2: Première ligne intelligente
+function extractTitleByFirstLine(text) {
+    console.log('\n📋 STRATÉGIE 2: Première ligne intelligente');
+    console.log('------------------------------------------');
     
-    const parser = new JobParserTest();
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
-    // Afficher un aperçu du contenu
-    console.log('📝 Contenu simulé du PDF (200 premiers caractères):');
-    console.log(simulatedPdfContent.substring(0, 200) + '...\n');
-    
-    // Test 1: Extraction de titre avec différentes stratégies
-    const titleResults = parser.testTitleExtraction(simulatedPdfContent);
-    
-    // Test 2: Parsing complet de tous les champs
-    const fullResults = parser.testFullParsing(simulatedPdfContent);
-    
-    // Analyse et recommandations
-    console.log('\n🎯 === ANALYSE ET RECOMMANDATIONS ===');
-    
-    const successfulStrategies = titleResults.filter(r => 
-        r.length > 0 && r.length <= 25 && !r.result.includes('Non détecté') && !r.result.includes('ERREUR')
-    );
-    
-    console.log('🏆 Titre final recommandé:', fullResults.title);
-    console.log('✅ Titre valide (≤25 chars):', fullResults.title.length <= 25 ? 'OUI' : 'NON');
-    console.log('📏 Longueur du titre:', fullResults.title.length, 'caractères');
-    
-    const filledFields = Object.values(fullResults).filter(v => 
-        v && (typeof v === 'string' ? v.length > 0 : v.length > 0)
-    ).length;
-    console.log('📊 Champs extraits avec succès:', filledFields, '/ 7');
-    
-    console.log('\n💡 Stratégies d\'extraction qui fonctionnent:');
-    if (successfulStrategies.length > 0) {
-        successfulStrategies.forEach((r, i) => {
-            console.log(`   ✅ ${r.strategy} → "${r.result}" (${r.length} chars)`);
-        });
-    } else {
-        console.log('   ⚠️ Aucune stratégie n\'a parfaitement fonctionné, utilisation du fallback');
+    for (let i = 0; i < Math.min(5, lines.length); i++) {
+        const line = lines[i];
+        console.log(`Ligne ${i + 1}: "${line.substring(0, 50)}${line.length > 50 ? '...' : ''}"`);
+        
+        // Ignorer les lignes trop courtes ou avec des mots-clés non pertinents
+        if (line.length < 5 || 
+            /^(qui sommes|nous|offre|poste|opportunité|recrutement)/i.test(line)) {
+            console.log(`  ⏭️ Ignorée (${line.length < 5 ? 'trop courte' : 'mot-clé non pertinent'})`);
+            continue;
+        }
+        
+        // Nettoyer la ligne
+        let cleanTitle = line
+            .replace(/^[^a-zA-ZÀ-ÿ]*/, '') // Supprimer caractères non alphabétiques au début
+            .replace(/[^\w\sÀ-ÿ\(\)]+.*$/, '') // Supprimer tout après caractères spéciaux
+            .trim();
+        
+        if (cleanTitle.length >= 5 && cleanTitle.length <= 50) {
+            const finalTitle = cleanTitle.length <= 25 ? cleanTitle : cleanTitle.substring(0, 25);
+            console.log(`✅ Titre extrait: "${finalTitle}"`);
+            console.log(`📏 Longueur: ${finalTitle.length} caractères`);
+            return finalTitle;
+        }
     }
     
-    console.log('\n🔧 Recommandation pour l\'implémentation:');
-    console.log('   → Utiliser la Stratégie 4 (Multi-patterns) comme base');
-    console.log('   → Intégrer les améliorations dans js/job-parser-api.js');
-    console.log('   → Tester sur le vrai fichier PDF pour validation finale');
+    console.log('❌ Aucune première ligne valide trouvée');
+    return 'Poste à pourvoir';
+}
+
+// Stratégie 3: Détection par mots-clés professionnels
+function extractTitleByKeywords(text) {
+    console.log('\n📋 STRATÉGIE 3: Mots-clés professionnels');
+    console.log('---------------------------------------');
     
-    return {
-        titleResults,
-        fullResults,
-        recommendation: 'Strategy 4 + améliorations'
+    const jobKeywords = {
+        'Assistant juridique': ['assistant juridique', 'assistante juridique', 'assistant(e) juridique'],
+        'Juriste': ['juriste', 'juriste d\'entreprise', 'juriste contrats'],
+        'Conseiller juridique': ['conseiller juridique', 'conseillère juridique', 'conseiller(ère) juridique'],
+        'Responsable juridique': ['responsable juridique', 'responsable affaires juridiques'],
+        'Secrétaire juridique': ['secrétaire juridique']
     };
+    
+    // Normaliser le texte pour la recherche
+    const normalizedText = text.toLowerCase().replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e');
+    
+    for (const [jobTitle, keywords] of Object.entries(jobKeywords)) {
+        for (const keyword of keywords) {
+            if (normalizedText.includes(keyword.toLowerCase())) {
+                console.log(`✅ Mot-clé trouvé: "${keyword}" → "${jobTitle}"`);
+                console.log(`📏 Longueur: ${jobTitle.length} caractères`);
+                return jobTitle;
+            }
+        }
+    }
+    
+    // Recherche générique de mots professionnels
+    const genericPatterns = [
+        /\b(assistant|assistante|secrétaire|conseiller|conseillère|responsable|chef|manager|directeur|directrice)\s+\w+/gi
+    ];
+    
+    for (const pattern of genericPatterns) {
+        const matches = text.match(pattern);
+        if (matches && matches.length > 0) {
+            const title = matches[0].trim();
+            const finalTitle = title.length <= 25 ? title : title.substring(0, 25);
+            console.log(`✅ Pattern générique trouvé: "${finalTitle}"`);
+            console.log(`📏 Longueur: ${finalTitle.length} caractères`);
+            return finalTitle;
+        }
+    }
+    
+    console.log('❌ Aucun mot-clé professionnel trouvé');
+    return 'Poste à pourvoir';
+}
+
+// Stratégie 4: Multi-patterns avec fallback
+function extractTitleMultiPatterns(text) {
+    console.log('\n📋 STRATÉGIE 4: Multi-patterns avec fallback');
+    console.log('--------------------------------------------');
+    
+    // Étape 1: Patterns spécifiques haute priorité
+    const highPriorityPatterns = [
+        { regex: /Assistant(?:\(e\))?\s+juridique/i, name: 'Assistant juridique spécifique' },
+        { regex: /Juriste(?:\s+[a-zA-ZÀ-ÿ]+)?/i, name: 'Juriste général' },
+        { regex: /Conseiller(?:\(ère\))?\s+juridique/i, name: 'Conseiller juridique' }
+    ];
+    
+    console.log('🎯 Test patterns haute priorité:');
+    for (const { regex, name } of highPriorityPatterns) {
+        const match = text.match(regex);
+        if (match) {
+            const title = match[0].trim();
+            const finalTitle = title.length <= 25 ? title : title.substring(0, 25);
+            console.log(`  ✅ ${name}: "${finalTitle}" (${finalTitle.length} caractères)`);
+            return finalTitle;
+        }
+        console.log(`  ❌ ${name}: Non trouvé`);
+    }
+    
+    // Étape 2: Analyse des premières lignes significatives
+    console.log('\n🔍 Analyse premières lignes:');
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    for (let i = 0; i < Math.min(3, lines.length); i++) {
+        const line = lines[i];
+        
+        // Ignorer les lignes avec des mots-clés d'exclusion
+        if (/^(qui sommes|nous|offre|entreprise|société|groupe)/i.test(line)) {
+            console.log(`  ⏭️ Ligne ${i + 1} ignorée: "${line.substring(0, 30)}..."`);
+            continue;
+        }
+        
+        // Extraire le début de la ligne comme titre potentiel
+        let candidateTitle = line
+            .replace(/[^\w\sÀ-ÿ\(\)\-]/g, ' ') // Garder seulement lettres, espaces, parenthèses, tirets
+            .replace(/\s+/g, ' ') // Normaliser les espaces
+            .trim();
+        
+        if (candidateTitle.length >= 5 && candidateTitle.length <= 50) {
+            const finalTitle = candidateTitle.length <= 25 ? candidateTitle : candidateTitle.substring(0, 25);
+            console.log(`  ✅ Ligne ${i + 1} candidate: "${finalTitle}" (${finalTitle.length} caractères)`);
+            return finalTitle;
+        }
+        
+        console.log(`  ❌ Ligne ${i + 1} rejetée: "${line.substring(0, 30)}..." (longueur: ${candidateTitle.length})`);
+    }
+    
+    // Étape 3: Fallback garanti
+    console.log('\n⚠️ Fallback activé');
+    return 'Poste à pourvoir';
+}
+
+// Fonction principale de test
+async function testPDFParsing() {
+    try {
+        // Vérifier si le fichier existe
+        if (!fs.existsSync(PDF_PATH)) {
+            console.log(`❌ Fichier non trouvé: ${PDF_PATH}`);
+            console.log('\n💡 Solutions possibles:');
+            console.log('1. Vérifiez le nom exact du fichier sur votre bureau');
+            console.log('2. Modifiez le chemin PDF_PATH dans le script');
+            console.log('3. Déplacez le PDF sur votre bureau avec le nom exact');
+            return;
+        }
+        
+        console.log('✅ Fichier PDF trouvé, lecture en cours...\n');
+        
+        // Lire et parser le PDF
+        const dataBuffer = fs.readFileSync(PDF_PATH);
+        const data = await pdf(dataBuffer);
+        
+        console.log(`📄 PDF lu avec succès:`);
+        console.log(`   - Pages: ${data.numpages}`);
+        console.log(`   - Caractères: ${data.text.length}`);
+        console.log(`   - Première ligne: "${data.text.split('\n')[0].substring(0, 100)}..."`);
+        
+        console.log('\n' + '='.repeat(50));
+        console.log('🧪 TEST DES 4 STRATÉGIES');
+        console.log('='.repeat(50));
+        
+        // Tester les 4 stratégies
+        const results = {
+            pattern: extractTitleByPattern(data.text),
+            firstLine: extractTitleByFirstLine(data.text),
+            keywords: extractTitleByKeywords(data.text),
+            multiPatterns: extractTitleMultiPatterns(data.text)
+        };
+        
+        console.log('\n' + '='.repeat(50));
+        console.log('📊 RÉSULTATS FINAUX');
+        console.log('='.repeat(50));
+        
+        Object.entries(results).forEach(([strategy, result], index) => {
+            const strategyNames = {
+                pattern: 'Pattern exact',
+                firstLine: 'Première ligne',
+                keywords: 'Mots-clés',
+                multiPatterns: 'Multi-patterns'
+            };
+            
+            console.log(`${index + 1}. ${strategyNames[strategy]}: "${result}" (${result.length} caractères)`);
+        });
+        
+        console.log('\n🎯 RECOMMANDATION:');
+        
+        // Analyser les résultats pour donner une recommandation
+        const uniqueResults = [...new Set(Object.values(results))];
+        
+        if (uniqueResults.length === 1 && uniqueResults[0] === 'Poste à pourvoir') {
+            console.log('⚠️ Aucune stratégie n\'a réussi à extraire un titre spécifique');
+            console.log('💡 Il faut revoir l\'algorithme ou le contenu du PDF');
+        } else {
+            const nonFallbackResults = Object.entries(results).filter(([_, result]) => result !== 'Poste à pourvoir');
+            
+            if (nonFallbackResults.length > 0) {
+                const bestStrategy = nonFallbackResults[0];
+                console.log(`✅ Meilleure stratégie: ${bestStrategy[0]} → "${bestStrategy[1]}"`);
+                console.log('💡 Cette stratégie devrait être intégrée dans JobParserAPI');
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Erreur lors du test:', error.message);
+        
+        if (error.message.includes('pdf-parse')) {
+            console.log('\n💡 Solution: Installez pdf-parse avec: npm install pdf-parse');
+        }
+    }
 }
 
 // Lancer le test
-if (require.main === module) {
-    main();
-}
-
-module.exports = { JobParserTest, simulatedPdfContent };
+testPDFParsing();
