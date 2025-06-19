@@ -3,7 +3,7 @@ const pdf = require('pdf-parse');
 const path = require('path');
 
 // Chemin vers ton PDF de test
-const PDF_PATH = path.join(require('os').homedir(), 'Desktop', 'Bcom HR Opportunité de poste Assistant Juridique.pdf');
+const PDF_PATH = path.join(require('os').homedir(), 'Desktop', 'testfp.pdf');
 
 console.log('🔍 TEST EXTRACTION TITRE - JobParserAPI');
 console.log('=====================================');
