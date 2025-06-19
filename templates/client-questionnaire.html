@@ -752,6 +752,56 @@
             color: var(--gray);
             font-size: 0.9rem;
         }
+
+        /* Amélioration du cache buster banner */
+        .cache-update-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 10px 0 20px 0;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .cache-update-banner .status-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cache-update-banner .pulse-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        .cache-update-banner .update-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .cache-update-banner .update-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -775,6 +825,17 @@
                 <span id="backend-status-text">Parser de fiche de poste local activé - Prêt à analyser vos documents !</span>
             </div>
             <button class="get-help-btn" id="backend-help-btn" style="display: none;">Aide à la configuration</button>
+        </div>
+
+        <!-- Bannière de mise à jour cache -->
+        <div id="cache-update-banner" class="cache-update-banner">
+            <div class="status-info">
+                <div class="pulse-icon"></div>
+                <span>🚀 JobParserAPI v2.5 détectée - Algorithme d'extraction amélioré disponible !</span>
+            </div>
+            <button class="update-btn" onclick="window.CacheBuster?.forceBustCache()">
+                Mettre à jour
+            </button>
         </div>
 
         <main>
@@ -940,12 +1001,12 @@
                                     <li><strong>Consultez</strong> les informations extraites automatiquement !</li>
                                 </ol>
                                 <div class="success-badge">
-                                    <i class="fas fa-robot"></i> Parser local intégré - Aucune configuration requise
+                                    <i class="fas fa-robot"></i> Parser local v2.5 intégré - Extraction améliorée !
                                 </div>
                             </div>
                         </div>
                         
-                        <p>Notre système d'analyse automatique extrait intelligemment les informations clés de votre fiche de poste : titre, compétences, lieu, salaire, etc. <strong>Parsing local intégré - aucune configuration requise !</strong></p>
+                        <p>Notre système d'analyse automatique v2.5 extrait intelligemment les informations clés de votre fiche de poste : titre, compétences, lieu, salaire, etc. <strong>Algorithme d'extraction ultra-robuste !</strong></p>
                         
                         <div class="upload-container" id="job-drop-zone">
                             <i class="fas fa-file-upload upload-icon"></i>
@@ -968,8 +1029,8 @@
                         </div>
                         
                         <div class="textarea-container">
-                            <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse automatique..."></textarea>
-                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyse automatique locale - Extraction immédiate des informations">
+                            <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse automatique ultra-précise..."></textarea>
+                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyse automatique v2.5 - Extraction ultra-robuste des informations">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
@@ -978,7 +1039,7 @@
                         <div class="analysis-controls">
                             <div class="analysis-status">
                                 <i class="fas fa-check-circle"></i>
-                                <span>Analyse automatique locale activée</span>
+                                <span>JobParserAPI v2.5 - Extraction ultra-robuste activée</span>
                             </div>
                         </div>
                         
@@ -993,12 +1054,12 @@
                         <!-- Indicateur de chargement -->
                         <div id="analysis-loader" class="loader-container">
                             <div class="loader"></div>
-                            <span class="loader-text">Analyse en cours...</span>
+                            <span class="loader-text">Analyse v2.5 en cours...</span>
                         </div>
                         
                         <!-- Résultats d'analyse -->
                         <div id="job-info-container" class="job-info-container" style="display: none;">
-                            <h3><i class="fas fa-check-circle"></i> Informations extraites</h3>
+                            <h3><i class="fas fa-check-circle"></i> Informations extraites avec JobParserAPI v2.5</h3>
                             
                             <div class="info-grid">
                                 <div class="info-group">
@@ -1298,6 +1359,9 @@
     </div>
     
     <!-- Scripts - Ordre important pour les dépendances -->
+    <!-- 0. Cache buster pour JobParserAPI v2.5 -->
+    <script src="../scripts/cache-buster.js"></script>
+    
     <!-- 1. Classes et utilitaires de base -->
     <script src="../js/pdf-cleaner.js"></script>
     <script src="../js/job-parser-api.js"></script>
@@ -1385,7 +1449,7 @@
                 console.log("Données du formulaire sauvegardées:", formData);
             }
             
-            console.log('✅ Job Parser UX amélioré - parsing local activé');
+            console.log('✅ Job Parser UX amélioré - parsing local v2.5 activé');
         });
     </script>
     
