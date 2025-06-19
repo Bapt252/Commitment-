@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Job Parser v2.4</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .test-container {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .result {
+            background: white;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            border-left: 4px solid #28a745;
+        }
+        .error {
+            background: #fff5f5;
+            border-left-color: #dc3545;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.5rem 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .version-info {
+            background: #e7f3ff;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        .field-result {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: #f1f3f4;
+            border-radius: 4px;
+        }
+        .field-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .field-value {
+            color: #666;
+            margin-left: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Job Parser v2.4 - Direct</h1>
+    
+    <div class="version-info">
+        <h3>ℹ️ Information de Version</h3>
+        <div id="version-info">Chargement...</div>
+    </div>
+    
+    <div class="test-container">
+        <h3>📝 Test d'Extraction</h3>
+        <textarea id="test-text" placeholder="Collez votre fiche de poste ici...">Assistant Juridique
+
+Qui sommes-nous ?
+Corsica Sole est une PME créée en 2009.
+
+Le poste :
+Nous recherchons un(e) assistant(e) juridique.
+
+Profil recherché :
+- Formation en droit
+- 2 ans d'expérience minimum
+- Maîtrise d'Excel et Word
+- Rigueur et autonomie
+
+Lieu : 20251 PANCERACCIA, FRANCE
+Contrat : CDI
+Salaire : 28-32K€ selon expérience
+
+Avantages :
+- Télétravail partiel
+- Mutuelle d'entreprise</textarea>
+        
+        <button onclick="testParsing()">🔍 Tester l'Extraction</button>
+        <button onclick="clearResults()">🗑️ Effacer</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <!-- Chargement direct de la version corrigée -->
+    <script src="https://raw.githubusercontent.com/Bapt252/Commitment-/main/js/job-parser-api.js?t=123456"></script>
+    
+    <script>
+        // Afficher les informations de version
+        document.addEventListener('DOMContentLoaded', function() {
+            updateVersionInfo();
+        });
+        
+        function updateVersionInfo() {
+            const versionDiv = document.getElementById('version-info');
+            
+            if (window.JobParserAPI) {
+                versionDiv.innerHTML = `
+                    ✅ <strong>JobParserAPI chargée</strong><br>
+                    📅 Timestamp: ${new Date().toLocaleTimeString()}<br>
+                    🔧 Méthodes v2.4: ${typeof JobParserAPI.prototype.segmentJobText === 'function' ? '✅' : '❌'}<br>
+                    🌐 Source: GitHub Raw (bypass cache)
+                `;
+            } else {
+                versionDiv.innerHTML = `
+                    ❌ <strong>JobParserAPI non chargée</strong><br>
+                    🔄 Rechargement de la page recommandé
+                `;
+            }
+        }
+        
+        async function testParsing() {
+            const resultsDiv = document.getElementById('results');
+            const testText = document.getElementById('test-text').value;
+            
+            if (!window.JobParserAPI) {
+                resultsDiv.innerHTML = `
+                    <div class="result error">
+                        <h4>❌ Erreur</h4>
+                        <p>JobParserAPI non disponible. Rechargez la page.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                resultsDiv.innerHTML = `
+                    <div class="result">
+                        <h4>⏳ Analyse en cours...</h4>
+                        <p>Utilisation de JobParserAPI v2.4 avec segmentation améliorée</p>
+                    </div>
+                `;
+                
+                const api = new JobParserAPI({
+                    debug: true,
+                    apiUrl: 'http://localhost:5055/api/parse-job'
+                });
+                
+                console.log('🔍 Starting enhanced parsing...');
+                const result = await api.parseJobText(testText);
+                console.log('✅ Parsing result:', result);
+                
+                displayResults(result);
+                
+            } catch (error) {
+                console.error('❌ Parsing error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="result error">
+                        <h4>❌ Erreur d'Analyse</h4>
+                        <p><strong>Erreur:</strong> ${error.message}</p>
+                        <p><strong>Détails:</strong> Vérifiez la console (F12) pour plus d'informations</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            // Analyser la qualité des résultats
+            const titleLength = data.title?.length || 0;
+            const isGoodTitle = titleLength > 5 && titleLength < 80 && !data.title.includes('Corsica Sole');
+            const hasLocation = data.location && data.location.length > 0;
+            const hasSkills = data.skills && data.skills.length > 0;
+            const hasExperience = data.experience && data.experience.length > 0;
+            
+            const quality = isGoodTitle && hasLocation && hasSkills && hasExperience ? 
+                           '✅ Excellente' : 
+                           (isGoodTitle && (hasLocation || hasSkills)) ? 
+                           '⚠️ Correcte' : 
+                           '❌ Problématique';
+            
+            resultsDiv.innerHTML = `
+                <div class="result">
+                    <h4>📊 Résultats d'Extraction - Qualité: ${quality}</h4>
+                    
+                    <div class="field-result">
+                        <span class="field-label">🎯 Titre du poste:</span>
+                        <span class="field-value">"${data.title || 'Non détecté'}" (${titleLength} caractères)</span>
+                        ${isGoodTitle ? '<span style="color: green;"> ✅</span>' : '<span style="color: red;"> ❌ Trop long ou générique</span>'}
+                    </div>
+                    
+                    <div class="field-result">
+                        <span class="field-label">📍 Localisation:</span>
+                        <span class="field-value">${data.location || 'Non détectée'}</span>
+                        ${hasLocation ? '<span style="color: green;"> ✅</span>' : '<span style="color: red;"> ❌</span>'}
+                    </div>
+                    
+                    <div class="field-result">
+                        <span class="field-label">💼 Expérience:</span>
+                        <span class="field-value">${data.experience || 'Non détectée'}</span>
+                        ${hasExperience ? '<span style="color: green;"> ✅</span>' : '<span style="color: red;"> ❌</span>'}
+                    </div>
+                    
+                    <div class="field-result">
+                        <span class="field-label">💰 Salaire:</span>
+                        <span class="field-value">${data.salary || 'Non détecté'}</span>
+                    </div>
+                    
+                    <div class="field-result">
+                        <span class="field-label">📄 Type de contrat:</span>
+                        <span class="field-value">${data.contract_type || 'Non détecté'}</span>
+                    </div>
+                    
+                    <div class="field-result">
+                        <span class="field-label">🛠️ Compétences:</span>
+                        <span class="field-value">${data.skills?.join(', ') || 'Non détectées'} (${data.skills?.length || 0} trouvées)</span>
+                        ${hasSkills ? '<span style="color: green;"> ✅</span>' : '<span style="color: red;"> ❌</span>'}
+                    </div>
+                    
+                    <div class="field-result">
+                        <span class="field-label">🎯 Responsabilités:</span>
+                        <span class="field-value">${Array.isArray(data.responsibilities) ? data.responsibilities.join(' | ') : (data.responsibilities || 'Non détectées')}</span>
+                    </div>
+                    
+                    <div class="field-result">
+                        <span class="field-label">🎁 Avantages:</span>
+                        <span class="field-value">${Array.isArray(data.benefits) ? data.benefits.join(', ') : (data.benefits || 'Non détectés')}</span>
+                    </div>
+                </div>
+                
+                <div class="result">
+                    <h4>🔧 Diagnostic</h4>
+                    <p><strong>Version utilisée:</strong> ${typeof JobParserAPI.prototype.segmentJobText === 'function' ? 'v2.4 (avec segmentation)' : 'v2.3 ou antérieure'}</p>
+                    <p><strong>Évaluation:</strong> ${
+                        isGoodTitle ? 
+                        '✅ Le titre est correctement extrait (court et précis)' : 
+                        '❌ Le titre capture encore trop de contenu - problème de segmentation'
+                    }</p>
+                    <p><strong>Recommandation:</strong> ${
+                        quality.includes('Excellente') ? 
+                        'Parser fonctionnel ! Intégration réussie.' :
+                        quality.includes('Correcte') ?
+                        'Parser partiellement fonctionnel - quelques ajustements nécessaires.' :
+                        'Parser dysfonctionnel - version v2.4 pas encore active ou erreur de logique.'
+                    }</p>
+                </div>
+            `;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('test-text').value = '';
+        }
+        
+        // Auto-update version info every 5 seconds
+        setInterval(updateVersionInfo, 5000);
+    </script>
+</body>
+</html>
