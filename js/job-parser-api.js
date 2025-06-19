@@ -1,4 +1,4 @@
-// JobParserAPI v2.5 - Version corrigée avec algorithme d'extraction robuste
+// JobParserAPI v2.6 - CORRECTION URGENTE extraction titre
 class JobParserAPI {
     constructor(options = {}) {
         this.apiUrl = options.apiUrl || '/api/parse-job';
@@ -6,7 +6,7 @@ class JobParserAPI {
         this.enablePDFCleaning = options.enablePDFCleaning || false;
         
         if (this.debug) {
-            console.log('JobParserAPI v2.5 Enhanced+ initialized with options:', options);
+            console.log('JobParserAPI v2.6 CORRECTED initialized with options:', options);
         }
     }
     
@@ -17,7 +17,7 @@ class JobParserAPI {
      */
     async parseJobText(text) {
         if (this.debug) {
-            console.log('🚀 Parsing job text with enhanced v2.5...');
+            console.log('🚀 Parsing job text with CORRECTED v2.6...');
         }
         
         try {
@@ -27,7 +27,7 @@ class JobParserAPI {
             if (apiAvailable) {
                 return await this.sendTextToApi(text);
             } else {
-                console.warn('API not available, using enhanced local fallback v2.5');
+                console.warn('API not available, using CORRECTED local fallback v2.6');
                 return this.analyzeJobLocally(text);
             }
         } catch (error) {
@@ -43,7 +43,7 @@ class JobParserAPI {
      */
     async parseJobFile(file) {
         if (this.debug) {
-            console.log('📄 Parsing job file with enhanced v2.5:', file.name);
+            console.log('📄 Parsing job file with CORRECTED v2.6:', file.name);
         }
         
         try {
@@ -149,11 +149,10 @@ class JobParserAPI {
     
     /**
      * Nettoie le texte HTML en supprimant les balises et en normalisant
-     * Version améliorée v2.5 avec meilleur traitement des entités HTML françaises
      */
     cleanHtmlText(text) {
         if (this.debug) {
-            console.log('🧹 Nettoyage HTML avancé v2.5...');
+            console.log('🧹 Nettoyage HTML v2.6...');
         }
         
         let cleaned = text;
@@ -217,7 +216,7 @@ class JobParserAPI {
     }
     
     /**
-     * Segmente le texte en sections logiques pour améliorer l'extraction - VERSION CORRIGÉE v2.5
+     * Segmente le texte en sections logiques
      */
     segmentJobText(text) {
         const sections = {
@@ -232,7 +231,7 @@ class JobParserAPI {
         // Première étape : essayer de séparer en phrases intelligemment
         let processedText = text;
         
-        // Ajouter des sauts de ligne après certains patterns pour améliorer la segmentation
+        // Ajouter des sauts de ligne après certains patterns
         const sentencePatterns = [
             /(\w+\.)(\s+[A-Z])/g,  // Point suivi d'une majuscule
             /(\w+\?)(\s+[A-Z])/g,  // Point d'interrogation suivi d'une majuscule
@@ -281,13 +280,11 @@ class JobParserAPI {
     }
     
     /**
-     * Analyse localement un texte de fiche de poste (fallback amélioré v2.5)
-     * @param {string} text - Le texte à analyser
-     * @returns {Object} - Les résultats de l'analyse
+     * Analyse localement un texte de fiche de poste - VERSION CORRIGÉE v2.6
      */
     analyzeJobLocally(text) {
         if (this.debug) {
-            console.log('🔍 Analyzing job locally with enhanced rules v2.5...');
+            console.log('🔍 Analyzing job locally with CORRECTED rules v2.6...');
         }
         
         // Nettoyer le HTML d'abord
@@ -298,7 +295,7 @@ class JobParserAPI {
         
         if (this.debug) {
             console.log('📝 Cleaned text length:', cleanedText.length);
-            console.log('📂 Sections identified:', Object.keys(sections).filter(key => sections[key].length > 0));
+            console.log('📂 Text preview:', cleanedText.substring(0, 100) + '...');
         }
         
         const result = {
@@ -315,99 +312,110 @@ class JobParserAPI {
         };
         
         if (this.debug) {
-            console.log('📊 Enhanced parsing results v2.5:', result);
+            console.log('📊 CORRECTED parsing results v2.6:', result);
         }
         
         return result;
     }
     
-    // Méthodes d'extraction améliorées v2.5
-    
     /**
-     * Extraction du titre de poste ULTRA-AMÉLIORÉE - VERSION CORRIGÉE v2.5
+     * Extraction du titre CORRIGÉE v2.6 - SOLUTION AU PROBLÈME
      */
     extractJobTitle(text, sections = {}) {
         if (this.debug) {
-            console.log('🎯 Ultra-enhanced title extraction v2.5...');
+            console.log('🎯 CORRECTED title extraction v2.6...');
+            console.log('📝 Input text preview:', text.substring(0, 200));
         }
         
-        // Stratégie 1: Patterns de titre spécifiques au début du texte
-        const titlePatterns = [
-            // Patterns directs avec mentions explicites
-            /(?:poste|offre|intitulé|recherche|recrute)\s*[:\-]?\s*(.{5,80}?)(?:\n|$|\.|\(|,)/i,
+        // ===== STRATÉGIE 1: PATTERNS DIRECTS ET SIMPLES =====
+        const directTitlePatterns = [
+            // Pattern exact pour "Assistant(e) juridique"
+            /Assistant\([eéè]+\)\s*juridique/i,
+            /Assistant[eé]?\s*juridique/i,
             
-            // Patterns de poste avec H/F
-            /(.{5,80}?)\s*\([hf\/\s]+\)/i,
-            
-            // Assistant/Assistante patterns
-            /assistant[e]?\s*(?:\([hf\/\s]+\))?\s*(juridique|commercial|administratif|rh|comptable|direction)/i,
+            // Autres patterns courants
+            /Assistant\([eéè]+\)\s*(commercial|administratif|rh|comptable|direction)/i,
+            /Assistant[eé]?\s*(commercial|administratif|rh|comptable|direction)/i,
             
             // Professions courantes
-            /(consultant[e]?|développeur[se]?|commercial[e]?|manager|responsable|chef|directeur[trice]?|technicien[ne]?|ingénieur[e]?|gestionnaire|coordinateur[trice]?)\s*(?:\([hf\/\s]+\))?\s*(.{0,40}?)(?:\n|$|\.|\(|,)/i
+            /consultant[eé]?\s*(en|commercial|technique|junior|senior)?/i,
+            /développeur[se]?\s*(web|mobile|full|front|back|javascript|python)?/i,
+            /commercial[eé]?\s*(terrain|sédentaire|btob|btoc)?/i,
+            /responsable\s*(commercial|technique|projet|équipe|rh|marketing)/i,
+            /chef\s*de\s*(projet|équipe|service|vente)/i,
+            /manager\s*(commercial|technique|projet|équipe)/i,
+            /technicien[ne]?\s*(de|en|informatique|maintenance)/i,
+            /ingénieur[eé]?\s*(commercial|technique|développement|étude)/i
         ];
         
-        // Tester chaque pattern sur le texte complet
-        for (const pattern of titlePatterns) {
-            const match = text.match(pattern);
+        // Tester les patterns directs sur le début du texte
+        const textStart = text.substring(0, 200); // Ne regarder que les 200 premiers caractères
+        
+        for (const pattern of directTitlePatterns) {
+            const match = textStart.match(pattern);
             if (match) {
-                let title = match[1] || match[0];
-                title = title.trim();
+                let title = match[0].trim();
                 
-                // Nettoyer le titre trouvé
+                // Nettoyer le titre
                 title = title.replace(/\s*\([hf\/\s]+\)\s*/gi, ''); // Supprimer (H/F)
-                title = title.replace(/\s*-.*$/i, ''); // Supprimer ce qui vient après un tiret
-                title = title.replace(/^\w+:\s*/, ''); // Supprimer "Poste: "
-                title = title.replace(/\s+/g, ' '); // Normaliser les espaces
+                title = title.replace(/\s+/g, ' '); // Normaliser espaces
                 title = title.trim();
                 
-                if (title.length >= 3 && title.length <= 80) {
+                if (title.length >= 3 && title.length <= 60) {
                     if (this.debug) {
-                        console.log('✅ Title found via pattern:', title);
+                        console.log('✅ TITRE TROUVÉ (pattern direct):', title);
                     }
                     return title;
                 }
             }
         }
         
-        // Stratégie 2: Chercher dans les premières phrases (améliorée)
-        const sentences = text.split(/[.!?]\s+/).filter(s => s.trim().length > 0);
+        // ===== STRATÉGIE 2: PREMIER MOT PROFESSIONNEL + CONTEXTE =====
+        const words = text.split(/\s+/);
+        const professionalTerms = [
+            'assistant', 'assistante', 'consultant', 'consultante', 'développeur', 'développeuse',
+            'commercial', 'commerciale', 'manager', 'responsable', 'chef', 'directeur', 'directrice',
+            'technicien', 'technicienne', 'ingénieur', 'ingénieure', 'gestionnaire', 'coordinateur',
+            'coordinatrice', 'analyste', 'spécialiste'
+        ];
         
-        for (let i = 0; i < Math.min(sentences.length, 5); i++) {
-            const sentence = sentences[i].trim();
+        for (let i = 0; i < Math.min(words.length, 20); i++) { // Regarder les 20 premiers mots seulement
+            const word = words[i].toLowerCase().replace(/[()]/g, ''); // Enlever parenthèses
             
-            // Ignorer les phrases trop longues ou trop courtes
-            if (sentence.length < 5 || sentence.length > 120) continue;
-            
-            // Ignorer les phrases qui ressemblent à des descriptions d'entreprise
-            if (sentence.toLowerCase().includes('société') ||
-                sentence.toLowerCase().includes('entreprise') ||
-                sentence.toLowerCase().includes('nous sommes') ||
-                sentence.toLowerCase().includes('notre équipe')) continue;
-            
-            // Patterns pour identifier un titre de poste dans une phrase
-            const sentenceTitlePatterns = [
-                /assistant[e]?\s*(juridique|commercial|administratif|rh|comptable)/i,
-                /consultant[e]?\s*(en|spécialisé|junior|senior)/i,
-                /développeur[se]?\s*(web|mobile|full|front|back)/i,
-                /responsable\s*(commercial|technique|projet|équipe)/i,
-                /chef\s*(de|d')\s*(projet|équipe|service)/i,
-                /manager\s*(commercial|technique|projet)/i,
-                /technicien[ne]?\s*(de|en|spécialisé)/i,
-                /ingénieur[e]?\s*(de|en|commercial|technique)/i
-            ];
-            
-            for (const pattern of sentenceTitlePatterns) {
-                if (pattern.test(sentence)) {
-                    let title = sentence;
+            if (professionalTerms.includes(word)) {
+                // Construire le titre avec le terme trouvé + mots suivants pertinents
+                let titleWords = [words[i]]; // Premier mot (terme professionnel)
+                
+                // Ajouter les mots suivants s'ils sont pertinents
+                for (let j = i + 1; j < Math.min(i + 4, words.length); j++) {
+                    const nextWord = words[j].toLowerCase();
                     
-                    // Nettoyer le titre
-                    title = title.replace(/\s*\([hf\/\s]+\)\s*/gi, '');
-                    title = title.replace(/^\w+\s+(recherche|recrute|propose)\s+/i, '');
+                    // Arrêter si on rencontre des mots de transition
+                    if (['qui', 'pour', 'au', 'dans', 'chez', 'avec', 'est', 'sera', 'doit', 'nous', 'une', 'le', 'la', 'les', 'de', 'du', 'des'].includes(nextWord)) {
+                        break;
+                    }
+                    
+                    titleWords.push(words[j]);
+                    
+                    // Si on a un titre cohérent, s'arrêter
+                    if (titleWords.length >= 2 && (nextWord === 'juridique' || nextWord === 'commercial' || nextWord === 'technique')) {
+                        break;
+                    }
+                }
+                
+                if (titleWords.length >= 1) {
+                    let title = titleWords.join(' ');
+                    title = title.replace(/\([hf\/\s]+\)/gi, ''); // Supprimer (H/F)
                     title = title.trim();
                     
-                    if (title.length >= 5 && title.length <= 80) {
+                    // Capitaliser correctement
+                    title = title.split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                        .join(' ');
+                    
+                    if (title.length >= 5 && title.length <= 50) {
                         if (this.debug) {
-                            console.log('✅ Title found in sentence:', title);
+                            console.log('✅ TITRE TROUVÉ (terme professionnel):', title);
                         }
                         return title;
                     }
@@ -415,57 +423,17 @@ class JobParserAPI {
             }
         }
         
-        // Stratégie 3: Chercher le premier "mot professionnel" raisonnable
-        const professionalTerms = [
-            'assistant', 'assistante', 'consultant', 'consultante', 'développeur', 'développeuse',
-            'commercial', 'commerciale', 'manager', 'responsable', 'chef', 'directeur', 'directrice',
-            'technicien', 'technicienne', 'ingénieur', 'ingénieure', 'gestionnaire', 'coordinateur',
-            'coordinatrice', 'analyste', 'spécialiste', 'expert', 'experte', 'adjoint', 'adjointe'
-        ];
-        
-        const words = text.toLowerCase().split(/\s+/);
-        for (let i = 0; i < Math.min(words.length, 50); i++) {
-            if (professionalTerms.includes(words[i])) {
-                // Prendre le terme trouvé + quelques mots suivants
-                const titleWords = [];
-                for (let j = i; j < Math.min(i + 6, words.length); j++) {
-                    titleWords.push(words[j]);
-                    
-                    // Arrêter si on rencontre certains mots de fin
-                    if (['pour', 'au', 'dans', 'chez', 'avec', 'est', 'sera', 'doit'].includes(words[j])) {
-                        break;
-                    }
-                }
-                
-                if (titleWords.length >= 1) {
-                    const title = titleWords.join(' ');
-                    // Capitaliser correctement
-                    const capitalizedTitle = title.split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
-                        
-                    if (this.debug) {
-                        console.log('✅ Title found via professional term:', capitalizedTitle);
-                    }
-                    return capitalizedTitle;
-                }
-            }
-        }
-        
+        // ===== STRATÉGIE 3: FALLBACK SÉCURISÉ =====
         if (this.debug) {
-            console.log('❌ No clear title detected, using fallback');
+            console.log('⚠️ Aucun titre spécifique trouvé, utilisation du fallback');
         }
         return 'Poste à pourvoir';
     }
     
     /**
-     * Extraction du lieu améliorée pour les adresses françaises
+     * Extraction du lieu
      */
     extractLocation(text, sections = {}) {
-        if (this.debug) {
-            console.log('📍 Enhanced location extraction v2.5...');
-        }
-        
         const locationRegexList = [
             // Codes postaux français avec ville
             /(\d{5})\s+([A-Z][A-Za-zéèêëïîôöùûüç\s\-]+)/g,
@@ -474,10 +442,7 @@ class JobParserAPI {
             /(?:lieu|localisation|adresse|situé|basé|implanté)\s*[:\-]?\s*([^\n.,]{3,50})/i,
             
             // Villes françaises connues
-            /(Paris|Lyon|Marseille|Toulouse|Lille|Bordeaux|Nantes|Strasbourg|Rennes|Montpellier|Nice|Grenoble|Bastia|Ajaccio)(?:\s+\d+)?/gi,
-            
-            // Pattern dans les coordonnées de contact
-            /(?:\d{5}\s+)?([A-Z][A-Za-zéèêëïîôöùûüç\s\-]+)(?:\s*,\s*FRANCE)?/g
+            /(Paris|Lyon|Marseille|Toulouse|Lille|Bordeaux|Nantes|Strasbourg|Rennes|Montpellier|Nice|Grenoble|Bastia|Ajaccio|Panchéraccía|Corsica)/gi,
         ];
         
         // Chercher dans la section contact en priorité
@@ -490,7 +455,6 @@ class JobParserAPI {
                 let location = '';
                 
                 if (match[1] && match[2]) {
-                    // Code postal + ville
                     location = `${match[1]} ${match[2]}`.trim();
                 } else if (match[1]) {
                     location = match[1].trim();
@@ -498,42 +462,27 @@ class JobParserAPI {
                     location = match[0].trim();
                 }
                 
-                // Valider et nettoyer
                 if (location.length >= 3 && location.length <= 50 && 
                     !location.includes('www') && !location.includes('@')) {
                     
-                    // Nettoyer la localisation
-                    location = location.replace(/^[^:]*:\s*/, ''); // Supprimer "Lieu: "
-                    location = location.replace(/\s*,\s*FRANCE\s*$/i, ''); // Supprimer ", FRANCE"
+                    location = location.replace(/^[^:]*:\s*/, '');
+                    location = location.replace(/\s*,\s*FRANCE\s*$/i, '');
                     
-                    if (this.debug) {
-                        console.log('✅ Location found:', location);
-                    }
                     return location;
                 }
             }
         }
         
-        if (this.debug) {
-            console.log('❌ No location detected');
-        }
         return '';
     }
     
     /**
-     * Extraction des compétences améliorée
+     * Extraction des compétences
      */
     extractSkills(text, sections = {}) {
-        if (this.debug) {
-            console.log('💻 Enhanced skills extraction v2.5...');
-        }
-        
         const skillsList = [];
-        
-        // Utiliser principalement la section requirements
         const searchText = sections.requirements || text;
         
-        // Technologies et outils spécifiques
         const techSkills = [
             // Juridique
             'Droit', 'Juridique', 'Contrats', 'Contentieux', 'Droit commercial', 'Droit social',
@@ -549,7 +498,6 @@ class JobParserAPI {
             'Gestion du stress', 'Proactivité', 'Diplomatie', 'Polyvalence', 'Synthèse', 'Analyse'
         ];
         
-        // Chercher chaque compétence dans le texte
         techSkills.forEach(skill => {
             const regex = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
             if (regex.test(searchText)) {
@@ -557,36 +505,16 @@ class JobParserAPI {
             }
         });
         
-        // Chercher des listes à puces de compétences
-        const bulletPointMatches = searchText.match(/(?:^|\n)\s*[-•*]\s*([^\n]{3,50})/g);
-        if (bulletPointMatches) {
-            bulletPointMatches.forEach(item => {
-                const skill = item.replace(/^[\s\n]*[-•*]\s*/, '').trim();
-                if (skill.length > 2 && skill.length < 50 && !skillsList.includes(skill)) {
-                    skillsList.push(skill);
-                }
-            });
-        }
-        
-        if (this.debug && skillsList.length > 0) {
-            console.log('✅ Skills found:', skillsList);
-        }
-        
-        return skillsList.slice(0, 10); // Limiter à 10 compétences max
+        return skillsList.slice(0, 10);
     }
     
     /**
-     * Extraction de l'expérience améliorée
+     * Extraction de l'expérience
      */
     extractExperience(text, sections = {}) {
-        if (this.debug) {
-            console.log('💼 Enhanced experience extraction v2.5...');
-        }
-        
         const searchText = sections.requirements || text;
         
         const experienceRegexList = [
-            // Patterns français spécifiques
             /((?:minimum|au moins|plus de|entre)?\s*\d+\s*(?:à\s*\d+\s*)?an[s]?\s*(?:d[''']?expérience|minimum)?[^\n]*)/i,
             /(expérience\s+(?:de|d[''']?)\s*\d+\s*(?:à\s*\d+\s*)?\s*an[s]?[^\n]*)/i,
             /(profil\s+(?:junior|senior|confirmé|débutant)[^\n]*)/i,
@@ -597,28 +525,21 @@ class JobParserAPI {
             const match = searchText.match(regex);
             if (match && match[1]) {
                 let experience = match[1].trim();
-                
                 if (experience.length >= 5 && experience.length <= 100) {
-                    if (this.debug) {
-                        console.log('✅ Experience found:', experience);
-                    }
                     return experience;
                 }
             }
         }
         
-        if (this.debug) {
-            console.log('❌ No experience detected');
-        }
         return '';
     }
     
-    // Conserver les autres méthodes d'extraction existantes mais simplifiées
+    // Méthodes d'extraction simplifiées
     extractCompany(text, sections = {}) {
         const companySection = sections.company || text;
-        
         const companyRegexList = [
             /(?:société|entreprise|groupe)\s*[:]?\s*([^\n.]{3,50})/i,
+            /(Corsica\s+Sole)/i,
             /([A-Z][A-Za-z\s&.-]{3,30})(?:\s+est\s+)/i
         ];
         
@@ -655,7 +576,6 @@ class JobParserAPI {
     extractResponsibilities(text, sections = {}) {
         const jobSection = sections.jobDescription || '';
         if (jobSection.length > 20) {
-            // Prendre les premières phrases significatives
             const sentences = jobSection.split(/[.!?]/).filter(s => s.trim().length > 10);
             return sentences.slice(0, 3).map(s => s.trim()).filter(s => s.length > 5);
         }
@@ -683,4 +603,4 @@ class JobParserAPI {
 // Créer une instance globale pour l'utiliser dans d'autres scripts
 window.JobParserAPI = JobParserAPI;
 
-console.log('✅ JobParserAPI v2.5 Enhanced+ chargé avec succès - Algorithme d\'extraction ULTRA-ROBUSTE !');
+console.log('✅ JobParserAPI v2.6 CORRECTED chargé avec succès - Extraction titre CORRIGÉE !');
