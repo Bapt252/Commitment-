@@ -1,9 +1,0 @@
-{
-  "report_period_days": 7,
-  "company_name": "SuperSmartMatch",
-  "precision_target": 95.0,
-  "precision_baseline": 82.0,
-  "satisfaction_target": 96.0,
-  "p95_latency_sla": 100,
-  "email_enabled": false
-}

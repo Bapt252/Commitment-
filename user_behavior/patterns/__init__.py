@@ -1,1 +1,0 @@
-"""Module de détection de patterns comportementaux."""

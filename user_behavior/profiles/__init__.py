@@ -1,1 +1,0 @@
-"""Module de création de profils utilisateur enrichis."""

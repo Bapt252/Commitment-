@@ -1,1 +1,0 @@
-"""Module de clustering utilisateur."""

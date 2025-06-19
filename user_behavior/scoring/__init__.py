@@ -1,1 +1,0 @@
-"""Module de calcul de scores de préférence."""
