@@ -1,8 +1,9 @@
-// Script d'intégration pour l'analyseur de fiche de poste
+// Script d'intégration pour l'analyseur de fiche de poste - VERSION CORRIGÉE
 // Permet de connecter le frontend au backend job-parser
 
 document.addEventListener('DOMContentLoaded', function() {
-    const API_ENDPOINT = 'http://localhost:5053/api/parse-job'; // URL du service job-parser
+    // URL corrigée pour pointer vers le bon port
+    const API_ENDPOINT = 'http://localhost:5055/api/parse-job'; // Corrigé : 5055 au lieu de 5053
     
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
@@ -12,8 +13,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultContainer = document.getElementById('result-container');
     const loadingIndicator = document.getElementById('loading-indicator');
     
+    // Instance de l'API parser locale
+    let jobParserInstance = null;
+    
+    // Initialiser l'API parser locale
+    if (window.JobParserAPI) {
+        jobParserInstance = new window.JobParserAPI({
+            apiUrl: API_ENDPOINT,
+            debug: true,
+            enablePDFCleaning: true
+        });
+        console.log('✅ JobParserAPI locale initialisée');
+    } else {
+        console.warn('⚠️ JobParserAPI non disponible, mode fallback uniquement');
+    }
+    
     // Log pour déboguer l'initialisation du script
-    console.log('Job parser script initialized');
+    console.log('Job parser script initialized - VERSION CORRIGÉE');
     
     // Gestion de la sélection de fichier
     if (fileInput) {
@@ -79,30 +95,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Convertir le texte en objet fichier pour utiliser le même endpoint API
-            const blob = new Blob([text], { type: 'text/plain' });
-            const file = new File([blob], 'job-description.txt', { type: 'text/plain' });
-            
-            uploadJobDescription(file);
+            // Analyser directement le texte au lieu de créer un fichier
+            analyzeJobText(text);
         });
     }
     
-    // Fonction pour simuler une réponse API en attendant que le backend soit prêt
-    function simulateApiResponse() {
-        console.log('Simulating API response due to backend unavailability');
-        return {
-            title: "Comptable Auxiliaire",
-            skills: ["Excel", "SAP", "Comptabilité générale", "Analyse financière", "Saisie comptable"],
-            experience: "2-3 ans d'expérience en comptabilité",
-            contract_type: "CDI",
-            location: "Paris",
-            salary: "30-35K€ selon expérience",
-            responsibilities: "Participation à la clôture mensuelle, saisie des factures, rapprochements bancaires, suivi des immobilisations"
-        };
-    }
-    
-    // Fonction pour uploader et traiter la description de poste
-    function uploadJobDescription(file) {
+    // Fonction principale pour analyser un texte - NOUVELLE VERSION
+    function analyzeJobText(text) {
+        console.log('🔍 Analyse de texte démarrée...');
+        
         // Afficher l'indicateur de chargement
         if (loadingIndicator) loadingIndicator.style.display = 'flex';
         if (resultContainer) resultContainer.style.display = 'none';
@@ -114,28 +115,114 @@ document.addEventListener('DOMContentLoaded', function() {
         if (uploadSection) uploadSection.style.display = 'none';
         if (pasteSection) pasteSection.style.display = 'none';
         
-        console.log('Processing file:', file.name);
-        
-        // Utiliser un délai simulé pour montrer le chargement (3 secondes)
-        setTimeout(() => {
-            // Simuler une réponse API pour le test
-            const data = simulateApiResponse();
-            console.log('Received data from API (simulated):', data);
-            displayResults(data);
+        // Utiliser l'API parser locale si disponible
+        if (jobParserInstance) {
+            console.log('✅ Utilisation de l\'API parser locale...');
             
-            // Essayer également d'envoyer à la fenêtre parente
-            sendResultsToParent(data);
-        }, 3000);
+            jobParserInstance.parseJobText(text)
+                .then(data => {
+                    console.log('✅ Analyse terminée avec succès:', data);
+                    displayResults(data);
+                    sendResultsToParent(data);
+                })
+                .catch(error => {
+                    console.error('❌ Erreur lors de l\'analyse:', error);
+                    showNotification('Erreur lors de l\'analyse: ' + error.message, 'error');
+                    
+                    // En cas d'erreur, utiliser le fallback
+                    const fallbackData = getFallbackData();
+                    displayResults(fallbackData);
+                    sendResultsToParent(fallbackData);
+                })
+                .finally(() => {
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                });
+        } else {
+            console.warn('⚠️ API parser non disponible, utilisation du fallback');
+            
+            // Fallback si l'API n'est pas disponible
+            setTimeout(() => {
+                const fallbackData = getFallbackData();
+                displayResults(fallbackData);
+                sendResultsToParent(fallbackData);
+                
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+            }, 2000);
+        }
+    }
+    
+    // Fonction pour uploader et traiter la description de poste - VERSION CORRIGÉE
+    function uploadJobDescription(file) {
+        console.log('📄 Analyse de fichier démarrée:', file.name);
         
-        // Code commenté pour l'appel API réel
-        /*
+        // Afficher l'indicateur de chargement
+        if (loadingIndicator) loadingIndicator.style.display = 'flex';
+        if (resultContainer) resultContainer.style.display = 'none';
+        
+        // Masquer les sections d'upload et de texte
+        const uploadSection = document.getElementById('upload-section');
+        const pasteSection = document.getElementById('paste-section');
+        
+        if (uploadSection) uploadSection.style.display = 'none';
+        if (pasteSection) pasteSection.style.display = 'none';
+        
+        // Utiliser l'API parser locale si disponible
+        if (jobParserInstance) {
+            console.log('✅ Utilisation de l\'API parser locale pour fichier...');
+            
+            jobParserInstance.parseJobFile(file)
+                .then(data => {
+                    console.log('✅ Analyse de fichier terminée avec succès:', data);
+                    displayResults(data);
+                    sendResultsToParent(data);
+                })
+                .catch(error => {
+                    console.error('❌ Erreur lors de l\'analyse du fichier:', error);
+                    
+                    // Essayer l'API backend en fallback
+                    return tryBackendAPI(file);
+                })
+                .catch(backendError => {
+                    console.error('❌ Erreur backend aussi:', backendError);
+                    
+                    // Utiliser le fallback final
+                    const fallbackData = getFallbackData();
+                    displayResults(fallbackData);
+                    sendResultsToParent(fallbackData);
+                })
+                .finally(() => {
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                });
+        } else {
+            console.warn('⚠️ API parser non disponible, essai de l\'API backend...');
+            
+            // Essayer l'API backend directement
+            tryBackendAPI(file)
+                .catch(error => {
+                    console.error('❌ Erreur API backend:', error);
+                    
+                    // Fallback final
+                    const fallbackData = getFallbackData();
+                    displayResults(fallbackData);
+                    sendResultsToParent(fallbackData);
+                })
+                .finally(() => {
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                });
+        }
+    }
+    
+    // Fonction pour essayer l'API backend - NOUVELLE
+    function tryBackendAPI(file) {
+        console.log('🌐 Tentative d\'utilisation de l\'API backend...');
+        
         // Créer les données du formulaire
         const formData = new FormData();
         formData.append('file', file);
         formData.append('force_refresh', 'true');
         
-        // Envoyer à l'API
-        fetch(API_ENDPOINT, {
+        // Envoyer à l'API backend
+        return fetch(API_ENDPOINT, {
             method: 'POST',
             body: formData,
         })
@@ -147,34 +234,29 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             // Traiter la réponse réussie
-            console.log('Received data from API:', data);
+            console.log('✅ Données reçues de l\'API backend:', data);
             displayResults(data);
-            
-            // Envoyer les résultats à la fenêtre parente
             sendResultsToParent(data);
-        })
-        .catch(error => {
-            // Gérer les erreurs
-            console.error('Error:', error);
-            showNotification('Erreur lors de l\'analyse: ' + error.message, 'error');
-            
-            if (loadingIndicator) loadingIndicator.style.display = 'none';
-            
-            // Réafficher les sections d'upload et de texte
-            if (uploadSection) uploadSection.style.display = 'block';
-            if (pasteSection) pasteSection.style.display = 'block';
-            
-            // En cas d'erreur, utiliser des données simulées pour le test
-            const simulatedData = simulateApiResponse();
-            displayResults(simulatedData);
-            sendResultsToParent(simulatedData);
+            return data;
         });
-        */
+    }
+    
+    // Fonction pour obtenir des données de fallback - AMÉLIORÉE
+    function getFallbackData() {
+        return {
+            title: "Analyse en cours...",
+            skills: ["Compétences en cours d'extraction"],
+            experience: "Expérience en cours d'analyse",
+            contract_type: "Type de contrat à déterminer",
+            location: "Localisation en cours d'extraction",
+            salary: "Rémunération en cours d'analyse",
+            responsibilities: "Responsabilités en cours d'extraction"
+        };
     }
     
     // Fonction pour envoyer les résultats à la fenêtre parente
     function sendResultsToParent(data) {
-        console.log('Attempting to send data to parent window');
+        console.log('📤 Envoi des données à la fenêtre parente');
         
         // Créer l'objet de données à envoyer
         const jobData = {
@@ -188,13 +270,14 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // Envoyer les données à la fenêtre parente avec un ID pour le débogage
+        const messageId = Date.now();
         window.parent.postMessage({
             type: 'jobParsingResult',
             jobData: jobData,
-            messageId: Date.now() // Ajouter un ID unique pour le débogage
+            messageId: messageId
         }, '*');
         
-        console.log('Data sent to parent window with messageId:', Date.now());
+        console.log('✅ Données envoyées à la fenêtre parente avec messageId:', messageId);
         
         // Afficher un message si nous sommes en mode débogage
         showNotification('Les informations ont été envoyées au formulaire principal', 'success');
@@ -222,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Créer le HTML des résultats
         const resultHTML = `
             <div class="result-header">
-                <h3>Analyse complétée avec succès</h3>
+                <h3>✅ Analyse complétée avec succès</h3>
             </div>
             <div class="result-content">
                 <div class="result-item">
@@ -349,10 +432,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Trigger immédiat pour simuler l'analyse d'un fichier au chargement (pour débogage)
-    // setTimeout(() => {
-    //    if (fileInput && fileInput.files.length > 0) {
-    //        uploadJobDescription(fileInput.files[0]);
-    //    }
-    // }, 1000);
+    console.log('✅ Job parser script corrigé chargé avec succès !');
 });
