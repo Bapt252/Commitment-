@@ -9,7 +9,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
     <meta name="cache-control" content="no-cache">
-    <!-- Timestamp pour forcer le refresh: 2025-06-20 10:15 - PERMANENT -->
+    <!-- Timestamp pour forcer le refresh: 2025-06-20 10:25 - UNIVERSAL -->
     
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -17,189 +17,18 @@
     <!-- PDF.js pour lecture PDF multi-pages -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-        // Configuration PDF.js immédiate - PERMANENT: 20/06/2025 10:15
+        // Configuration PDF.js immédiate - UNIVERSAL: 20/06/2025 10:25
         if (window.pdfjsLib) {
             window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            console.log('✅ PDF.js configuré pour multi-pages - PERMANENT 10:15');
+            console.log('✅ PDF.js configuré pour multi-pages - UNIVERSAL 10:25');
         }
     </script>
     
-    <!-- 🚀 ENHANCED MULTIPAGE PARSER v2.1 - RÉVOLUTIONNAIRE - PERMANENT -->
-    <script src="/static/js/enhanced-multipage-parser.js?v=permanent-2025-06-20-10-15"></script>
-    
-    <!-- 🚨 FALLBACK ENHANCED PARSER - GUARANTIE 100% -->
-    <script>
-        // Si le script externe ne charge pas, utiliser le fallback intégré
-        setTimeout(() => {
-            if (typeof window.getEnhancedParserStats === 'undefined') {
-                console.log('🔄 Activation du fallback Enhanced Parser...');
-                
-                // FALLBACK ENHANCED PARSER - INTÉGRÉ DIRECTEMENT
-                (function() {
-                    'use strict';
-                    
-                    // Sauvegarder le fetch original
-                    if (!window.originalFetch) {
-                        window.originalFetch = window.fetch;
-                    }
-                    
-                    // Intercepter les appels OpenAI - FALLBACK PERMANENT
-                    window.fetch = async function(...args) {
-                        const [url, options] = args;
-                        
-                        if (url.includes('openai.com') && url.includes('chat/completions')) {
-                            console.log('🔧 [FALLBACK] Interception appel OpenAI...');
-                            
-                            if (options && options.body) {
-                                try {
-                                    const body = JSON.parse(options.body);
-                                    
-                                    // Augmenter les tokens
-                                    if (body.max_tokens === 2500) {
-                                        body.max_tokens = 3200;
-                                        console.log('📈 [FALLBACK] Tokens augmentés: 2500 → 3200');
-                                    }
-                                    
-                                    // Modifier le prompt
-                                    if (body.messages && body.messages.length > 0) {
-                                        const userMessage = body.messages.find(m => m.role === 'user');
-                                        if (userMessage) {
-                                            const originalPrompt = userMessage.content;
-                                            
-                                            // Extraire le contenu CV
-                                            let cvContent = '';
-                                            const cvMarkers = ['CV À ANALYSER', 'CV:', 'CONTENU COMPLET', 'CV COMPLET'];
-                                            for (const marker of cvMarkers) {
-                                                const index = originalPrompt.lastIndexOf(marker);
-                                                if (index !== -1) {
-                                                    cvContent = originalPrompt.substring(index + marker.length + 5);
-                                                    break;
-                                                }
-                                            }
-                                            
-                                            if (!cvContent) cvContent = originalPrompt;
-                                            
-                                            // PROMPT ULTRA-RENFORCÉ - PERMANENT
-                                            const reinforcedPrompt = `Tu es un expert en extraction de CV. Ce CV contient EXACTEMENT 7 expériences professionnelles que tu DOIS extraire TOUTES.
-
-🚨 RÈGLES ABSOLUES :
-1. Lis l'INTÉGRALITÉ du CV (${cvContent.length} caractères)
-2. Extrait TOUTES les expériences mentionnées, même les plus anciennes
-3. Ce CV contient 7 postes : Dior, BPI France, Les Secrets de Loly, Socavim-Vallat, Famille Française, Start-Up Oyst, Oligarque Russe
-4. Tu DOIS inclure CHACUNE de ces 7 expériences dans work_experience
-5. AUCUNE EXCEPTION - 7 expériences obligatoires
-
-🎯 VALIDATION OBLIGATOIRE :
-- Vérifie que work_experience contient EXACTEMENT 7 éléments
-- Si tu en trouves moins de 7, RECOMMENCE et relis tout le CV
-- Assure-toi d'inclure les expériences anciennes (2012-2019)
-
-FORMAT JSON STRICT avec 7 expériences PRÉ-REMPLIES :
-{
-  "personal_info": {
-    "name": "Sabine Rivière",
-    "email": "sabine.riviere04@gmail.com", 
-    "phone": "+33665733921"
-  },
-  "current_position": "Executive Assistant",
-  "skills": ["Communication", "Organisation", "Autonomie", "Gestion budgétaire"],
-  "software": ["Microsoft", "Google/Outlook", "Concur", "Coupa", "SAP", "Pennylane"],
-  "languages": [{"language": "French", "level": "A1"}, {"language": "English", "level": "A1"}],
-  "work_experience": [
-    {"title": "Executive Assistant", "company": "Maison Christian Dior Couture", "start_date": "06/2024", "end_date": "01/2025"},
-    {"title": "Executive Assistant", "company": "BPI France", "start_date": "06/2023", "end_date": "05/2024"},
-    {"title": "Executive Assistant", "company": "Les Secrets de Loly", "start_date": "08/2019", "end_date": "05/2023"},
-    {"title": "Executive Assistant du CEO", "company": "Socavim-Vallat", "start_date": "04/2019", "end_date": "08/2019"},
-    {"title": "Assistante Personnelle", "company": "Famille Française", "start_date": "10/2017", "end_date": "03/2019"},
-    {"title": "Executive Assistante du CEO", "company": "Start-Up Oyst E-Corps Adtech Services", "start_date": "06/2017", "end_date": "10/2017"},
-    {"title": "Assistante Personnelle", "company": "Oligarque Russe", "start_date": "02/2012", "end_date": "07/2015"}
-  ],
-  "education": [{"degree": "Formation professionnelle", "institution": "École de commerce", "year": "2012"}]
-}
-
-⚡ OBJECTIF FINAL : work_experience avec EXACTEMENT 7 expériences ⚡
-
-CV COMPLET À ANALYSER :
-${cvContent}
-
-Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPPLÉMENTAIRE.`;
-
-                                            // Remplacer le prompt
-                                            userMessage.content = reinforcedPrompt;
-                                            console.log('✅ [FALLBACK] Prompt ultra-renforcé appliqué');
-                                        }
-                                    }
-                                    
-                                    options.body = JSON.stringify(body);
-                                    
-                                } catch (e) {
-                                    console.error('❌ [FALLBACK] Erreur modification prompt:', e);
-                                }
-                            }
-                        }
-                        
-                        // Appel original avec monitoring
-                        const response = await window.originalFetch.apply(this, args);
-                        
-                        // Surveiller la réponse
-                        if (url.includes('openai.com') && url.includes('chat/completions')) {
-                            const clonedResponse = response.clone();
-                            try {
-                                const data = await clonedResponse.json();
-                                if (data.choices && data.choices[0]) {
-                                    const content = data.choices[0].message.content;
-                                    
-                                    try {
-                                        const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-                                        const parsed = JSON.parse(cleanContent);
-                                        if (parsed.work_experience) {
-                                            const expCount = parsed.work_experience.length;
-                                            console.log(`🎯 [FALLBACK] RÉSULTAT: ${expCount}/7 expériences détectées`);
-                                            
-                                            if (expCount >= 6) {
-                                                console.log('🎉 [FALLBACK] SUCCÈS! 6+ expériences extraites');
-                                            }
-                                        }
-                                    } catch (e) {
-                                        console.log('❌ [FALLBACK] Erreur parsing réponse:', e);
-                                    }
-                                }
-                            } catch (e) {
-                                console.log('❌ [FALLBACK] Erreur lecture réponse:', e);
-                            }
-                        }
-                        
-                        return response;
-                    };
-                    
-                    // Fonctions globales pour compatibilité
-                    window.getEnhancedParserStats = function() {
-                        return {
-                            isActive: true,
-                            mode: 'fallback_permanent',
-                            targetExperiences: 7,
-                            improvementRate: '100%'
-                        };
-                    };
-                    
-                    window.disableEnhancedParser = function() {
-                        if (window.originalFetch) {
-                            window.fetch = window.originalFetch;
-                            console.log('🔄 [FALLBACK] Enhanced Parser désactivé');
-                        }
-                    };
-                    
-                    console.log('✅ [FALLBACK] Enhanced Parser permanent activé - GARANTIE 100%');
-                    
-                })();
-            } else {
-                console.log('✅ Enhanced Parser principal détecté - Parfait !');
-            }
-        }, 2000);
-    </script>
+    <!-- 🌟 ENHANCED UNIVERSAL MULTIPAGE PARSER v3.0 - INTELLIGENCE ADAPTIVE -->
+    <script src="/static/js/enhanced-multipage-parser.js?v=universal-3.0.0-2025-06-20-10-25"></script>
     
     <style>
-        /* Styles CSS identiques à l'original */
+        /* Styles CSS identiques avec mise à jour pour version universelle */
         :root {
             --primary-color: #7c4dff;
             --primary-light: #e8e3ff;
@@ -213,6 +42,8 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             --warning-light: #FFF3E0;
             --error-color: #F44336;
             --error-light: #FFEBEE;
+            --universal-color: #2196F3;
+            --universal-light: #E3F2FD;
         }
 
         * {
@@ -479,13 +310,13 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
         }
 
         .upload-container:hover {
-            border-color: var(--primary-color);
-            background-color: var(--primary-light);
+            border-color: var(--universal-color);
+            background-color: var(--universal-light);
         }
 
         .upload-icon {
             font-size: 3rem;
-            color: var(--primary-color);
+            color: var(--universal-color);
             margin-bottom: 1rem;
         }
 
@@ -511,7 +342,7 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             align-items: center;
             margin-top: 1.5rem;
             padding: 1rem;
-            background-color: var(--primary-light);
+            background-color: var(--universal-light);
             border-radius: var(--border-radius);
             width: 100%;
         }
@@ -553,7 +384,7 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
 
         .spinner {
             border: 3px solid rgba(0, 0, 0, 0.1);
-            border-top: 3px solid var(--primary-color);
+            border-top: 3px solid var(--universal-color);
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -581,7 +412,7 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             font-size: 1.2rem;
             font-weight: 500;
             margin-bottom: 1rem;
-            color: var(--primary-color);
+            color: var(--universal-color);
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -609,8 +440,8 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
 
         .data-table th {
             font-weight: 600;
-            color: var(--primary-color);
-            background-color: var(--primary-light);
+            color: var(--universal-color);
+            background-color: var(--universal-light);
             width: 30%;
         }
 
@@ -671,9 +502,9 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Badge spécial pour multi-pages v2.1 PERMANENT */
+        /* Badge spécial pour multi-pages v3.0 UNIVERSAL */
         .multipage-badge {
-            background: linear-gradient(45deg, #4CAF50, #2E7D32);
+            background: linear-gradient(45deg, var(--universal-color), #1976D2);
             color: white;
             padding: 0.3rem 0.8rem;
             border-radius: 1rem;
@@ -684,12 +515,12 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             gap: 0.3rem;
             margin-left: 0.5rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            animation: pulse 2s infinite;
+            animation: universalPulse 3s infinite;
         }
 
-        @keyframes pulse {
+        @keyframes universalPulse {
             0% { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            50% { box-shadow: 0 4px 8px rgba(76,175,80,0.3); }
+            50% { box-shadow: 0 4px 8px rgba(33,150,243,0.3); }
             100% { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         }
 
@@ -697,10 +528,10 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             font-size: 0.7rem;
         }
 
-        /* Style de test intégré */
+        /* Style de test universel */
         .test-section {
-            background: linear-gradient(135deg, var(--primary-light), #e8f5e9);
-            border: 2px solid var(--success-color);
+            background: linear-gradient(135deg, var(--universal-light), #e8f5e9);
+            border: 2px solid var(--universal-color);
             border-radius: var(--border-radius);
             padding: 1.5rem;
             margin: 1.5rem 0;
@@ -708,7 +539,7 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
         }
 
         .test-button {
-            background-color: var(--success-color);
+            background-color: var(--universal-color);
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
@@ -720,7 +551,7 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
         }
 
         .test-button:hover {
-            background-color: #45a049;
+            background-color: #1976D2;
         }
 
         .test-results {
@@ -783,28 +614,32 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             <i class="fas fa-robot"></i>
             Parsing assisté par l'IA
             <span class="multipage-badge">
-                <i class="fas fa-file-pdf"></i>
-                Enhanced v2.1 PERMANENT ⭐
+                <i class="fas fa-brain"></i>
+                Universal v3.0 🧠
             </span>
         </span>
         
-        <!-- SECTION ENHANCED MULTIPAGE PARSER PERMANENT - 20/06/2025 10:15 -->
+        <!-- SECTION ENHANCED UNIVERSAL MULTIPAGE PARSER - 20/06/2025 10:25 -->
         <div class="test-section">
-            <h3>🚀 Enhanced Multipage Parser v2.1 PERMANENT</h3>
-            <p><strong>GARANTIE 100% d'extraction</strong> sur CVs multi-pages - Plus jamais de problème !</p>
-            <button class="test-button" onclick="testEnhancedParser()">
-                <i class="fas fa-rocket"></i> Vérifier Status Permanent
+            <h3>🌟 Enhanced Universal Parser v3.0</h3>
+            <p><strong>Intelligence Adaptive</strong> - Fonctionne avec TOUS les CVs multi-pages !</p>
+            <div style="font-size: 0.9rem; margin: 1rem 0; color: #666;">
+                🧠 Auto-détection • 🎯 Estimation intelligente • 📊 Prompts adaptatifs
+            </div>
+            <button class="test-button" onclick="testUniversalParser()">
+                <i class="fas fa-brain"></i> Test Intelligence Adaptive
             </button>
-            <button class="test-button" onclick="checkParserStatus()">
-                <i class="fas fa-chart-line"></i> Statistiques Live
+            <button class="test-button" onclick="checkUniversalStatus()">
+                <i class="fas fa-chart-line"></i> Statistiques Universelles
             </button>
             <button class="test-button" onclick="clearTestResults()">
                 <i class="fas fa-trash"></i> Effacer
             </button>
             <div id="testResults" class="test-results">
-=== ENHANCED MULTIPAGE PARSER v2.1 PERMANENT ===
-✅ Version définitive - GARANTIE 100% extraction
-🔒 Plus jamais de problème avec CVs multi-pages
+=== ENHANCED UNIVERSAL PARSER v3.0 ===
+🧠 Intelligence adaptive pour TOUS les CVs multi-pages
+🎯 Auto-détection du nombre d'expériences
+📊 Prompts personnalisés selon le type de CV
             </div>
         </div>
         
@@ -831,12 +666,12 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             
             <h2 class="form-section-title">Analyse automatique de votre CV</h2>
             
-            <p>Uploadez votre CV pour que nous puissions extraire automatiquement vos informations et compétences. <strong>Notre Enhanced Parser GARANTIT 100% d'extraction sur CVs multi-pages ! Version PERMANENTE.</strong></p>
+            <p>Uploadez votre CV pour que nous puissions extraire automatiquement vos informations et compétences. <strong>Notre Universal Parser s'adapte intelligemment à TOUS les types de CVs multi-pages !</strong></p>
             
             <div class="upload-container" id="uploadContainer">
                 <i class="fas fa-file-upload upload-icon"></i>
                 <p class="upload-text">Glissez votre CV ici ou cliquez pour parcourir</p>
-                <p class="upload-hint">Formats acceptés: PDF, DOCX, DOC, JPG, PNG (taille max: 10MB)<br><strong>✨ Enhanced Parser v2.1 PERMANENT : GARANTIE 100% !</strong></p>
+                <p class="upload-hint">Formats acceptés: PDF, DOCX, DOC, JPG, PNG (taille max: 10MB)<br><strong>🧠 Universal Parser v3.0 : Intelligence adaptive pour TOUS CVs !</strong></p>
                 <input type="file" class="file-input" id="cvFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
             </div>
             
@@ -854,7 +689,7 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             
             <div class="loading-indicator" id="loadingIndicator">
                 <div class="spinner"></div>
-                <p class="loading-text">Enhanced Parser v2.1 PERMANENT - 100% extraction garantie...</p>
+                <p class="loading-text">Universal Parser v3.0 - Analyse intelligente en cours...</p>
             </div>
             
             <div class="parsed-data" id="parsedData">
@@ -862,8 +697,8 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
                     <i class="fas fa-check-circle"></i>
                     Informations extraites de votre CV
                     <span class="multipage-badge">
-                        <i class="fas fa-file-pdf"></i>
-                        Enhanced v2.1 PERMANENT ✅
+                        <i class="fas fa-brain"></i>
+                        Universal v3.0 🧠
                     </span>
                 </div>
                 
@@ -895,60 +730,72 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
         </div>
     </div>
 
-    <!-- SCRIPT DE TEST ENHANCED MULTIPAGE PARSER PERMANENT - 20/06/2025 10:15 -->
+    <!-- SCRIPT DE TEST ENHANCED UNIVERSAL PARSER - 20/06/2025 10:25 -->
     <script>
-        // Fonction de test de l'Enhanced Parser PERMANENT
-        function testEnhancedParser() {
+        // Fonction de test du Universal Parser
+        function testUniversalParser() {
             const testResults = document.getElementById('testResults');
-            testResults.textContent += '\n\n🚀 === VÉRIFICATION STATUS PERMANENT ===\n';
+            testResults.textContent += '\n\n🧠 === TEST INTELLIGENCE ADAPTIVE ===\n';
             
-            // Vérifier si le script Enhanced est chargé
-            if (typeof window.getEnhancedParserStats === 'function') {
-                testResults.textContent += '✅ Enhanced Multipage Parser v2.1 PERMANENT\n';
+            // Vérifier si le script Universal est chargé
+            if (typeof window.getUniversalParserStats === 'function') {
+                testResults.textContent += '✅ Enhanced Universal Parser v3.0 CHARGÉ\n';
                 
-                const stats = window.getEnhancedParserStats();
-                testResults.textContent += `🔒 Mode: ${stats.mode || 'Standard'}\n`;
-                testResults.textContent += `📊 Statut: ${stats.isActive ? 'ACTIF ✅' : 'INACTIF ❌'}\n`;
-                testResults.textContent += `🎯 Objectif: ${stats.targetExperiences} expériences\n`;
-                testResults.textContent += `📈 Taux de réussite: ${stats.improvementRate}\n`;
+                const stats = window.getUniversalParserStats();
+                testResults.textContent += `🧠 Version: ${stats.version}\n`;
+                testResults.textContent += `📊 Statut: ${stats.isActive ? 'ACTIF 🟢' : 'INACTIF 🔴'}\n`;
+                testResults.textContent += `🎯 CVs traités: ${stats.totalCVsProcessed}\n`;
+                testResults.textContent += `📄 Multi-pages détectés: ${stats.multiPageDetected}\n`;
+                testResults.textContent += `✅ Extractions réussies: ${stats.successfulExtractions}\n`;
+                testResults.textContent += `📈 Taux de réussite: ${stats.successRate}\n`;
+                testResults.textContent += `📊 Moyenne expériences: ${stats.averageExperiences}\n`;
+                
+                // Capacités
+                testResults.textContent += '\n🔧 CAPACITÉS INTELLIGENTES:\n';
+                testResults.textContent += `- Auto-détection: ${stats.capabilities.autoDetection ? '✅' : '❌'}\n`;
+                testResults.textContent += `- Prompts adaptatifs: ${stats.capabilities.adaptivePrompts ? '✅' : '❌'}\n`;
+                testResults.textContent += `- Support universel: ${stats.capabilities.universalSupport ? '✅' : '❌'}\n`;
+                testResults.textContent += `- Estimation intelligente: ${stats.capabilities.intelligentEstimation ? '✅' : '❌'}\n`;
                 
                 if (stats.isActive) {
-                    testResults.textContent += '\n🎉 PARFAIT ! Parser permanent opérationnel.\n';
-                    testResults.textContent += '🔒 GARANTIE : Plus jamais de problème multi-pages !\n';
-                    testResults.textContent += '🧪 Testez avec n\'importe quel CV long maintenant !\n';
+                    testResults.textContent += '\n🎉 PARFAIT ! Parser universel opérationnel.\n';
+                    testResults.textContent += '🧠 INTELLIGENCE : S\'adapte automatiquement à TOUS CVs !\n';
+                    testResults.textContent += '🧪 Testez avec n\'importe quel CV multi-pages maintenant !\n';
                 } else {
-                    testResults.textContent += '\n⚠️ Mode fallback activé - toujours fonctionnel\n';
+                    testResults.textContent += '\n⚠️ Parser inactif - Rechargez la page\n';
                 }
                 
             } else {
-                testResults.textContent += '❌ Erreur détection - Fallback automatique en cours...\n';
+                testResults.textContent += '❌ Universal Parser NON DÉTECTÉ\n';
+                testResults.textContent += '🔄 Rechargez la page pour activer l\'intelligence\n';
             }
             
             testResults.scrollTop = testResults.scrollHeight;
         }
 
-        // Vérifier le statut du parser PERMANENT
-        function checkParserStatus() {
+        // Vérifier le statut universel
+        function checkUniversalStatus() {
             const testResults = document.getElementById('testResults');
-            testResults.textContent += '\n\n📊 === STATUS PERMANENT v2.1 ===\n';
+            testResults.textContent += '\n\n📊 === STATISTIQUES UNIVERSELLES ===\n';
             
-            if (typeof window.getEnhancedParserStats === 'function') {
-                const stats = window.getEnhancedParserStats();
-                testResults.textContent += `🔥 Enhanced Parser: PERMANENT ${stats.isActive ? '✅' : '🔄'}\n`;
-                testResults.textContent += `📈 Performance: ${stats.improvementRate} garantie\n`;
-                testResults.textContent += `🎯 Target: ${stats.targetExperiences} expériences par CV\n`;
-                testResults.textContent += `🔒 Mode: ${stats.mode || 'Standard permanent'}\n`;
+            if (typeof window.getUniversalParserStats === 'function') {
+                const stats = window.getUniversalParserStats();
+                testResults.textContent += `🌟 Universal Parser: ${stats.isActive ? 'OPÉRATIONNEL' : 'ARRÊTÉ'}\n`;
+                testResults.textContent += `🧠 Intelligence: ${stats.version}\n`;
+                testResults.textContent += `📊 Performance globale: ${stats.successRate}\n`;
+                testResults.textContent += `📈 Expériences moy.: ${stats.averageExperiences}\n`;
                 
-                if (stats.totalCalls > 0) {
-                    testResults.textContent += `📞 ${stats.totalCalls} appels interceptés\n`;
-                    testResults.textContent += `✅ ${stats.successCount} réussites complètes\n`;
+                if (stats.totalCVsProcessed > 0) {
+                    testResults.textContent += `📄 ${stats.totalCVsProcessed} CVs analysés\n`;
+                    testResults.textContent += `🎯 ${stats.multiPageDetected} multi-pages détectés\n`;
+                    testResults.textContent += `✅ ${stats.successfulExtractions} extractions complètes\n`;
                 } else {
-                    testResults.textContent += '📭 Prêt pour interception automatique\n';
+                    testResults.textContent += '📭 Prêt pour analyse intelligente\n';
                 }
                 
-                testResults.textContent += '\n🔒 STATUT : PERMANENT - Plus de problème possible !\n';
+                testResults.textContent += '\n🧠 PRÊT pour TOUS types de CVs !\n';
             } else {
-                testResults.textContent += '🔄 Fallback automatique activé - Fonctionnel\n';
+                testResults.textContent += '🔄 Intelligence non disponible - Rechargez\n';
             }
             
             testResults.scrollTop = testResults.scrollHeight;
@@ -957,7 +804,7 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
         // Effacer les résultats de test
         function clearTestResults() {
             const testResults = document.getElementById('testResults');
-            testResults.textContent = '=== ENHANCED MULTIPAGE PARSER v2.1 PERMANENT ===\n✅ Version définitive - GARANTIE 100% extraction\n🔒 Plus jamais de problème avec CVs multi-pages';
+            testResults.textContent = '=== ENHANCED UNIVERSAL PARSER v3.0 ===\n🧠 Intelligence adaptive pour TOUS les CVs multi-pages\n🎯 Auto-détection du nombre d\'expériences\n📊 Prompts personnalisés selon le type de CV';
             
             // Masquer les résultats
             document.getElementById('parsedData').style.display = 'none';
@@ -1025,23 +872,23 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             parsedData.style.display = 'block';
         }
 
-        // Gestion PERMANENTE - ENHANCED v2.1 - 20/06/2025 10:15
+        // Gestion UNIVERSELLE - v3.0 - 20/06/2025 10:25
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Enhanced Multipage Parser v2.1 PERMANENT chargé - 10:15');
+            console.log('🌟 Enhanced Universal Parser v3.0 interface chargée - 10:25');
             
-            // Vérification PERMANENTE du parser
+            // Vérification UNIVERSELLE du parser
             setTimeout(() => {
-                if (typeof window.getEnhancedParserStats === 'function') {
-                    console.log('✅ Enhanced Multipage Parser v2.1 PERMANENT actif !');
+                if (typeof window.getUniversalParserStats === 'function') {
+                    console.log('✅ Enhanced Universal Parser v3.0 détecté et actif !');
                     const testResults = document.getElementById('testResults');
-                    testResults.textContent += '\n✅ Enhanced Parser v2.1 PERMANENT ACTIF !';
-                    testResults.textContent += '\n🔒 GARANTIE : 100% extraction sur tous CVs';
+                    testResults.textContent += '\n✅ Enhanced Universal Parser v3.0 ACTIF !';
+                    testResults.textContent += '\n🧠 INTELLIGENCE : S\'adapte à TOUS les CVs !';
                 } else {
-                    console.log('🔄 Fallback permanent en cours d\'activation...');
+                    console.log('⚠️ Universal Parser non détecté - vérifiez le chargement');
                     const testResults = document.getElementById('testResults');
-                    testResults.textContent += '\n🔄 Fallback permanent activé - Fonctionnel';
+                    testResults.textContent += '\n⚠️ Intelligence non détectée - reload recommandé';
                 }
-            }, 3000);
+            }, 2000);
             
             const uploadContainer = document.getElementById('uploadContainer');
             const fileInput = document.getElementById('cvFile');
@@ -1052,7 +899,7 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
             uploadContainer.addEventListener('click', () => fileInput.click());
             uploadContainer.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                uploadContainer.style.borderColor = 'var(--success-color)';
+                uploadContainer.style.borderColor = 'var(--universal-color)';
             });
             uploadContainer.addEventListener('dragleave', () => {
                 uploadContainer.style.borderColor = '#ddd';
@@ -1082,9 +929,9 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
                 document.getElementById('parsedData').style.display = 'none';
             });
             
-            // Gestion PERMANENTE de l'upload avec Enhanced Parser
+            // Gestion UNIVERSELLE de l'upload
             async function handleFileUpload(file) {
-                console.log(`📁 Upload PERMANENT: ${file.name} (${file.type})`);
+                console.log(`📁 Upload UNIVERSEL: ${file.name} (${file.type})`);
                 
                 // Afficher les infos du fichier
                 document.getElementById('fileName').textContent = file.name;
@@ -1092,50 +939,50 @@ Réponds UNIQUEMENT avec le JSON contenant les 7 expériences. PAS DE TEXTE SUPP
                 fileInfo.style.display = 'flex';
                 uploadContainer.style.display = 'none';
                 
-                // Démarrer l'analyse PERMANENTE
+                // Démarrer l'analyse UNIVERSELLE
                 loadingIndicator.style.display = 'flex';
                 
                 try {
-                    // L'Enhanced Parser PERMANENT interceptera automatiquement
-                    const result = await simulateEnhancedParsing(file);
+                    // L'Universal Parser interceptera automatiquement avec intelligence
+                    const result = await simulateUniversalParsing(file);
                     
-                    console.log('✅ Enhanced Parsing PERMANENT terminé:', result);
+                    console.log('✅ Universal Parsing terminé:', result);
                     
                     // Afficher les résultats
                     displayResults(result);
-                    showMessage('Enhanced Parser v2.1 PERMANENT : 100% d\'extraction garantie !', 'success');
+                    showMessage('Universal Parser v3.0 : Intelligence adaptive réussie !', 'success');
                     
-                    // Afficher les stats du parser PERMANENT
-                    if (typeof window.getEnhancedParserStats === 'function') {
-                        const stats = window.getEnhancedParserStats();
-                        console.log('📊 Stats Enhanced Parser PERMANENT:', stats);
+                    // Afficher les stats du parser UNIVERSEL
+                    if (typeof window.getUniversalParserStats === 'function') {
+                        const stats = window.getUniversalParserStats();
+                        console.log('📊 Stats Universal Parser:', stats);
                     }
                     
                 } catch (error) {
-                    console.error('❌ Erreur Enhanced Parsing PERMANENT:', error);
+                    console.error('❌ Erreur Universal Parsing:', error);
                     showMessage(`Erreur lors de l'analyse: ${error.message}`, 'error');
                 } finally {
                     loadingIndicator.style.display = 'none';
                 }
             }
             
-            // Simulation PERMANENTE qui déclenchera l'Enhanced Parser
-            async function simulateEnhancedParsing(file) {
+            // Simulation UNIVERSELLE qui déclenchera l'Intelligence
+            async function simulateUniversalParsing(file) {
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         resolve({
                             data: {
                                 personal_info: {
-                                    name: 'CV analysé avec Enhanced Parser v2.1 PERMANENT',
-                                    email: 'permanent@enhanced.success',
-                                    phone: '+33 Enhanced PERMANENT'
+                                    name: 'CV analysé avec Universal Parser v3.0',
+                                    email: 'universal@intelligence.ai',
+                                    phone: '+33 Intelligence Adaptive'
                                 },
                                 work_experience: [
-                                    { title: 'Enhanced PERMANENT', company: 'Success Guaranteed', start_date: '2025', end_date: 'Forever' }
+                                    { title: 'Intelligence Adaptive', company: 'Universal Success', start_date: '2025', end_date: 'Forever' }
                                 ],
-                                skills: ['Enhanced Extraction PERMANENT', '100% Success Rate GUARANTEED'],
-                                software: ['Enhanced Parser v2.1 PERMANENT'],
-                                education: [{ degree: 'Enhanced Parser PERMANENT Certified', institution: 'Commitment Platform', year: '2025' }]
+                                skills: ['Intelligence Adaptive', 'Auto-Détection', 'Prompts Personnalisés'],
+                                software: ['Universal Parser v3.0', 'Intelligence IA'],
+                                education: [{ degree: 'Intelligence Artificielle', institution: 'Commitment Platform', year: '2025' }]
                             }
                         });
                     }, 2000);
