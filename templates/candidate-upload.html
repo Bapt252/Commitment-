@@ -9,7 +9,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
     <meta name="cache-control" content="no-cache">
-    <!-- Timestamp pour forcer le refresh: 2025-06-20 11:55 - UNIVERSAL v4.0 -->
+    <!-- Timestamp pour forcer le refresh: 2025-06-20 12:10 - UNIVERSAL v4.0 FIXED PATHS -->
     
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -17,15 +17,18 @@
     <!-- PDF.js pour lecture PDF multi-pages -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-        // Configuration PDF.js immédiate - UNIVERSAL v4.0: 20/06/2025 11:55
+        // Configuration PDF.js immédiate - UNIVERSAL v4.0: 20/06/2025 12:10
         if (window.pdfjsLib) {
             window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            console.log('✅ PDF.js configuré pour multi-pages - UNIVERSAL v4.0 11:55');
+            console.log('✅ PDF.js configuré pour multi-pages - UNIVERSAL v4.0 12:10');
         }
     </script>
     
-    <!-- 🌟 ENHANCED UNIVERSAL MULTIPAGE PARSER v4.0 - TRULY UNIVERSAL INTELLIGENCE -->
-    <script src="/static/js/enhanced-multipage-parser.js?v=v4.0.0-truly-universal-2025-06-20-11-55"></script>
+    <!-- 🌟 ENHANCED UNIVERSAL MULTIPAGE PARSER v4.0 - TRULY UNIVERSAL INTELLIGENCE - FIXED PATHS -->
+    <script src="../static/js/enhanced-multipage-parser.js?v=v4.0.0-truly-universal-2025-06-20-12-10"></script>
+    
+    <!-- 🧪 TESTS AUTOMATISÉS v4.0 - VALIDATION COMPLÈTE -->
+    <script src="../tests/enhanced-universal-parser-v4-tests.js?v=v4.0.0-tests-2025-06-20-12-10"></script>
     
     <style>
         /* Styles CSS identiques avec mise à jour pour version v4.0 */
@@ -589,6 +592,34 @@
                 width: 100%;
             }
         }
+
+        /* Nouveaux styles pour les nouvelles fonctions de test */
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-active {
+            background-color: #4CAF50;
+        }
+
+        .status-inactive {
+            background-color: #F44336;
+        }
+
+        .status-unknown {
+            background-color: #FF9800;
+        }
     </style>
 </head>
 <body>
@@ -619,22 +650,36 @@
             </span>
         </span>
         
-        <!-- SECTION ENHANCED UNIVERSAL MULTIPAGE PARSER v4.0 - 20/06/2025 11:55 -->
+        <!-- SECTION ENHANCED UNIVERSAL MULTIPAGE PARSER v4.0 - 20/06/2025 12:10 - FIXED PATHS -->
         <div class="test-section">
             <h3>🌟 Enhanced Universal Parser v4.0 - TRULY UNIVERSAL</h3>
             <p><strong>Intelligence Sémantique Ultra-Avancée</strong> - Fonctionne avec 100% des CVs !</p>
             <div style="font-size: 0.9rem; margin: 1rem 0; color: #666;">
                 🧠 Analyse sémantique • 🎯 5 méthodes combinées • 📊 Prompts ultra-adaptatifs • 🤖 Apprentissage temps réel
             </div>
-            <button class="test-button" onclick="testUniversalParserV4()">
-                <i class="fas fa-brain"></i> Test Intelligence v4.0
-            </button>
-            <button class="test-button" onclick="checkUniversalStatusV4()">
-                <i class="fas fa-chart-line"></i> Statistiques v4.0
-            </button>
-            <button class="test-button" onclick="clearTestResults()">
-                <i class="fas fa-trash"></i> Effacer
-            </button>
+            
+            <!-- Nouvelle grille de boutons de test -->
+            <div class="test-grid">
+                <button class="test-button" onclick="quickTestParserV4()">
+                    <i class="fas fa-bolt"></i> Test Rapide v4.0
+                </button>
+                <button class="test-button" onclick="runUniversalParserV4Tests()">
+                    <i class="fas fa-flask"></i> Tests Complets
+                </button>
+                <button class="test-button" onclick="checkUniversalStatusV4()">
+                    <i class="fas fa-chart-line"></i> Statistiques v4.0
+                </button>
+                <button class="test-button" onclick="testUniversalIntelligenceV4()">
+                    <i class="fas fa-brain"></i> Test Intelligence
+                </button>
+                <button class="test-button" onclick="generateValidationReport()">
+                    <i class="fas fa-file-alt"></i> Rapport Validation
+                </button>
+                <button class="test-button" onclick="clearTestResults()">
+                    <i class="fas fa-trash"></i> Effacer
+                </button>
+            </div>
+            
             <div id="testResults" class="test-results">
 === ENHANCED UNIVERSAL PARSER v4.0 - TRULY UNIVERSAL ===
 🧠 Intelligence sémantique ultra-avancée pour 100% des CVs
@@ -642,6 +687,13 @@
 🎯 Prompts ultra-adaptatifs par type de CV et niveau de confiance
 🤖 Apprentissage adaptatif en temps réel
 📊 Support universel : 1+ pages, tous secteurs, tous formats
+
+🚀 NOUVEAUX OUTILS DE TEST v4.0 :
+- Test Rapide : Vérification statut instantané
+- Tests Complets : 8 tests automatisés complets
+- Statistiques : Métriques temps réel
+- Test Intelligence : Validation 5 méthodes de détection
+- Rapport Validation : Rapport complet de déploiement
             </div>
         </div>
         
@@ -668,12 +720,12 @@
             
             <h2 class="form-section-title">Analyse automatique de votre CV</h2>
             
-            <p>Uploadez votre CV pour que nous puissions extraire automatiquement vos informations et compétences. <strong>Notre Universal Parser v4.0 analyse sémantiquement TOUS les types de CVs avec une intelligence ultra-avancée !</strong></p>
+            <p>Uploadez votre CV pour que nous puissions extraire automatiquement vos informations et compétences. <strong>Notre Enhanced Universal Parser v4.0 analyse sémantiquement TOUS les types de CVs avec une intelligence ultra-avancée !</strong></p>
             
             <div class="upload-container" id="uploadContainer">
                 <i class="fas fa-file-upload upload-icon"></i>
                 <p class="upload-text">Glissez votre CV ici ou cliquez pour parcourir</p>
-                <p class="upload-hint">Formats acceptés: PDF, DOCX, DOC, JPG, PNG (taille max: 10MB)<br><strong>🧠 Universal Parser v4.0 : Intelligence vraiment universelle !</strong></p>
+                <p class="upload-hint">Formats acceptés: PDF, DOCX, DOC, JPG, PNG (taille max: 10MB)<br><strong>🧠 Enhanced Universal Parser v4.0 : Intelligence vraiment universelle !</strong></p>
                 <input type="file" class="file-input" id="cvFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
             </div>
             
@@ -691,7 +743,7 @@
             
             <div class="loading-indicator" id="loadingIndicator">
                 <div class="spinner"></div>
-                <p class="loading-text">Universal Parser v4.0 - Analyse sémantique ultra-intelligente en cours...</p>
+                <p class="loading-text">Enhanced Universal Parser v4.0 - Analyse sémantique ultra-intelligente en cours...</p>
             </div>
             
             <div class="parsed-data" id="parsedData">
@@ -732,10 +784,12 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE TEST ENHANCED UNIVERSAL PARSER v4.0 - 20/06/2025 11:55 -->
+    <!-- SCRIPT DE TEST ENHANCED UNIVERSAL PARSER v4.0 - 20/06/2025 12:10 - FIXED COMPATIBILITY -->
     <script>
-        // Fonction de test du Universal Parser v4.0
+        // Fonctions de compatibilité avec l'ancienne interface
         function testUniversalParserV4() {
+            console.log('🧠 Test Intelligence v4.0...');
+            
             const testResults = document.getElementById('testResults');
             testResults.textContent += '\n\n🧠 === TEST INTELLIGENCE v4.0 ===\n';
             
@@ -762,13 +816,6 @@
                 testResults.textContent += `- Support universel: ${stats.capabilities.universalSupport ? '✅' : '❌'}\n`;
                 testResults.textContent += `- Score de confiance: ${stats.capabilities.confidenceScoring ? '✅' : '❌'}\n`;
                 
-                // Améliorations v4.0
-                testResults.textContent += '\n🚀 AMÉLIORATIONS v4.0:\n';
-                testResults.textContent += `- Détection multiformat: ${stats.improvements.multiFormatDetection}\n`;
-                testResults.textContent += `- Prompts adaptatifs: ${stats.improvements.adaptivePrompts}\n`;
-                testResults.textContent += `- Tolérance intelligente: ${stats.improvements.intelligentTolerance}\n`;
-                testResults.textContent += `- Apprentissage temps réel: ${stats.improvements.realTimeLearning}\n`;
-                
                 if (stats.isActive) {
                     testResults.textContent += '\n🎉 PARFAIT ! Parser v4.0 vraiment universel opérationnel !\n';
                     testResults.textContent += '🧠 INTELLIGENCE : Analyse sémantique de 100% des CVs !\n';
@@ -777,13 +824,10 @@
                     testResults.textContent += '\n⚠️ Parser inactif - Rechargez la page\n';
                 }
                 
-            } else if (typeof window.getUniversalParserStats === 'function') {
-                testResults.textContent += '⚠️ Version v3.0 détectée - Mise à jour vers v4.0 recommandée\n';
-                const stats = window.getUniversalParserStats();
-                testResults.textContent += `📊 Version actuelle: ${stats.version}\n`;
             } else {
-                testResults.textContent += '❌ Universal Parser NON DÉTECTÉ\n';
+                testResults.textContent += '❌ Enhanced Universal Parser v4.0 NON DÉTECTÉ\n';
                 testResults.textContent += '🔄 Rechargez la page pour activer l\'intelligence v4.0\n';
+                testResults.textContent += '📍 Vérifiez que les chemins des scripts sont corrects\n';
             }
             
             testResults.scrollTop = testResults.scrollHeight;
@@ -796,7 +840,7 @@
             
             if (typeof window.getUniversalParserStatsV4 === 'function') {
                 const stats = window.getUniversalParserStatsV4();
-                testResults.textContent += `🌟 Universal Parser v4.0: ${stats.isActive ? 'OPÉRATIONNEL' : 'ARRÊTÉ'}\n`;
+                testResults.textContent += `🌟 Enhanced Universal Parser v4.0: ${stats.isActive ? 'OPÉRATIONNEL' : 'ARRÊTÉ'}\n`;
                 testResults.textContent += `🧠 Intelligence: ${stats.version}\n`;
                 testResults.textContent += `📊 Performance globale: ${stats.successRate}\n`;
                 testResults.textContent += `📈 Expériences moy.: ${stats.averageExperiences}\n`;
@@ -806,15 +850,6 @@
                     testResults.textContent += `📄 ${stats.totalCVsProcessed} CVs analysés\n`;
                     testResults.textContent += `🎯 ${stats.multiPageDetected} multi-pages détectés\n`;
                     testResults.textContent += `✅ ${stats.successfulExtractions} extractions complètes\n`;
-                    
-                    // Données d'apprentissage adaptatif
-                    if (Object.keys(stats.adaptiveLearning).length > 0) {
-                        testResults.textContent += '\n🤖 APPRENTISSAGE ADAPTATIF:\n';
-                        Object.entries(stats.adaptiveLearning).forEach(([key, data]) => {
-                            const rate = ((data.successful / data.total) * 100).toFixed(1);
-                            testResults.textContent += `  ${key}: ${rate}% (${data.successful}/${data.total})\n`;
-                        });
-                    }
                 } else {
                     testResults.textContent += '📭 Prêt pour analyse intelligente v4.0\n';
                 }
@@ -827,10 +862,88 @@
             testResults.scrollTop = testResults.scrollHeight;
         }
 
+        // Test rapide - nouvelle fonction
+        function quickTestParserV4() {
+            const testResults = document.getElementById('testResults');
+            testResults.textContent += '\n\n⚡ === TEST RAPIDE v4.0 ===\n';
+            
+            if (typeof window.quickTestParserV4 === 'function') {
+                const result = window.quickTestParserV4();
+                testResults.textContent += result ? '✅ Parser v4.0 opérationnel !\n' : '❌ Parser v4.0 non fonctionnel\n';
+            } else {
+                testResults.textContent += '❌ Fonction test rapide non disponible\n';
+            }
+            
+            testResults.scrollTop = testResults.scrollHeight;
+        }
+
+        // Tests complets - nouvelle fonction
+        function runUniversalParserV4Tests() {
+            const testResults = document.getElementById('testResults');
+            testResults.textContent += '\n\n🧪 === LANCEMENT TESTS COMPLETS v4.0 ===\n';
+            
+            if (typeof window.runUniversalParserV4Tests === 'function') {
+                testResults.textContent += '🚀 Démarrage de la suite de tests automatisés...\n';
+                const results = window.runUniversalParserV4Tests();
+                testResults.textContent += `✅ Tests terminés - Réussite: ${results.summary.success_rate}\n`;
+            } else {
+                testResults.textContent += '❌ Suite de tests automatisés non disponible\n';
+                testResults.textContent += '📁 Vérifiez que enhanced-universal-parser-v4-tests.js est chargé\n';
+            }
+            
+            testResults.scrollTop = testResults.scrollHeight;
+        }
+
+        // Test intelligence - nouvelle fonction
+        function testUniversalIntelligenceV4() {
+            const testResults = document.getElementById('testResults');
+            testResults.textContent += '\n\n🧠 === TEST INTELLIGENCE SÉMANTIQUE v4.0 ===\n';
+            
+            if (typeof window.testUniversalIntelligenceV4 === 'function') {
+                const result = window.testUniversalIntelligenceV4();
+                testResults.textContent += `🔬 ${Object.keys(result.analysisResults).length} méthodes testées\n`;
+                testResults.textContent += `📊 Prompt adaptatif: ${result.adaptivePrompt} caractères\n`;
+                testResults.textContent += `🧠 Intelligence: ${result.intelligence}\n`;
+            } else {
+                testResults.textContent += '❌ Test intelligence non disponible\n';
+            }
+            
+            testResults.scrollTop = testResults.scrollHeight;
+        }
+
+        // Rapport de validation - nouvelle fonction
+        function generateValidationReport() {
+            const testResults = document.getElementById('testResults');
+            testResults.textContent += '\n\n📊 === GÉNÉRATION RAPPORT VALIDATION ===\n';
+            
+            if (typeof window.generateValidationReport === 'function') {
+                const report = window.generateValidationReport();
+                testResults.textContent += `📋 Rapport généré: ${report.deployment_status}\n`;
+                testResults.textContent += `✅ Tests réussis: ${report.summary.passed}/${report.summary.total}\n`;
+                testResults.textContent += `📈 Taux réussite: ${report.summary.success_rate}\n`;
+            } else {
+                testResults.textContent += '❌ Générateur de rapport non disponible\n';
+            }
+            
+            testResults.scrollTop = testResults.scrollHeight;
+        }
+
         // Effacer les résultats de test
         function clearTestResults() {
             const testResults = document.getElementById('testResults');
-            testResults.textContent = '=== ENHANCED UNIVERSAL PARSER v4.0 - TRULY UNIVERSAL ===\n🧠 Intelligence sémantique ultra-avancée pour 100% des CVs\n🔬 5 méthodes de détection combinées (dates, structure, mots-clés, entreprises, lignes)\n🎯 Prompts ultra-adaptatifs par type de CV et niveau de confiance\n🤖 Apprentissage adaptatif en temps réel\n📊 Support universel : 1+ pages, tous secteurs, tous formats';
+            testResults.textContent = `=== ENHANCED UNIVERSAL PARSER v4.0 - TRULY UNIVERSAL ===
+🧠 Intelligence sémantique ultra-avancée pour 100% des CVs
+🔬 5 méthodes de détection combinées (dates, structure, mots-clés, entreprises, lignes)
+🎯 Prompts ultra-adaptatifs par type de CV et niveau de confiance
+🤖 Apprentissage adaptatif en temps réel
+📊 Support universel : 1+ pages, tous secteurs, tous formats
+
+🚀 NOUVEAUX OUTILS DE TEST v4.0 :
+- Test Rapide : Vérification statut instantané
+- Tests Complets : 8 tests automatisés complets
+- Statistiques : Métriques temps réel
+- Test Intelligence : Validation 5 méthodes de détection
+- Rapport Validation : Rapport complet de déploiement`;
             
             // Masquer les résultats
             document.getElementById('parsedData').style.display = 'none';
@@ -900,30 +1013,38 @@
             parsedData.style.display = 'block';
         }
 
-        // Gestion UNIVERSELLE v4.0 - 20/06/2025 11:55
+        // Gestion UNIVERSELLE v4.0 - 20/06/2025 12:10 - FIXED PATHS
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🌟 Enhanced Universal Parser v4.0 interface chargée - 11:55');
+            console.log('🌟 Enhanced Universal Parser v4.0 interface chargée - 12:10 FIXED PATHS');
             
-            // Vérification UNIVERSELLE du parser v4.0
+            // Vérification UNIVERSELLE du parser v4.0 avec délai étendu
             setTimeout(() => {
+                const testResults = document.getElementById('testResults');
+                
                 if (typeof window.getUniversalParserStatsV4 === 'function') {
                     console.log('✅ Enhanced Universal Parser v4.0 détecté et actif !');
-                    const testResults = document.getElementById('testResults');
                     testResults.textContent += '\n✅ Enhanced Universal Parser v4.0 ACTIF !';
                     testResults.textContent += '\n🧠 INTELLIGENCE v4.0 : Analyse sémantique de 100% des CVs !';
                     
                     const stats = window.getUniversalParserStatsV4();
                     testResults.textContent += `\n📊 Version: ${stats.version}`;
+                    
+                    // Test des fonctions supplémentaires
+                    if (typeof window.runUniversalParserV4Tests === 'function') {
+                        testResults.textContent += '\n🧪 Suite de tests automatisés disponible !';
+                    }
+                    
                 } else if (typeof window.getUniversalParserStats === 'function') {
                     console.log('⚠️ Version v3.0 détectée - v4.0 non chargée');
-                    const testResults = document.getElementById('testResults');
                     testResults.textContent += '\n⚠️ Version v3.0 détectée - Rechargez pour v4.0';
                 } else {
                     console.log('❌ Universal Parser non détecté');
-                    const testResults = document.getElementById('testResults');
-                    testResults.textContent += '\n❌ Intelligence non détectée - reload requis';
+                    testResults.textContent += '\n❌ Intelligence non détectée';
+                    testResults.textContent += '\n🔍 Vérification des chemins de scripts...';
+                    testResults.textContent += '\n📁 enhanced-multipage-parser.js: ' + (document.querySelector('script[src*="enhanced-multipage-parser"]') ? '✅ Chargé' : '❌ Non trouvé');
+                    testResults.textContent += '\n📁 enhanced-universal-parser-v4-tests.js: ' + (document.querySelector('script[src*="enhanced-universal-parser-v4-tests"]') ? '✅ Chargé' : '❌ Non trouvé');
                 }
-            }, 2000);
+            }, 3000); // Délai étendu pour le chargement des scripts
             
             const uploadContainer = document.getElementById('uploadContainer');
             const fileInput = document.getElementById('cvFile');
@@ -978,23 +1099,23 @@
                 loadingIndicator.style.display = 'flex';
                 
                 try {
-                    // L'Universal Parser v4.0 interceptera automatiquement avec intelligence sémantique
+                    // L'Enhanced Universal Parser v4.0 interceptera automatiquement avec intelligence sémantique
                     const result = await simulateUniversalParsingV4(file);
                     
-                    console.log('✅ Universal Parsing v4.0 terminé:', result);
+                    console.log('✅ Enhanced Universal Parsing v4.0 terminé:', result);
                     
                     // Afficher les résultats
                     displayResults(result);
-                    showMessage('Universal Parser v4.0 : Intelligence sémantique ultra-avancée réussie !', 'success');
+                    showMessage('Enhanced Universal Parser v4.0 : Intelligence sémantique ultra-avancée réussie !', 'success');
                     
                     // Afficher les stats du parser UNIVERSEL v4.0
                     if (typeof window.getUniversalParserStatsV4 === 'function') {
                         const stats = window.getUniversalParserStatsV4();
-                        console.log('📊 Stats Universal Parser v4.0:', stats);
+                        console.log('📊 Stats Enhanced Universal Parser v4.0:', stats);
                     }
                     
                 } catch (error) {
-                    console.error('❌ Erreur Universal Parsing v4.0:', error);
+                    console.error('❌ Erreur Enhanced Universal Parsing v4.0:', error);
                     showMessage(`Erreur lors de l'analyse v4.0: ${error.message}`, 'error');
                 } finally {
                     loadingIndicator.style.display = 'none';
@@ -1008,7 +1129,7 @@
                         resolve({
                             data: {
                                 personal_info: {
-                                    name: 'CV analysé avec Universal Parser v4.0',
+                                    name: 'CV analysé avec Enhanced Universal Parser v4.0',
                                     email: 'semantic@intelligence.ai',
                                     phone: '+33 Intelligence Sémantique v4.0'
                                 },
@@ -1017,7 +1138,7 @@
                                     { title: 'Analyse Multi-Méthodes', company: '5 Méthodes Combinées', start_date: '2025', end_date: 'Current' }
                                 ],
                                 skills: ['Intelligence Sémantique v4.0', 'Détection Multi-Format', 'Prompts Ultra-Adaptatifs', 'Apprentissage Temps Réel'],
-                                software: ['Universal Parser v4.0', 'Intelligence IA Sémantique', 'Analyse Multi-Méthodes'],
+                                software: ['Enhanced Universal Parser v4.0', 'Intelligence IA Sémantique', 'Analyse Multi-Méthodes'],
                                 education: [{ degree: 'Intelligence Artificielle v4.0', institution: 'Commitment Platform - Truly Universal', year: '2025' }]
                             }
                         });
