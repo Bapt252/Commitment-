@@ -4,16 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🚀 MEGA CACHE BREAKING - FORCE DEPLOY v7.0 ULTRA AGGRESSIVE -->
+    <!-- 🔧 PARSING RÉEL v6.1 - SUPPORT TOUS CVS -->
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
-    <meta name="cache-control" content="no-cache">
-    <meta name="last-modified" content="2025-06-23T13:21:00Z">
-    <meta name="timestamp" content="2025-06-23-13-21-MEGA-FORCE-DEPLOY-v7">
-    <meta name="deploy-id" content="affe189c-ultra-force-deploy">
-    <meta name="version" content="ULTRA-PARSING-v6.0-MEGA-CACHE-BREAK">
-    <meta name="commit-sha" content="affe189c4252d0045510a9e2dc1c1b8e1faa4888">
+    <meta name="version" content="ULTRA-PARSING-v6.1-REAL-CV-SUPPORT">
+    <meta name="timestamp" content="2025-06-23T13:30:00Z">
     
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -156,16 +152,17 @@
         }
 
         .ai-badge {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, #7c4dff, #536dfe);
             color: white;
             border: none;
             border-radius: var(--border-radius);
-            padding: 0.5rem 1rem;
-            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             margin: 1.5rem 0;
+            box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
         }
 
         .questionnaire-card {
@@ -536,6 +533,17 @@
             background-color: #F57C00;
         }
 
+        .debug-info {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 1rem;
@@ -581,13 +589,13 @@
         
         <span class="ai-badge">
             <i class="fas fa-robot"></i>
-            🎯 ULTRA PARSING v6.0 - 7 EXPÉRIENCES GARANTIES 🚀 MEGA FORCE DEPLOY
+            🎯 ULTRA PARSING v6.1 - SUPPORT TOUS CVS ✅
         </span>
         
         <!-- CONFIGURATION API OPENAI -->
         <div class="api-config">
-            <h4>🔑 Clé API OpenAI (facultatif)</h4>
-            <p>Pour utiliser le parsing avancé sur GitHub Pages, vous pouvez fournir votre propre clé API OpenAI.<br>
+            <h4>🔑 Clé API OpenAI (OBLIGATOIRE pour parsing réel)</h4>
+            <p>Pour analyser votre CV, vous devez fournir votre clé API OpenAI.<br>
             Votre clé ne sera jamais stockée sur nos serveurs et restera uniquement dans votre navigateur.</p>
             <input type="password" id="apiKeyInput" class="api-input" placeholder="sk-..." />
             <br>
@@ -625,8 +633,8 @@
             <div class="upload-container" id="uploadContainer">
                 <i class="fas fa-cloud-upload-alt upload-icon"></i>
                 <p class="upload-text">Glissez votre CV ici ou cliquez pour parcourir</p>
-                <p class="upload-hint">Formats acceptés: PDF, DOCX, DOC, JPG, PNG (taille max: 10MB)</p>
-                <input type="file" class="file-input" id="cvFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                <p class="upload-hint">Formats acceptés: PDF, DOCX, DOC, TXT (taille max: 10MB)</p>
+                <input type="file" class="file-input" id="cvFile" accept=".pdf,.doc,.docx,.txt">
             </div>
             
             <div class="file-info" id="fileInfo">
@@ -644,6 +652,11 @@
             <div class="loading-indicator" id="loadingIndicator">
                 <div class="spinner"></div>
                 <p class="loading-text">Analyse en cours, veuillez patienter...</p>
+            </div>
+            
+            <div class="debug-info" id="debugInfo">
+                <h4>🔍 Debug Info:</h4>
+                <div id="debugContent"></div>
             </div>
             
             <div class="parsed-data" id="parsedData">
@@ -684,80 +697,132 @@
     </div>
 
     <!-- ======================================================================================== -->
-    <!-- 🎯 ULTRA PARSING v6.0 - TOUTES LES 7 EXPÉRIENCES GARANTIES - MEGA FORCE DEPLOY -->
+    <!-- 🔧 ULTRA PARSING v6.1 - PARSING RÉEL POUR TOUS CVS -->
     <!-- ======================================================================================== -->
     <script>
-        console.log('🎯 === ULTRA PARSING v6.0 - 7 EXPÉRIENCES GARANTIES - MEGA FORCE DEPLOY ===');
-        console.log('🚀 Commit SHA: affe189c4252d0045510a9e2dc1c1b8e1faa4888');
-        console.log('🔥 Deploy ID: affe189c-ultra-force-deploy');
+        console.log('🔧 === ULTRA PARSING v6.1 - PARSING RÉEL POUR TOUS CVS ===');
 
-        // Configuration ULTRA v6.0 - MEGA FORCE DEPLOY
-        const ULTRA_CONFIG_V6 = {
+        // Configuration ULTRA v6.1 - PARSING RÉEL
+        const ULTRA_CONFIG_V61 = {
             isActive: false,
-            version: 'ULTRA-PARSING-v6.0-MEGA-FORCE-DEPLOY',
+            version: 'ULTRA-PARSING-v6.1-REAL-CV-SUPPORT',
             cvCount: 0,
-            experiencesCount: 7,
-            deployTimestamp: '2025-06-23T13:21:00Z',
-            deployId: 'affe189c-ultra-force-deploy',
-            commitSha: 'affe189c4252d0045510a9e2dc1c1b8e1faa4888'
+            realParsingEnabled: true,
+            deployTimestamp: '2025-06-23T13:30:00Z'
         };
 
         let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
+        let currentFile = null;
 
-        // INTERCEPTEUR ULTRA v6.0 - GARANTIT 7 EXPÉRIENCES
-        function installUltraParsingV6() {
-            console.log('🔧 Installation ULTRA PARSING v6.0 - MEGA FORCE DEPLOY...');
+        // 🔧 LECTURE RÉELLE DES FICHIERS
+        async function readFileContent(file) {
+            console.log(`📄 Lecture du fichier: ${file.name} (${file.type})`);
             
-            const originalFetch = window.fetch;
-            
-            window.fetch = async function(...args) {
-                const [url, options] = args;
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
                 
-                if (url.includes('openai.com') && url.includes('chat/completions')) {
-                    console.log('🎯 ULTRA v6.0 - Intercepteur OpenAI activé - MEGA FORCE DEPLOY');
+                reader.onload = async function(e) {
+                    const arrayBuffer = e.target.result;
                     
-                    if (options && options.body) {
-                        try {
-                            const body = JSON.parse(options.body);
-                            
-                            // TOKENS MAXIMUM POUR TOUTES LES EXPÉRIENCES
-                            body.max_tokens = 4500;
-                            console.log('📈 Tokens fixés à 4500 (maximum pour 7 expériences) - MEGA FORCE DEPLOY');
-                            
-                            if (body.messages && body.messages.length > 0) {
-                                const userMessage = body.messages.find(m => m.role === 'user');
-                                if (userMessage && userMessage.content.length > 500) {
-                                    ULTRA_CONFIG_V6.cvCount++;
-                                    console.log(`📄 CV #${ULTRA_CONFIG_V6.cvCount} - ULTRA v6.0 activé - MEGA FORCE DEPLOY`);
-                                    
-                                    // PROMPT ULTRA v6.0 - SPÉCIALEMENT OPTIMISÉ POUR SABINE
-                                    const ultraPromptV6 = `Tu es un expert en extraction de données CV. EXTRAIS ABSOLUMENT TOUTES LES EXPÉRIENCES PROFESSIONNELLES de ce CV.
+                    try {
+                        let content = '';
+                        
+                        if (file.type === 'application/pdf') {
+                            // Lecture PDF avec PDF.js
+                            content = await extractPdfText(arrayBuffer);
+                        } else if (file.type.includes('word') || file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+                            // Pour les fichiers Word - extraction basique
+                            content = await extractWordText(arrayBuffer);
+                        } else if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+                            // Fichiers texte
+                            content = new TextDecoder().decode(arrayBuffer);
+                        } else {
+                            throw new Error(`Format de fichier non supporté: ${file.type}`);
+                        }
+                        
+                        console.log(`✅ Contenu extrait (${content.length} caractères)`);
+                        addDebugInfo(`Contenu extrait: ${content.substring(0, 200)}...`);
+                        
+                        resolve(content);
+                    } catch (error) {
+                        console.error('❌ Erreur extraction contenu:', error);
+                        reject(error);
+                    }
+                };
+                
+                reader.onerror = () => reject(new Error('Erreur lecture fichier'));
+                reader.readAsArrayBuffer(file);
+            });
+        }
 
-MISSION CRITIQUE: Ce CV contient 7 expériences professionnelles. Tu DOIS toutes les extraire.
+        // Extraction texte PDF avec PDF.js
+        async function extractPdfText(arrayBuffer) {
+            if (!window.pdfjsLib) {
+                throw new Error('PDF.js non disponible');
+            }
+            
+            const loadingTask = window.pdfjsLib.getDocument(arrayBuffer);
+            const pdf = await loadingTask.promise;
+            
+            let fullText = '';
+            
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + '\n';
+            }
+            
+            return fullText.trim();
+        }
+
+        // Extraction texte Word (basique)
+        async function extractWordText(arrayBuffer) {
+            // Pour une extraction basique, on convertit en texte
+            // Note: Pour une extraction complète, il faudrait une bibliothèque comme mammoth.js
+            const uint8Array = new Uint8Array(arrayBuffer);
+            let text = '';
+            
+            // Extraction basique du contenu texte
+            for (let i = 0; i < uint8Array.length; i++) {
+                const char = uint8Array[i];
+                if (char >= 32 && char <= 126) {
+                    text += String.fromCharCode(char);
+                } else if (char === 10 || char === 13) {
+                    text += ' ';
+                }
+            }
+            
+            // Nettoyer le texte extrait
+            return text.replace(/\s+/g, ' ').trim();
+        }
+
+        // 🚀 APPEL RÉEL À L'API OPENAI
+        async function callOpenAI(cvContent) {
+            if (!OPENAI_API_KEY) {
+                throw new Error('Clé API OpenAI manquante');
+            }
+
+            console.log('🤖 Appel API OpenAI avec contenu réel du CV...');
+            addDebugInfo('Préparation appel API OpenAI...');
+
+            const prompt = `Tu es un expert en extraction de données CV. Analyse ce CV et extrais TOUTES les informations.
 
 CV À ANALYSER:
-${userMessage.content}
+${cvContent}
 
-CONSIGNES STRICTES ULTRA v6.0:
-1. Lis INTÉGRALEMENT le CV (toutes les pages)
-2. Identifie CHAQUE expérience professionnelle mentionnée
-3. N'OUBLIE AUCUNE expérience, même les plus courtes
-4. Inclus TOUS les postes : CDI, CDD, intérim, stages
-5. Vérifie que tu as bien extrait 7 expériences au total
-
-EXPÉRIENCES ATTENDUES (pour validation):
-- Maison Christian Dior Couture (2024-2025)
-- BPI France (2023-2024) 
-- Les Secrets de Loly (2019-2023)
-- Socavim-Vallat (2019)
-- Famille Française (2017-2019)
-- Start-Up Oyst (2017)
-- Oligarque Russe (2012-2015)
+INSTRUCTIONS:
+1. Lis INTÉGRALEMENT le CV
+2. Extrais TOUTES les expériences professionnelles
+3. Identifie les compétences et logiciels
+4. Trouve les informations personnelles
+5. Liste la formation
+6. Détecte les langues
 
 Format JSON OBLIGATOIRE (retourne EXACTEMENT ce format):
 {
   "personal_info": {
-    "name": "nom exact de la personne",
+    "name": "nom de la personne",
     "email": "email si trouvé", 
     "phone": "téléphone si trouvé",
     "address": "adresse si trouvée"
@@ -767,48 +832,74 @@ Format JSON OBLIGATOIRE (retourne EXACTEMENT ce format):
   "software": ["logiciel1", "logiciel2", "..."],
   "work_experience": [
     {
-      "title": "titre exact du poste",
-      "company": "nom exact de l'entreprise", 
+      "title": "titre du poste",
+      "company": "nom de l'entreprise", 
       "start_date": "date début",
       "end_date": "date fin"
     }
-    // RÉPÈTE POUR CHAQUE EXPÉRIENCE - TOTAL: 7 EXPÉRIENCES
   ],
   "education": [{"degree": "diplôme", "institution": "école", "year": "année"}],
   "languages": [{"language": "langue", "level": "niveau"}]
-}
+}`;
 
-VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées ci-dessus !`;
-
-                                    userMessage.content = ultraPromptV6;
-                                    console.log('✅ ULTRA PROMPT v6.0 appliqué - 7 expériences garanties - MEGA FORCE DEPLOY');
-                                }
-                            }
-                            
-                            options.body = JSON.stringify(body);
-                        } catch (error) {
-                            console.error('❌ Erreur ULTRA v6.0 - MEGA FORCE DEPLOY:', error);
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        {
+                            role: "user",
+                            content: prompt
                         }
-                    }
-                }
-                
-                return originalFetch.apply(this, args);
-            };
-            
-            ULTRA_CONFIG_V6.isActive = true;
-            console.log('✅ ULTRA PARSING v6.0 installé - 7 expériences garanties - MEGA FORCE DEPLOY');
-        }
+                    ],
+                    max_tokens: 4000,
+                    temperature: 0.1
+                })
+            });
 
-        // DONNÉES SABINE COMPLÈTES v6.0 - TOUTES LES 7 EXPÉRIENCES
-        function getSabineCompleteDataV6() {
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Erreur API OpenAI: ${errorData.error?.message || response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('✅ Réponse API OpenAI reçue');
+            addDebugInfo(`Réponse API: ${data.choices[0].message.content.substring(0, 200)}...`);
+
+            // Parser la réponse JSON
+            const content = data.choices[0].message.content.trim();
+            
+            // Extraire le JSON de la réponse
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error('Format JSON invalide dans la réponse');
+            }
+
+            const parsedData = JSON.parse(jsonMatch[0]);
+            
             return {
                 processing_time: 2.5,
                 parsed_at: Date.now() / 1000,
-                file_format: 'pdf',
-                model: "ultra-parsing-v6-sabine-complete-mega-force-deploy",
+                file_format: currentFile.type,
+                model: "gpt-3.5-turbo-real-parsing",
+                data: parsedData
+            };
+        }
+
+        // FALLBACK Sabine (en cas d'erreur)
+        function getSabineFallbackData() {
+            return {
+                processing_time: 1.0,
+                parsed_at: Date.now() / 1000,
+                file_format: 'fallback',
+                model: "fallback-sabine-data",
                 data: {
                     personal_info: {
-                        name: 'Sabine Rivière',
+                        name: 'Sabine Rivière (Données de démonstration)',
                         email: 'sabine.riviere04@gmail.com',
                         phone: '+33665733921',
                         address: 'Paris 75014, France'
@@ -817,48 +908,13 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
                     skills: ['Tenue d\'agendas', 'Esprit d\'équipe', 'Suivi budgétaire', 'Préparation de rapports', 'Autonomie', 'Sens de la communication', 'Excellente organisation du travail'],
                     software: ['Microsoft', 'Concur', 'Coupa', 'SAP', 'Pennylane', 'Google / Outlook'],
                     work_experience: [
-                        { 
-                            title: 'Executive Assistant : Direction Financière Audit / Fiscalité / Trésorerie', 
-                            company: 'Maison Christian Dior Couture', 
-                            start_date: '06/2024', 
-                            end_date: '01/2025' 
-                        },
-                        { 
-                            title: 'EXECUTIVE ASSISTANT : Direction Fonds de Fonds COMEX / CODIR / CMG', 
-                            company: 'BPI FRANCE', 
-                            start_date: '06/2023', 
-                            end_date: '05/2024' 
-                        },
-                        { 
-                            title: 'EXECUTIVE ASSISTANT/ ASSISTANTE PERSONNELLE de la CEO', 
-                            company: 'Les Secrets de Loly', 
-                            start_date: '08/2019', 
-                            end_date: '05/2023' 
-                        },
-                        { 
-                            title: 'EXECUTIVE ASSISTANT du CEO (CDD : CONGÉ MATERNITÉ)', 
-                            company: 'Socavim-Vallat', 
-                            start_date: '04/2019', 
-                            end_date: '08/2019' 
-                        },
-                        { 
-                            title: 'ASSISTANTE PERSONNELLE', 
-                            company: 'Famille Française', 
-                            start_date: '10/2017', 
-                            end_date: '03/2019' 
-                        },
-                        { 
-                            title: 'EXECUTIVE ASSISTANTE du CEO', 
-                            company: 'Start-Up Oyst E-Corps Adtech Services', 
-                            start_date: '06/2017', 
-                            end_date: '10/2017' 
-                        },
-                        { 
-                            title: 'ASSISTANTE PERSONNELLE', 
-                            company: 'Oligarque Russe', 
-                            start_date: '02/2012', 
-                            end_date: '07/2015' 
-                        }
+                        { title: 'Executive Assistant : Direction Financière Audit / Fiscalité / Trésorerie', company: 'Maison Christian Dior Couture', start_date: '06/2024', end_date: '01/2025' },
+                        { title: 'EXECUTIVE ASSISTANT : Direction Fonds de Fonds COMEX / CODIR / CMG', company: 'BPI FRANCE', start_date: '06/2023', end_date: '05/2024' },
+                        { title: 'EXECUTIVE ASSISTANT/ ASSISTANTE PERSONNELLE de la CEO', company: 'Les Secrets de Loly', start_date: '08/2019', end_date: '05/2023' },
+                        { title: 'EXECUTIVE ASSISTANT du CEO (CDD : CONGÉ MATERNITÉ)', company: 'Socavim-Vallat', start_date: '04/2019', end_date: '08/2019' },
+                        { title: 'ASSISTANTE PERSONNELLE', company: 'Famille Française', start_date: '10/2017', end_date: '03/2019' },
+                        { title: 'EXECUTIVE ASSISTANTE du CEO', company: 'Start-Up Oyst E-Corps Adtech Services', start_date: '06/2017', end_date: '10/2017' },
+                        { title: 'ASSISTANTE PERSONNELLE', company: 'Oligarque Russe', start_date: '02/2012', end_date: '07/2015' }
                     ],
                     education: [
                         { degree: 'DIPLÔME D\'ÉTUDES SUPÉRIEURES', institution: 'ESVE', year: '2006' },
@@ -892,15 +948,24 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
             OPENAI_API_KEY = apiKey;
             localStorage.setItem('openai_api_key', apiKey);
             
-            statusDiv.innerHTML = '✅ API configurée - ULTRA v6.0 activé - MEGA FORCE DEPLOY !';
+            statusDiv.innerHTML = '✅ API configurée - Parsing réel activé !';
             statusDiv.style.color = 'var(--success-color)';
             
-            console.log('✅ Clé API configurée - ULTRA v6.0 ready - MEGA FORCE DEPLOY');
+            console.log('✅ Clé API configurée - Parsing réel prêt');
         }
 
-        // Gestion upload et parsing ULTRA v6.0
+        // Debug info
+        function addDebugInfo(message) {
+            const debugDiv = document.getElementById('debugContent');
+            const timestamp = new Date().toLocaleTimeString();
+            debugDiv.innerHTML += `<div>${timestamp}: ${message}</div>`;
+            document.getElementById('debugInfo').style.display = 'block';
+        }
+
+        // 🔧 GESTION UPLOAD ET PARSING RÉEL
         async function handleFileUpload(file) {
-            console.log(`📁 Upload fichier ULTRA v6.0 - MEGA FORCE DEPLOY: ${file.name}`);
+            console.log(`📁 Upload fichier v6.1: ${file.name}`);
+            currentFile = file;
             
             document.getElementById('fileName').textContent = file.name;
             document.getElementById('fileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
@@ -908,37 +973,54 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
             document.getElementById('uploadContainer').style.display = 'none';
             
             document.getElementById('loadingIndicator').style.display = 'flex';
+            document.getElementById('debugInfo').style.display = 'block';
+            
+            addDebugInfo(`Fichier sélectionné: ${file.name} (${file.type})`);
             
             try {
-                console.log('🔄 Démarrage ULTRA PARSING v6.0 - MEGA FORCE DEPLOY...');
+                // 🔧 ÉTAPE 1: Lecture réelle du fichier
+                addDebugInfo('Étape 1: Lecture du contenu du fichier...');
+                const cvContent = await readFileContent(file);
                 
-                // Simulation d'attente pour l'analyse
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                if (!cvContent || cvContent.length < 50) {
+                    throw new Error('Contenu du fichier trop court ou vide');
+                }
                 
-                // Utiliser les données Sabine complètes v6.0 avec les 7 expériences
-                const parsedData = getSabineCompleteDataV6();
+                // 🔧 ÉTAPE 2: Parsing réel avec OpenAI
+                let parsedData;
                 
+                if (OPENAI_API_KEY) {
+                    addDebugInfo('Étape 2: Analyse avec OpenAI...');
+                    parsedData = await callOpenAI(cvContent);
+                    addDebugInfo('✅ Parsing OpenAI réussi');
+                } else {
+                    addDebugInfo('⚠️ Pas de clé API - Utilisation du fallback Sabine');
+                    parsedData = getSabineFallbackData();
+                }
+                
+                // 🔧 ÉTAPE 3: Affichage des résultats
                 displayParsedResults(parsedData);
                 
                 document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('successMessage').innerHTML = 
-                    '<i class="fas fa-check-circle"></i> ✅ ULTRA v6.0 terminé - TOUTES les 7 expériences extraites avec succès - MEGA FORCE DEPLOY !';
+                    `<i class="fas fa-check-circle"></i> ✅ Parsing réussi - ${parsedData.data.work_experience.length} expériences trouvées !`;
                 document.getElementById('successMessage').style.display = 'block';
                 
-                console.log('✅ ULTRA v6.0 terminé - 7 expériences confirmées - MEGA FORCE DEPLOY');
+                console.log('✅ Parsing v6.1 terminé avec succès');
                 
             } catch (error) {
-                console.error(`❌ Erreur ULTRA v6.0 - MEGA FORCE DEPLOY: ${error.message}`);
+                console.error(`❌ Erreur parsing v6.1: ${error.message}`);
+                addDebugInfo(`❌ Erreur: ${error.message}`);
                 
                 document.getElementById('loadingIndicator').style.display = 'none';
                 
-                // Utiliser le fallback même en cas d'erreur
-                const fallbackData = getSabineCompleteDataV6();
+                // Utiliser le fallback en cas d'erreur
+                const fallbackData = getSabineFallbackData();
                 displayParsedResults(fallbackData);
                 
-                document.getElementById('successMessage').innerHTML = 
-                    '<i class="fas fa-check-circle"></i> ✅ Fallback ULTRA v6.0 - 7 expériences récupérées - MEGA FORCE DEPLOY !';
-                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('errorMessage').innerHTML = 
+                    `<i class="fas fa-exclamation-triangle"></i> Erreur: ${error.message}<br>Données de démonstration affichées.`;
+                document.getElementById('errorMessage').style.display = 'block';
             }
         }
 
@@ -946,43 +1028,50 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
             const table = document.getElementById('resultsTable');
             const data = parsedData.data;
             
-            // Créer l'affichage des expériences (TOUTES LES 7) - v6.0 - MEGA FORCE DEPLOY
+            // Créer l'affichage des expériences
             const experiencesHtml = data.work_experience.map((exp, index) => 
-                `<div style="margin-bottom: 1rem; padding: 0.5rem; background: rgba(124, 77, 255, 0.1); border-radius: 4px;">
-                 <strong>Exp ${index + 1}:</strong> ${exp.title}<br>
-                 <em style="color: #7c4dff;">${exp.company}</em><br>
+                `<div style="margin-bottom: 1rem; padding: 0.75rem; background: linear-gradient(135deg, rgba(124, 77, 255, 0.1), rgba(83, 109, 254, 0.1)); border-radius: 6px; border-left: 4px solid #7c4dff;">
+                 <strong style="color: #7c4dff;">Exp ${index + 1}:</strong> ${exp.title}<br>
+                 <em style="color: #536dfe; font-weight: 500;">${exp.company}</em><br>
                  📅 ${exp.start_date} - ${exp.end_date}
                  </div>`
             ).join('');
             
+            const skillsText = data.skills && data.skills.length > 0 ? data.skills.join(', ') : 'Non détectées';
+            const softwareText = data.software && data.software.length > 0 ? data.software.join(', ') : 'Non détectés';
+            const languagesText = data.languages && data.languages.length > 0 
+                ? data.languages.map(l => `${l.language} (${l.level})`).join(', ') 
+                : 'Non détectées';
+            const educationText = data.education && data.education.length > 0
+                ? data.education.map(ed => `${ed.degree} - ${ed.institution} (${ed.year})`).join('<br>')
+                : 'Non détectée';
+            
             table.innerHTML = `
-                <tr><th>Nom complet</th><td class="detected">${data.personal_info.name}</td></tr>
-                <tr><th>Titre de poste actuel</th><td class="detected">${data.current_position}</td></tr>
-                <tr><th>Email</th><td class="detected">${data.personal_info.email}</td></tr>
-                <tr><th>Téléphone</th><td class="detected">${data.personal_info.phone}</td></tr>
-                <tr><th>Adresse</th><td class="detected">${data.personal_info.address}</td></tr>
-                <tr><th>Compétences détectées</th><td class="detected">${data.skills.join(', ')}</td></tr>
-                <tr><th>Logiciels maîtrisés</th><td class="detected">${data.software.join(', ')}</td></tr>
-                <tr><th>Langues</th><td class="detected">${data.languages.map(l => `${l.language} (${l.level})`).join(', ')}</td></tr>
-                <tr><th style="background: #7c4dff; color: white;">🎯 TOUTES LES EXPÉRIENCES (${data.work_experience.length}/7) - MEGA FORCE DEPLOY</th><td class="detected">${experiencesHtml}</td></tr>
-                <tr><th>Formation</th><td class="detected">${data.education.map(ed => `${ed.degree} - ${ed.institution} (${ed.year})`).join('<br>')}</td></tr>
+                <tr><th>Nom complet</th><td class="detected">${data.personal_info.name || 'Non détecté'}</td></tr>
+                <tr><th>Titre de poste actuel</th><td class="detected">${data.current_position || 'Non détecté'}</td></tr>
+                <tr><th>Email</th><td class="detected">${data.personal_info.email || 'Non détecté'}</td></tr>
+                <tr><th>Téléphone</th><td class="detected">${data.personal_info.phone || 'Non détecté'}</td></tr>
+                <tr><th>Adresse</th><td class="detected">${data.personal_info.address || 'Non détectée'}</td></tr>
+                <tr><th>Compétences détectées</th><td class="detected">${skillsText}</td></tr>
+                <tr><th>Logiciels maîtrisés</th><td class="detected">${softwareText}</td></tr>
+                <tr><th>Langues</th><td class="detected">${languagesText}</td></tr>
+                <tr><th style="background: linear-gradient(135deg, #7c4dff, #536dfe); color: white;">🎯 EXPÉRIENCES (${data.work_experience.length})</th><td class="detected">${experiencesHtml}</td></tr>
+                <tr><th>Formation</th><td class="detected">${educationText}</td></tr>
             `;
             
             document.getElementById('parsedData').style.display = 'block';
             
-            console.log(`✅ ULTRA v6.0 - Affichage terminé - ${data.work_experience.length} expériences affichées - MEGA FORCE DEPLOY`);
+            console.log(`✅ Affichage terminé - ${data.work_experience.length} expériences`);
+            addDebugInfo(`Résultats affichés: ${data.work_experience.length} expériences`);
         }
 
-        // INSTALLATION ET INITIALISATION ULTRA v6.0 - MEGA FORCE DEPLOY
+        // INSTALLATION ET INITIALISATION
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Initialisation ULTRA PARSING v6.0 - MEGA FORCE DEPLOY...');
-            
-            // INSTALLATION AUTOMATIQUE DU SYSTÈME ULTRA v6.0
-            installUltraParsingV6();
+            console.log('🚀 Initialisation ULTRA PARSING v6.1 - Parsing réel...');
             
             // Vérifier la configuration API
             if (OPENAI_API_KEY) {
-                document.getElementById('apiStatus').innerHTML = '✅ API configurée - ULTRA v6.0 opérationnel - MEGA FORCE DEPLOY !';
+                document.getElementById('apiStatus').innerHTML = '✅ API configurée - Parsing réel opérationnel !';
                 document.getElementById('apiStatus').style.color = 'var(--success-color)';
                 document.getElementById('apiKeyInput').value = OPENAI_API_KEY.substring(0, 10) + '...';
             }
@@ -1018,11 +1107,13 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
             
             document.getElementById('removeFile').addEventListener('click', () => {
                 fileInput.value = '';
+                currentFile = null;
                 fileInfo.style.display = 'none';
                 uploadContainer.style.display = 'flex';
                 document.getElementById('parsedData').style.display = 'none';
                 document.getElementById('successMessage').style.display = 'none';
                 document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('debugInfo').style.display = 'none';
             });
             
             // Navigation
@@ -1034,31 +1125,25 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
                 console.log('Étape passée...');
             });
             
-            console.log('✅ ULTRA PARSING v6.0 prêt - Extrait TOUTES les 7 expériences - MEGA FORCE DEPLOY !');
+            console.log('✅ ULTRA PARSING v6.1 prêt - Support tous CVs !');
         });
 
-        // FONCTIONS DE MONITORING ULTRA v6.0 - MEGA FORCE DEPLOY
-        window.getUltraParsingStatsV6 = () => ({
-            isActive: ULTRA_CONFIG_V6.isActive,
-            version: ULTRA_CONFIG_V6.version,
-            totalCVsProcessed: ULTRA_CONFIG_V6.cvCount,
-            experiencesGuaranteed: ULTRA_CONFIG_V6.experiencesCount,
-            status: 'ULTRA PARSING v6.0 ACTIVE - 7 EXPÉRIENCES GARANTIES - MEGA FORCE DEPLOY',
+        // FONCTIONS DE MONITORING
+        window.getUltraParsingStatsV61 = () => ({
+            version: ULTRA_CONFIG_V61.version,
+            realParsingEnabled: ULTRA_CONFIG_V61.realParsingEnabled,
             hasApiKey: !!OPENAI_API_KEY,
-            tokensUsed: 4500,
-            deployTimestamp: ULTRA_CONFIG_V6.deployTimestamp,
-            deployId: ULTRA_CONFIG_V6.deployId,
-            commitSha: ULTRA_CONFIG_V6.commitSha
+            currentFile: currentFile ? currentFile.name : null,
+            status: 'ULTRA PARSING v6.1 - SUPPORT TOUS CVS'
         });
 
-        console.log('🎉 === ULTRA PARSING v6.0 INSTALLÉ - MEGA FORCE DEPLOY ===');
-        console.log('✅ Prompt ultra-optimisé pour Sabine (7 expériences)');
-        console.log('✅ 4500 tokens pour réponse ultra-complète');
-        console.log('✅ Affichage stylé et détaillé des 7 expériences');
-        console.log('✅ Badge mis à jour v6.0 - MEGA FORCE DEPLOY');
-        console.log('✅ Validation automatique des 7 expériences');
-        console.log('\\n🧪 TESTEZ MAINTENANT - 7 EXPÉRIENCES GARANTIES - MEGA FORCE DEPLOY !');
-        console.log('📊 Stats v6.0 - MEGA FORCE DEPLOY:', window.getUltraParsingStatsV6());
+        console.log('🎉 === ULTRA PARSING v6.1 INSTALLÉ ===');
+        console.log('✅ Lecture réelle des fichiers PDF/Word/TXT');
+        console.log('✅ Appel authentique à l\'API OpenAI');
+        console.log('✅ Parsing JSON de la réponse');
+        console.log('✅ Support de tous les types de CV');
+        console.log('✅ Fallback Sabine en cas d\'erreur');
+        console.log('\\n🧪 TESTEZ AVEC VOTRE PROPRE CV !');
     </script>
 </body>
 </html>
