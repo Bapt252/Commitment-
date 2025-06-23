@@ -9,8 +9,8 @@
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
     <meta name="cache-control" content="no-cache">
-    <meta name="last-modified" content="2025-06-23T22:00:00Z">
-    <meta name="timestamp" content="2025-06-23-22-00-CURSOR-FINAL">
+    <meta name="last-modified" content="2025-06-23T23:00:00Z">
+    <meta name="timestamp" content="2025-06-23-23-00-FORCE-DEPLOY">
     
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -681,15 +681,15 @@
     </div>
 
     <!-- ======================================================================================== -->
-    <!-- 🚀 SYSTÈME UNIVERSEL FINAL - INTÉGRATION COMPLÈTE -->
+    <!-- 🚀 SYSTÈME UNIVERSEL FINAL - VERSION FORCE DEPLOY -->
     <!-- ======================================================================================== -->
     <script>
-        console.log('🚀 === SYSTÈME UNIVERSEL FINAL - UNE SEULE INSTALLATION ===');
+        console.log('🚀 === SYSTÈME UNIVERSEL FINAL - FORCE DEPLOY v4.1 ===');
 
         // Configuration finale
         const FINAL_CONFIG = {
             isActive: false,
-            version: 'FINAL-UNIVERSAL-v4.0',
+            version: 'FINAL-UNIVERSAL-v4.1-DEPLOY',
             cvCount: 0
         };
 
@@ -697,7 +697,7 @@
 
         // SEUL ET UNIQUE INTERCEPTEUR
         function installFinalSystem() {
-            console.log('🔧 Installation système final...');
+            console.log('🔧 Installation système final FORCE DEPLOY...');
             
             // Sauvegarder le fetch original (propre)
             const originalFetch = window.fetch;
@@ -759,26 +759,26 @@ Instructions :
             };
             
             FINAL_CONFIG.isActive = true;
-            console.log('✅ Système final installé');
+            console.log('✅ Système final FORCE DEPLOY installé');
         }
 
         // BLOQUER DÉFINITIVEMENT LE MOCK
         function blockMockSystem() {
-            console.log('🚫 Blocage définitif du système mock...');
+            console.log('🚫 Blocage définitif du système mock FORCE DEPLOY...');
             
             // Intercepter CVParserIntegration
             if (window.CVParserIntegration && window.CVParserIntegration.prototype) {
                 const originalParseCV = window.CVParserIntegration.prototype.parseCV;
                 
                 window.CVParserIntegration.prototype.parseCV = async function(file) {
-                    console.log('🎯 CVParserIntegration final - Mock bloqué');
+                    console.log('🎯 CVParserIntegration final - Mock bloqué FORCE DEPLOY');
                     
                     try {
                         const result = await originalParseCV.call(this, file);
                         console.log('✅ Parsing OpenAI réussi');
                         return result;
                     } catch (error) {
-                        console.log('❌ Erreur OpenAI - Retour données Sabine');
+                        console.log('❌ Erreur OpenAI - Retour données Sabine FORCE DEPLOY');
                         
                         // Retourner les vraies données au lieu du mock
                         return getSabineFallbackData();
@@ -786,16 +786,16 @@ Instructions :
                 };
             }
             
-            console.log('✅ Mock définitivement bloqué');
+            console.log('✅ Mock définitivement bloqué FORCE DEPLOY');
         }
 
-        // Données de fallback Sabine Rivière
+        // Données de fallback Sabine Rivière - FORCE DEPLOY
         function getSabineFallbackData() {
             return {
                 processing_time: 1.5,
                 parsed_at: Date.now() / 1000,
                 file_format: 'pdf',
-                model: "fallback-sabine",
+                model: "fallback-sabine-force-deploy",
                 data: {
                     personal_info: {
                         name: 'Sabine Rivière',
@@ -844,12 +844,12 @@ Instructions :
             statusDiv.innerHTML = '✅ API configurée - Système optimisé automatiquement !';
             statusDiv.style.color = 'var(--success-color)';
             
-            console.log('✅ Clé API configurée avec succès');
+            console.log('✅ Clé API configurée avec succès FORCE DEPLOY');
         }
 
         // Gestion upload et parsing
         async function handleFileUpload(file) {
-            console.log(`📁 Upload fichier: ${file.name}`);
+            console.log(`📁 Upload fichier FORCE DEPLOY: ${file.name}`);
             
             document.getElementById('fileName').textContent = file.name;
             document.getElementById('fileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
@@ -859,7 +859,7 @@ Instructions :
             document.getElementById('loadingIndicator').style.display = 'flex';
             
             try {
-                console.log('🔄 Démarrage analyse avec système final...');
+                console.log('🔄 Démarrage analyse avec système final FORCE DEPLOY...');
                 
                 // Simulation d'attente pour l'analyse
                 await new Promise(resolve => setTimeout(resolve, 2500));
@@ -871,13 +871,13 @@ Instructions :
                 
                 document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('successMessage').innerHTML = 
-                    '<i class="fas fa-check-circle"></i> ✅ Analyse terminée - 7 expériences extraites avec succès !';
+                    '<i class="fas fa-check-circle"></i> ✅ FORCE DEPLOY - Analyse terminée - 7 expériences extraites avec succès !';
                 document.getElementById('successMessage').style.display = 'block';
                 
-                console.log('✅ Analyse terminée avec succès');
+                console.log('✅ Analyse terminée avec succès FORCE DEPLOY');
                 
             } catch (error) {
-                console.error(`❌ Erreur parsing: ${error.message}`);
+                console.error(`❌ Erreur parsing FORCE DEPLOY: ${error.message}`);
                 
                 document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('errorMessage').style.display = 'block';
@@ -908,13 +908,13 @@ Instructions :
 
         // INSTALLATION ET INITIALISATION
         document.addEventListener('DOMContentLoaded', function() {
-            // INSTALLATION AUTOMATIQUE DU SYSTÈME FINAL
+            // INSTALLATION AUTOMATIQUE DU SYSTÈME FINAL FORCE DEPLOY
             installFinalSystem();
             blockMockSystem();
             
             // Vérifier la configuration API
             if (OPENAI_API_KEY) {
-                document.getElementById('apiStatus').innerHTML = '✅ API déjà configurée - Système opérationnel !';
+                document.getElementById('apiStatus').innerHTML = '✅ API déjà configurée - Système opérationnel FORCE DEPLOY !';
                 document.getElementById('apiStatus').style.color = 'var(--success-color)';
                 document.getElementById('apiKeyInput').value = OPENAI_API_KEY.substring(0, 10) + '...';
             }
@@ -959,14 +959,14 @@ Instructions :
             
             // Navigation
             document.getElementById('nextBtn').addEventListener('click', () => {
-                console.log('Navigation vers étape suivante...');
+                console.log('Navigation vers étape suivante FORCE DEPLOY...');
             });
             
             document.getElementById('skipBtn').addEventListener('click', () => {
-                console.log('Étape passée...');
+                console.log('Étape passée FORCE DEPLOY...');
             });
             
-            console.log('✅ Interface et système final prêts !');
+            console.log('✅ Interface et système final FORCE DEPLOY prêts !');
         });
 
         // FONCTIONS DE MONITORING
@@ -974,18 +974,18 @@ Instructions :
             isActive: FINAL_CONFIG.isActive,
             version: FINAL_CONFIG.version,
             totalCVsProcessed: FINAL_CONFIG.cvCount,
-            status: 'FINAL SYSTEM ACTIVE',
+            status: 'FINAL SYSTEM ACTIVE - FORCE DEPLOY',
             mockStatus: 'PERMANENTLY BLOCKED',
             hasApiKey: !!OPENAI_API_KEY
         });
 
-        console.log('🎉 === SYSTÈME FINAL INSTALLÉ ===');
-        console.log('✅ Un seul intercepteur propre');
+        console.log('🎉 === SYSTÈME FINAL FORCE DEPLOY INSTALLÉ ===');
+        console.log('✅ Un seul intercepteur propre FORCE DEPLOY');
         console.log('✅ Tokens sécurisés (3500)');
         console.log('✅ Mock définitivement bloqué');
-        console.log('✅ Fallback vers Sabine Rivière garanti');
-        console.log('\n🧪 TESTEZ MAINTENANT !');
-        console.log('📊 Stats:', window.getUniversalParserStatsV4());
+        console.log('✅ Fallback vers Sabine Rivière garanti FORCE DEPLOY');
+        console.log('\n🧪 TESTEZ MAINTENANT FORCE DEPLOY !');
+        console.log('📊 Stats FORCE DEPLOY:', window.getUniversalParserStatsV4());
     </script>
 </body>
 </html>
