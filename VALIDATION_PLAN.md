@@ -12,7 +12,7 @@
 #### ✅ Tests à effectuer :
 
 **1.1 Page Upload CV**
-- [ ] **URL Fonctionnelle** : https://bapt252.github.io/Commitment-/templates/candidate-upload.html
+- [ ] **URL Fonctionnelle** : https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html
 - [ ] **Interface de drag & drop** fonctionne
 - [ ] **Progression d'upload** s'affiche correctement
 - [ ] **Mode OpenAI** : Parsing avec clé API OpenAI (si disponible)
@@ -89,7 +89,7 @@
 #### ✅ Pages à valider :
 
 **4.1 Upload CV** ⭐ CRITIQUE
-- [ ] **URL** : https://bapt252.github.io/Commitment-/templates/candidate-upload.html
+- [ ] **URL** : https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html
 - [ ] **Interface complète** charge sans erreur
 - [ ] **Fonctionnalités** de parsing opérationnelles
 
