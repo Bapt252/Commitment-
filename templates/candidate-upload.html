@@ -765,6 +765,17 @@
         let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
         let currentFile = null;
 
+        // 🚀 FONCTION DE NAVIGATION VERS LE QUESTIONNAIRE
+        function navigateToQuestionnaire() {
+            console.log('🎯 Navigation vers le questionnaire candidat...');
+            
+            // URL du questionnaire candidat sur GitHub Pages
+            const questionnaireUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
+            
+            // Redirection avec cache-buster pour éviter les problèmes de cache
+            window.location.href = questionnaireUrl + '?from=parsing&t=' + Date.now();
+        }
+
         // 🔧 LECTURE RÉELLE DES FICHIERS
         async function readFileContent(file) {
             console.log(`📄 Lecture du fichier: ${file.name} (${file.type})`);
@@ -1167,16 +1178,19 @@ Format JSON OBLIGATOIRE (retourne EXACTEMENT ce format):
                 document.getElementById('debugInfo').style.display = 'none';
             });
             
-            // Navigation
+            // 🎯 NAVIGATION CORRIGÉE - REDIRECTION VERS LE QUESTIONNAIRE
             document.getElementById('nextBtn').addEventListener('click', () => {
-                console.log('Navigation vers étape suivante...');
+                console.log('🚀 Clic sur Continuer - Navigation vers questionnaire...');
+                navigateToQuestionnaire();
             });
             
             document.getElementById('skipBtn').addEventListener('click', () => {
-                console.log('Étape passée...');
+                console.log('🚀 Clic sur Passer cette étape - Navigation vers questionnaire...');
+                navigateToQuestionnaire();
             });
             
             console.log('✅ ULTRA PARSING v6.2.0 prêt - Cache killer actif !');
+            console.log('✅ Navigation vers questionnaire configurée !');
         });
 
         // FONCTIONS DE MONITORING
@@ -1198,6 +1212,7 @@ Format JSON OBLIGATOIRE (retourne EXACTEMENT ce format):
         console.log('✅ Support de tous les types de CV');
         console.log('✅ Fallback Sabine en cas d\'erreur');
         console.log('✅ Cache killer actif - Mise à jour FORCÉE');
+        console.log('✅ Navigation vers questionnaire opérationnelle !');
         console.log('\n🧪 TESTEZ AVEC VOTRE PROPRE CV !');
     </script>
 </body>
