@@ -537,10 +537,10 @@
                         </a>
                     </div>
                     
-                    <!-- Section de création de compte CORRIGÉE -->
+                    <!-- Section de création de compte avec REDIRECTION FORCÉE -->
                     <div class="create-account-section">
                         <p>Vous n'avez pas encore de compte ?</p>
-                        <a href="https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html" class="btn-modern btn-secondary-modern">Créer un compte candidat</a>
+                        <button onclick="forceRedirectToRawGithack()" class="btn-modern btn-secondary-modern">🔥 Créer un compte candidat</button>
                     </div>
                 </div>
                 
@@ -624,8 +624,25 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <!-- JavaScript -->
+    <!-- JavaScript MODIFIÉ avec redirection forcée -->
     <script>
+        // 🔥 FONCTION DE REDIRECTION FORCÉE VERS RAW.GITHACK.COM
+        function forceRedirectToRawGithack() {
+            console.log('🔥 Redirection forcée vers raw.githack.com...');
+            
+            // Supprimer le cache et forcer la redirection
+            const targetUrl = 'https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html?' + Date.now();
+            
+            // Option 1: window.open (nouvelle fenêtre/onglet)
+            // window.open(targetUrl, '_blank');
+            
+            // Option 2: window.location (même fenêtre) - RECOMMANDÉ
+            window.location.href = targetUrl;
+            
+            // Option 3: En cas de problème, utiliser replace
+            // window.location.replace(targetUrl);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Menu mobile toggle
             const menuToggle = document.querySelector('.menu-toggle');
@@ -676,6 +693,8 @@
                     });
                 });
             }
+            
+            console.log('✅ Page candidate-login.html chargée avec redirection forcée vers raw.githack.com');
         });
     </script>
 </body>
