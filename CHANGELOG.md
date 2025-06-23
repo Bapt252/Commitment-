@@ -48,8 +48,8 @@ function configureApiKey()                           // Configuration API simple
 
 ### 🌐 **URLs DÉPLOYÉES**
 
-- **Version CORRIGÉE** : https://bapt252.github.io/Commitment-/templates/candidate-upload-fixed.html
-- **Version Originale** : https://bapt252.github.io/Commitment-/templates/candidate-upload.html
+- **Version CORRIGÉE** : https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload-fixed.html
+- **Version Originale** : https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html
 
 ### 🧪 **Tests de Validation**
 
