@@ -85,7 +85,7 @@ python3 commitment_test.py
 ```
 
 ### **Tests manuels**
-1. **Page Upload CV** : https://bapt252.github.io/Commitment-/templates/candidate-upload.html
+1. **Page Upload CV** : https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html
    - ✅ Tester l'upload d'un fichier CV
    - ✅ Vérifier l'affichage des données extraites
    - ✅ Tester avec et sans clé API OpenAI
