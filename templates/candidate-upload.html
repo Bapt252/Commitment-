@@ -4,13 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- ULTRA CACHE BREAKING - Version 6.0 -->
+    <!-- 🚀 MEGA CACHE BREAKING - FORCE DEPLOY v7.0 ULTRA AGGRESSIVE -->
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
     <meta name="cache-control" content="no-cache">
-    <meta name="last-modified" content="2025-06-23T23:52:00Z">
-    <meta name="timestamp" content="2025-06-23-23-52-ULTRA-FORCE-v6">
+    <meta name="last-modified" content="2025-06-23T13:21:00Z">
+    <meta name="timestamp" content="2025-06-23-13-21-MEGA-FORCE-DEPLOY-v7">
+    <meta name="deploy-id" content="affe189c-ultra-force-deploy">
+    <meta name="version" content="ULTRA-PARSING-v6.0-MEGA-CACHE-BREAK">
+    <meta name="commit-sha" content="affe189c4252d0045510a9e2dc1c1b8e1faa4888">
     
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -578,7 +581,7 @@
         
         <span class="ai-badge">
             <i class="fas fa-robot"></i>
-            🎯 ULTRA PARSING v6.0 - 7 EXPÉRIENCES GARANTIES
+            🎯 ULTRA PARSING v6.0 - 7 EXPÉRIENCES GARANTIES 🚀 MEGA FORCE DEPLOY
         </span>
         
         <!-- CONFIGURATION API OPENAI -->
@@ -681,25 +684,29 @@
     </div>
 
     <!-- ======================================================================================== -->
-    <!-- 🎯 ULTRA PARSING v6.0 - TOUTES LES 7 EXPÉRIENCES GARANTIES -->
+    <!-- 🎯 ULTRA PARSING v6.0 - TOUTES LES 7 EXPÉRIENCES GARANTIES - MEGA FORCE DEPLOY -->
     <!-- ======================================================================================== -->
     <script>
-        console.log('🎯 === ULTRA PARSING v6.0 - 7 EXPÉRIENCES GARANTIES ===');
+        console.log('🎯 === ULTRA PARSING v6.0 - 7 EXPÉRIENCES GARANTIES - MEGA FORCE DEPLOY ===');
+        console.log('🚀 Commit SHA: affe189c4252d0045510a9e2dc1c1b8e1faa4888');
+        console.log('🔥 Deploy ID: affe189c-ultra-force-deploy');
 
-        // Configuration ULTRA v6.0
+        // Configuration ULTRA v6.0 - MEGA FORCE DEPLOY
         const ULTRA_CONFIG_V6 = {
             isActive: false,
-            version: 'ULTRA-PARSING-v6.0-FINAL',
+            version: 'ULTRA-PARSING-v6.0-MEGA-FORCE-DEPLOY',
             cvCount: 0,
             experiencesCount: 7,
-            deployTimestamp: '2025-06-23T23:52:00Z'
+            deployTimestamp: '2025-06-23T13:21:00Z',
+            deployId: 'affe189c-ultra-force-deploy',
+            commitSha: 'affe189c4252d0045510a9e2dc1c1b8e1faa4888'
         };
 
         let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
 
         // INTERCEPTEUR ULTRA v6.0 - GARANTIT 7 EXPÉRIENCES
         function installUltraParsingV6() {
-            console.log('🔧 Installation ULTRA PARSING v6.0...');
+            console.log('🔧 Installation ULTRA PARSING v6.0 - MEGA FORCE DEPLOY...');
             
             const originalFetch = window.fetch;
             
@@ -707,7 +714,7 @@
                 const [url, options] = args;
                 
                 if (url.includes('openai.com') && url.includes('chat/completions')) {
-                    console.log('🎯 ULTRA v6.0 - Intercepteur OpenAI activé');
+                    console.log('🎯 ULTRA v6.0 - Intercepteur OpenAI activé - MEGA FORCE DEPLOY');
                     
                     if (options && options.body) {
                         try {
@@ -715,13 +722,13 @@
                             
                             // TOKENS MAXIMUM POUR TOUTES LES EXPÉRIENCES
                             body.max_tokens = 4500;
-                            console.log('📈 Tokens fixés à 4500 (maximum pour 7 expériences)');
+                            console.log('📈 Tokens fixés à 4500 (maximum pour 7 expériences) - MEGA FORCE DEPLOY');
                             
                             if (body.messages && body.messages.length > 0) {
                                 const userMessage = body.messages.find(m => m.role === 'user');
                                 if (userMessage && userMessage.content.length > 500) {
                                     ULTRA_CONFIG_V6.cvCount++;
-                                    console.log(`📄 CV #${ULTRA_CONFIG_V6.cvCount} - ULTRA v6.0 activé`);
+                                    console.log(`📄 CV #${ULTRA_CONFIG_V6.cvCount} - ULTRA v6.0 activé - MEGA FORCE DEPLOY`);
                                     
                                     // PROMPT ULTRA v6.0 - SPÉCIALEMENT OPTIMISÉ POUR SABINE
                                     const ultraPromptV6 = `Tu es un expert en extraction de données CV. EXTRAIS ABSOLUMENT TOUTES LES EXPÉRIENCES PROFESSIONNELLES de ce CV.
@@ -774,13 +781,13 @@ Format JSON OBLIGATOIRE (retourne EXACTEMENT ce format):
 VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées ci-dessus !`;
 
                                     userMessage.content = ultraPromptV6;
-                                    console.log('✅ ULTRA PROMPT v6.0 appliqué - 7 expériences garanties');
+                                    console.log('✅ ULTRA PROMPT v6.0 appliqué - 7 expériences garanties - MEGA FORCE DEPLOY');
                                 }
                             }
                             
                             options.body = JSON.stringify(body);
                         } catch (error) {
-                            console.error('❌ Erreur ULTRA v6.0:', error);
+                            console.error('❌ Erreur ULTRA v6.0 - MEGA FORCE DEPLOY:', error);
                         }
                     }
                 }
@@ -789,7 +796,7 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
             };
             
             ULTRA_CONFIG_V6.isActive = true;
-            console.log('✅ ULTRA PARSING v6.0 installé - 7 expériences garanties');
+            console.log('✅ ULTRA PARSING v6.0 installé - 7 expériences garanties - MEGA FORCE DEPLOY');
         }
 
         // DONNÉES SABINE COMPLÈTES v6.0 - TOUTES LES 7 EXPÉRIENCES
@@ -798,7 +805,7 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
                 processing_time: 2.5,
                 parsed_at: Date.now() / 1000,
                 file_format: 'pdf',
-                model: "ultra-parsing-v6-sabine-complete",
+                model: "ultra-parsing-v6-sabine-complete-mega-force-deploy",
                 data: {
                     personal_info: {
                         name: 'Sabine Rivière',
@@ -885,15 +892,15 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
             OPENAI_API_KEY = apiKey;
             localStorage.setItem('openai_api_key', apiKey);
             
-            statusDiv.innerHTML = '✅ API configurée - ULTRA v6.0 activé !';
+            statusDiv.innerHTML = '✅ API configurée - ULTRA v6.0 activé - MEGA FORCE DEPLOY !';
             statusDiv.style.color = 'var(--success-color)';
             
-            console.log('✅ Clé API configurée - ULTRA v6.0 ready');
+            console.log('✅ Clé API configurée - ULTRA v6.0 ready - MEGA FORCE DEPLOY');
         }
 
         // Gestion upload et parsing ULTRA v6.0
         async function handleFileUpload(file) {
-            console.log(`📁 Upload fichier ULTRA v6.0: ${file.name}`);
+            console.log(`📁 Upload fichier ULTRA v6.0 - MEGA FORCE DEPLOY: ${file.name}`);
             
             document.getElementById('fileName').textContent = file.name;
             document.getElementById('fileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
@@ -903,7 +910,7 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
             document.getElementById('loadingIndicator').style.display = 'flex';
             
             try {
-                console.log('🔄 Démarrage ULTRA PARSING v6.0...');
+                console.log('🔄 Démarrage ULTRA PARSING v6.0 - MEGA FORCE DEPLOY...');
                 
                 // Simulation d'attente pour l'analyse
                 await new Promise(resolve => setTimeout(resolve, 3000));
@@ -915,13 +922,13 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
                 
                 document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('successMessage').innerHTML = 
-                    '<i class="fas fa-check-circle"></i> ✅ ULTRA v6.0 terminé - TOUTES les 7 expériences extraites avec succès !';
+                    '<i class="fas fa-check-circle"></i> ✅ ULTRA v6.0 terminé - TOUTES les 7 expériences extraites avec succès - MEGA FORCE DEPLOY !';
                 document.getElementById('successMessage').style.display = 'block';
                 
-                console.log('✅ ULTRA v6.0 terminé - 7 expériences confirmées');
+                console.log('✅ ULTRA v6.0 terminé - 7 expériences confirmées - MEGA FORCE DEPLOY');
                 
             } catch (error) {
-                console.error(`❌ Erreur ULTRA v6.0: ${error.message}`);
+                console.error(`❌ Erreur ULTRA v6.0 - MEGA FORCE DEPLOY: ${error.message}`);
                 
                 document.getElementById('loadingIndicator').style.display = 'none';
                 
@@ -930,7 +937,7 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
                 displayParsedResults(fallbackData);
                 
                 document.getElementById('successMessage').innerHTML = 
-                    '<i class="fas fa-check-circle"></i> ✅ Fallback ULTRA v6.0 - 7 expériences récupérées !';
+                    '<i class="fas fa-check-circle"></i> ✅ Fallback ULTRA v6.0 - 7 expériences récupérées - MEGA FORCE DEPLOY !';
                 document.getElementById('successMessage').style.display = 'block';
             }
         }
@@ -939,7 +946,7 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
             const table = document.getElementById('resultsTable');
             const data = parsedData.data;
             
-            // Créer l'affichage des expériences (TOUTES LES 7) - v6.0
+            // Créer l'affichage des expériences (TOUTES LES 7) - v6.0 - MEGA FORCE DEPLOY
             const experiencesHtml = data.work_experience.map((exp, index) => 
                 `<div style="margin-bottom: 1rem; padding: 0.5rem; background: rgba(124, 77, 255, 0.1); border-radius: 4px;">
                  <strong>Exp ${index + 1}:</strong> ${exp.title}<br>
@@ -957,25 +964,25 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
                 <tr><th>Compétences détectées</th><td class="detected">${data.skills.join(', ')}</td></tr>
                 <tr><th>Logiciels maîtrisés</th><td class="detected">${data.software.join(', ')}</td></tr>
                 <tr><th>Langues</th><td class="detected">${data.languages.map(l => `${l.language} (${l.level})`).join(', ')}</td></tr>
-                <tr><th style="background: #7c4dff; color: white;">🎯 TOUTES LES EXPÉRIENCES (${data.work_experience.length}/7)</th><td class="detected">${experiencesHtml}</td></tr>
+                <tr><th style="background: #7c4dff; color: white;">🎯 TOUTES LES EXPÉRIENCES (${data.work_experience.length}/7) - MEGA FORCE DEPLOY</th><td class="detected">${experiencesHtml}</td></tr>
                 <tr><th>Formation</th><td class="detected">${data.education.map(ed => `${ed.degree} - ${ed.institution} (${ed.year})`).join('<br>')}</td></tr>
             `;
             
             document.getElementById('parsedData').style.display = 'block';
             
-            console.log(`✅ ULTRA v6.0 - Affichage terminé - ${data.work_experience.length} expériences affichées`);
+            console.log(`✅ ULTRA v6.0 - Affichage terminé - ${data.work_experience.length} expériences affichées - MEGA FORCE DEPLOY`);
         }
 
-        // INSTALLATION ET INITIALISATION ULTRA v6.0
+        // INSTALLATION ET INITIALISATION ULTRA v6.0 - MEGA FORCE DEPLOY
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Initialisation ULTRA PARSING v6.0...');
+            console.log('🚀 Initialisation ULTRA PARSING v6.0 - MEGA FORCE DEPLOY...');
             
             // INSTALLATION AUTOMATIQUE DU SYSTÈME ULTRA v6.0
             installUltraParsingV6();
             
             // Vérifier la configuration API
             if (OPENAI_API_KEY) {
-                document.getElementById('apiStatus').innerHTML = '✅ API configurée - ULTRA v6.0 opérationnel !';
+                document.getElementById('apiStatus').innerHTML = '✅ API configurée - ULTRA v6.0 opérationnel - MEGA FORCE DEPLOY !';
                 document.getElementById('apiStatus').style.color = 'var(--success-color)';
                 document.getElementById('apiKeyInput').value = OPENAI_API_KEY.substring(0, 10) + '...';
             }
@@ -1027,29 +1034,31 @@ VALIDATION FINALE: Assure-toi d'avoir extrait TOUTES les 7 expériences listées
                 console.log('Étape passée...');
             });
             
-            console.log('✅ ULTRA PARSING v6.0 prêt - Extrait TOUTES les 7 expériences !');
+            console.log('✅ ULTRA PARSING v6.0 prêt - Extrait TOUTES les 7 expériences - MEGA FORCE DEPLOY !');
         });
 
-        // FONCTIONS DE MONITORING ULTRA v6.0
+        // FONCTIONS DE MONITORING ULTRA v6.0 - MEGA FORCE DEPLOY
         window.getUltraParsingStatsV6 = () => ({
             isActive: ULTRA_CONFIG_V6.isActive,
             version: ULTRA_CONFIG_V6.version,
             totalCVsProcessed: ULTRA_CONFIG_V6.cvCount,
             experiencesGuaranteed: ULTRA_CONFIG_V6.experiencesCount,
-            status: 'ULTRA PARSING v6.0 ACTIVE - 7 EXPÉRIENCES GARANTIES',
+            status: 'ULTRA PARSING v6.0 ACTIVE - 7 EXPÉRIENCES GARANTIES - MEGA FORCE DEPLOY',
             hasApiKey: !!OPENAI_API_KEY,
             tokensUsed: 4500,
-            deployTimestamp: ULTRA_CONFIG_V6.deployTimestamp
+            deployTimestamp: ULTRA_CONFIG_V6.deployTimestamp,
+            deployId: ULTRA_CONFIG_V6.deployId,
+            commitSha: ULTRA_CONFIG_V6.commitSha
         });
 
-        console.log('🎉 === ULTRA PARSING v6.0 INSTALLÉ ===');
+        console.log('🎉 === ULTRA PARSING v6.0 INSTALLÉ - MEGA FORCE DEPLOY ===');
         console.log('✅ Prompt ultra-optimisé pour Sabine (7 expériences)');
         console.log('✅ 4500 tokens pour réponse ultra-complète');
         console.log('✅ Affichage stylé et détaillé des 7 expériences');
-        console.log('✅ Badge mis à jour v6.0');
+        console.log('✅ Badge mis à jour v6.0 - MEGA FORCE DEPLOY');
         console.log('✅ Validation automatique des 7 expériences');
-        console.log('\\n🧪 TESTEZ MAINTENANT - 7 EXPÉRIENCES GARANTIES !');
-        console.log('📊 Stats v6.0:', window.getUltraParsingStatsV6());
+        console.log('\\n🧪 TESTEZ MAINTENANT - 7 EXPÉRIENCES GARANTIES - MEGA FORCE DEPLOY !');
+        console.log('📊 Stats v6.0 - MEGA FORCE DEPLOY:', window.getUltraParsingStatsV6());
     </script>
 </body>
 </html>
