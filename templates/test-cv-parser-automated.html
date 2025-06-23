@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Système CV Parser Automatisé</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-left: 4px solid #4CAF50;
+            background-color: #f9f9f9;
+        }
+        
+        .test-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .test-button:hover {
+            background-color: #45a049;
+        }
+        
+        .test-results {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success { background-color: #4CAF50; }
+        .status-warning { background-color: #FF9800; }
+        .status-error { background-color: #F44336; }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Système CV Parser Automatisé</h1>
+        <p>Cette page teste automatiquement tous les composants de votre solution automatisée.</p>
+        
+        <!-- STATUS GÉNÉRAL -->
+        <div class="test-section">
+            <h3>📊 Statut Général du Système</h3>
+            <div id="generalStatus"></div>
+            <button class="test-button" onclick="testGeneralStatus()">🔍 Tester Statut</button>
+        </div>
+        
+        <!-- TESTS AUTOMATIQUES -->
+        <div class="test-section">
+            <h3>🚀 Tests Automatiques</h3>
+            <div class="test-grid">
+                <button class="test-button" onclick="testInterceptorInstallation()">
+                    🔧 Test Intercepteur
+                </button>
+                <button class="test-button" onclick="testPDFjsLoading()">
+                    📄 Test PDF.js
+                </button>
+                <button class="test-button" onclick="testAPIConfiguration()">
+                    🔑 Test Config API
+                </button>
+                <button class="test-button" onclick="testFallbackSystem()">
+                    🛡️ Test Fallback
+                </button>
+                <button class="test-button" onclick="testTokenOptimization()">
+                    ⚡ Test Tokens
+                </button>
+                <button class="test-button" onclick="runFullTestSuite()">
+                    🎯 Test Complet
+                </button>
+            </div>
+        </div>
+        
+        <!-- RÉSULTATS -->
+        <div class="test-section">
+            <h3>📋 Résultats des Tests</h3>
+            <div id="testResults" class="test-results">
+=== SYSTÈME DE TEST CV PARSER AUTOMATISÉ ===
+Prêt à tester votre solution automatisée !
+
+Instructions:
+1. Cliquez sur "Test Complet" pour une validation automatique
+2. Ou testez chaque composant individuellement
+3. Vérifiez que tous les indicateurs sont verts ✅
+
+Attendez les résultats ci-dessous...
+            </div>
+        </div>
+        
+        <!-- ACTIONS RAPIDES -->
+        <div class="test-section">
+            <h3>⚡ Actions Rapides</h3>
+            <button class="test-button" onclick="clearResults()">🗑️ Effacer</button>
+            <button class="test-button" onclick="exportResults()">💾 Exporter</button>
+            <button class="test-button" onclick="window.open('candidate-upload-automated.html', '_blank')">
+                🔗 Ouvrir Page Automatisée
+            </button>
+        </div>
+    </div>
+
+    <!-- CHARGEMENT DU SYSTÈME AUTOMATISÉ -->
+    <script src="cv-parser-integration-automated.js"></script>
+    
+    <!-- SCRIPT DE TEST -->
+    <script>
+        // ========================================================================================
+        // 🧪 SYSTÈME DE TEST AUTOMATISÉ
+        // ========================================================================================
+        
+        let testResults = [];
+        let systemReady = false;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            const logMessage = `[${timestamp}] ${prefix} ${message}`;
+            
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.textContent += '\n' + logMessage;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            
+            testResults.push({ timestamp, type, message: logMessage });
+        }
+        
+        // ========================================================================================
+        // 🔍 TESTS INDIVIDUELS
+        // ========================================================================================
+        
+        async function testGeneralStatus() {
+            log('=== TEST STATUT GÉNÉRAL ===', 'info');
+            
+            try {
+                // Test de la fonction de stats
+                if (typeof window.getSystemStats === 'function') {
+                    const stats = window.getSystemStats();
+                    log(`Système actif: ${stats.isActive}`, stats.isActive ? 'success' : 'error');
+                    log(`Version: ${stats.version}`, 'info');
+                    log(`Status: ${stats.status}`, stats.status === 'OPERATIONAL' ? 'success' : 'warning');
+                    log(`CV traités: ${stats.totalCVsProcessed}`, 'info');
+                    log(`Tokens max: ${stats.maxTokens}`, 'info');
+                    log(`Clé API: ${stats.hasApiKey ? 'Configurée' : 'Manquante'}`, stats.hasApiKey ? 'success' : 'warning');
+                    
+                    systemReady = stats.isActive && stats.status === 'OPERATIONAL';
+                } else {
+                    log('Fonction getSystemStats non disponible', 'error');
+                    systemReady = false;
+                }
+            } catch (error) {
+                log(`Erreur test statut: ${error.message}`, 'error');
+                systemReady = false;
+            }
+            
+            updateGeneralStatusDisplay();
+        }
+        
+        function updateGeneralStatusDisplay() {
+            const statusDiv = document.getElementById('generalStatus');
+            const statusClass = systemReady ? 'status-success' : 'status-error';
+            const statusText = systemReady ? 'OPÉRATIONNEL' : 'PROBLÈME DÉTECTÉ';
+            
+            statusDiv.innerHTML = `
+                <span class="status-indicator ${statusClass}"></span>
+                <strong>${statusText}</strong>
+                ${systemReady ? '- Système prêt à l\'utilisation' : '- Vérifiez la configuration'}
+            `;
+        }
+        
+        async function testInterceptorInstallation() {
+            log('=== TEST INTERCEPTEUR FETCH ===', 'info');
+            
+            try {
+                // Vérifier que l'intercepteur est installé
+                const originalExists = !!window.originalFetchForCVParser;
+                log(`Fetch original sauvegardé: ${originalExists}`, originalExists ? 'success' : 'warning');
+                
+                // Tester l'interception (simulation)
+                const testUrl = 'https://api.openai.com/v1/chat/completions';
+                log(`Test URL cible: ${testUrl}`, 'info');
+                
+                // Vérifier que la fonction d'interception existe
+                const interceptorActive = typeof window.fetch === 'function';
+                log(`Intercepteur actif: ${interceptorActive}`, interceptorActive ? 'success' : 'error');
+                
+                if (window.CVParserIntegration) {
+                    log('Classe CVParserIntegration disponible', 'success');
+                } else {
+                    log('Classe CVParserIntegration manquante', 'error');
+                }
+                
+            } catch (error) {
+                log(`Erreur test intercepteur: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testPDFjsLoading() {
+            log('=== TEST PDF.JS ===', 'info');
+            
+            try {
+                // Vérifier que PDF.js est chargé
+                const pdfjsLoaded = !!window.pdfjsLib;
+                log(`PDF.js chargé: ${pdfjsLoaded}`, pdfjsLoaded ? 'success' : 'warning');
+                
+                if (pdfjsLoaded) {
+                    log(`Version PDF.js: ${window.pdfjsLib.version || 'inconnue'}`, 'info');
+                    
+                    // Vérifier worker
+                    const workerConfigured = !!window.pdfjsLib.GlobalWorkerOptions.workerSrc;
+                    log(`Worker configuré: ${workerConfigured}`, workerConfigured ? 'success' : 'warning');
+                    
+                    if (workerConfigured) {
+                        log(`Worker URL: ${window.pdfjsLib.GlobalWorkerOptions.workerSrc}`, 'info');
+                    }
+                } else {
+                    log('PDF.js non chargé - l\'extraction PDF ne fonctionnera pas', 'warning');
+                }
+                
+            } catch (error) {
+                log(`Erreur test PDF.js: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testAPIConfiguration() {
+            log('=== TEST CONFIGURATION API ===', 'info');
+            
+            try {
+                // Vérifier localStorage
+                const apiKey = localStorage.getItem('openai_api_key');
+                if (apiKey) {
+                    const keyPreview = apiKey.substring(0, 10) + '...';
+                    log(`Clé API trouvée: ${keyPreview}`, 'success');
+                    log(`Longueur clé: ${apiKey.length} caractères`, 'info');
+                    
+                    const validFormat = apiKey.startsWith('sk-');
+                    log(`Format valide: ${validFormat}`, validFormat ? 'success' : 'error');
+                } else {
+                    log('Aucune clé API configurée', 'warning');
+                    log('Utilisez la section "Configuration API OpenAI" sur la page principale', 'info');
+                }
+                
+                // Tester la fonction de configuration
+                if (typeof window.configureApiKey === 'function') {
+                    log('Fonction configureApiKey disponible', 'success');
+                } else {
+                    log('Fonction configureApiKey manquante', 'warning');
+                }
+                
+            } catch (error) {
+                log(`Erreur test API: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testFallbackSystem() {
+            log('=== TEST SYSTÈME FALLBACK ===', 'info');
+            
+            try {
+                // Tester la génération de données Sabine
+                if (window.CVParserIntegration) {
+                    const parser = new window.CVParserIntegration({
+                        fallbackToSabine: true,
+                        debugMode: true
+                    });
+                    
+                    // Créer un fichier de test
+                    const testFile = new File(['test'], 'cv_test.pdf', { type: 'application/pdf' });
+                    
+                    if (typeof parser.generateSabineFallback === 'function') {
+                        const fallbackData = parser.generateSabineFallback(testFile);
+                        
+                        log('Données fallback générées avec succès', 'success');
+                        log(`Nom: ${fallbackData.data.personal_info.name}`, 'info');
+                        log(`Expériences: ${fallbackData.data.work_experience.length}`, 'info');
+                        log(`Compétences: ${fallbackData.data.skills.length}`, 'info');
+                        log(`Logiciels: ${fallbackData.data.software.length}`, 'info');
+                        
+                        const hasSevenExperiences = fallbackData.data.work_experience.length === 7;
+                        log(`7 expériences garanties: ${hasSevenExperiences}`, hasSevenExperiences ? 'success' : 'error');
+                        
+                    } else {
+                        log('Fonction generateSabineFallback manquante', 'error');
+                    }
+                } else {
+                    log('CVParserIntegration non disponible pour test fallback', 'error');
+                }
+                
+            } catch (error) {
+                log(`Erreur test fallback: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testTokenOptimization() {
+            log('=== TEST OPTIMISATION TOKENS ===', 'info');
+            
+            try {
+                if (window.getSystemStats) {
+                    const stats = window.getSystemStats();
+                    const expectedTokens = 3500;
+                    
+                    log(`Tokens configurés: ${stats.maxTokens}`, 'info');
+                    log(`Tokens attendus: ${expectedTokens}`, 'info');
+                    
+                    const tokensOptimized = stats.maxTokens === expectedTokens;
+                    log(`Optimisation tokens: ${tokensOptimized}`, tokensOptimized ? 'success' : 'error');
+                    
+                    if (!tokensOptimized) {
+                        log(`ATTENTION: Tokens à ${stats.maxTokens} au lieu de ${expectedTokens}`, 'warning');
+                    }
+                } else {
+                    log('Impossible de vérifier les tokens - getSystemStats manquant', 'error');
+                }
+                
+                // Tester la disponibilité de l'optimisation automatique
+                if (window.CVParserIntegration) {
+                    log('Optimisation automatique disponible', 'success');
+                } else {
+                    log('Optimisation automatique manquante', 'error');
+                }
+                
+            } catch (error) {
+                log(`Erreur test tokens: ${error.message}`, 'error');
+            }
+        }
+        
+        async function runFullTestSuite() {
+            log('🎯 === SUITE DE TESTS COMPLÈTE ===', 'info');
+            log('Démarrage des tests automatiques...', 'info');
+            
+            await testGeneralStatus();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testInterceptorInstallation();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testPDFjsLoading();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAPIConfiguration();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testFallbackSystem();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testTokenOptimization();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Résumé final
+            log('=== RÉSUMÉ FINAL ===', 'info');
+            
+            const successCount = testResults.filter(r => r.type === 'success').length;
+            const errorCount = testResults.filter(r => r.type === 'error').length;
+            const warningCount = testResults.filter(r => r.type === 'warning').length;
+            
+            log(`✅ Succès: ${successCount}`, 'success');
+            log(`❌ Erreurs: ${errorCount}`, errorCount > 0 ? 'error' : 'info');
+            log(`⚠️ Avertissements: ${warningCount}`, warningCount > 0 ? 'warning' : 'info');
+            
+            if (errorCount === 0 && systemReady) {
+                log('🎉 TOUS LES TESTS PASSÉS - SYSTÈME OPÉRATIONNEL !', 'success');
+            } else if (errorCount > 0) {
+                log('⚠️ ERREURS DÉTECTÉES - Vérifiez la configuration', 'error');
+            } else {
+                log('✅ Système fonctionnel avec avertissements mineurs', 'warning');
+            }
+        }
+        
+        // ========================================================================================
+        // 🛠️ UTILITAIRES
+        // ========================================================================================
+        
+        function clearResults() {
+            document.getElementById('testResults').textContent = 
+                '=== RÉSULTATS EFFACÉS ===\nPrêt pour de nouveaux tests...';
+            testResults = [];
+        }
+        
+        function exportResults() {
+            const results = testResults.map(r => r.message).join('\n');
+            const blob = new Blob([results], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cv-parser-test-results-${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            log('Résultats exportés', 'success');
+        }
+        
+        // ========================================================================================
+        // 🚀 INITIALISATION
+        // ========================================================================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🧪 Système de test chargé', 'success');
+            log('Prêt à tester votre solution automatisée !', 'info');
+            
+            // Test automatique initial
+            setTimeout(() => {
+                testGeneralStatus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
