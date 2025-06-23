@@ -69,7 +69,7 @@ ls -la backend/super_smart_match_v3.py
 ls -la backend/unified_matching_service.py
 
 # Vérifier les pages frontend (urls actives)
-curl -I https://bapt252.github.io/Commitment-/templates/candidate-upload.html
+curl -I https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html
 ```
 
 ### **Étape 2 : Exécution du Nettoyage**
@@ -151,7 +151,7 @@ Tests automatisés des fonctionnalités essentielles
 
 1. **🔒 CRITIQUE - Upload CV** 
    ```
-   URL: https://bapt252.github.io/Commitment-/templates/candidate-upload.html
+   URL: https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html
    Test: Upload d'un fichier PDF/DOCX
    Attendu: Parsing réussi avec extraction des données
    ```
