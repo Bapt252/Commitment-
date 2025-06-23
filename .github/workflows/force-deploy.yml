@@ -1,0 +1,42 @@
+name: 🚀 Force Deploy GitHub Pages - Cache Buster v6.0
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  force-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - name: 🔥 Checkout with force
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: 📦 Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: 🧹 Force clear cache
+      run: |
+        echo "🔥 FORCE DEPLOY - ULTRA PARSING v6.0"
+        echo "Timestamp: $(date)"
+        echo "SHA: ${{ github.sha }}"
+        
+    - name: 📤 Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+        
+    - name: 🚀 Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
