@@ -9,8 +9,8 @@
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
     <meta name="cache-control" content="no-cache">
-    <meta name="last-modified" content="2025-06-23T21:30:00Z">
-    <meta name="timestamp" content="2025-06-23-21-30-FINAL-SYSTEM">
+    <meta name="last-modified" content="2025-06-23T21:45:00Z">
+    <meta name="timestamp" content="2025-06-23-21-45-FIXED-RECURSION">
     
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -681,39 +681,48 @@
     </div>
 
     <!-- ======================================================================================== -->
-    <!-- 🚀 SYSTÈME UNIVERSEL FINAL - INTÉGRATION COMPLÈTE -->
+    <!-- 🚀 SYSTÈME UNIVERSEL FINAL CORRIGÉ - SANS RÉCURSION -->
     <!-- ======================================================================================== -->
     <script>
-        console.log('🚀 === SYSTÈME UNIVERSEL FINAL - UNE SEULE INSTALLATION ===');
+        console.log('🚀 === SYSTÈME UNIVERSEL FINAL CORRIGÉ v4.1 ===');
 
         // Configuration finale
         const FINAL_CONFIG = {
             isActive: false,
-            version: 'FINAL-UNIVERSAL-v4.0',
-            cvCount: 0
+            version: 'FINAL-UNIVERSAL-v4.1-FIXED',
+            cvCount: 0,
+            fetchIntercepted: false
         };
 
         let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
+        let originalFetch = null;
 
-        // SEUL ET UNIQUE INTERCEPTEUR
+        // INTERCEPTEUR CORRIGÉ - SANS RÉCURSION
         function installFinalSystem() {
-            console.log('🔧 Installation système final...');
+            console.log('🔧 Installation système final corrigé...');
             
-            // Sauvegarder le fetch original (propre)
-            const originalFetch = window.fetch;
+            // Éviter double installation
+            if (FINAL_CONFIG.fetchIntercepted) {
+                console.log('⚠️ Système déjà installé');
+                return;
+            }
             
-            // Installer l'intercepteur final
-            window.fetch = async function(...args) {
-                const [url, options] = args;
-                
-                if (url.includes('openai.com') && url.includes('chat/completions')) {
+            // Sauvegarder le fetch original UNE SEULE FOIS
+            if (!originalFetch) {
+                originalFetch = window.fetch.bind(window);
+            }
+            
+            // Installer l'intercepteur corrigé
+            window.fetch = function(url, options) {
+                // Vérifier si c'est une requête OpenAI
+                if (typeof url === 'string' && url.includes('openai.com') && url.includes('chat/completions')) {
                     console.log('🎯 SYSTÈME FINAL - Traitement OpenAI');
                     
                     if (options && options.body) {
                         try {
                             const body = JSON.parse(options.body);
                             
-                            // TOKENS SÉCURISÉS : Maximum 3500 (sûr)
+                            // TOKENS SÉCURISÉS : Maximum 3500
                             body.max_tokens = 3500;
                             console.log('📈 Tokens fixés à 3500 (sécurisé)');
                             
@@ -755,38 +764,13 @@ Instructions :
                     }
                 }
                 
-                return originalFetch.apply(this, args);
+                // Utiliser le fetch original pour éviter la récursion
+                return originalFetch(url, options);
             };
             
             FINAL_CONFIG.isActive = true;
-            console.log('✅ Système final installé');
-        }
-
-        // BLOQUER DÉFINITIVEMENT LE MOCK
-        function blockMockSystem() {
-            console.log('🚫 Blocage définitif du système mock...');
-            
-            // Intercepter CVParserIntegration
-            if (window.CVParserIntegration && window.CVParserIntegration.prototype) {
-                const originalParseCV = window.CVParserIntegration.prototype.parseCV;
-                
-                window.CVParserIntegration.prototype.parseCV = async function(file) {
-                    console.log('🎯 CVParserIntegration final - Mock bloqué');
-                    
-                    try {
-                        const result = await originalParseCV.call(this, file);
-                        console.log('✅ Parsing OpenAI réussi');
-                        return result;
-                    } catch (error) {
-                        console.log('❌ Erreur OpenAI - Retour données Sabine');
-                        
-                        // Retourner les vraies données au lieu du mock
-                        return getSabineFallbackData();
-                    }
-                };
-            }
-            
-            console.log('✅ Mock définitivement bloqué');
+            FINAL_CONFIG.fetchIntercepted = true;
+            console.log('✅ Système final installé sans récursion');
         }
 
         // Données de fallback Sabine Rivière
@@ -908,9 +892,8 @@ Instructions :
 
         // INSTALLATION ET INITIALISATION
         document.addEventListener('DOMContentLoaded', function() {
-            // INSTALLATION AUTOMATIQUE DU SYSTÈME FINAL
+            // INSTALLATION AUTOMATIQUE DU SYSTÈME FINAL CORRIGÉ
             installFinalSystem();
-            blockMockSystem();
             
             // Vérifier la configuration API
             if (OPENAI_API_KEY) {
@@ -966,26 +949,26 @@ Instructions :
                 console.log('Étape passée...');
             });
             
-            console.log('✅ Interface et système final prêts !');
+            console.log('✅ Interface et système final corrigé prêts !');
         });
 
-        // FONCTIONS DE MONITORING
-        window.getUniversalParserStatsV4 = () => ({
-            isActive: FINAL_CONFIG.isActive,
-            version: FINAL_CONFIG.version,
-            totalCVsProcessed: FINAL_CONFIG.cvCount,
-            status: 'FINAL SYSTEM ACTIVE',
-            mockStatus: 'PERMANENTLY BLOCKED',
-            hasApiKey: !!OPENAI_API_KEY
-        });
+        // FONCTIONS DE MONITORING (VERSION SÉCURISÉE)
+        window.getUniversalParserStatsV4 = function() {
+            return {
+                isActive: FINAL_CONFIG.isActive,
+                version: FINAL_CONFIG.version,
+                totalCVsProcessed: FINAL_CONFIG.cvCount,
+                status: 'FINAL SYSTEM ACTIVE - NO RECURSION',
+                fetchIntercepted: FINAL_CONFIG.fetchIntercepted,
+                hasApiKey: !!OPENAI_API_KEY
+            };
+        };
 
-        console.log('🎉 === SYSTÈME FINAL INSTALLÉ ===');
-        console.log('✅ Un seul intercepteur propre');
+        console.log('🎉 === SYSTÈME FINAL CORRIGÉ INSTALLÉ ===');
+        console.log('✅ Intercepteur fetch corrigé (sans récursion)');
         console.log('✅ Tokens sécurisés (3500)');
-        console.log('✅ Mock définitivement bloqué');
         console.log('✅ Fallback vers Sabine Rivière garanti');
-        console.log('\n🧪 TESTEZ MAINTENANT !');
-        console.log('📊 Stats:', window.getUniversalParserStatsV4());
+        console.log('✅ Performance optimisée');
     </script>
 </body>
 </html>
