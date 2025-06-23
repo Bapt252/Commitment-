@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🔧 PARSING RÉEL v6.1 - SUPPORT TOUS CVS - FORCE DEPLOY GITHUB PAGES -->
+    <!-- 🔧 FORCE GITHUB PAGES CACHE REFRESH v6.1.2 - ULTIMATE CACHE BUSTING -->
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
-    <meta name="version" content="ULTRA-PARSING-v6.1-REAL-CV-SUPPORT-FORCE-DEPLOY">
-    <meta name="timestamp" content="2025-06-23T13:42:00Z">
-    <meta name="deploy-id" content="21cecdc4-force-github-pages">
-    <meta name="force-cache-break" content="ultra-v61-final-deploy">
+    <meta name="version" content="ULTRA-PARSING-v6.1.2-CACHE-BUSTING-FORCE-REFRESH">
+    <meta name="timestamp" content="2025-06-23T14:15:00Z">
+    <meta name="deploy-id" content="cache-bust-ultimate-v612">
+    <meta name="force-cache-break" content="github-pages-force-refresh-612">
+    <meta name="cache-buster" content="1719150900">
     
     <title>Nexten - Chargement de CV</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -555,12 +556,30 @@
         .deploy-status {
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            margin: 0.75rem 0;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .cache-status {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
             font-size: 0.85rem;
             margin: 0.5rem 0;
             text-align: center;
             font-weight: 500;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
 
         @media (max-width: 768px) {
@@ -608,11 +627,15 @@
         
         <span class="ai-badge">
             <i class="fas fa-robot"></i>
-            🎯 ULTRA PARSING v6.1 - SUPPORT TOUS CVS ✅ DEPLOYED
+            🎯 ULTRA PARSING v6.1.2 - CACHE REFRESH ✅
         </span>
         
         <div class="deploy-status">
-            ✅ GitHub Pages v6.1 déployé - Parsing réel activé pour TOUS les CVs
+            ✅ GitHub Pages v6.1.2 - Cache forcé à se renouveler
+        </div>
+        
+        <div class="cache-status">
+            🔄 CACHE BUSTING ACTIVATED - Actualisation forcée
         </div>
         
         <!-- CONFIGURATION API OPENAI -->
@@ -720,19 +743,20 @@
     </div>
 
     <!-- ======================================================================================== -->
-    <!-- 🔧 ULTRA PARSING v6.1 - PARSING RÉEL POUR TOUS CVS - GITHUB PAGES DÉPLOYÉ -->
+    <!-- 🔧 ULTRA PARSING v6.1.2 - CACHE BUSTING - FORCE GITHUB PAGES REFRESH -->
     <!-- ======================================================================================== -->
     <script>
-        console.log('🔧 === ULTRA PARSING v6.1 - PARSING RÉEL POUR TOUS CVS - GITHUB PAGES DÉPLOYÉ ===');
+        console.log('🔧 === ULTRA PARSING v6.1.2 - CACHE BUSTING GITHUB PAGES ===');
 
-        // Configuration ULTRA v6.1 - PARSING RÉEL
-        const ULTRA_CONFIG_V61 = {
+        // Configuration ULTRA v6.1.2 - FORCE CACHE REFRESH
+        const ULTRA_CONFIG_V612 = {
             isActive: false,
-            version: 'ULTRA-PARSING-v6.1-REAL-CV-SUPPORT-GITHUB-PAGES',
+            version: 'ULTRA-PARSING-v6.1.2-CACHE-BUSTING-GITHUB-PAGES',
             cvCount: 0,
             realParsingEnabled: true,
-            deployTimestamp: '2025-06-23T13:42:00Z',
-            deployStatus: 'DEPLOYED-ON-GITHUB-PAGES'
+            deployTimestamp: '2025-06-23T14:15:00Z',
+            deployStatus: 'CACHE-BUSTED-ON-GITHUB-PAGES',
+            cacheBuster: '1719150900'
         };
 
         let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
@@ -988,7 +1012,7 @@ Format JSON OBLIGATOIRE (retourne EXACTEMENT ce format):
 
         // 🔧 GESTION UPLOAD ET PARSING RÉEL
         async function handleFileUpload(file) {
-            console.log(`📁 Upload fichier v6.1: ${file.name}`);
+            console.log(`📁 Upload fichier v6.1.2: ${file.name}`);
             currentFile = file;
             
             document.getElementById('fileName').textContent = file.name;
@@ -1030,10 +1054,10 @@ Format JSON OBLIGATOIRE (retourne EXACTEMENT ce format):
                     `<i class="fas fa-check-circle"></i> ✅ Parsing réussi - ${parsedData.data.work_experience.length} expériences trouvées !`;
                 document.getElementById('successMessage').style.display = 'block';
                 
-                console.log('✅ Parsing v6.1 terminé avec succès');
+                console.log('✅ Parsing v6.1.2 terminé avec succès');
                 
             } catch (error) {
-                console.error(`❌ Erreur parsing v6.1: ${error.message}`);
+                console.error(`❌ Erreur parsing v6.1.2: ${error.message}`);
                 addDebugInfo(`❌ Erreur: ${error.message}`);
                 
                 document.getElementById('loadingIndicator').style.display = 'none';
@@ -1091,7 +1115,7 @@ Format JSON OBLIGATOIRE (retourne EXACTEMENT ce format):
 
         // INSTALLATION ET INITIALISATION
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Initialisation ULTRA PARSING v6.1 - GitHub Pages déployé...');
+            console.log('🚀 Initialisation ULTRA PARSING v6.1.2 - Cache Busting...');
             
             // Vérifier la configuration API
             if (OPENAI_API_KEY) {
@@ -1149,27 +1173,28 @@ Format JSON OBLIGATOIRE (retourne EXACTEMENT ce format):
                 console.log('Étape passée...');
             });
             
-            console.log('✅ ULTRA PARSING v6.1 prêt - Support tous CVs - GitHub Pages !');
+            console.log('✅ ULTRA PARSING v6.1.2 prêt - Cache forcé à se renouveler !');
         });
 
         // FONCTIONS DE MONITORING
-        window.getUltraParsingStatsV61 = () => ({
-            version: ULTRA_CONFIG_V61.version,
-            realParsingEnabled: ULTRA_CONFIG_V61.realParsingEnabled,
+        window.getUltraParsingStatsV612 = () => ({
+            version: ULTRA_CONFIG_V612.version,
+            realParsingEnabled: ULTRA_CONFIG_V612.realParsingEnabled,
             hasApiKey: !!OPENAI_API_KEY,
             currentFile: currentFile ? currentFile.name : null,
-            status: 'ULTRA PARSING v6.1 - SUPPORT TOUS CVS - GITHUB PAGES',
-            deployStatus: ULTRA_CONFIG_V61.deployStatus
+            status: 'ULTRA PARSING v6.1.2 - CACHE BUSTING GITHUB PAGES',
+            deployStatus: ULTRA_CONFIG_V612.deployStatus,
+            cacheBuster: ULTRA_CONFIG_V612.cacheBuster
         });
 
-        console.log('🎉 === ULTRA PARSING v6.1 GITHUB PAGES INSTALLÉ ===');
+        console.log('🎉 === ULTRA PARSING v6.1.2 CACHE BUSTING GITHUB PAGES ===');
         console.log('✅ Lecture réelle des fichiers PDF/Word/TXT');
         console.log('✅ Appel authentique à l\'API OpenAI');
         console.log('✅ Parsing JSON de la réponse');
         console.log('✅ Support de tous les types de CV');
         console.log('✅ Fallback Sabine en cas d\'erreur');
-        console.log('✅ Déployé sur GitHub Pages officiellement');
-        console.log('\\n🧪 TESTEZ AVEC VOTRE PROPRE CV !');
+        console.log('✅ Cache forcé à se renouveler sur GitHub Pages');
+        console.log('\n🧪 TESTEZ AVEC VOTRE PROPRE CV !');
     </script>
 </body>
 </html>
