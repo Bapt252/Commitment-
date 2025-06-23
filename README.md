@@ -23,10 +23,10 @@
 ## 🌐 **Démo et Tests - VERSION DÉFINITIVE**
 
 ### 🔧 **Version DÉFINITIVE (Parser RÉEL + Corrections) :**
-- **https://bapt252.github.io/Commitment-/templates/candidate-upload-fixed.html**
+- **https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload-fixed.html**
 
 ### 📝 **Version Originale (Simulation) :**
-- **https://bapt252.github.io/Commitment-/templates/candidate-upload.html**
+- **https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html**
 
 ### 🧪 **Tests Disponibles :**
 ```javascript
@@ -549,7 +549,7 @@ if (stats.errorCorrections.mockBlocked > 0) {
 
 **🧠 INTELLIGENCE AUTHENTIQUE** : Données RÉELLEMENT extraites et persistées avec fallback
 
-**🚀 DÉPLOIEMENT DÉFINITIF** : https://bapt252.github.io/Commitment-/templates/candidate-upload-fixed.html
+**🚀 DÉPLOIEMENT DÉFINITIF** : https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload-fixed.html
 
 **🛡️ CORRECTIONS DÉPLOYÉES** : Tokens, Mock, Fallback, Complexité - TOUTES ACTIVES
 
@@ -561,7 +561,7 @@ if (stats.errorCorrections.mockBlocked > 0) {
 
 *Intelligence sémantique authentique pour TOUS les CVs avec corrections critiques*
 
-**[Demo DÉFINITIVE](https://bapt252.github.io/Commitment-/templates/candidate-upload-fixed.html)** | **[Documentation](static/js/README.md)** | **[Tests](tests/)** | **[Changelog](CHANGELOG.md)**
+**[Demo DÉFINITIVE](https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload-fixed.html)** | **[Documentation](static/js/README.md)** | **[Tests](tests/)** | **[Changelog](CHANGELOG.md)**
 
 </div>
 
