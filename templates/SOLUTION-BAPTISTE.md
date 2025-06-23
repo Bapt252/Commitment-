@@ -91,7 +91,7 @@ function getSabineFallbackData() {
 
 ### 1. 📍 URL de test
 ```
-https://bapt252.github.io/Commitment-/templates/candidate-upload.html
+https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html
 ```
 
 ### 2. 🔑 Configuration API OpenAI
@@ -160,7 +160,7 @@ window.getUniversalParserStatsV4()
 ## 🚀 Prêt pour production
 
 La solution Baptiste est déployée et opérationnelle sur :
-**https://bapt252.github.io/Commitment-/templates/candidate-upload.html**
+**https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html**
 
 ---
 
