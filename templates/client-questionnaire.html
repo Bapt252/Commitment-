@@ -1129,18 +1129,22 @@
         const DASHBOARD_URL = "company-dashboard.html";
         let currentStep = 1;
 
-        // Système de navigation simplifié
+        // Système de navigation corrigé
         function showStep(stepNumber) {
+            console.log(`🔄 Navigation vers l'étape ${stepNumber}`);
+            
             // Masquer toutes les sections
             document.querySelectorAll('.form-section').forEach(section => {
                 section.classList.remove('active');
             });
             
-            // Afficher la section demandée
-            const targetSection = document.querySelector(`[data-step="${stepNumber}"]`);
+            // Afficher la section demandée avec sélecteur spécifique
+            const targetSection = document.querySelector(`.form-section[data-step="${stepNumber}"]`);
             if (targetSection) {
                 targetSection.classList.add('active');
                 currentStep = stepNumber;
+                
+                console.log(`✅ Section étape ${stepNumber} activée`);
                 
                 // Mettre à jour la progression
                 updateProgress();
@@ -1150,6 +1154,13 @@
                 if (stepNumber === 3) {
                     initializeChatGPTFeatures();
                 }
+                
+                // Si c'est l'étape 4, générer le récapitulatif
+                if (stepNumber === 4) {
+                    generateSummary();
+                }
+            } else {
+                console.error(`❌ Section étape ${stepNumber} non trouvée`);
             }
         }
 
@@ -1395,6 +1406,51 @@
             loader.style.display = show ? 'flex' : 'none';
         }
 
+        // Génération du récapitulatif
+        function generateSummary() {
+            const summaryContent = document.getElementById('summary-content');
+            
+            // Récupérer les données du formulaire
+            const companyName = document.getElementById('company-name').value || 'Non renseigné';
+            const companyAddress = document.getElementById('company-address').value || 'Non renseigné';
+            const companyWebsite = document.getElementById('company-website').value || 'Non renseigné';
+            const companySize = document.getElementById('company-size').value || 'Non renseigné';
+            
+            const contactName = document.getElementById('contact-name').value || 'Non renseigné';
+            const contactEmail = document.getElementById('contact-email').value || 'Non renseigné';
+            const contactPhone = document.getElementById('contact-phone').value || 'Non renseigné';
+            
+            const hasRecruitment = document.querySelector('input[name="recruitment-need"]:checked');
+            const recruitmentStatus = hasRecruitment ? (hasRecruitment.value === 'yes' ? 'Oui' : 'Non') : 'Non renseigné';
+            
+            // Construire le récapitulatif
+            let summaryHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">📢 Structure</h4>
+                        <p><strong>Nom :</strong> ${companyName}</p>
+                        <p><strong>Adresse :</strong> ${companyAddress}</p>
+                        <p><strong>Site web :</strong> ${companyWebsite}</p>
+                        <p><strong>Taille :</strong> ${companySize}</p>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">👤 Contact</h4>
+                        <p><strong>Nom :</strong> ${contactName}</p>
+                        <p><strong>Email :</strong> ${contactEmail}</p>
+                        <p><strong>Téléphone :</strong> ${contactPhone}</p>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">💼 Recrutement</h4>
+                        <p><strong>Besoin de recruter :</strong> ${recruitmentStatus}</p>
+                    </div>
+                </div>
+            `;
+            
+            summaryContent.innerHTML = summaryHTML;
+        }
+
         // Notifications
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
@@ -1440,7 +1496,7 @@
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Système ChatGPT restauré et fonctionnel');
+            console.log('🚀 Système Nexten initialisé - Navigation corrigée');
             
             // Gestion de la navigation
             document.querySelectorAll('.next-step').forEach(btn => {
@@ -1476,6 +1532,8 @@
             // Initialiser l'interface
             updateProgress();
             updateStepIndicators();
+            
+            console.log('✅ Correction appliquée : sélecteur spécifique pour sections .form-section');
         });
     </script>
     
