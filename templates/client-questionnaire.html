@@ -31,6 +31,7 @@
             --success: #10b981;
             --error: #ef4444;
             --border-radius: 8px;
+            --border-radius-lg: 12px;
             --transition: all 0.3s ease;
             --transition-sm: all 0.2s ease;
         }
@@ -597,7 +598,7 @@
             font-weight: bold;
         }
         
-        /* Style pour le récapitulatif */
+        /* Style pour le récapitulatif ORIGINAL */
         .summary-container {
             background-color: #f8f9fa;
             border-radius: 8px;
@@ -806,6 +807,268 @@
             margin-top: 1rem;
         }
 
+        /* === NOUVEAUX STYLES POUR L'ÉTAPE 5 AMÉLIORÉE === */
+
+        /* En-tête de confirmation */
+        .confirmation-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .confirmation-header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 2px;
+        }
+
+        .confirmation-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .confirmation-subtitle {
+            font-size: 1.1rem;
+            color: var(--gray);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* Grille des cartes de résumé */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUpNew 0.6s ease forwards;
+        }
+
+        .summary-card:nth-child(1) { animation-delay: 0.1s; }
+        .summary-card:nth-child(2) { animation-delay: 0.2s; }
+        .summary-card:nth-child(3) { animation-delay: 0.3s; }
+        .summary-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* En-têtes des cards */
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .card-icon i {
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--gray-dark);
+            margin: 0;
+        }
+
+        /* Contenu des cards */
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: var(--border-radius);
+            transition: var(--transition-sm);
+        }
+
+        .info-item:hover {
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--primary-dark);
+            min-width: 120px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-value {
+            color: var(--gray-dark);
+            font-weight: 500;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        /* Card spéciale pour les détails du poste */
+        .job-details-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.02), rgba(168, 85, 247, 0.02));
+        }
+
+        .job-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .job-section {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .job-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Compétences et tags */
+        .skill-tag {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: var(--transition-sm);
+            display: inline-block;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .skill-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Section commentaires */
+        .additional-comments {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: slideInUpNew 0.6s ease 0.6s forwards;
+        }
+
+        .additional-comments h3 {
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .comments-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.5;
+            resize: vertical;
+            transition: var(--transition);
+        }
+
+        .comments-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        /* États pour les valeurs vides */
+        .empty-value {
+            color: var(--gray);
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        /* Animations */
+        @keyframes slideInUpNew {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Responsive pour mobile */
         @media (max-width: 768px) {
             .container {
@@ -845,6 +1108,34 @@
 
             .checkbox-group {
                 grid-template-columns: 1fr;
+            }
+
+            /* Responsive pour l'étape 5 */
+            .confirmation-header h2 {
+                font-size: 1.6rem;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .job-details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .card-icon i {
+                font-size: 1.2rem;
+            }
+            
+            .info-label {
+                min-width: 100px;
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -1399,30 +1690,86 @@
                     </div>
                 </section>
                 
-                <!-- Étape 5: Confirmation (ancienne étape 4) -->
+                <!-- Étape 5: Confirmation AMÉLIORÉE -->
                 <section class="form-section" data-step="5">
-                    <h2>Confirmation</h2>
-                    <p>Merci pour vos informations! Voici un récapitulatif de votre demande.</p>
-                    
-                    <!-- Récapitulatif des informations -->
-                    <div class="summary-container">
-                        <h3>Résumé de votre demande</h3>
-                        <div id="summary-content">
-                            <!-- Le contenu sera généré dynamiquement -->
+                    <!-- En-tête de confirmation amélioré -->
+                    <div class="confirmation-header">
+                        <h2><i class="fas fa-check-circle" style="margin-right: 0.5rem; color: var(--success);"></i>Récapitulatif de votre demande</h2>
+                        <p class="confirmation-subtitle">Merci pour vos informations ! Voici une synthèse complète de votre demande de recrutement.</p>
+                    </div>
+
+                    <!-- Grille des cartes de résumé -->
+                    <div class="summary-grid" id="summaryGrid">
+                        <!-- Card Structure -->
+                        <div class="summary-card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <h3 class="card-title">Structure</h3>
+                            </div>
+                            <div class="card-content" id="structureContent">
+                                <!-- Contenu généré dynamiquement -->
+                            </div>
+                        </div>
+
+                        <!-- Card Contact -->
+                        <div class="summary-card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <h3 class="card-title">Contact</h3>
+                            </div>
+                            <div class="card-content" id="contactContent">
+                                <!-- Contenu généré dynamiquement -->
+                            </div>
+                        </div>
+
+                        <!-- Card Recrutement -->
+                        <div class="summary-card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <h3 class="card-title">Besoin de recrutement</h3>
+                            </div>
+                            <div class="card-content" id="recruitmentContent">
+                                <!-- Contenu généré dynamiquement -->
+                            </div>
+                        </div>
+
+                        <!-- Card Détails du poste (conditionnelle) -->
+                        <div class="summary-card job-details-card" id="jobDetailsCard" style="display: none;">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </div>
+                                <h3 class="card-title">Détails du poste</h3>
+                            </div>
+                            <div class="job-details-grid" id="jobDetailsContent">
+                                <!-- Contenu généré dynamiquement -->
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="additional-comments">Commentaires supplémentaires</label>
-                        <textarea id="additional-comments" class="form-control" placeholder="Avez-vous des commentaires ou des précisions à apporter?"></textarea>
+
+                    <!-- Section commentaires supplémentaires -->
+                    <div class="additional-comments">
+                        <h3><i class="fas fa-comment-dots"></i> Commentaires supplémentaires</h3>
+                        <textarea 
+                            class="comments-textarea" 
+                            id="additional-comments"
+                            placeholder="Avez-vous des commentaires ou des précisions à apporter à votre demande ?"
+                        ></textarea>
                     </div>
                     
+                    <!-- Navigation améliorée -->
                     <div class="form-navigation">
                         <button type="button" class="btn btn-outline prev-step" data-step="4">
                             <i class="fas fa-arrow-left"></i> Précédent
                         </button>
                         <button type="submit" class="btn btn-primary" id="submit-form">
-                            Soumettre <i class="fas fa-paper-plane"></i>
+                            <i class="fas fa-paper-plane"></i> Soumettre la demande
                         </button>
                     </div>
                 </section>
@@ -1900,119 +2247,296 @@
             loader.style.display = show ? 'flex' : 'none';
         }
 
-        // FONCTION MISE À JOUR: Génération du récapitulatif avec les nouvelles données
+        // FONCTION NOUVELLE: Génération du récapitulatif avec les nouvelles données (REMPLACE L'ANCIENNE)
         function generateSummary() {
-            const summaryContent = document.getElementById('summary-content');
+            console.log('🎨 Génération du récapitulatif amélioré...');
             
-            // Récupérer les données du formulaire (étapes 1-2)
-            const companyName = document.getElementById('company-name').value || 'Non renseigné';
-            const companyAddress = document.getElementById('company-address').value || 'Non renseigné';
-            const companyWebsite = document.getElementById('company-website').value || 'Non renseigné';
-            const companySize = document.getElementById('company-size').value || 'Non renseigné';
+            generateStructureCard();
+            generateContactCard();
+            generateRecruitmentCard();
             
-            const contactName = document.getElementById('contact-name').value || 'Non renseigné';
-            const contactEmail = document.getElementById('contact-email').value || 'Non renseigné';
-            const contactPhone = document.getElementById('contact-phone').value || 'Non renseigné';
-            
-            // Étape 3 - Recrutement
+            // Vérifier si il y a un besoin de recrutement pour afficher les détails
             const hasRecruitment = document.querySelector('input[name="recruitment-need"]:checked');
-            const recruitmentStatus = hasRecruitment ? (hasRecruitment.value === 'yes' ? 'Oui' : 'Non') : 'Non renseigné';
-            
-            // NOUVELLES DONNÉES - Étape 4
-            let jobDetailsHTML = '';
             if (hasRecruitment && hasRecruitment.value === 'yes') {
-                // Délais de recrutement
-                const delays = Array.from(document.querySelectorAll('input[name="recruitment-delay"]:checked'))
-                    .map(input => input.nextElementSibling.textContent).join(', ') || 'Non renseigné';
-                
-                // Préavis
-                const noticeManagement = document.querySelector('input[name="notice-management"]:checked');
-                const noticeDuration = document.querySelector('input[name="notice-duration"]:checked');
-                let noticeInfo = noticeManagement ? noticeManagement.nextElementSibling.textContent : 'Non renseigné';
-                if (noticeManagement && noticeManagement.value === 'yes' && noticeDuration) {
-                    noticeInfo += ' (' + noticeDuration.nextElementSibling.textContent + ')';
-                }
-                
-                // Contexte de recrutement
-                const context = document.querySelector('input[name="recruitment-context"]:checked');
-                const contextInfo = context ? context.nextElementSibling.textContent : 'Non renseigné';
-                
-                // Expérience requise
-                const experience = document.getElementById('experience-required').value || 'Non renseigné';
-                const experienceText = experience ? document.querySelector(`#experience-required option[value="${experience}"]`).textContent : 'Non renseigné';
-                
-                // Secteur
-                const sectorKnowledge = document.querySelector('input[name="sector-knowledge"]:checked');
-                const sector = document.getElementById('activity-sector').value;
-                let sectorInfo = sectorKnowledge ? sectorKnowledge.nextElementSibling.textContent : 'Non renseigné';
-                if (sectorKnowledge && sectorKnowledge.value === 'yes' && sector) {
-                    const sectorText = document.querySelector(`#activity-sector option[value="${sector}"]`).textContent;
-                    sectorInfo += ' (' + sectorText + ')';
-                }
-                
-                // Environnement
-                const environment = document.querySelector('input[name="work-environment"]:checked');
-                const envInfo = environment ? environment.nextElementSibling.textContent : 'Non renseigné';
-                
-                // NOUVELLE QUESTION: Nature du contrat
-                const contractNature = document.querySelector('input[name="contract-nature"]:checked');
-                const contractNatureInfo = contractNature ? contractNature.nextElementSibling.textContent : 'Non renseigné';
-                
-                // Autres informations
-                const teamComposition = document.getElementById('team-composition').value || 'Non renseigné';
-                const careerEvolution = document.getElementById('career-evolution').value || 'Non renseigné';
-                const salaryRange = document.getElementById('salary-range').value || 'Non renseigné';
-                const benefits = document.getElementById('job-benefits').value || 'Non renseigné';
-                const contractType = document.getElementById('contract-type').value || 'Non renseigné';
-                const contractText = contractType ? document.querySelector(`#contract-type option[value="${contractType}"]`).textContent : 'Non renseigné';
-                
-                jobDetailsHTML = `
-                    <div>
-                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">💼 Détails du poste</h4>
-                        <p><strong>Délais de recrutement :</strong> ${delays}</p>
-                        <p><strong>Gestion du préavis :</strong> ${noticeInfo}</p>
-                        <p><strong>Contexte :</strong> ${contextInfo}</p>
-                        <p><strong>Expérience requise :</strong> ${experienceText}</p>
-                        <p><strong>Connaissance secteur :</strong> ${sectorInfo}</p>
-                        <p><strong>Environnement :</strong> ${envInfo}</p>
-                        <p><strong>Nature du contrat :</strong> ${contractNatureInfo}</p>
-                        <p><strong>Temps de travail :</strong> ${contractText}</p>
-                        <p><strong>Équipe :</strong> ${teamComposition}</p>
-                        <p><strong>Évolution :</strong> ${careerEvolution}</p>
-                        <p><strong>Rémunération :</strong> ${salaryRange}</p>
-                        <p><strong>Avantages :</strong> ${benefits}</p>
-                    </div>
-                `;
+                generateJobDetailsCard();
+                document.getElementById('jobDetailsCard').style.display = 'block';
+            } else {
+                document.getElementById('jobDetailsCard').style.display = 'none';
             }
             
-            // Construire le récapitulatif
-            let summaryHTML = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                    <div>
-                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">📢 Structure</h4>
-                        <p><strong>Nom :</strong> ${companyName}</p>
-                        <p><strong>Adresse :</strong> ${companyAddress}</p>
-                        <p><strong>Site web :</strong> ${companyWebsite}</p>
-                        <p><strong>Taille :</strong> ${companySize}</p>
-                    </div>
-                    
-                    <div>
-                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">👤 Contact</h4>
-                        <p><strong>Nom :</strong> ${contactName}</p>
-                        <p><strong>Email :</strong> ${contactEmail}</p>
-                        <p><strong>Téléphone :</strong> ${contactPhone}</p>
-                    </div>
-                    
-                    <div>
-                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">💼 Recrutement</h4>
-                        <p><strong>Besoin de recruter :</strong> ${recruitmentStatus}</p>
-                    </div>
-                    
-                    ${jobDetailsHTML}
+            console.log('✅ Récapitulatif amélioré généré avec succès');
+        }
+
+        // Génération de la card Structure
+        function generateStructureCard() {
+            const content = document.getElementById('structureContent');
+            
+            const companyName = document.getElementById('company-name').value || '';
+            const companyAddress = document.getElementById('company-address').value || '';
+            const companyWebsite = document.getElementById('company-website').value || '';
+            const companySize = document.getElementById('company-size').value || '';
+            const companyDescription = document.getElementById('company-description').value || '';
+            
+            // Obtenir le texte de l'option sélectionnée
+            const sizeText = companySize ? document.querySelector(`#company-size option[value="${companySize}"]`).textContent : '';
+            
+            content.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-tag"></i> Nom</div>
+                    <div class="info-value">${companyName || '<span class="empty-value">Non renseigné</span>'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-map-marker-alt"></i> Adresse</div>
+                    <div class="info-value">${companyAddress || '<span class="empty-value">Non renseigné</span>'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-globe"></i> Site web</div>
+                    <div class="info-value">${companyWebsite ? `<a href="${companyWebsite}" target="_blank" style="color: var(--primary); text-decoration: none;">${companyWebsite}</a>` : '<span class="empty-value">Non renseigné</span>'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-users"></i> Taille</div>
+                    <div class="info-value">${sizeText || '<span class="empty-value">Non renseigné</span>'}</div>
+                </div>
+                ${companyDescription ? `
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-info-circle"></i> Description</div>
+                    <div class="info-value">${companyDescription}</div>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // Génération de la card Contact
+        function generateContactCard() {
+            const content = document.getElementById('contactContent');
+            
+            const contactName = document.getElementById('contact-name').value || '';
+            const contactTitle = document.getElementById('contact-title').value || '';
+            const contactEmail = document.getElementById('contact-email').value || '';
+            const contactPhone = document.getElementById('contact-phone').value || '';
+            const contactPreferred = document.getElementById('contact-preferred').value || '';
+            
+            // Obtenir le texte de l'option sélectionnée
+            const preferredText = contactPreferred ? document.querySelector(`#contact-preferred option[value="${contactPreferred}"]`).textContent : '';
+            
+            content.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-user"></i> Nom</div>
+                    <div class="info-value">${contactName || '<span class="empty-value">Non renseigné</span>'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-briefcase"></i> Fonction</div>
+                    <div class="info-value">${contactTitle || '<span class="empty-value">Non renseigné</span>'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-envelope"></i> Email</div>
+                    <div class="info-value">${contactEmail ? `<a href="mailto:${contactEmail}" style="color: var(--primary); text-decoration: none;">${contactEmail}</a>` : '<span class="empty-value">Non renseigné</span>'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-phone"></i> Téléphone</div>
+                    <div class="info-value">${contactPhone ? `<a href="tel:${contactPhone}" style="color: var(--primary); text-decoration: none;">${contactPhone}</a>` : '<span class="empty-value">Non renseigné</span>'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-comment"></i> Contact préféré</div>
+                    <div class="info-value">${preferredText || '<span class="empty-value">Non renseigné</span>'}</div>
                 </div>
             `;
+        }
+
+        // Génération de la card Recrutement
+        function generateRecruitmentCard() {
+            const content = document.getElementById('recruitmentContent');
+            const hasRecruitment = document.querySelector('input[name="recruitment-need"]:checked');
+            const hasNeed = hasRecruitment && hasRecruitment.value === "yes";
             
-            summaryContent.innerHTML = summaryHTML;
+            let recruitmentHTML = `
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-question-circle"></i> Besoin actuel</div>
+                    <div class="info-value">${hasNeed ? '<span style="color: var(--success); font-weight: 600;">Oui, nous avons un besoin</span>' : '<span style="color: var(--gray);">Non, pas pour le moment</span>'}</div>
+                </div>
+            `;
+
+            if (hasNeed) {
+                // Récupérer les informations extraites par ChatGPT
+                const jobTitle = document.getElementById('job-title-value').textContent || '';
+                const jobLocation = document.getElementById('job-location-value').textContent || '';
+                const jobSalary = document.getElementById('job-salary-value').textContent || '';
+                const jobContract = document.getElementById('job-contract-value').textContent || '';
+                
+                if (jobTitle && jobTitle !== 'Non spécifié') {
+                    recruitmentHTML += `
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-star"></i> Poste</div>
+                            <div class="info-value" style="font-weight: 600; color: var(--primary-dark);">${jobTitle}</div>
+                        </div>
+                    `;
+                }
+                
+                if (jobLocation && jobLocation !== 'Non spécifié') {
+                    recruitmentHTML += `
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-map-pin"></i> Lieu</div>
+                            <div class="info-value">${jobLocation}</div>
+                        </div>
+                    `;
+                }
+                
+                if (jobContract && jobContract !== 'Non spécifié') {
+                    recruitmentHTML += `
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-file-contract"></i> Contrat</div>
+                            <div class="info-value">${jobContract}</div>
+                        </div>
+                    `;
+                }
+                
+                if (jobSalary && jobSalary !== 'Non spécifié') {
+                    recruitmentHTML += `
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-euro-sign"></i> Rémunération</div>
+                            <div class="info-value">${jobSalary}</div>
+                        </div>
+                    `;
+                }
+
+                // Récupérer les compétences
+                const skillsContainer = document.getElementById('job-skills-value');
+                if (skillsContainer && skillsContainer.children.length > 0) {
+                    const skills = Array.from(skillsContainer.children).map(tag => tag.textContent);
+                    recruitmentHTML += `
+                        <div class="info-item" style="flex-direction: column; align-items: flex-start;">
+                            <div class="info-label" style="margin-bottom: 0.5rem;"><i class="fas fa-cogs"></i> Compétences clés</div>
+                            <div class="skills-container">
+                                ${skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            content.innerHTML = recruitmentHTML;
+        }
+
+        // Génération de la card Détails du poste
+        function generateJobDetailsCard() {
+            const content = document.getElementById('jobDetailsContent');
+            
+            // Récupérer toutes les données de l'étape 4
+            const delays = Array.from(document.querySelectorAll('input[name="recruitment-delay"]:checked'))
+                .map(input => input.nextElementSibling.textContent).join(', ') || 'Non renseigné';
+            
+            const noticeManagement = document.querySelector('input[name="notice-management"]:checked');
+            const noticeDuration = document.querySelector('input[name="notice-duration"]:checked');
+            let noticeInfo = noticeManagement ? noticeManagement.nextElementSibling.textContent : 'Non renseigné';
+            if (noticeManagement && noticeManagement.value === 'yes' && noticeDuration) {
+                noticeInfo += ' (' + noticeDuration.nextElementSibling.textContent + ')';
+            }
+            
+            const context = document.querySelector('input[name="recruitment-context"]:checked');
+            const contextInfo = context ? context.nextElementSibling.textContent : 'Non renseigné';
+            
+            const experience = document.getElementById('experience-required').value;
+            const experienceText = experience ? document.querySelector(`#experience-required option[value="${experience}"]`).textContent : 'Non renseigné';
+            
+            const sectorKnowledge = document.querySelector('input[name="sector-knowledge"]:checked');
+            const sector = document.getElementById('activity-sector').value;
+            let sectorInfo = sectorKnowledge ? sectorKnowledge.nextElementSibling.textContent : 'Non renseigné';
+            if (sectorKnowledge && sectorKnowledge.value === 'yes' && sector) {
+                const sectorText = document.querySelector(`#activity-sector option[value="${sector}"]`).textContent;
+                sectorInfo += ' (' + sectorText + ')';
+            }
+            
+            const environment = document.querySelector('input[name="work-environment"]:checked');
+            const envInfo = environment ? environment.nextElementSibling.textContent : 'Non renseigné';
+            
+            const contractNature = document.querySelector('input[name="contract-nature"]:checked');
+            const contractNatureInfo = contractNature ? contractNature.nextElementSibling.textContent : 'Non renseigné';
+            
+            const teamComposition = document.getElementById('team-composition').value || 'Non renseigné';
+            const careerEvolution = document.getElementById('career-evolution').value || 'Non renseigné';
+            const salaryRange = document.getElementById('salary-range').value || 'Non renseigné';
+            const benefits = document.getElementById('job-benefits').value || 'Non renseigné';
+            
+            const contractType = document.getElementById('contract-type').value;
+            const contractText = contractType ? document.querySelector(`#contract-type option[value="${contractType}"]`).textContent : 'Non renseigné';
+            
+            content.innerHTML = `
+                <!-- Section Timing -->
+                <div class="job-section">
+                    <div class="job-section-title">
+                        <i class="fas fa-clock"></i> Timing & Délais
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Délais souhaités</div>
+                        <div class="info-value">${delays}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Gestion préavis</div>
+                        <div class="info-value">${noticeInfo}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Contexte</div>
+                        <div class="info-value">${contextInfo}</div>
+                    </div>
+                </div>
+
+                <!-- Section Profil -->
+                <div class="job-section">
+                    <div class="job-section-title">
+                        <i class="fas fa-user-graduate"></i> Profil recherché
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Expérience</div>
+                        <div class="info-value">${experienceText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Secteur</div>
+                        <div class="info-value">${sectorInfo}</div>
+                    </div>
+                </div>
+
+                <!-- Section Environnement -->
+                <div class="job-section">
+                    <div class="job-section-title">
+                        <i class="fas fa-building"></i> Environnement
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Type bureau</div>
+                        <div class="info-value">${envInfo}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Équipe</div>
+                        <div class="info-value">${teamComposition}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Évolution</div>
+                        <div class="info-value">${careerEvolution}</div>
+                    </div>
+                </div>
+
+                <!-- Section Contrat -->
+                <div class="job-section">
+                    <div class="job-section-title">
+                        <i class="fas fa-file-contract"></i> Contrat & Rémunération
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Nature</div>
+                        <div class="info-value">${contractNatureInfo}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Temps de travail</div>
+                        <div class="info-value">${contractText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Rémunération</div>
+                        <div class="info-value" style="font-weight: 600; color: var(--success);">${salaryRange}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Avantages</div>
+                        <div class="info-value">${benefits}</div>
+                    </div>
+                </div>
+            `;
         }
 
         // Notifications
@@ -2077,7 +2601,7 @@
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Système Nexten initialisé - Extraction DOCX/PDF activée + Étape 4 Détails du poste');
+            console.log('🚀 Système Nexten initialisé - Extraction DOCX/PDF activée + Étape 4 Détails du poste + ÉTAPE 5 AMÉLIORÉE');
             
             // Vérifier les bibliothèques
             if (typeof mammoth !== 'undefined') {
@@ -2130,7 +2654,7 @@
             updateProgress();
             updateStepIndicators();
             
-            console.log('✅ Système complet activé avec étape 4 Détails du poste + question contrat CDI/CDD/INTERIM/FREELANCE');
+            console.log('✅ Système complet activé avec étape 5 AMÉLIORÉE - Cards glassmorphism + animations + récapitulatif intelligent');
         });
     </script>
     
