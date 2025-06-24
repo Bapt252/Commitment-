@@ -763,9 +763,9 @@
             font-size: 0.9rem;
         }
 
-        /* Bannière de correction urgente v2.6 */
-        .urgent-fix-banner {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        /* Bannière de correction ChatGPT */
+        .chatgpt-fix-banner {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             border-radius: 8px;
             padding: 15px 20px;
@@ -774,36 +774,23 @@
             align-items: center;
             justify-content: space-between;
             font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-            animation: pulse 2s infinite;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        .urgent-fix-banner .status-info {
+        .chatgpt-fix-banner .status-info {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .urgent-fix-banner .fix-icon {
+        .chatgpt-fix-banner .fix-icon {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             background-color: #ffd700;
-            animation: blink 1s infinite;
         }
 
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-        }
-
-        .urgent-fix-banner .test-btn {
+        .chatgpt-fix-banner .test-btn {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
@@ -814,7 +801,7 @@
             transition: all 0.3s ease;
         }
 
-        .urgent-fix-banner .test-btn:hover {
+        .chatgpt-fix-banner .test-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
         }
@@ -830,27 +817,18 @@
 
         <!-- Section de debug AMÉLIORÉE -->
         <div id="debug-section" class="debug-section">
-            <h3><i class="fas fa-bug"></i> Diagnostic JobParserAPI</h3>
+            <h3><i class="fas fa-bug"></i> Diagnostic ChatGPT Parser</h3>
             <div id="debug-content"></div>
         </div>
         
-        <!-- Bannière d'état du backend améliorée -->
-        <div id="backend-status-banner" class="backend-status-banner">
-            <div class="status-info">
-                <div class="status-indicator"></div>
-                <span id="backend-status-text">Parser de fiche de poste local activé - Prêt à analyser vos documents !</span>
-            </div>
-            <button class="get-help-btn" id="backend-help-btn" style="display: none;">Aide à la configuration</button>
-        </div>
-
-        <!-- Bannière de correction urgente -->
-        <div id="urgent-fix-banner" class="urgent-fix-banner">
+        <!-- Bannière ChatGPT Fix -->
+        <div id="chatgpt-fix-banner" class="chatgpt-fix-banner">
             <div class="status-info">
                 <div class="fix-icon"></div>
-                <span>🔧 JobParserAPI v2.6 CORRECTION URGENTE déployée - Extraction titre corrigée !</span>
+                <span>🤖 ChatGPT Parser ACTIVÉ - Ancien système désactivé automatiquement !</span>
             </div>
-            <button class="test-btn" onclick="window.AdvancedDiagnostic?.runManualTest()">
-                Tester maintenant
+            <button class="test-btn" onclick="window.diagnoseChatGPTParser?.()">
+                Diagnostic
             </button>
         </div>
 
@@ -1010,20 +988,20 @@
                         <!-- Instructions d'utilisation améliorées -->
                         <div class="parsing-instructions">
                             <div class="instruction-card">
-                                <h4><i class="fas fa-lightbulb"></i> Comment utiliser l'analyse automatique :</h4>
+                                <h4><i class="fas fa-robot"></i> Analyse intelligente avec ChatGPT :</h4>
                                 <ol>
+                                    <li><strong>Configurez</strong> votre clé API OpenAI dans la section bleue</li>
                                     <li><strong>Uploadez</strong> votre fiche de poste (PDF, DOCX, TXT) <em>OU</em></li>
                                     <li><strong>Collez</strong> le texte dans la zone de saisie ci-dessous</li>
-                                    <li><strong>Cliquez</strong> sur le bouton d'analyse <i class="fas fa-search"></i></li>
-                                    <li><strong>Consultez</strong> les informations extraites automatiquement !</li>
+                                    <li><strong>L'analyse ChatGPT</strong> se lance automatiquement !</li>
                                 </ol>
                                 <div class="success-badge">
-                                    <i class="fas fa-wrench"></i> Parser local v2.6 CORRIGÉ - Extraction titre corrigée !
+                                    <i class="fas fa-check"></i> Système ChatGPT activé - Extraction intelligente des 10 champs !
                                 </div>
                             </div>
                         </div>
                         
-                        <p>Notre système d'analyse automatique v2.6 extrait intelligemment les informations clés de votre fiche de poste : titre, compétences, lieu, salaire, etc. <strong>Correction urgente déployée pour l'extraction du titre !</strong></p>
+                        <p>Notre système utilise ChatGPT pour extraire intelligemment les informations clés de votre fiche de poste : titre, compétences, lieu, salaire, etc.</p>
                         
                         <div class="upload-container" id="job-drop-zone">
                             <i class="fas fa-file-upload upload-icon"></i>
@@ -1046,37 +1024,21 @@
                         </div>
                         
                         <div class="textarea-container">
-                            <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse automatique corrigée..."></textarea>
-                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyse automatique v2.6 - Extraction titre CORRIGÉE">
-                                <i class="fas fa-search"></i>
+                            <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse ChatGPT intelligente..."></textarea>
+                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyse ChatGPT intelligente">
+                                <i class="fas fa-robot"></i>
                             </button>
-                        </div>
-                        
-                        <!-- Contrôles d'analyse améliorés -->
-                        <div class="analysis-controls">
-                            <div class="analysis-status">
-                                <i class="fas fa-check-circle"></i>
-                                <span>JobParserAPI v2.6 CORRIGÉE - Extraction titre réparée</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Bouton d'analyse GPT - Version améliorée -->
-                        <div class="gpt-analyze-btn-container">
-                            <button type="button" id="analyze-with-gpt" class="btn" title="Fonctionnalité en développement - Utilisez le bouton d'analyse standard">
-                                Analyse avancée (bientôt disponible)
-                            </button>
-                            <span id="gpt-analyze-status"></span>
                         </div>
                         
                         <!-- Indicateur de chargement -->
                         <div id="analysis-loader" class="loader-container">
                             <div class="loader"></div>
-                            <span class="loader-text">Analyse v2.6 CORRIGÉE en cours...</span>
+                            <span class="loader-text">Analyse ChatGPT en cours...</span>
                         </div>
                         
                         <!-- Résultats d'analyse -->
                         <div id="job-info-container" class="job-info-container" style="display: none;">
-                            <h3><i class="fas fa-check-circle"></i> Informations extraites avec JobParserAPI v2.6 CORRIGÉE</h3>
+                            <h3><i class="fas fa-check-circle"></i> Informations extraites avec ChatGPT</h3>
                             
                             <div class="info-grid">
                                 <div class="info-group">
@@ -1125,8 +1087,6 @@
                                 <div id="job-benefits-value" class="info-value">Non spécifié</div>
                             </div>
                         </div>
-                        
-                        <!-- Les détails supplémentaires du recrutement restent identiques... -->
                         
                     </div>
                     
@@ -1186,30 +1146,16 @@
     </div>
     
     <!-- Scripts - Ordre important pour les dépendances -->
-    <!-- 0. Diagnostic avancé pour debugging -->
-    <script src="../scripts/advanced-diagnostic.js"></script>
-    
-    <!-- 1. Cache buster pour JobParserAPI -->
-    <script src="../scripts/cache-buster.js"></script>
-    
-    <!-- 2. Classes et utilitaires de base -->
-    <script src="../js/pdf-cleaner.js"></script>
-    <script src="../js/job-parser-api.js"></script>
-    
-    <!-- 3. Connecteurs et services -->
-    <script src="../js/job-parser-connector.js"></script>
-    
-    <!-- 4. Fonctionnalités d'interface -->
+    <!-- 1. Fonctionnalités d'interface de base -->
     <script src="../scripts/questionnaire-navigation.js"></script>
-    <script src="../scripts/job-parsing-ui.js"></script>
-    <script src="../scripts/gpt-analyze.js"></script>
-    <script src="../scripts/backend-config-helper.js"></script>
     <script src="../scripts/summary-generator.js"></script>
-    <script src="../scripts/debug-gpt.js"></script>
     
-    <!-- 🤖 NOUVEAUX SCRIPTS CHATGPT -->
+    <!-- 🤖 SCRIPTS CHATGPT PRIORITAIRES -->
     <script src="../js/job-parser-gpt.js"></script>
     <script src="../scripts/job-parsing-ui-gpt.js"></script>
+    
+    <!-- 🔧 SCRIPT DE CORRECTION DES CONFLITS -->
+    <script src="../scripts/fix-job-parser-conflicts.js"></script>
     
     <script>
         // Définir les URLs de redirection
@@ -1217,8 +1163,18 @@
         const DASHBOARD_URL = "company-dashboard.html";
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Job Parser UX v2.6 CORRIGÉ - parsing local activé');
-            console.log('🤖 ChatGPT Job Parser intégré !');
+            console.log('🤖 ChatGPT Job Parser ACTIVÉ !');
+            console.log('🔧 Correction des conflits en cours...');
+            
+            // Fonction de test rapide pour l'utilisateur
+            window.testQuickChatGPT = function() {
+                console.log('🧪 Test rapide ChatGPT...');
+                if (window.testChatGPTParser) {
+                    window.testChatGPTParser();
+                } else {
+                    console.log('⏳ Parser en cours d\'initialisation...');
+                }
+            };
         });
     </script>
     
