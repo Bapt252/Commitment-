@@ -1,5 +1,7 @@
-// Job Parser UI Integration avec ChatGPT
+// Job Parser UI Integration avec ChatGPT - VERSION CORRIGÉE
 // Remplace le système existant par une intégration ChatGPT
+
+console.log('🔄 Chargement JobParserUIIntegration...');
 
 class JobParserUIIntegration {
     constructor() {
@@ -17,6 +19,7 @@ class JobParserUIIntegration {
         this.fileName = document.getElementById('file-name');
         this.removeFileBtn = document.getElementById('remove-file');
         
+        console.log('🔧 JobParserUIIntegration: Initialisation...');
         this.init();
     }
     
@@ -43,6 +46,7 @@ class JobParserUIIntegration {
     initGPTParser() {
         if (window.JobParserGPT) {
             this.gptParser = new window.JobParserGPT({ debug: true });
+            console.log('✅ Parser GPT initialisé');
         } else {
             console.error('❌ JobParserGPT non disponible');
             return;
@@ -91,6 +95,7 @@ class JobParserUIIntegration {
             const instructions = document.querySelector('.parsing-instructions');
             if (instructions) {
                 instructions.parentNode.insertBefore(configSection, instructions);
+                console.log('✅ Section configuration API créée');
             }
         }
         
@@ -594,25 +599,43 @@ class JobParserUIIntegration {
     }
 }
 
+// ===== EXPORT GLOBAL IMMÉDIAT =====
+
+// Exporter la classe immédiatement dans window
+window.JobParserUIIntegration = JobParserUIIntegration;
+console.log('✅ JobParserUIIntegration classe exportée globalement');
+
 // ===== INITIALISATION =====
 
-// Attendre que le DOM soit prêt et que JobParserGPT soit chargé
-document.addEventListener('DOMContentLoaded', function() {
-    // Petit délai pour s'assurer que tous les scripts sont chargés
-    setTimeout(() => {
-        // Remplacer l'ancienne instance
-        if (window.jobParsingUI) {
-            console.log('🔄 Remplacement de l\'ancien Job Parsing UI...');
+// Fonction d'initialisation
+function initializeJobParserUIIntegration() {
+    try {
+        console.log('🚀 Initialisation JobParserUIIntegration...');
+        
+        // Vérifier les dépendances
+        if (!window.JobParserGPT) {
+            console.error('❌ JobParserGPT non disponible pour l\'initialisation');
+            return false;
         }
         
-        // Créer la nouvelle instance avec ChatGPT
+        // Créer l'instance
         window.jobParsingUIGPT = new JobParserUIIntegration();
+        console.log('✅ JobParserUIIntegration initialisé avec succès !');
+        return true;
         
-        console.log('🤖 Job Parser ChatGPT UI initialisé et prêt !');
-    }, 500);
-});
-
-// Export pour utilisation dans d'autres scripts
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = JobParserUIIntegration;
+    } catch (error) {
+        console.error('❌ Erreur initialisation JobParserUIIntegration:', error);
+        return false;
+    }
 }
+
+// Initialisation immédiate si le DOM est prêt
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initializeJobParserUIIntegration, 100);
+    });
+} else {
+    setTimeout(initializeJobParserUIIntegration, 100);
+}
+
+console.log('🤖 Job Parser ChatGPT UI module chargé !');
