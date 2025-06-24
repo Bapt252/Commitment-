@@ -1,5 +1,5 @@
-// Job Parsing UI Script
-// Gère l'interface utilisateur pour l'analyse des fiches de poste
+// Job Parsing UI Script - VERSION FONCTIONNELLE CORRIGÉE
+// Connecte l'interface utilisateur avec l'API de parsing réelle
 
 class JobParsingUI {
     constructor() {
@@ -13,6 +13,10 @@ class JobParsingUI {
         this.fileName = document.getElementById('file-name');
         this.removeFileBtn = document.getElementById('remove-file');
         
+        // Initialiser les parsers
+        this.jobParserAPI = new JobParserAPI({ debug: true });
+        this.pdfCleaner = new PDFCleaner();
+        
         this.init();
     }
     
@@ -23,7 +27,7 @@ class JobParsingUI {
         this.setupTextAnalysis();
         this.setupFileRemoval();
         
-        console.log('✅ Job Parsing UI initialisé');
+        console.log('✅ Job Parsing UI fonctionnel initialisé avec API réelle');
     }
     
     setupFileUpload() {
@@ -84,7 +88,7 @@ class JobParsingUI {
         }
     }
     
-    handleFileSelection(file) {
+    async handleFileSelection(file) {
         // Vérifier le type de fichier
         const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
         
@@ -102,8 +106,8 @@ class JobParsingUI {
         // Afficher le fichier sélectionné
         this.showSelectedFile(file);
         
-        // Analyser le fichier
-        this.analyzeFile(file);
+        // Analyser le fichier RÉELLEMENT
+        await this.analyzeFile(file);
     }
     
     showSelectedFile(file) {
@@ -138,105 +142,180 @@ class JobParsingUI {
         this.hideResults();
     }
     
-    analyzeFile(file) {
+    async analyzeFile(file) {
         this.showLoader();
         
-        // Simuler l'analyse (à remplacer par votre API)
-        setTimeout(() => {
-            const mockResults = this.generateMockResults();
-            this.displayResults(mockResults);
+        try {
+            console.log('🚀 Analyse RÉELLE du fichier:', file.name, 'Type:', file.type);
+            
+            let extractedText = '';
+            
+            // Extraction en fonction du type de fichier
+            switch (file.type) {
+                case 'application/pdf':
+                    extractedText = await this.extractTextFromPDF(file);
+                    break;
+                
+                case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                    extractedText = await this.extractTextFromDOCX(file);
+                    break;
+                    
+                case 'application/msword':
+                    extractedText = await this.extractTextFromDOC(file);
+                    break;
+                    
+                case 'text/plain':
+                    extractedText = await this.extractTextFromTXT(file);
+                    break;
+                    
+                default:
+                    throw new Error('Type de fichier non supporté');
+            }
+            
+            console.log('📄 Texte extrait (100 premiers caractères):', extractedText.substring(0, 100));
+            
+            // Analyser le texte avec l'API RÉELLE
+            if (extractedText.trim()) {
+                const results = await this.jobParserAPI.parseJobText(extractedText);
+                this.displayResults(results);
+                this.showNotification('success', 'Analyse terminée', 'Les informations ont été extraites avec succès du fichier.');
+            } else {
+                throw new Error('Aucun texte extractible trouvé dans le fichier');
+            }
+            
+        } catch (error) {
+            console.error('❌ Erreur lors de l\'analyse du fichier:', error);
+            this.showNotification('error', 'Erreur d\'analyse', 'Impossible d\'analyser le fichier: ' + error.message);
+        } finally {
             this.hideLoader();
-        }, 2000);
+        }
     }
     
-    analyzeJobText(text) {
+    async analyzeJobText(text) {
         this.showLoader();
         
-        // Simuler l'analyse du texte
-        setTimeout(() => {
-            const mockResults = this.generateMockResults(text);
-            this.displayResults(mockResults);
+        try {
+            console.log('🚀 Analyse RÉELLE du texte (longueur: ' + text.length + ' caractères)');
+            
+            // Utiliser l'API RÉELLE pour analyser le texte
+            const results = await this.jobParserAPI.parseJobText(text);
+            
+            console.log('📊 Résultats d\'analyse:', results);
+            
+            this.displayResults(results);
+            this.showNotification('success', 'Analyse terminée', 'Les informations ont été extraites avec succès.');
+            
+        } catch (error) {
+            console.error('❌ Erreur lors de l\'analyse du texte:', error);
+            this.showNotification('error', 'Erreur d\'analyse', 'Impossible d\'analyser le texte: ' + error.message);
+        } finally {
             this.hideLoader();
-        }, 1500);
+        }
     }
     
-    generateMockResults(text = '') {
-        // Analyse basique du texte pour extraire des informations
-        const results = {
-            title: 'Non spécifié',
-            contract: 'Non spécifié',
-            location: 'Non spécifié',
-            experience: 'Non spécifié',
-            education: 'Non spécifié',
-            salary: 'Non spécifié',
-            skills: [],
-            responsibilities: 'Non spécifié',
-            benefits: 'Non spécifié'
-        };
-        
-        if (text) {
-            // Extraction basique du titre
-            const lines = text.split('\n');
-            if (lines.length > 0) {
-                results.title = lines[0].trim() || 'Poste à définir';
-            }
-            
-            // Recherche de mots-clés pour les compétences
-            const skillKeywords = [
-                'JavaScript', 'Python', 'Java', 'React', 'Vue', 'Angular', 'Node.js',
-                'HTML', 'CSS', 'SQL', 'Git', 'Docker', 'AWS', 'Azure', 'MongoDB'
-            ];
-            
-            skillKeywords.forEach(skill => {
-                if (text.toLowerCase().includes(skill.toLowerCase())) {
-                    results.skills.push(skill);
-                }
-            });
-            
-            // Recherche de type de contrat
-            if (text.toLowerCase().includes('cdi')) {
-                results.contract = 'CDI';
-            } else if (text.toLowerCase().includes('cdd')) {
-                results.contract = 'CDD';
-            } else if (text.toLowerCase().includes('stage')) {
-                results.contract = 'Stage';
-            }
-            
-            // Recherche de localisation
-            const locationPatterns = ['paris', 'lyon', 'marseille', 'toulouse', 'bordeaux', 'lille', 'nantes', 'strasbourg'];
-            locationPatterns.forEach(city => {
-                if (text.toLowerCase().includes(city)) {
-                    results.location = city.charAt(0).toUpperCase() + city.slice(1);
-                }
-            });
+    // === EXTRACTEURS DE TEXTE PAR TYPE DE FICHIER ===
+    
+    async extractTextFromPDF(file) {
+        if (!window.pdfjsLib) {
+            throw new Error('PDF.js non chargé. Veuillez recharger la page.');
         }
         
-        return results;
+        try {
+            return await this.pdfCleaner.extractTextFromPDF(file);
+        } catch (error) {
+            console.error('Erreur extraction PDF:', error);
+            throw new Error('Impossible d\'extraire le texte du PDF: ' + error.message);
+        }
     }
+    
+    async extractTextFromDOCX(file) {
+        // Utiliser mammoth.js pour les fichiers DOCX
+        if (window.mammoth) {
+            try {
+                const arrayBuffer = await this.readFileAsArrayBuffer(file);
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                return result.value;
+            } catch (error) {
+                throw new Error('Erreur lors de la lecture du fichier DOCX: ' + error.message);
+            }
+        } else {
+            // Fallback: essayer de le lire comme texte (peut marcher partiellement)
+            console.warn('mammoth.js non disponible, tentative de lecture comme texte');
+            return await this.readFileAsText(file);
+        }
+    }
+    
+    async extractTextFromDOC(file) {
+        // Les fichiers .doc sont plus complexes, on essaie une lecture basique
+        console.warn('Fichiers .doc non entièrement supportés, résultats partiels possibles');
+        return await this.readFileAsText(file);
+    }
+    
+    async extractTextFromTXT(file) {
+        return await this.readFileAsText(file);
+    }
+    
+    // === UTILITAIRES DE LECTURE DE FICHIERS ===
+    
+    readFileAsArrayBuffer(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(new Error('Erreur de lecture: ' + e.target.error));
+            reader.readAsArrayBuffer(file);
+        });
+    }
+    
+    readFileAsText(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(new Error('Erreur de lecture: ' + e.target.error));
+            reader.readAsText(file, 'UTF-8');
+        });
+    }
+    
+    // === AFFICHAGE DES RÉSULTATS ===
     
     displayResults(results) {
         if (!this.resultsContainer) return;
         
+        console.log('📋 Affichage des résultats:', results);
+        
         // Afficher le conteneur de résultats
         this.resultsContainer.style.display = 'block';
         
-        // Remplir les champs
-        this.setFieldValue('job-title-value', results.title);
-        this.setFieldValue('job-contract-value', results.contract);
-        this.setFieldValue('job-location-value', results.location);
-        this.setFieldValue('job-experience-value', results.experience);
-        this.setFieldValue('job-education-value', results.education);
-        this.setFieldValue('job-salary-value', results.salary);
-        this.setFieldValue('job-responsibilities-value', results.responsibilities);
-        this.setFieldValue('job-benefits-value', results.benefits);
+        // Remplir les champs avec les VRAIES données
+        this.setFieldValue('job-title-value', results.title || 'Non spécifié');
+        this.setFieldValue('job-contract-value', results.contract_type || 'Non spécifié');
+        this.setFieldValue('job-location-value', results.location || 'Non spécifié');
+        this.setFieldValue('job-experience-value', results.experience || 'Non spécifié');
+        this.setFieldValue('job-education-value', results.education || 'Non spécifié');
+        this.setFieldValue('job-salary-value', results.salary || 'Non spécifié');
+        
+        // Responsabilités (array ou string)
+        if (results.responsibilities && Array.isArray(results.responsibilities) && results.responsibilities.length > 0) {
+            this.setFieldValue('job-responsibilities-value', results.responsibilities.join('\n• '));
+        } else if (results.responsibilities) {
+            this.setFieldValue('job-responsibilities-value', results.responsibilities);
+        } else {
+            this.setFieldValue('job-responsibilities-value', 'Non spécifié');
+        }
+        
+        // Avantages (array ou string)
+        if (results.benefits && Array.isArray(results.benefits) && results.benefits.length > 0) {
+            this.setFieldValue('job-benefits-value', results.benefits.join(', '));
+        } else if (results.benefits) {
+            this.setFieldValue('job-benefits-value', results.benefits);
+        } else {
+            this.setFieldValue('job-benefits-value', 'Non spécifié');
+        }
         
         // Afficher les compétences
-        this.displaySkills(results.skills);
+        this.displaySkills(results.skills || []);
         
         // Scroll vers les résultats
         this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
-        
-        this.showNotification('success', 'Analyse terminée', 'Les informations ont été extraites avec succès.');
     }
     
     setFieldValue(fieldId, value) {
@@ -250,7 +329,7 @@ class JobParsingUI {
         const skillsContainer = document.getElementById('job-skills-value');
         if (!skillsContainer) return;
         
-        if (skills && skills.length > 0) {
+        if (skills && Array.isArray(skills) && skills.length > 0) {
             skillsContainer.innerHTML = '';
             skills.forEach(skill => {
                 const tag = document.createElement('span');
@@ -262,6 +341,8 @@ class JobParsingUI {
             skillsContainer.textContent = 'Non spécifié';
         }
     }
+    
+    // === UTILITAIRES UI ===
     
     showLoader() {
         if (this.loader) {
@@ -291,11 +372,38 @@ class JobParsingUI {
     }
 }
 
-// Initialiser l'UI de parsing quand le DOM est prêt
+// === BIBLIOTHÈQUE MAMMOTH.JS POUR DOCX (lightweight) ===
+// Ajouter mammoth.js depuis CDN si pas déjà présent
+if (!window.mammoth) {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+    script.onload = () => {
+        console.log('📚 mammoth.js chargé pour les fichiers DOCX');
+    };
+    script.onerror = () => {
+        console.warn('⚠️ mammoth.js non chargé, support DOCX limité');
+    };
+    document.head.appendChild(script);
+}
+
+// Initialiser l'UI de parsing FONCTIONNEL quand le DOM est prêt
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
-        window.jobParsingUI = new JobParsingUI();
-    }, 200);
+        // S'assurer que JobParserAPI est disponible
+        if (window.JobParserAPI && window.PDFCleaner) {
+            window.jobParsingUI = new JobParsingUI();
+            console.log('🎉 Job Parser FONCTIONNEL initialisé avec API réelle !');
+        } else {
+            console.error('❌ JobParserAPI ou PDFCleaner non disponibles');
+            // Retry après un délai
+            setTimeout(() => {
+                if (window.JobParserAPI && window.PDFCleaner) {
+                    window.jobParsingUI = new JobParsingUI();
+                    console.log('🎉 Job Parser FONCTIONNEL initialisé (retry réussi) !');
+                }
+            }, 1000);
+        }
+    }, 500);
 });
 
 // Export pour utilisation dans d'autres scripts
