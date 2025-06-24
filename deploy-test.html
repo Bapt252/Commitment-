@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- ANTI-CACHE ULTRA RENFORCÉ -->
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate, max-age=0">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="-1">
+    <meta name="cache-control" content="no-cache, no-store, must-revalidate">
+    <meta name="timestamp" content="2025-06-23T23:25:00Z">
+    <meta name="version" content="ULTRA-FORCE-DEPLOY-1.1">
+    
+    <title>🚀 Test GitHub Pages Deploy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #7c4dff, #9c27b0);
+            color: white;
+            border-radius: 10px;
+        }
+        .status { 
+            background: rgba(255,255,255,0.1); 
+            padding: 1rem; 
+            border-radius: 5px; 
+            margin: 1rem 0; 
+        }
+        a { 
+            color: #ffeb3b; 
+            text-decoration: none; 
+        }
+        a:hover { 
+            text-decoration: underline; 
+        }
+        .success { 
+            background: rgba(76, 175, 80, 0.3); 
+            border-left: 4px solid #4CAF50; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Test de Déploiement GitHub Pages</h1>
+    
+    <div class="status success">
+        <h3>✅ Nouveau déploiement détecté !</h3>
+        <p><strong>Timestamp:</strong> 2025-06-23T23:25:00Z</p>
+        <p><strong>Commit SHA:</strong> 66f01d6c90478a4f61dae85e5a8573cf866d28a2</p>
+        <p><strong>Version:</strong> ULTRA-FORCE-DEPLOY-1.1</p>
+    </div>
+    
+    <div class="status">
+        <h3>📋 Actions effectuées :</h3>
+        <ul>
+            <li>✅ Nouveau commit forcé pour déclencher le déploiement</li>
+            <li>✅ Meta tags anti-cache renforcés</li>
+            <li>✅ Timestamp unique ajouté</li>
+            <li>✅ Cache-busting paramètres URL</li>
+        </ul>
+    </div>
+    
+    <div class="status">
+        <h3>🔗 Liens de test :</h3>
+        <p><a href="templates/candidate-upload.html?v=66f01d6c&t=1719149126" target="_blank">
+           👉 candidate-upload.html (avec cache-busting)
+        </a></p>
+        <p><a href="templates/candidate-upload.html" target="_blank">
+           📄 candidate-upload.html (version standard)
+        </a></p>
+    </div>
+    
+    <div class="status">
+        <h3>⏱️ Délai attendu :</h3>
+        <p>GitHub Pages peut prendre <strong>2-10 minutes</strong> pour déployer la nouvelle version.</p>
+        <p>Si le cache persiste, utilisez les liens avec paramètres ci-dessus.</p>
+    </div>
+    
+    <script>
+        // Auto-refresh dans 2 minutes pour vérifier le déploiement
+        setTimeout(() => {
+            if (confirm('🔄 Vérifier si le déploiement est terminé ?')) {
+                window.location.reload();
+            }
+        }, 120000);
+        
+        console.log('🚀 PAGE FORCE DEPLOY CHARGÉE');
+        console.log('Timestamp:', '2025-06-23T23:25:00Z');
+        console.log('SHA:', '66f01d6c90478a4f61dae85e5a8573cf866d28a2');
+    </script>
+</body>
+</html>

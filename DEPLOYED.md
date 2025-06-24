@@ -15,7 +15,7 @@ Le parser CV de Commitment a été **complètement corrigé** pour lire l'intég
 - **APRÈS :** 6/6 expériences détectées (100% du CV Sabine)
 
 ### 🎯 **Test disponible :**
-1. Aller sur : https://bapt252.github.io/Commitment-/templates/candidate-upload.html
+1. Aller sur : https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-upload.html
 2. Chercher la section "🧪 Test Parser Multi-pages"
 3. Cliquer "Tester CV Sabine (2 pages)"
 4. Vérifier que les expériences page 2 sont détectées

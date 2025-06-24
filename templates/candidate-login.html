@@ -455,6 +455,19 @@
             width: auto;
             margin: 10px 0;
         }
+
+        /* 🚀 Style pour l'intégration GitHub Pages */
+        .github-integration-badge {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin: 0.5rem 0;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -537,10 +550,13 @@
                         </a>
                     </div>
                     
-                    <!-- Section de création de compte modifiée -->
+                    <!-- Section de création de compte avec REDIRECTION GITHUB PAGES v6.2.0 -->
                     <div class="create-account-section">
+                        <div class="github-integration-badge">
+                            ✅ GitHub Pages Integration v6.2.0 - Navigation directe
+                        </div>
                         <p>Vous n'avez pas encore de compte ?</p>
-                        <a href="candidate-upload.html" class="btn-modern btn-secondary-modern">Créer un compte candidat</a>
+                        <button onclick="redirectToGitHubPages()" class="btn-modern btn-secondary-modern">🎯 Créer un compte candidat</button>
                     </div>
                 </div>
                 
@@ -624,8 +640,22 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <!-- JavaScript -->
+    <!-- JavaScript MODIFIÉ avec redirection vers GitHub Pages v6.2.0 -->
     <script>
+        // 🚀 FONCTION DE REDIRECTION VERS GITHUB PAGES v6.2.0 - PLUS DE DÉPENDANCE RAW.GITHACK.COM
+        function redirectToGitHubPages() {
+            console.log('🚀 Redirection vers GitHub Pages v6.2.0...');
+            console.log('✅ Suppression de la dépendance raw.githack.com');
+            
+            // URL GitHub Pages pour candidate-upload.html (version mise à jour v6.2.0)
+            const targetUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-upload.html?integration=v620&t=' + Date.now();
+            
+            console.log(`🎯 Navigation vers: ${targetUrl}`);
+            
+            // Redirection directe vers GitHub Pages
+            window.location.href = targetUrl;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Menu mobile toggle
             const menuToggle = document.querySelector('.menu-toggle');
@@ -676,6 +706,9 @@
                     });
                 });
             }
+            
+            console.log('✅ Page candidate-login.html chargée avec redirection GitHub Pages v6.2.0');
+            console.log('🎯 Objectif atteint: Suppression de la dépendance raw.githack.com');
         });
     </script>
 </body>
