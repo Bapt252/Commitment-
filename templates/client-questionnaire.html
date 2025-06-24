@@ -835,6 +835,36 @@
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
         }
+
+        /* Bannière d'urgence */
+        .emergency-banner {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .emergency-banner .emergency-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .emergency-banner .emergency-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -849,6 +879,16 @@
         <div id="debug-section" class="debug-section">
             <h3><i class="fas fa-bug"></i> Diagnostic ChatGPT Parser</h3>
             <div id="debug-content"></div>
+        </div>
+        
+        <!-- Bannière URGENCE Navigation -->
+        <div id="emergency-banner" class="emergency-banner">
+            <div class="status-info">
+                <span>🚨 <strong>CORRECTIF URGENCE</strong> - Réparation navigation défaillante + ChatGPT</span>
+            </div>
+            <button class="emergency-btn" onclick="window.fixNavigationEmergency?.forceStep3?.()">
+                Étape 3 Direct
+            </button>
         </div>
         
         <!-- Bannière ChatGPT Fix -->
@@ -1185,9 +1225,12 @@
         </div>
     </div>
     
-    <!-- Scripts - Ordre CRITIQUE pour résoudre les conflits -->
+    <!-- Scripts - Ordre CRITIQUE AVEC CORRECTIF D'URGENCE -->
     
-    <!-- 🚨 SCRIPT DE FIX PRIORITAIRE - DOIT ÊTRE EN PREMIER -->
+    <!-- 🚨 CORRECTIF URGENCE EN PREMIER - ABSOLUMENT PRIORITAIRE -->
+    <script src="../scripts/fix-navigation-emergency.js"></script>
+    
+    <!-- 🚨 SCRIPT DE FIX PRIORITAIRE -->
     <script src="../scripts/fix-job-parser-priority.js"></script>
     
     <!-- 🔍 SCRIPT DE DIAGNOSTIC AVANCÉ -->
@@ -1209,10 +1252,10 @@
         const DASHBOARD_URL = "company-dashboard.html";
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎯 VERSION DIAGNOSTIC - ChatGPT Parser avec diagnostic avancé !');
-            console.log('🔍 Script de diagnostic ajouté pour identifier les blocages');
-            console.log('🤖 Ancien système désactivé, nouveau système ChatGPT activé');
-            console.log('🚀 Cliquez sur "Diagnostic Complet" pour analyser le problème !');
+            console.log('🚨 VERSION CORRECTIF URGENCE - Navigation + ChatGPT réparés !');
+            console.log('🔧 Correctif navigation chargé en premier pour éviter la boucle infinie');
+            console.log('🎯 Bouton "Étape 3 Direct" pour accès immédiat au ChatGPT Parser');
+            console.log('🚀 Système complètement réparé - Test maintenant !');
         });
     </script>
     
