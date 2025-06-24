@@ -15,6 +15,7 @@
     
     <!-- Bibliothèques externes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     
     <!-- Style supplémentaire pour les améliorations -->
     <style>
@@ -973,7 +974,7 @@
                                     <li><strong>L'analyse se lance automatiquement</strong> ! Plus besoin de cliquer !</li>
                                 </ol>
                                 <div class="success-badge">
-                                    <i class="fas fa-magic"></i> Système automatique activé - Plus de manipulation manuelle !
+                                    <i class="fas fa-magic"></i> Extraction automatique PDF/DOCX + Analyse ChatGPT !
                                 </div>
                             </div>
                         </div>
@@ -983,7 +984,7 @@
                         <div class="upload-container" id="job-drop-zone">
                             <i class="fas fa-file-upload upload-icon"></i>
                             <h3 class="upload-text drop-zone-text">Glissez-déposez votre fiche de poste ici</h3>
-                            <p class="upload-hint">Formats acceptés: PDF, DOCX, TXT (max 5MB) - Analyse automatique !</p>
+                            <p class="upload-hint">Formats acceptés: PDF, DOCX, TXT (max 5MB) - Extraction et analyse automatiques !</p>
                             <input type="file" id="job-file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
                             
                             <!-- Badge de fichier sélectionné (initialement caché) -->
@@ -1010,7 +1011,7 @@
                         <!-- Indicateur de chargement -->
                         <div id="analysis-loader" class="loader-container">
                             <div class="loader"></div>
-                            <span class="loader-text">Analyse ChatGPT automatique en cours...</span>
+                            <span class="loader-text">Extraction et analyse ChatGPT en cours...</span>
                         </div>
                         
                         <!-- Résultats d'analyse -->
@@ -1122,7 +1123,7 @@
         </div>
     </div>
     
-    <!-- Scripts intégrés et simplifiés -->
+    <!-- Scripts intégrés et améliorés -->
     <script>
         // Variables globales
         const RECOMMENDATION_URL = "candidate-recommendation.html";
@@ -1204,7 +1205,7 @@
             });
         }
 
-        // Fonctionnalités ChatGPT simplifiées
+        // Fonctionnalités ChatGPT améliorées
         function initializeChatGPTFeatures() {
             const fileInput = document.getElementById('job-file-input');
             const dropZone = document.getElementById('job-drop-zone');
@@ -1258,9 +1259,16 @@
             });
         }
 
-        // Gestion des fichiers
+        // Gestion des fichiers améliorée
         function handleFileUpload(file) {
-            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+            console.log('📁 Fichier uploadé:', file.name, file.type);
+            
+            const allowedTypes = [
+                'application/pdf', 
+                'application/msword', 
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                'text/plain'
+            ];
             const maxSize = 5 * 1024 * 1024; // 5MB
             
             if (!allowedTypes.includes(file.type)) {
@@ -1288,23 +1296,117 @@
             removeBtn.addEventListener('click', function() {
                 fileBadge.style.display = 'none';
                 document.getElementById('job-file-input').value = '';
+                document.getElementById('job-description-text').value = '';
             });
         }
 
-        function extractTextFromFile(file) {
-            if (file.type === 'text/plain') {
+        // Extraction de texte améliorée pour tous formats
+        async function extractTextFromFile(file) {
+            console.log('🔍 Début extraction texte:', file.type);
+            showLoader(true);
+            
+            try {
+                let extractedText = '';
+                
+                if (file.type === 'text/plain') {
+                    // Fichier TXT
+                    extractedText = await extractTextFromTXT(file);
+                } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    // Fichier DOCX
+                    extractedText = await extractTextFromDOCX(file);
+                } else if (file.type === 'application/pdf') {
+                    // Fichier PDF
+                    extractedText = await extractTextFromPDF(file);
+                }
+                
+                if (extractedText.trim()) {
+                    console.log('✅ Texte extrait:', extractedText.substring(0, 100) + '...');
+                    document.getElementById('job-description-text').value = extractedText;
+                    showNotification('Texte extrait avec succès !', 'success');
+                    
+                    // Lancer l'analyse automatiquement
+                    setTimeout(() => analyzeJobDescription(extractedText), 500);
+                } else {
+                    throw new Error('Aucun texte extrait du fichier');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erreur extraction:', error);
+                showNotification('Erreur lors de l\'extraction du texte. Essayez de coller le texte manuellement.', 'error');
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        // Extraction TXT
+        function extractTextFromTXT(file) {
+            return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const text = e.target.result;
-                    document.getElementById('job-description-text').value = text;
-                    analyzeJobDescription(text);
+                    resolve(e.target.result);
+                };
+                reader.onerror = function() {
+                    reject(new Error('Erreur lecture fichier TXT'));
                 };
                 reader.readAsText(file);
-            } else {
-                showNotification('Extraction automatique du texte en cours...', 'info');
-                // Pour PDF et DOCX, vous devrez implémenter l'extraction
-                // ou utiliser une bibliothèque comme PDF.js pour les PDF
-            }
+            });
+        }
+
+        // Extraction DOCX avec mammoth.js
+        function extractTextFromDOCX(file) {
+            return new Promise((resolve, reject) => {
+                if (typeof mammoth === 'undefined') {
+                    reject(new Error('Bibliothèque mammoth non disponible'));
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mammoth.extractRawText({arrayBuffer: e.target.result})
+                        .then(function(result) {
+                            resolve(result.value);
+                        })
+                        .catch(reject);
+                };
+                reader.onerror = function() {
+                    reject(new Error('Erreur lecture fichier DOCX'));
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Extraction PDF avec PDF.js
+        function extractTextFromPDF(file) {
+            return new Promise((resolve, reject) => {
+                if (typeof pdfjsLib === 'undefined') {
+                    reject(new Error('Bibliothèque PDF.js non disponible'));
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const typedarray = new Uint8Array(e.target.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        let fullText = '';
+                        
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(item => item.str).join(' ');
+                            fullText += pageText + '\n';
+                        }
+                        
+                        resolve(fullText);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = function() {
+                    reject(new Error('Erreur lecture fichier PDF'));
+                };
+                reader.readAsArrayBuffer(file);
+            });
         }
 
         // Analyse ChatGPT
@@ -1315,6 +1417,7 @@
                 return;
             }
             
+            console.log('🤖 Début analyse ChatGPT...');
             showLoader(true);
             
             try {
@@ -1350,25 +1453,47 @@
                     })
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     const content = data.choices[0].message.content;
+                    console.log('🤖 Réponse ChatGPT:', content);
+                    
                     try {
-                        const jobInfo = JSON.parse(content);
+                        // Nettoyer la réponse pour extraire le JSON
+                        let jsonContent = content;
+                        if (content.includes('```json')) {
+                            jsonContent = content.split('```json')[1].split('```')[0];
+                        } else if (content.includes('```')) {
+                            jsonContent = content.split('```')[1].split('```')[0];
+                        }
+                        
+                        const jobInfo = JSON.parse(jsonContent.trim());
                         displayJobInfo(jobInfo);
                         showNotification('Analyse réalisée avec succès !', 'success');
+                        console.log('✅ Analyse terminée avec succès');
                     } catch (e) {
-                        console.error('Erreur parsing JSON:', e);
-                        showNotification('Erreur lors de l\'analyse. Veuillez réessayer.', 'error');
+                        console.error('❌ Erreur parsing JSON:', e);
+                        console.log('Contenu reçu:', content);
+                        showNotification('Erreur lors de l\'analyse. Format de réponse inattendu.', 'error');
                     }
                 } else {
                     throw new Error('Réponse API invalide');
                 }
                 
             } catch (error) {
-                console.error('Erreur ChatGPT:', error);
-                showNotification('Erreur lors de l\'analyse. Vérifiez votre clé API.', 'error');
+                console.error('❌ Erreur ChatGPT:', error);
+                if (error.message.includes('API Error: 401')) {
+                    showNotification('Clé API invalide. Vérifiez votre clé OpenAI.', 'error');
+                } else if (error.message.includes('API Error: 429')) {
+                    showNotification('Limite de taux atteinte. Attendez un moment.', 'error');
+                } else {
+                    showNotification('Erreur lors de l\'analyse: ' + error.message, 'error');
+                }
             } finally {
                 showLoader(false);
             }
@@ -1496,7 +1621,20 @@
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Système Nexten initialisé - Navigation corrigée');
+            console.log('🚀 Système Nexten initialisé - Extraction DOCX/PDF activée');
+            
+            // Vérifier les bibliothèques
+            if (typeof mammoth !== 'undefined') {
+                console.log('✅ Mammoth.js chargé (support DOCX)');
+            } else {
+                console.warn('⚠️ Mammoth.js non chargé');
+            }
+            
+            if (typeof pdfjsLib !== 'undefined') {
+                console.log('✅ PDF.js chargé (support PDF)');
+            } else {
+                console.warn('⚠️ PDF.js non chargé');
+            }
             
             // Gestion de la navigation
             document.querySelectorAll('.next-step').forEach(btn => {
@@ -1533,7 +1671,7 @@
             updateProgress();
             updateStepIndicators();
             
-            console.log('✅ Correction appliquée : sélecteur spécifique pour sections .form-section');
+            console.log('✅ Système de parsing complet activé');
         });
     </script>
     
