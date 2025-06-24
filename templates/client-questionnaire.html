@@ -743,6 +743,69 @@
             font-size: 0.9rem;
         }
 
+        /* Styles pour l'étape 4 - Détails du poste */
+        .question-section {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .question-section h3 {
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .checkbox-option:hover {
+            background-color: rgba(124, 58, 237, 0.05);
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            margin-bottom: 0.5rem;
+        }
+
+        .radio-option:hover {
+            background-color: rgba(124, 58, 237, 0.05);
+        }
+
+        .sub-options {
+            margin-left: 2rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .sector-dropdown {
+            margin-top: 1rem;
+        }
+
         /* Responsive pour mobile */
         @media (max-width: 768px) {
             .container {
@@ -779,6 +842,10 @@
             .form-navigation .btn {
                 width: 100%;
             }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -797,10 +864,10 @@
         </div>
 
         <main>
-            <!-- Étapes de progression améliorées -->
+            <!-- Étapes de progression améliorées (5 étapes) -->
             <div class="progress-container">
                 <div class="progress-bar">
-                    <div class="progress-bar-fill" id="progress-fill" style="width: 25%"></div>
+                    <div class="progress-bar-fill" id="progress-fill" style="width: 20%"></div>
                 </div>
                 <div class="progress-steps">
                     <div class="step active" data-step="1" tabindex="0">
@@ -817,6 +884,10 @@
                     </div>
                     <div class="step" data-step="4" tabindex="0">
                         <div class="step-bubble"><span>4</span></div>
+                        <div class="step-label">Détails du poste</div>
+                    </div>
+                    <div class="step" data-step="5" tabindex="0">
+                        <div class="step-bubble"><span>5</span></div>
                         <div class="step-label">Confirmation</div>
                     </div>
                 </div>
@@ -1078,8 +1149,235 @@
                     </div>
                 </section>
                 
-                <!-- Étape 4: Confirmation -->
+                <!-- NOUVELLE ÉTAPE 4: Détails du poste -->
                 <section class="form-section" data-step="4">
+                    <h2><i class="fas fa-clipboard-list"></i> Détails du poste</h2>
+                    <p>Précisez les détails spécifiques concernant le poste à pourvoir.</p>
+                    
+                    <!-- Section 1: Délais et timing -->
+                    <div class="question-section">
+                        <h3><i class="fas fa-clock"></i> Délais et timing</h3>
+                        
+                        <!-- a) Délai de recrutement -->
+                        <div class="form-group">
+                            <label><strong>Délai de recrutement souhaité :</strong></label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-immediate" name="recruitment-delay" value="immediate">
+                                    <label for="delay-immediate">Immédiat</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-2weeks" name="recruitment-delay" value="2weeks">
+                                    <label for="delay-2weeks">2 semaines</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-1month" name="recruitment-delay" value="1month">
+                                    <label for="delay-1month">1 mois</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-2months" name="recruitment-delay" value="2months">
+                                    <label for="delay-2months">2 mois</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-3months" name="recruitment-delay" value="3months">
+                                    <label for="delay-3months">3 mois</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- b) Gestion du préavis -->
+                        <div class="form-group">
+                            <label><strong>Pouvez-vous gérer un préavis ?</strong></label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="notice-yes" name="notice-management" value="yes">
+                                    <label for="notice-yes">Oui</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="notice-no" name="notice-management" value="no">
+                                    <label for="notice-no">Non</label>
+                                </div>
+                            </div>
+                            
+                            <!-- Sous-options pour le préavis -->
+                            <div id="notice-options" class="sub-options" style="display: none;">
+                                <label><strong>Durée de préavis acceptable :</strong></label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="notice-1month" name="notice-duration" value="1month">
+                                        <label for="notice-1month">1 mois</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="notice-2months" name="notice-duration" value="2months">
+                                        <label for="notice-2months">2 mois</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="notice-3months" name="notice-duration" value="3months">
+                                        <label for="notice-3months">3 mois</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 2: Contexte et profil -->
+                    <div class="question-section">
+                        <h3><i class="fas fa-users"></i> Contexte et profil</h3>
+                        
+                        <!-- c) Contexte de recrutement -->
+                        <div class="form-group">
+                            <label><strong>Contexte de recrutement :</strong></label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="context-creation" name="recruitment-context" value="creation">
+                                    <label for="context-creation">Création de poste</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="context-replacement" name="recruitment-context" value="replacement">
+                                    <label for="context-replacement">Remplacement</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="context-growth" name="recruitment-context" value="growth">
+                                    <label for="context-growth">Accroissement d'activité/Renfort</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="context-private" name="recruitment-context" value="private">
+                                    <label for="context-private">Je ne souhaite pas communiquer</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- d) Années d'expérience -->
+                        <div class="form-group">
+                            <label for="experience-required"><strong>Années d'expérience requises :</strong></label>
+                            <select id="experience-required" class="form-control">
+                                <option value="">Sélectionnez</option>
+                                <option value="junior">Profil Junior</option>
+                                <option value="2-3years">2 ans - 3 ans</option>
+                                <option value="5-10years">5 ans - 10 ans</option>
+                                <option value="10plus">10 ans et plus</option>
+                            </select>
+                        </div>
+                        
+                        <!-- e) Connaissance secteur -->
+                        <div class="form-group">
+                            <label><strong>Connaissance du secteur obligatoire ?</strong></label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="sector-yes" name="sector-knowledge" value="yes">
+                                    <label for="sector-yes">Oui</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="sector-no" name="sector-knowledge" value="no">
+                                    <label for="sector-no">Non</label>
+                                </div>
+                            </div>
+                            
+                            <!-- Secteur d'activité -->
+                            <div id="sector-dropdown" class="sector-dropdown" style="display: none;">
+                                <label for="activity-sector"><strong>Secteur d'activité :</strong></label>
+                                <select id="activity-sector" class="form-control">
+                                    <option value="">Sélectionnez un secteur</option>
+                                    <option value="agriculture">Agriculture, Agroalimentaire</option>
+                                    <option value="automobile">Automobile</option>
+                                    <option value="banque">Banque, Finance, Assurance</option>
+                                    <option value="btp">BTP, Construction</option>
+                                    <option value="chimie">Chimie, Pharmaceutique</option>
+                                    <option value="commerce">Commerce, Distribution</option>
+                                    <option value="consulting">Conseil, Audit</option>
+                                    <option value="education">Éducation, Formation</option>
+                                    <option value="energie">Énergie, Environnement</option>
+                                    <option value="hotellerie">Hôtellerie, Restauration</option>
+                                    <option value="immobilier">Immobilier</option>
+                                    <option value="industrie">Industrie, Métallurgie</option>
+                                    <option value="informatique">Informatique, IT</option>
+                                    <option value="media">Médias, Communication</option>
+                                    <option value="sante">Santé, Social</option>
+                                    <option value="transport">Transport, Logistique</option>
+                                    <option value="telecom">Télécommunications</option>
+                                    <option value="autre">Autre</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 3: Environnement de travail -->
+                    <div class="question-section">
+                        <h3><i class="fas fa-building"></i> Environnement et conditions</h3>
+                        
+                        <!-- f) Environnement de travail -->
+                        <div class="form-group">
+                            <label><strong>Environnement de travail :</strong></label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="env-openspace" name="work-environment" value="openspace">
+                                    <label for="env-openspace">Open space</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="env-office" name="work-environment" value="office">
+                                    <label for="env-office">Bureau</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- g) Composition équipe -->
+                        <div class="form-group">
+                            <label for="team-composition"><strong>Composition de l'équipe et rattachement :</strong></label>
+                            <textarea id="team-composition" class="form-control" rows="3" 
+                                placeholder="Ex: Équipe de 8 personnes, rattachement au directeur commercial, collaboration étroite avec le service marketing..."></textarea>
+                        </div>
+                        
+                        <!-- h) Perspectives d'évolution -->
+                        <div class="form-group">
+                            <label for="career-evolution"><strong>Perspectives d'évolution :</strong></label>
+                            <textarea id="career-evolution" class="form-control" rows="3" 
+                                placeholder="Ex: Évolution possible vers un poste de manager d'équipe dans 2-3 ans, formation continue assurée, mobilité interne..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 4: Rémunération et contrat -->
+                    <div class="question-section">
+                        <h3><i class="fas fa-euro-sign"></i> Rémunération et contrat</h3>
+                        
+                        <!-- i) Rémunération -->
+                        <div class="form-group">
+                            <label for="salary-range"><strong>Rémunération :</strong></label>
+                            <input type="text" id="salary-range" class="form-control" 
+                                placeholder="Ex: 35-40K€, 45K€ fixe + variable, selon profil...">
+                        </div>
+                        
+                        <!-- j) Avantages -->
+                        <div class="form-group">
+                            <label for="job-benefits"><strong>Avantages :</strong></label>
+                            <textarea id="job-benefits" class="form-control" rows="3" 
+                                placeholder="Ex: Télétravail 2j/semaine, RTT, 13e mois, mutuelle, tickets restaurant, voiture de fonction..."></textarea>
+                        </div>
+                        
+                        <!-- k) Type de contrat -->
+                        <div class="form-group">
+                            <label for="contract-type"><strong>Type de contrat :</strong></label>
+                            <select id="contract-type" class="form-control">
+                                <option value="">Sélectionnez</option>
+                                <option value="35h">35h</option>
+                                <option value="39h">39h</option>
+                                <option value="cadre">Cadre</option>
+                                <option value="non-cadre">Non-cadre</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="3">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="5">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 5: Confirmation (ancienne étape 4) -->
+                <section class="form-section" data-step="5">
                     <h2>Confirmation</h2>
                     <p>Merci pour vos informations! Voici un récapitulatif de votre demande.</p>
                     
@@ -1097,7 +1395,7 @@
                     </div>
                     
                     <div class="form-navigation">
-                        <button type="button" class="btn btn-outline prev-step" data-step="3">
+                        <button type="button" class="btn btn-outline prev-step" data-step="4">
                             <i class="fas fa-arrow-left"></i> Précédent
                         </button>
                         <button type="submit" class="btn btn-primary" id="submit-form">
@@ -1130,7 +1428,7 @@
         const DASHBOARD_URL = "company-dashboard.html";
         let currentStep = 1;
 
-        // Système de navigation corrigé
+        // Système de navigation corrigé (mis à jour pour 5 étapes)
         function showStep(stepNumber) {
             console.log(`🔄 Navigation vers l'étape ${stepNumber}`);
             
@@ -1156,8 +1454,13 @@
                     initializeChatGPTFeatures();
                 }
                 
-                // Si c'est l'étape 4, générer le récapitulatif
+                // Si c'est l'étape 4, initialiser les fonctionnalités conditionnelles
                 if (stepNumber === 4) {
+                    initializeJobDetailsFeatures();
+                }
+                
+                // Si c'est l'étape 5, générer le récapitulatif
+                if (stepNumber === 5) {
                     generateSummary();
                 }
             } else {
@@ -1167,7 +1470,7 @@
 
         function updateProgress() {
             const progressFill = document.getElementById('progress-fill');
-            const progressPercentage = (currentStep / 4) * 100;
+            const progressPercentage = (currentStep / 5) * 100; // Mis à jour pour 5 étapes
             progressFill.style.width = progressPercentage + '%';
         }
 
@@ -1203,6 +1506,49 @@
                     showNotification('Clé API sauvegardée avec succès !', 'success');
                 }
             });
+        }
+
+        // NOUVELLE FONCTION: Initialisation des fonctionnalités de l'étape 4
+        function initializeJobDetailsFeatures() {
+            console.log('🔧 Initialisation étape 4 - Détails du poste');
+            
+            // Gestion du préavis conditionnel
+            const noticeYes = document.getElementById('notice-yes');
+            const noticeNo = document.getElementById('notice-no');
+            const noticeOptions = document.getElementById('notice-options');
+            
+            function toggleNoticeOptions() {
+                if (noticeYes.checked) {
+                    noticeOptions.style.display = 'block';
+                } else {
+                    noticeOptions.style.display = 'none';
+                }
+            }
+            
+            if (noticeYes && noticeNo) {
+                noticeYes.addEventListener('change', toggleNoticeOptions);
+                noticeNo.addEventListener('change', toggleNoticeOptions);
+            }
+            
+            // Gestion du secteur d'activité conditionnel
+            const sectorYes = document.getElementById('sector-yes');
+            const sectorNo = document.getElementById('sector-no');
+            const sectorDropdown = document.getElementById('sector-dropdown');
+            
+            function toggleSectorDropdown() {
+                if (sectorYes.checked) {
+                    sectorDropdown.style.display = 'block';
+                } else {
+                    sectorDropdown.style.display = 'none';
+                }
+            }
+            
+            if (sectorYes && sectorNo) {
+                sectorYes.addEventListener('change', toggleSectorDropdown);
+                sectorNo.addEventListener('change', toggleSectorDropdown);
+            }
+            
+            console.log('✅ Fonctionnalités étape 4 initialisées');
         }
 
         // Fonctionnalités ChatGPT améliorées
@@ -1531,11 +1877,11 @@
             loader.style.display = show ? 'flex' : 'none';
         }
 
-        // Génération du récapitulatif
+        // FONCTION MISE À JOUR: Génération du récapitulatif avec les nouvelles données
         function generateSummary() {
             const summaryContent = document.getElementById('summary-content');
             
-            // Récupérer les données du formulaire
+            // Récupérer les données du formulaire (étapes 1-2)
             const companyName = document.getElementById('company-name').value || 'Non renseigné';
             const companyAddress = document.getElementById('company-address').value || 'Non renseigné';
             const companyWebsite = document.getElementById('company-website').value || 'Non renseigné';
@@ -1545,8 +1891,71 @@
             const contactEmail = document.getElementById('contact-email').value || 'Non renseigné';
             const contactPhone = document.getElementById('contact-phone').value || 'Non renseigné';
             
+            // Étape 3 - Recrutement
             const hasRecruitment = document.querySelector('input[name="recruitment-need"]:checked');
             const recruitmentStatus = hasRecruitment ? (hasRecruitment.value === 'yes' ? 'Oui' : 'Non') : 'Non renseigné';
+            
+            // NOUVELLES DONNÉES - Étape 4
+            let jobDetailsHTML = '';
+            if (hasRecruitment && hasRecruitment.value === 'yes') {
+                // Délais de recrutement
+                const delays = Array.from(document.querySelectorAll('input[name="recruitment-delay"]:checked'))
+                    .map(input => input.nextElementSibling.textContent).join(', ') || 'Non renseigné';
+                
+                // Préavis
+                const noticeManagement = document.querySelector('input[name="notice-management"]:checked');
+                const noticeDuration = document.querySelector('input[name="notice-duration"]:checked');
+                let noticeInfo = noticeManagement ? noticeManagement.nextElementSibling.textContent : 'Non renseigné';
+                if (noticeManagement && noticeManagement.value === 'yes' && noticeDuration) {
+                    noticeInfo += ' (' + noticeDuration.nextElementSibling.textContent + ')';
+                }
+                
+                // Contexte de recrutement
+                const context = document.querySelector('input[name="recruitment-context"]:checked');
+                const contextInfo = context ? context.nextElementSibling.textContent : 'Non renseigné';
+                
+                // Expérience requise
+                const experience = document.getElementById('experience-required').value || 'Non renseigné';
+                const experienceText = experience ? document.querySelector(`#experience-required option[value="${experience}"]`).textContent : 'Non renseigné';
+                
+                // Secteur
+                const sectorKnowledge = document.querySelector('input[name="sector-knowledge"]:checked');
+                const sector = document.getElementById('activity-sector').value;
+                let sectorInfo = sectorKnowledge ? sectorKnowledge.nextElementSibling.textContent : 'Non renseigné';
+                if (sectorKnowledge && sectorKnowledge.value === 'yes' && sector) {
+                    const sectorText = document.querySelector(`#activity-sector option[value="${sector}"]`).textContent;
+                    sectorInfo += ' (' + sectorText + ')';
+                }
+                
+                // Environnement
+                const environment = document.querySelector('input[name="work-environment"]:checked');
+                const envInfo = environment ? environment.nextElementSibling.textContent : 'Non renseigné';
+                
+                // Autres informations
+                const teamComposition = document.getElementById('team-composition').value || 'Non renseigné';
+                const careerEvolution = document.getElementById('career-evolution').value || 'Non renseigné';
+                const salaryRange = document.getElementById('salary-range').value || 'Non renseigné';
+                const benefits = document.getElementById('job-benefits').value || 'Non renseigné';
+                const contractType = document.getElementById('contract-type').value || 'Non renseigné';
+                const contractText = contractType ? document.querySelector(`#contract-type option[value="${contractType}"]`).textContent : 'Non renseigné';
+                
+                jobDetailsHTML = `
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">💼 Détails du poste</h4>
+                        <p><strong>Délais de recrutement :</strong> ${delays}</p>
+                        <p><strong>Gestion du préavis :</strong> ${noticeInfo}</p>
+                        <p><strong>Contexte :</strong> ${contextInfo}</p>
+                        <p><strong>Expérience requise :</strong> ${experienceText}</p>
+                        <p><strong>Connaissance secteur :</strong> ${sectorInfo}</p>
+                        <p><strong>Environnement :</strong> ${envInfo}</p>
+                        <p><strong>Équipe :</strong> ${teamComposition}</p>
+                        <p><strong>Évolution :</strong> ${careerEvolution}</p>
+                        <p><strong>Rémunération :</strong> ${salaryRange}</p>
+                        <p><strong>Avantages :</strong> ${benefits}</p>
+                        <p><strong>Type contrat :</strong> ${contractText}</p>
+                    </div>
+                `;
+            }
             
             // Construire le récapitulatif
             let summaryHTML = `
@@ -1570,6 +1979,8 @@
                         <h4 style="color: var(--primary); margin-bottom: 0.5rem;">💼 Recrutement</h4>
                         <p><strong>Besoin de recruter :</strong> ${recruitmentStatus}</p>
                     </div>
+                    
+                    ${jobDetailsHTML}
                 </div>
             `;
             
@@ -1619,9 +2030,26 @@
             }
         }
 
+        // NOUVELLE FONCTION: Gestion de la visibilité de l'étape 4
+        function checkStep4Visibility() {
+            const recruitmentYes = document.getElementById('recruitment-yes');
+            const step4 = document.querySelector('.step[data-step="4"]');
+            const nextButton3 = document.querySelector('[data-step="3"] .next-step');
+            
+            if (recruitmentYes && recruitmentYes.checked) {
+                // Afficher l'étape 4
+                step4.style.display = 'flex';
+                nextButton3.setAttribute('data-step', '4');
+            } else {
+                // Masquer l'étape 4 et passer directement à l'étape 5
+                step4.style.display = 'none';
+                nextButton3.setAttribute('data-step', '5');
+            }
+        }
+
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Système Nexten initialisé - Extraction DOCX/PDF activée');
+            console.log('🚀 Système Nexten initialisé - Extraction DOCX/PDF activée + Étape 4 Détails du poste');
             
             // Vérifier les bibliothèques
             if (typeof mammoth !== 'undefined') {
@@ -1661,7 +2089,10 @@
             
             // Gestion des radio buttons pour le recrutement
             document.querySelectorAll('input[name="recruitment-need"]').forEach(radio => {
-                radio.addEventListener('change', toggleJobParsingSection);
+                radio.addEventListener('change', function() {
+                    toggleJobParsingSection();
+                    checkStep4Visibility();
+                });
             });
             
             // Initialiser la configuration API
@@ -1671,7 +2102,7 @@
             updateProgress();
             updateStepIndicators();
             
-            console.log('✅ Système de parsing complet activé');
+            console.log('✅ Système complet activé avec étape 4 Détails du poste');
         });
     </script>
     
