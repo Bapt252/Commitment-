@@ -825,10 +825,10 @@
         <div id="chatgpt-fix-banner" class="chatgpt-fix-banner">
             <div class="status-info">
                 <div class="fix-icon"></div>
-                <span>🤖 ChatGPT Parser ACTIVÉ - Ancien système désactivé automatiquement !</span>
+                <span>🤖 ChatGPT Parser ACTIVÉ - Test avec "testCompleteFlow()" dans la console !</span>
             </div>
-            <button class="test-btn" onclick="window.diagnoseChatGPTParser?.()">
-                Diagnostic Complet
+            <button class="test-btn" onclick="window.testCompleteFlow?.()">
+                Test Complet
             </button>
         </div>
 
@@ -1157,6 +1157,7 @@
     <!-- 🔧 SCRIPTS DE CORRECTION ET DIAGNOSTIC -->
     <script src="../scripts/fix-job-parser-conflicts.js"></script>
     <script src="../scripts/diagnostic-chatgpt-detailed.js"></script>
+    <script src="../scripts/debug-chatgpt-analysis.js"></script>
     
     <script>
         // Définir les URLs de redirection
@@ -1167,12 +1168,15 @@
             console.log('🤖 ChatGPT Job Parser ACTIVÉ !');
             console.log('🔧 Correction des conflits en cours...');
             console.log('🔍 Diagnostic détaillé disponible !');
+            console.log('🐛 Debug analyse ChatGPT activé !');
             
             // Fonction de test rapide pour l'utilisateur
             window.testQuickChatGPT = function() {
                 console.log('🧪 Test rapide ChatGPT...');
                 if (window.testChatGPTParser) {
                     window.testChatGPTParser();
+                } else if (window.testCompleteFlow) {
+                    window.testCompleteFlow();
                 } else {
                     console.log('⏳ Parser en cours d\'initialisation...');
                 }
