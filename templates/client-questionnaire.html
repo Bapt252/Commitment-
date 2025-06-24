@@ -18,6 +18,22 @@
     
     <!-- Style supplémentaire pour les améliorations -->
     <style>
+        /* Variables CSS essentielles */
+        :root {
+            --primary: #7c3aed;
+            --primary-light: #a855f7;
+            --primary-dark: #6d28d9;
+            --gray: #6b7280;
+            --gray-dark: #374151;
+            --gray-light: #d1d5db;
+            --gray-lightest: #f9fafb;
+            --success: #10b981;
+            --error: #ef4444;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+            --transition-sm: all 0.2s ease;
+        }
+
         /* Debug section améliorée */
         .debug-section {
             background: linear-gradient(135deg, #F0FFF4, #E8F8F5);
@@ -41,6 +57,13 @@
             gap: 8px;
         }
 
+        /* Container principal */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
         /* Mise à jour du header */
         .header {
             position: relative;
@@ -49,6 +72,7 @@
             overflow: hidden;
             border-radius: var(--border-radius);
             background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(124, 58, 237, 0.1));
+            text-align: center;
         }
 
         .header::before {
@@ -66,6 +90,7 @@
             position: relative;
             z-index: 1;
             font-weight: 600;
+            color: var(--gray-dark);
         }
 
         .header .subtitle {
@@ -73,6 +98,7 @@
             font-size: 1.1rem;
             color: var(--gray);
             line-height: 1.6;
+            margin: 0 auto;
         }
 
         /* Améliorations du stepper */
@@ -189,6 +215,66 @@
             display: block;
         }
 
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        /* Configuration ChatGPT */
+        .chatgpt-config {
+            background: linear-gradient(135deg, #E3F2FD, #F3E5F5);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .chatgpt-config h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .config-input {
+            flex: 1;
+        }
+
+        .save-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .save-btn:hover {
+            background: var(--primary-dark);
+        }
+
         /* Upload container */
         .upload-container {
             border: 2px dashed var(--gray-light);
@@ -219,6 +305,10 @@
             transform: translateY(-5px);
         }
 
+        .file-input {
+            display: none;
+        }
+
         /* Textarea container */
         .textarea-container {
             position: relative;
@@ -227,6 +317,8 @@
 
         .textarea-container .form-control {
             padding-right: 50px;
+            min-height: 120px;
+            resize: vertical;
         }
 
         .analyze-button {
@@ -402,120 +494,6 @@
             gap: 8px;
         }
 
-        .analysis-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 15px 0;
-        }
-
-        .analysis-status {
-            color: #4CAF50;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Style pour le bouton "Analyser avec GPT" - Version améliorée */
-        .gpt-analyze-btn-container {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-            opacity: 0.6;
-        }
-        
-        #analyze-with-gpt {
-            padding: 8px 16px;
-            background-color: #cccccc;
-            color: #666;
-            border: none;
-            border-radius: 4px;
-            cursor: not-allowed;
-            transition: background-color 0.3s;
-        }
-        
-        #gpt-analyze-status {
-            margin-left: 10px;
-            font-style: italic;
-            color: #666;
-            display: none;
-        }
-        
-        /* Responsive pour mobile */
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .header {
-                padding: 1.5rem 1rem;
-                margin-bottom: 2rem;
-            }
-            
-            .form-section {
-                padding: 1.5rem;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .step-label {
-                font-size: 0.75rem;
-            }
-            
-            .form-navigation {
-                flex-direction: column-reverse;
-                gap: 1rem;
-            }
-            
-            .form-navigation .btn {
-                width: 100%;
-            }
-        }
-        
-        /* Banner pour afficher l'état de la connexion au backend - Masquée par défaut */
-        .backend-status-banner {
-            background-color: #f0fdf4;
-            border-radius: 8px;
-            border-left: 4px solid #10b981;
-            padding: 10px 15px;
-            margin: 10px 0 20px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.9rem;
-        }
-        
-        .backend-status-banner .status-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .backend-status-banner .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #10b981;
-        }
-        
-        .backend-status-banner .get-help-btn {
-            background: none;
-            border: none;
-            color: #7c3aed;
-            cursor: pointer;
-            font-size: 0.85rem;
-            text-decoration: underline;
-            padding: 0;
-        }
-
         /* Style pour les boutons de navigation */
         .form-navigation {
             display: flex;
@@ -537,6 +515,7 @@
             transition: all 0.3s ease;
             cursor: pointer;
             border: none;
+            text-decoration: none;
         }
 
         .btn-primary {
@@ -762,6 +741,44 @@
             color: var(--gray);
             font-size: 0.9rem;
         }
+
+        /* Responsive pour mobile */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 1.5rem 1rem;
+                margin-bottom: 2rem;
+            }
+            
+            .form-section {
+                padding: 1.5rem;
+            }
+            
+            .config-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .step-label {
+                font-size: 0.75rem;
+            }
+            
+            .form-navigation {
+                flex-direction: column-reverse;
+                gap: 1rem;
+            }
+            
+            .form-navigation .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -782,7 +799,7 @@
             <!-- Étapes de progression améliorées -->
             <div class="progress-container">
                 <div class="progress-bar">
-                    <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+                    <div class="progress-bar-fill" id="progress-fill" style="width: 25%"></div>
                 </div>
                 <div class="progress-steps">
                     <div class="step active" data-step="1" tabindex="0">
@@ -929,6 +946,21 @@
                     <!-- Section conditionnelle pour le parser de fiche de poste -->
                     <div id="job-parsing-section" class="conditional-section">
                         <h3>Fiche de poste</h3>
+                        
+                        <!-- Configuration ChatGPT -->
+                        <div class="chatgpt-config">
+                            <h4><i class="fas fa-robot"></i> Configuration ChatGPT</h4>
+                            <div class="config-row">
+                                <div class="config-input">
+                                    <label for="api-key">Clé API OpenAI :</label>
+                                    <input type="password" id="api-key" class="form-control" placeholder="sk-..." />
+                                </div>
+                                <button type="button" id="save-api-key" class="save-btn">
+                                    <i class="fas fa-save"></i> Sauvegarder
+                                </button>
+                            </div>
+                            <small>Votre clé API OpenAI pour l'analyse intelligente. <a href="https://platform.openai.com/api-keys" target="_blank">Obtenir une clé API</a></small>
+                        </div>
                         
                         <!-- Instructions d'utilisation améliorées -->
                         <div class="parsing-instructions">
@@ -1090,37 +1122,360 @@
         </div>
     </div>
     
-    <!-- Scripts - Ordre CRITIQUE AVEC CORRECTIF D'URGENCE -->
-    
-    <!-- 🚨 CORRECTIF URGENCE EN PREMIER - ABSOLUMENT PRIORITAIRE -->
-    <script src="../scripts/fix-navigation-emergency.js"></script>
-    
-    <!-- 🚨 SCRIPT DE FIX PRIORITAIRE -->
-    <script src="../scripts/fix-job-parser-priority.js"></script>
-    
-    <!-- 🔍 SCRIPT DE DIAGNOSTIC AVANCÉ -->
-    <script src="../scripts/diagnostic-chatgpt-avance.js"></script>
-    
-    <!-- 1. Fonctionnalités d'interface de base -->
-    <script src="../scripts/questionnaire-navigation.js"></script>
-    <script src="../scripts/summary-generator.js"></script>
-    
-    <!-- 🤖 SCRIPTS CHATGPT PRIORITAIRES -->
-    <script src="../js/job-parser-gpt.js"></script>
-    <script src="../scripts/job-parsing-ui-gpt.js"></script>
-    
-    <!-- ❌ ANCIEN SCRIPT RETIRÉ - NE PLUS CHARGER job-parsing-ui.js -->
-    
+    <!-- Scripts intégrés et simplifiés -->
     <script>
-        // Définir les URLs de redirection
+        // Variables globales
         const RECOMMENDATION_URL = "candidate-recommendation.html";
         const DASHBOARD_URL = "company-dashboard.html";
-        
+        let currentStep = 1;
+
+        // Système de navigation simplifié
+        function showStep(stepNumber) {
+            // Masquer toutes les sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Afficher la section demandée
+            const targetSection = document.querySelector(`[data-step="${stepNumber}"]`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                currentStep = stepNumber;
+                
+                // Mettre à jour la progression
+                updateProgress();
+                updateStepIndicators();
+                
+                // Si c'est l'étape 3, activer les fonctionnalités ChatGPT
+                if (stepNumber === 3) {
+                    initializeChatGPTFeatures();
+                }
+            }
+        }
+
+        function updateProgress() {
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercentage = (currentStep / 4) * 100;
+            progressFill.style.width = progressPercentage + '%';
+        }
+
+        function updateStepIndicators() {
+            document.querySelectorAll('.step').forEach((step, index) => {
+                const stepNumber = index + 1;
+                step.classList.remove('active', 'completed');
+                
+                if (stepNumber < currentStep) {
+                    step.classList.add('completed');
+                } else if (stepNumber === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        // Configuration API ChatGPT
+        function initializeAPIConfig() {
+            const apiKeyInput = document.getElementById('api-key');
+            const saveBtn = document.getElementById('save-api-key');
+            
+            // Charger la clé API sauvegardée
+            const savedKey = localStorage.getItem('openai_api_key');
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+            }
+            
+            // Sauvegarder la clé API
+            saveBtn.addEventListener('click', function() {
+                const apiKey = apiKeyInput.value.trim();
+                if (apiKey) {
+                    localStorage.setItem('openai_api_key', apiKey);
+                    showNotification('Clé API sauvegardée avec succès !', 'success');
+                }
+            });
+        }
+
+        // Fonctionnalités ChatGPT simplifiées
+        function initializeChatGPTFeatures() {
+            const fileInput = document.getElementById('job-file-input');
+            const dropZone = document.getElementById('job-drop-zone');
+            const textarea = document.getElementById('job-description-text');
+            const analyzeBtn = document.getElementById('analyze-job-text');
+            
+            // Gestion du drag & drop
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropZone.classList.add('drag-active');
+            });
+            
+            dropZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                dropZone.classList.remove('drag-active');
+            });
+            
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropZone.classList.remove('drag-active');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+            
+            // Clic sur la zone d'upload
+            dropZone.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    handleFileUpload(this.files[0]);
+                }
+            });
+            
+            // Analyse automatique du texte
+            textarea.addEventListener('input', function() {
+                if (this.value.trim().length > 50) {
+                    setTimeout(() => analyzeJobDescription(this.value.trim()), 1000);
+                }
+            });
+            
+            // Bouton d'analyse manuelle
+            analyzeBtn.addEventListener('click', function() {
+                const text = textarea.value.trim();
+                if (text) {
+                    analyzeJobDescription(text);
+                }
+            });
+        }
+
+        // Gestion des fichiers
+        function handleFileUpload(file) {
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            if (!allowedTypes.includes(file.type)) {
+                showNotification('Format de fichier non supporté. Utilisez PDF, DOCX ou TXT.', 'error');
+                return;
+            }
+            
+            if (file.size > maxSize) {
+                showNotification('Le fichier est trop volumineux. Maximum 5MB.', 'error');
+                return;
+            }
+            
+            showFileBadge(file.name);
+            extractTextFromFile(file);
+        }
+
+        function showFileBadge(fileName) {
+            const fileBadge = document.getElementById('file-badge');
+            const fileNameSpan = document.getElementById('file-name');
+            const removeBtn = document.getElementById('remove-file');
+            
+            fileNameSpan.textContent = fileName;
+            fileBadge.style.display = 'flex';
+            
+            removeBtn.addEventListener('click', function() {
+                fileBadge.style.display = 'none';
+                document.getElementById('job-file-input').value = '';
+            });
+        }
+
+        function extractTextFromFile(file) {
+            if (file.type === 'text/plain') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    document.getElementById('job-description-text').value = text;
+                    analyzeJobDescription(text);
+                };
+                reader.readAsText(file);
+            } else {
+                showNotification('Extraction automatique du texte en cours...', 'info');
+                // Pour PDF et DOCX, vous devrez implémenter l'extraction
+                // ou utiliser une bibliothèque comme PDF.js pour les PDF
+            }
+        }
+
+        // Analyse ChatGPT
+        async function analyzeJobDescription(text) {
+            const apiKey = localStorage.getItem('openai_api_key');
+            if (!apiKey) {
+                showNotification('Veuillez configurer votre clé API OpenAI d\'abord.', 'error');
+                return;
+            }
+            
+            showLoader(true);
+            
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [{
+                            role: 'user',
+                            content: `Analysez cette fiche de poste et extrayez les informations suivantes au format JSON strict :
+                            {
+                                "titre": "titre du poste",
+                                "contrat": "type de contrat",
+                                "lieu": "lieu de travail",
+                                "experience": "expérience requise",
+                                "formation": "formation requise",
+                                "remuneration": "rémunération",
+                                "competences": ["compétence1", "compétence2"],
+                                "responsabilites": "responsabilités principales",
+                                "avantages": "avantages proposés",
+                                "entreprise": "nom de l'entreprise"
+                            }
+
+                            Fiche de poste :
+                            ${text}`
+                        }],
+                        max_tokens: 1000,
+                        temperature: 0.1
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    const content = data.choices[0].message.content;
+                    try {
+                        const jobInfo = JSON.parse(content);
+                        displayJobInfo(jobInfo);
+                        showNotification('Analyse réalisée avec succès !', 'success');
+                    } catch (e) {
+                        console.error('Erreur parsing JSON:', e);
+                        showNotification('Erreur lors de l\'analyse. Veuillez réessayer.', 'error');
+                    }
+                } else {
+                    throw new Error('Réponse API invalide');
+                }
+                
+            } catch (error) {
+                console.error('Erreur ChatGPT:', error);
+                showNotification('Erreur lors de l\'analyse. Vérifiez votre clé API.', 'error');
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function displayJobInfo(jobInfo) {
+            document.getElementById('job-title-value').textContent = jobInfo.titre || 'Non spécifié';
+            document.getElementById('job-contract-value').textContent = jobInfo.contrat || 'Non spécifié';
+            document.getElementById('job-location-value').textContent = jobInfo.lieu || 'Non spécifié';
+            document.getElementById('job-experience-value').textContent = jobInfo.experience || 'Non spécifié';
+            document.getElementById('job-education-value').textContent = jobInfo.formation || 'Non spécifié';
+            document.getElementById('job-salary-value').textContent = jobInfo.remuneration || 'Non spécifié';
+            document.getElementById('job-responsibilities-value').textContent = jobInfo.responsabilites || 'Non spécifié';
+            document.getElementById('job-benefits-value').textContent = jobInfo.avantages || 'Non spécifié';
+            
+            // Affichage des compétences
+            const skillsContainer = document.getElementById('job-skills-value');
+            if (jobInfo.competences && jobInfo.competences.length > 0) {
+                skillsContainer.innerHTML = '';
+                jobInfo.competences.forEach(skill => {
+                    const tag = document.createElement('span');
+                    tag.className = 'tag';
+                    tag.textContent = skill;
+                    skillsContainer.appendChild(tag);
+                });
+            } else {
+                skillsContainer.textContent = 'Non spécifié';
+            }
+            
+            document.getElementById('job-info-container').style.display = 'block';
+        }
+
+        function showLoader(show) {
+            const loader = document.getElementById('analysis-loader');
+            loader.style.display = show ? 'flex' : 'none';
+        }
+
+        // Notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const icon = notification.querySelector('.notification-icon i');
+            const title = notification.querySelector('.notification-title');
+            const messageEl = notification.querySelector('.notification-message');
+            
+            // Icônes et classes selon le type
+            const config = {
+                success: { icon: 'fa-check-circle', title: 'Succès' },
+                error: { icon: 'fa-exclamation-circle', title: 'Erreur' },
+                info: { icon: 'fa-info-circle', title: 'Information' }
+            };
+            
+            icon.className = `fas ${config[type].icon}`;
+            title.textContent = config[type].title;
+            messageEl.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'flex';
+            
+            // Auto-hide après 4 secondes
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 4000);
+            
+            // Bouton fermer
+            notification.querySelector('.notification-close').onclick = () => {
+                notification.style.display = 'none';
+            };
+        }
+
+        // Gestion des sections conditionnelles
+        function toggleJobParsingSection() {
+            const recruitmentYes = document.getElementById('recruitment-yes');
+            const jobParsingSection = document.getElementById('job-parsing-section');
+            
+            if (recruitmentYes.checked) {
+                jobParsingSection.classList.add('active');
+            } else {
+                jobParsingSection.classList.remove('active');
+            }
+        }
+
+        // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Version nettoyée - Bannières de debug supprimées');
-            console.log('🤖 Système ChatGPT entièrement fonctionnel');
-            console.log('🎨 Interface épurée sans bannières de diagnostic');
-            console.log('🚀 Prêt à utiliser !');
+            console.log('✅ Système ChatGPT restauré et fonctionnel');
+            
+            // Gestion de la navigation
+            document.querySelectorAll('.next-step').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const nextStep = parseInt(this.getAttribute('data-step'));
+                    showStep(nextStep);
+                });
+            });
+            
+            document.querySelectorAll('.prev-step').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const prevStep = parseInt(this.getAttribute('data-step'));
+                    showStep(prevStep);
+                });
+            });
+            
+            // Navigation par étapes cliquables
+            document.querySelectorAll('.step').forEach(step => {
+                step.addEventListener('click', function() {
+                    const stepNumber = parseInt(this.getAttribute('data-step'));
+                    showStep(stepNumber);
+                });
+            });
+            
+            // Gestion des radio buttons pour le recrutement
+            document.querySelectorAll('input[name="recruitment-need"]').forEach(radio => {
+                radio.addEventListener('change', toggleJobParsingSection);
+            });
+            
+            // Initialiser la configuration API
+            initializeAPIConfig();
+            
+            // Initialiser l'interface
+            updateProgress();
+            updateStepIndicators();
         });
     </script>
     
