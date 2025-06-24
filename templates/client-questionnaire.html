@@ -825,10 +825,10 @@
         <div id="chatgpt-fix-banner" class="chatgpt-fix-banner">
             <div class="status-info">
                 <div class="fix-icon"></div>
-                <span>🤖 ChatGPT Parser ACTIVÉ - Test avec "testCompleteFlow()" dans la console !</span>
+                <span>🤖 ChatGPT Parser AUTOMATIQUE - Upload ou colle ton texte, l'analyse se lance seule !</span>
             </div>
-            <button class="test-btn" onclick="window.testCompleteFlow?.()">
-                Test Complet
+            <button class="test-btn" onclick="window.triggerAutoTest?.()">
+                Test Auto
             </button>
         </div>
 
@@ -988,25 +988,25 @@
                         <!-- Instructions d'utilisation améliorées -->
                         <div class="parsing-instructions">
                             <div class="instruction-card">
-                                <h4><i class="fas fa-robot"></i> Analyse intelligente avec ChatGPT :</h4>
+                                <h4><i class="fas fa-robot"></i> Analyse automatique avec ChatGPT :</h4>
                                 <ol>
                                     <li><strong>Configurez</strong> votre clé API OpenAI dans la section bleue</li>
-                                    <li><strong>Uploadez</strong> votre fiche de poste (PDF, DOCX, TXT) <em>OU</em></li>
-                                    <li><strong>Collez</strong> le texte dans la zone de saisie ci-dessous</li>
-                                    <li><strong>L'analyse ChatGPT</strong> se lance automatiquement !</li>
+                                    <li><strong>Uploadez</strong> votre fiche de poste (PDF, DOCX, TXT)</li>
+                                    <li><strong>OU collez</strong> le texte directement dans la zone</li>
+                                    <li><strong>L'analyse se lance automatiquement</strong> ! Plus besoin de cliquer !</li>
                                 </ol>
                                 <div class="success-badge">
-                                    <i class="fas fa-check"></i> Système ChatGPT activé - Extraction intelligente des 10 champs !
+                                    <i class="fas fa-magic"></i> Système automatique activé - Plus de manipulation manuelle !
                                 </div>
                             </div>
                         </div>
                         
-                        <p>Notre système utilise ChatGPT pour extraire intelligemment les informations clés de votre fiche de poste : titre, compétences, lieu, salaire, etc.</p>
+                        <p>Notre système utilise ChatGPT pour extraire intelligemment les informations clés de votre fiche de poste automatiquement dès l'upload ou le collage de texte.</p>
                         
                         <div class="upload-container" id="job-drop-zone">
                             <i class="fas fa-file-upload upload-icon"></i>
                             <h3 class="upload-text drop-zone-text">Glissez-déposez votre fiche de poste ici</h3>
-                            <p class="upload-hint">Formats acceptés: PDF, DOCX, TXT (max 5MB)</p>
+                            <p class="upload-hint">Formats acceptés: PDF, DOCX, TXT (max 5MB) - Analyse automatique !</p>
                             <input type="file" id="job-file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
                             
                             <!-- Badge de fichier sélectionné (initialement caché) -->
@@ -1024,8 +1024,8 @@
                         </div>
                         
                         <div class="textarea-container">
-                            <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse ChatGPT intelligente..."></textarea>
-                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyse ChatGPT intelligente">
+                            <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici - L'analyse ChatGPT se lance automatiquement !"></textarea>
+                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyse ChatGPT (se lance automatiquement)">
                                 <i class="fas fa-robot"></i>
                             </button>
                         </div>
@@ -1033,12 +1033,12 @@
                         <!-- Indicateur de chargement -->
                         <div id="analysis-loader" class="loader-container">
                             <div class="loader"></div>
-                            <span class="loader-text">Analyse ChatGPT en cours...</span>
+                            <span class="loader-text">Analyse ChatGPT automatique en cours...</span>
                         </div>
                         
                         <!-- Résultats d'analyse -->
                         <div id="job-info-container" class="job-info-container" style="display: none;">
-                            <h3><i class="fas fa-check-circle"></i> Informations extraites avec ChatGPT</h3>
+                            <h3><i class="fas fa-check-circle"></i> Informations extraites automatiquement avec ChatGPT</h3>
                             
                             <div class="info-grid">
                                 <div class="info-group">
@@ -1158,6 +1158,7 @@
     <script src="../scripts/fix-job-parser-conflicts.js"></script>
     <script src="../scripts/diagnostic-chatgpt-detailed.js"></script>
     <script src="../scripts/debug-chatgpt-analysis.js"></script>
+    <script src="../scripts/fix-event-listeners.js"></script>
     
     <script>
         // Définir les URLs de redirection
@@ -1165,20 +1166,20 @@
         const DASHBOARD_URL = "company-dashboard.html";
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🤖 ChatGPT Job Parser ACTIVÉ !');
-            console.log('🔧 Correction des conflits en cours...');
-            console.log('🔍 Diagnostic détaillé disponible !');
-            console.log('🐛 Debug analyse ChatGPT activé !');
+            console.log('🤖 ChatGPT Job Parser AUTOMATIQUE activé !');
+            console.log('🔧 Event listeners automatiques en cours d\'installation...');
+            console.log('🔍 Debug et diagnostic activés !');
+            console.log('🚀 Plus besoin de manipulation manuelle - Upload ou colle et ça analyse !');
             
             // Fonction de test rapide pour l'utilisateur
             window.testQuickChatGPT = function() {
                 console.log('🧪 Test rapide ChatGPT...');
-                if (window.testChatGPTParser) {
-                    window.testChatGPTParser();
+                if (window.triggerAutoTest) {
+                    window.triggerAutoTest();
                 } else if (window.testCompleteFlow) {
                     window.testCompleteFlow();
                 } else {
-                    console.log('⏳ Parser en cours d\'initialisation...');
+                    console.log('⏳ Fonctions de test en cours d\'initialisation...');
                 }
             };
         });
