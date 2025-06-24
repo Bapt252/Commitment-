@@ -1069,6 +1069,49 @@
             }
         }
 
+        /* NOUVEAU STYLE pour la redirection */
+        .redirect-section {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.1));
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 2px solid rgba(16, 185, 129, 0.2);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .redirect-section h3 {
+            color: var(--success);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .redirect-section p {
+            color: var(--gray-dark);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .redirect-countdown {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
         /* Responsive pour mobile */
         @media (max-width: 768px) {
             .container {
@@ -1302,6 +1345,25 @@
                             <div class="radio-option">
                                 <input type="radio" id="recruitment-no" name="recruitment-need" value="no">
                                 <label for="recruitment-no">Non</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section de redirection si "Non" -->
+                    <div id="no-recruitment-section" class="conditional-section">
+                        <div class="redirect-section">
+                            <h3><i class="fas fa-check-circle"></i> Merci pour votre visite !</h3>
+                            <p>Pas de besoin immédiat ? Pas de problème ! Découvrez notre dashboard entreprise pour explorer nos services et rester connecté avec nous.</p>
+                            <div id="redirect-countdown" class="redirect-countdown">
+                                Redirection automatique dans <span id="countdown">10</span> secondes...
+                            </div>
+                            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-success" id="go-to-dashboard">
+                                    <i class="fas fa-tachometer-alt"></i> Accéder au Dashboard
+                                </button>
+                                <button type="button" class="btn btn-outline" id="stay-here">
+                                    <i class="fas fa-times"></i> Rester ici
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1795,8 +1857,9 @@
     <script>
         // Variables globales
         const RECOMMENDATION_URL = "candidate-recommendation.html";
-        const DASHBOARD_URL = "company-dashboard.html";
+        const DASHBOARD_URL = "https://bapt252.github.io/Commitment-/templates/company-dashboard.html";
         let currentStep = 1;
+        let redirectTimer = null; // NOUVEAU: Timer pour la redirection
 
         // Système de navigation corrigé (mis à jour pour 5 étapes)
         function showStep(stepNumber) {
@@ -1855,6 +1918,45 @@
                     step.classList.add('active');
                 }
             });
+        }
+
+        // NOUVELLE FONCTION: Redirection vers le dashboard
+        function redirectToDashboard() {
+            console.log('🔄 Redirection vers le dashboard entreprise...');
+            showNotification('Redirection vers le dashboard entreprise...', 'info');
+            
+            // Attendre un moment pour que l'utilisateur voie la notification
+            setTimeout(() => {
+                window.location.href = DASHBOARD_URL;
+            }, 1000);
+        }
+
+        // NOUVELLE FONCTION: Démarrer le compte à rebours de redirection
+        function startRedirectCountdown() {
+            let timeLeft = 10;
+            const countdownElement = document.getElementById('countdown');
+            const redirectCountdownSection = document.getElementById('redirect-countdown');
+            
+            if (!countdownElement || !redirectCountdownSection) return;
+            
+            redirectTimer = setInterval(() => {
+                timeLeft--;
+                countdownElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(redirectTimer);
+                    redirectToDashboard();
+                }
+            }, 1000);
+        }
+
+        // NOUVELLE FONCTION: Arrêter le compte à rebours
+        function stopRedirectCountdown() {
+            if (redirectTimer) {
+                clearInterval(redirectTimer);
+                redirectTimer = null;
+                console.log('⏹️ Compte à rebours arrêté');
+            }
         }
 
         // Configuration API ChatGPT
@@ -2570,15 +2672,29 @@
             };
         }
 
-        // Gestion des sections conditionnelles
+        // FONCTION MODIFIÉE: Gestion des sections conditionnelles avec redirection
         function toggleJobParsingSection() {
             const recruitmentYes = document.getElementById('recruitment-yes');
+            const recruitmentNo = document.getElementById('recruitment-no');
             const jobParsingSection = document.getElementById('job-parsing-section');
+            const noRecruitmentSection = document.getElementById('no-recruitment-section');
             
             if (recruitmentYes.checked) {
                 jobParsingSection.classList.add('active');
+                noRecruitmentSection.classList.remove('active');
+                // Arrêter le compte à rebours si il était en cours
+                stopRedirectCountdown();
+                console.log('✅ Recrutement: OUI - Section fiche de poste activée');
+            } else if (recruitmentNo.checked) {
+                jobParsingSection.classList.remove('active');
+                noRecruitmentSection.classList.add('active');
+                // Démarrer le compte à rebours de redirection
+                startRedirectCountdown();
+                console.log('❌ Recrutement: NON - Redirection vers dashboard programmée');
             } else {
                 jobParsingSection.classList.remove('active');
+                noRecruitmentSection.classList.remove('active');
+                stopRedirectCountdown();
             }
         }
 
@@ -2601,7 +2717,7 @@
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Système Nexten initialisé - Extraction DOCX/PDF activée + Étape 4 Détails du poste + ÉTAPE 5 AMÉLIORÉE');
+            console.log('🚀 Système Nexten initialisé - AVEC REDIRECTION AUTOMATIQUE DASHBOARD');
             
             // Vérifier les bibliothèques
             if (typeof mammoth !== 'undefined') {
@@ -2639,13 +2755,40 @@
                 });
             });
             
-            // Gestion des radio buttons pour le recrutement
+            // NOUVEAU: Gestion des radio buttons pour le recrutement avec redirection
             document.querySelectorAll('input[name="recruitment-need"]').forEach(radio => {
                 radio.addEventListener('change', function() {
                     toggleJobParsingSection();
                     checkStep4Visibility();
                 });
             });
+            
+            // NOUVEAU: Gestion des boutons de redirection
+            const goToDashboardBtn = document.getElementById('go-to-dashboard');
+            const stayHereBtn = document.getElementById('stay-here');
+            
+            if (goToDashboardBtn) {
+                goToDashboardBtn.addEventListener('click', function() {
+                    console.log('🔄 Redirection manuelle vers dashboard');
+                    stopRedirectCountdown();
+                    redirectToDashboard();
+                });
+            }
+            
+            if (stayHereBtn) {
+                stayHereBtn.addEventListener('click', function() {
+                    console.log('⏹️ Utilisateur souhaite rester - Arrêt redirection');
+                    stopRedirectCountdown();
+                    
+                    // Revenir à "Oui" pour permettre de continuer
+                    document.getElementById('recruitment-yes').checked = true;
+                    document.getElementById('recruitment-no').checked = false;
+                    toggleJobParsingSection();
+                    checkStep4Visibility();
+                    
+                    showNotification('Parfait ! Continuez le questionnaire pour nous parler de votre poste.', 'success');
+                });
+            }
             
             // Initialiser la configuration API
             initializeAPIConfig();
@@ -2654,7 +2797,7 @@
             updateProgress();
             updateStepIndicators();
             
-            console.log('✅ Système complet activé avec étape 5 AMÉLIORÉE - Cards glassmorphism + animations + récapitulatif intelligent');
+            console.log('✅ Système complet activé AVEC redirection automatique dashboard');
         });
     </script>
     
