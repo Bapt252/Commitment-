@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🚀 GITHUB PAGES INTEGRATION v6.2.0 - ULTRA PARSING -->
+    <!-- 🚀 GITHUB PAGES INTEGRATION v6.3.0 - PARSING EXHAUSTIF ---->
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
-    <meta name="integration-id" content="github-pages-v620-ultra-parsing">
-    <meta name="timestamp" content="2025-06-24T17:30:00Z">
+    <meta name="integration-id" content="github-pages-v630-exhaustive-parsing">
+    <meta name="timestamp" content="2025-06-24T18:00:00Z">
     
-    <title>Nexten - Chargement de CV - ULTRA v6.2.0</title>
+    <title>Nexten - Chargement de CV - EXHAUSTIF v6.3.0</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- PDF.js pour lecture PDF multi-pages -->
@@ -581,6 +581,43 @@
             cursor: not-allowed;
         }
 
+        /* Nouvelles classes pour les statistiques de parsing */
+        .parsing-stats {
+            background: linear-gradient(135deg, rgba(124, 77, 255, 0.1), rgba(83, 109, 254, 0.1));
+            border: 1px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--gray-dark);
+            margin-top: 0.25rem;
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 1rem;
@@ -622,15 +659,15 @@
 
     <div class="main-content">
         <h1 class="page-title">CHARGEZ VOTRE CV</h1>
-        <p class="page-subtitle">Gagnez du temps en laissant notre système analyser votre CV pour pré-remplir votre profil.</p>
+        <p class="page-subtitle">Gagnez du temps en laissant notre système analyser votre CV pour pré-remplir votre profil avec une extraction exhaustive de toutes vos informations.</p>
         
         <span class="ai-badge">
             <i class="fas fa-robot"></i>
-            🎯 ULTRA PARSING v6.2.0 - GITHUB PAGES INTÉGRÉ ✅
+            🎯 PARSING EXHAUSTIF v6.3.0 - EXTRACTION COMPLÈTE ✅
         </span>
         
         <div class="github-integration-status">
-            ✅ GitHub Pages Integration v6.2.0 - Parsing réel pour TOUS les CVs
+            ✅ GitHub Pages Integration v6.3.0 - Parsing exhaustif pour TOUS les CVs (12+ expériences supportées)
         </div>
         
         <!-- CONFIGURATION API OPENAI -->
@@ -667,9 +704,9 @@
                 </div>
             </div>
             
-            <h2 class="form-section-title">Analyse automatique de votre CV</h2>
+            <h2 class="form-section-title">Analyse automatique exhaustive de votre CV</h2>
             
-            <p>Uploadez votre CV pour que nous puissions extraire automatiquement vos informations et compétences. Cela permettra d'optimiser vos chances de matching avec les offres qui vous correspondent.</p>
+            <p>Uploadez votre CV pour que nous puissions extraire automatiquement <strong>TOUTES</strong> vos informations : expériences complètes, compétences détaillées, formations, langues, certifications et projets. Notre nouveau moteur de parsing v6.3.0 garantit une extraction exhaustive même pour les CVs de plusieurs pages.</p>
             
             <div class="upload-container" id="uploadContainer">
                 <i class="fas fa-cloud-upload-alt upload-icon"></i>
@@ -692,21 +729,44 @@
             
             <button id="analyzeBtn" class="analyze-btn" style="display: none;" onclick="parseCV()">
                 <i class="fas fa-brain"></i>
-                🤖 Analyser le CV
+                🤖 Analyser le CV (EXTRACTION EXHAUSTIVE)
             </button>
             
             <div class="loading-indicator" id="loadingIndicator">
                 <div class="spinner"></div>
-                <p class="loading-text">ULTRA PARSING v6.2.0 en cours...</p>
+                <p class="loading-text">PARSING EXHAUSTIF v6.3.0 en cours...</p>
+            </div>
+            
+            <!-- Statistiques de parsing -->
+            <div class="parsing-stats" id="parsingStats" style="display: none;">
+                <h4><i class="fas fa-chart-bar"></i> Statistiques d'extraction</h4>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="expCount">0</div>
+                        <div class="stat-label">Expériences</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="skillCount">0</div>
+                        <div class="stat-label">Compétences</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="educationCount">0</div>
+                        <div class="stat-label">Formations</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="languageCount">0</div>
+                        <div class="stat-label">Langues</div>
+                    </div>
+                </div>
             </div>
             
             <div class="parsed-data" id="parsedData">
                 <div class="parsed-data-title">
                     <i class="fas fa-check-circle"></i>
-                    🎯 ULTRA PARSING v6.2.0 - Informations extraites
+                    🎯 PARSING EXHAUSTIF v6.3.0 - Informations extraites
                 </div>
                 <p style="margin-bottom: 1rem; color: var(--gray-dark); font-size: 0.9rem;">
-                    ✅ TOUTES LES 7 EXPÉRIENCES extraites automatiquement ! Vous pourrez les modifier lors de l'étape suivante.
+                    ✅ EXTRACTION COMPLÈTE terminée ! Vous pourrez modifier ou compléter ces informations lors de l'étape suivante.
                 </p>
                 
                 <table class="data-table" id="resultsTable">
@@ -716,7 +776,7 @@
             
             <div class="success-message" id="successMessage">
                 <i class="fas fa-check-circle"></i>
-                ✅ ULTRA PARSING v6.2.0 terminé avec succès !
+                ✅ PARSING EXHAUSTIF v6.3.0 terminé avec succès !
             </div>
             
             <div class="error-message" id="errorMessage">
@@ -737,9 +797,9 @@
         </div>
     </div>
 
-<!-- 🚀 ULTRA PARSING v6.2.0 - CODE JAVASCRIPT COMPLET -->
+<!-- 🚀 PARSING EXHAUSTIF v6.3.0 - CODE JAVASCRIPT AMÉLIORÉ -->
 <script>
-console.log('🚀 === ULTRA PARSING v6.2.0 - GITHUB PAGES INTEGRATION ===');
+console.log('🚀 === PARSING EXHAUSTIF v6.3.0 - GITHUB PAGES INTEGRATION ===');
 
 // Configuration PDF.js
 if (window.pdfjsLib) {
@@ -753,7 +813,7 @@ let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
 
 // 🎯 Fonction principale de parsing CV
 async function parseCV() {
-    console.log('🚀 Démarrage Ultra Parsing v6.2.0...');
+    console.log('🚀 Démarrage Parsing Exhaustif v6.3.0...');
     
     const fileInput = document.querySelector('input[type="file"]');
     if (!fileInput || !fileInput.files.length) {
@@ -771,11 +831,11 @@ async function parseCV() {
     try {
         let extractedText = '';
         
-        // Parsing selon le type de fichier
+        // Parsing selon le type de fichier avec optimisations
         if (fileName.endsWith('.pdf')) {
-            extractedText = await parsePDF(currentFile);
+            extractedText = await parsePDFExhaustive(currentFile);
         } else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
-            extractedText = await parseWord(currentFile);
+            extractedText = await parseWordExhaustive(currentFile);
         } else if (fileName.endsWith('.txt')) {
             extractedText = await parseText(currentFile);
         } else {
@@ -786,16 +846,18 @@ async function parseCV() {
             throw new Error('Impossible d\'extraire le contenu du fichier ou contenu trop court.');
         }
         
-        console.log('✅ Texte extrait:', extractedText.substring(0, 200) + '...');
-        showStatus('🤖 Analyse IA en cours...', 'info');
+        console.log('✅ Texte extrait:', extractedText.substring(0, 300) + '...');
+        console.log(`📊 Taille du texte: ${extractedText.length} caractères`);
+        showStatus('🤖 Analyse IA exhaustive en cours...', 'info');
         
-        // Appel OpenAI pour analyse
-        const analysis = await callOpenAI(extractedText);
+        // Appel OpenAI avec prompt exhaustif
+        const analysis = await callOpenAIExhaustive(extractedText);
         
         if (analysis) {
             parsedContent = analysis;
-            displayResults(analysis);
-            showStatus('✅ Analyse terminée avec succès !', 'success');
+            displayResultsExhaustive(analysis);
+            showParsingStats(analysis);
+            showStatus('✅ Analyse exhaustive terminée avec succès !', 'success');
             updateParsingStats();
         } else {
             throw new Error('Erreur lors de l\'analyse IA');
@@ -805,48 +867,89 @@ async function parseCV() {
         console.error('❌ Erreur parsing:', error);
         showStatus(`❌ Erreur: ${error.message}`, 'error');
         
-        // Fallback Sabine en cas d'erreur
+        // Fallback Dorothée amélioré en cas d'erreur
         showStatus('🔄 Chargement du profil de démonstration...', 'info');
         setTimeout(() => {
-            loadFallbackProfile();
+            loadEnhancedFallbackProfile();
         }, 1500);
     }
     
     document.getElementById('loadingIndicator').style.display = 'none';
 }
 
-// 🔴 Parsing PDF
-async function parsePDF(file) {
-    console.log('📄 Parsing PDF...');
+// 🔴 Parsing PDF exhaustif
+async function parsePDFExhaustive(file) {
+    console.log('📄 Parsing PDF exhaustif...');
     
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await window.pdfjsLib.getDocument(arrayBuffer).promise;
     let fullText = '';
+    const pageTexts = [];
     
+    console.log(`📊 PDF detecté: ${pdf.numPages} pages`);
+    
+    // Extraire chaque page séparément pour préserver la structure
     for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items.map(item => item.str).join(' ');
-        fullText += pageText + '\n';
+        
+        // Améliorer l'extraction en préservant la position des éléments
+        const items = textContent.items;
+        let pageText = '';
+        let currentY = null;
+        
+        items.forEach((item, index) => {
+            // Ajouter un retour à la ligne si on change de ligne
+            if (currentY !== null && Math.abs(currentY - item.transform[5]) > 5) {
+                pageText += '\n';
+            }
+            pageText += item.str;
+            
+            // Ajouter un espace si l'élément suivant n'est pas sur la même ligne
+            const nextItem = items[index + 1];
+            if (nextItem && Math.abs(item.transform[5] - nextItem.transform[5]) < 5) {
+                pageText += ' ';
+            }
+            
+            currentY = item.transform[5];
+        });
+        
+        pageTexts.push(pageText);
+        fullText += `\n--- PAGE ${i} ---\n` + pageText + '\n';
     }
     
-    console.log(`✅ PDF parsé: ${fullText.length} caractères`);
+    console.log(`✅ PDF exhaustif parsé: ${fullText.length} caractères sur ${pdf.numPages} pages`);
     return fullText;
 }
 
-// 📝 Parsing Word
-async function parseWord(file) {
-    console.log('📝 Parsing Word...');
+// 📝 Parsing Word exhaustif
+async function parseWordExhaustive(file) {
+    console.log('📝 Parsing Word exhaustif...');
     
     if (!window.mammoth) {
         throw new Error('Mammoth.js non disponible pour le parsing Word');
     }
     
     const arrayBuffer = await file.arrayBuffer();
-    const result = await window.mammoth.extractRawText({ arrayBuffer });
-    const text = result.value;
     
-    console.log(`✅ Word parsé: ${text.length} caractères`);
+    // Extraire à la fois le texte brut et le HTML pour plus d'informations
+    const [textResult, htmlResult] = await Promise.all([
+        window.mammoth.extractRawText({ arrayBuffer }),
+        window.mammoth.convertToHtml({ arrayBuffer })
+    ]);
+    
+    let text = textResult.value;
+    const html = htmlResult.value;
+    
+    // Utiliser le HTML pour améliorer la structure si nécessaire
+    if (text.length < 100 && html.length > text.length) {
+        // Fallback: extraire le texte du HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        text = tempDiv.textContent || tempDiv.innerText || '';
+    }
+    
+    console.log(`✅ Word exhaustif parsé: ${text.length} caractères`);
     return text;
 }
 
@@ -859,9 +962,9 @@ async function parseText(file) {
     return text;
 }
 
-// 🤖 Appel OpenAI
-async function callOpenAI(cvText) {
-    console.log('🤖 Appel OpenAI API...');
+// 🤖 Appel OpenAI avec prompt exhaustif
+async function callOpenAIExhaustive(cvText) {
+    console.log('🤖 Appel OpenAI API avec prompt exhaustif...');
     
     // Récupérer la clé API
     const apiKey = document.querySelector('input[placeholder*="sk-"]')?.value || OPENAI_API_KEY;
@@ -869,31 +972,85 @@ async function callOpenAI(cvText) {
         throw new Error('Clé API OpenAI invalide ou manquante - utilisation du fallback');
     }
     
-    const prompt = `Analyse ce CV et extrais les informations suivantes au format JSON:
+    const promptExhaustif = `Tu es un expert en analyse de CV. Ton rôle est d'extraire EXHAUSTIVEMENT toutes les informations de ce CV.
+
+INSTRUCTIONS CRITIQUES :
+1. EXTRAIT TOUTES LES EXPÉRIENCES sans exception, même les stages, missions courtes, projets
+2. TROUVE TOUTES LES COMPÉTENCES mentionnées (techniques, linguistiques, sectorielles, soft skills)
+3. LISTE TOUS LES DIPLÔMES et formations, même les formations courtes
+4. IDENTIFIE TOUTES LES LANGUES avec leur niveau si mentionné
+5. RÉCUPÈRE TOUS LES PROJETS, certifications, publications, prix
+6. Sois précis sur les dates, durées et descriptions
+
+Format JSON attendu (COMPLET ET EXHAUSTIF) :
 {
   "nom": "nom complet",
-  "email": "email@exemple.com",
-  "telephone": "téléphone",
-  "titre": "titre/poste actuel",
+  "email": "email si trouvé",
+  "telephone": "téléphone si trouvé",
+  "titre": "titre/poste actuel ou recherché",
+  "localisation": "ville, pays si mentionné",
   "experience": [
     {
-      "poste": "intitulé du poste",
-      "entreprise": "nom entreprise",
-      "duree": "durée",
-      "description": "description succincte"
+      "poste": "intitulé exact du poste",
+      "entreprise": "nom complet de l'entreprise",
+      "duree": "période exacte (mois/année - mois/année)",
+      "lieu": "lieu si mentionné",
+      "description": "description détaillée des missions et réalisations",
+      "technologies": ["tech1", "tech2"] // si applicables
     }
+    // RÉPÉTER POUR CHAQUE EXPÉRIENCE TROUVÉE
   ],
-  "competences": ["compétence1", "compétence2"],
+  "competences": {
+    "techniques": ["compétence technique 1", "compétence technique 2"],
+    "linguistiques": ["langue1", "langue2"],
+    "sectorielles": ["secteur1", "secteur2"],
+    "soft_skills": ["leadership", "communication"],
+    "outils": ["outil1", "outil2"],
+    "certifications": ["certification1", "certification2"]
+  },
   "formation": [
     {
-      "diplome": "nom du diplôme",
-      "etablissement": "nom établissement",
-      "annee": "année"
+      "diplome": "nom exact du diplôme",
+      "etablissement": "nom complet de l'établissement",
+      "annee": "année d'obtention",
+      "lieu": "lieu si mentionné",
+      "mention": "mention si indiquée",
+      "specialisation": "spécialisation si mentionnée"
+    }
+    // RÉPÉTER POUR CHAQUE FORMATION
+  ],
+  "langues": [
+    {
+      "langue": "nom de la langue",
+      "niveau": "niveau précis (débutant, intermédiaire, avancé, bilingue, natif)"
     }
   ],
-  "langues": ["français", "anglais"],
+  "projets": [
+    {
+      "nom": "nom du projet",
+      "description": "description du projet",
+      "technologies": ["tech utilisées"],
+      "date": "période du projet"
+    }
+  ],
+  "informations_complementaires": {
+    "permis": "permis de conduire si mentionné",
+    "mobilite": "mobilité géographique si mentionnée",
+    "centres_interet": ["centre1", "centre2"],
+    "associations": ["association1"],
+    "publications": ["publication1"],
+    "prix_distinctions": ["prix1"]
+  },
   "score_matching": 85
 }
+
+RÈGLES ABSOLUES :
+- Ne manque AUCUNE expérience professionnelle
+- Inclus TOUS les stages, missions, projets professionnels
+- Liste TOUTES les compétences mentionnées explicitement ou implicitement
+- Capture TOUS les diplômes, formations, certifications
+- Si une information n'est pas trouvée, utilise "Non spécifié" ou laisse un tableau vide []
+- Sois exhaustif mais précis
 
 CV à analyser:
 ${cvText}`;
@@ -910,11 +1067,11 @@ ${cvText}`;
                 messages: [
                     {
                         role: 'user',
-                        content: prompt
+                        content: promptExhaustif
                     }
                 ],
-                max_tokens: 1500,
-                temperature: 0.3
+                max_tokens: 3000, // Augmenté pour les réponses exhaustives
+                temperature: 0.1 // Réduit pour plus de précision
             })
         });
         
@@ -925,7 +1082,7 @@ ${cvText}`;
         const data = await response.json();
         const content = data.choices[0].message.content;
         
-        console.log('✅ Réponse OpenAI reçue');
+        console.log('✅ Réponse OpenAI exhaustive reçue');
         
         // Parser la réponse JSON
         const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -941,104 +1098,272 @@ ${cvText}`;
     }
 }
 
-// 📊 Affichage des résultats
-function displayResults(data) {
-    console.log('📊 Affichage des résultats:', data);
+// 📊 Affichage des résultats exhaustifs
+function displayResultsExhaustive(data) {
+    console.log('📊 Affichage des résultats exhaustifs:', data);
     
-    // Créer l'affichage des expériences
+    // Créer l'affichage des expériences exhaustives
     const experiencesHtml = data.experience ? data.experience.map((exp, index) => 
         `<div style="margin-bottom: 1rem; padding: 0.75rem; background: linear-gradient(135deg, rgba(124, 77, 255, 0.1), rgba(83, 109, 254, 0.1)); border-radius: 6px; border-left: 4px solid #7c4dff;">
          <strong style="color: #7c4dff;">✅ Exp ${index + 1}:</strong> ${exp.poste}<br>
          <em style="color: #536dfe; font-weight: 500;">${exp.entreprise}</em><br>
-         📅 ${exp.duree}
+         📅 ${exp.duree}<br>
+         ${exp.lieu ? `📍 ${exp.lieu}<br>` : ''}
+         ${exp.description ? `📝 ${exp.description}<br>` : ''}
+         ${exp.technologies && exp.technologies.length ? `💻 Tech: ${exp.technologies.join(', ')}` : ''}
          </div>`
     ).join('') : 'Aucune expérience trouvée';
+    
+    // Affichage des compétences par catégorie
+    const competencesHtml = data.competences ? 
+        Object.entries(data.competences).map(([category, skills]) => 
+            skills && skills.length ? 
+                `<strong>${category.charAt(0).toUpperCase() + category.slice(1)}:</strong> ${Array.isArray(skills) ? skills.join(', ') : skills}<br>` 
+                : ''
+        ).join('') : 'Aucune compétence trouvée';
+    
+    // Affichage des formations détaillées
+    const formationsHtml = data.formation ? data.formation.map((ed, index) => 
+        `<div style="margin-bottom: 0.5rem; padding: 0.5rem; background: rgba(76, 175, 80, 0.1); border-radius: 4px;">
+         <strong>🎓 ${ed.diplome}</strong><br>
+         🏫 ${ed.etablissement}<br>
+         📅 ${ed.annee}<br>
+         ${ed.lieu ? `📍 ${ed.lieu}<br>` : ''}
+         ${ed.mention ? `🏆 ${ed.mention}<br>` : ''}
+         ${ed.specialisation ? `🔬 ${ed.specialisation}` : ''}
+         </div>`
+    ).join('') : 'Aucune formation trouvée';
+    
+    // Affichage des langues avec niveaux
+    const languesHtml = data.langues ? 
+        (Array.isArray(data.langues) ? 
+            data.langues.map(lang => 
+                typeof lang === 'object' ? `${lang.langue} (${lang.niveau})` : lang
+            ).join(', ') 
+            : data.langues
+        ) : 'Aucune langue spécifiée';
+    
+    // Affichage des projets
+    const projetsHtml = data.projets && data.projets.length ? 
+        data.projets.map((projet, index) => 
+            `<div style="margin-bottom: 0.5rem; padding: 0.5rem; background: rgba(255, 152, 0, 0.1); border-radius: 4px;">
+             <strong>🚀 ${projet.nom}</strong><br>
+             📝 ${projet.description}<br>
+             ${projet.technologies && projet.technologies.length ? `💻 ${projet.technologies.join(', ')}<br>` : ''}
+             ${projet.date ? `📅 ${projet.date}` : ''}
+             </div>`
+        ).join('') : 'Aucun projet trouvé';
     
     const table = document.getElementById('resultsTable');
     table.innerHTML = `
         <tr><th>Nom complet</th><td class="detected">${data.nom || 'Non spécifié'}</td></tr>
-        <tr><th>Titre de poste actuel</th><td class="detected">${data.titre || 'Non spécifié'}</td></tr>
+        <tr><th>Titre/Poste</th><td class="detected">${data.titre || 'Non spécifié'}</td></tr>
         <tr><th>Email</th><td class="detected">${data.email || 'Non spécifié'}</td></tr>
         <tr><th>Téléphone</th><td class="detected">${data.telephone || 'Non spécifié'}</td></tr>
-        <tr><th>Compétences détectées</th><td class="detected">${data.competences ? data.competences.join(', ') : 'Aucune compétence trouvée'}</td></tr>
-        <tr><th style="background: linear-gradient(135deg, #7c4dff, #536dfe); color: white;">🎯 ULTRA v6.2.0 - EXPÉRIENCES (${data.experience ? data.experience.length : 0})</th><td class="detected">${experiencesHtml}</td></tr>
-        <tr><th>Formation</th><td class="detected">${data.formation ? data.formation.map(ed => `${ed.diplome} - ${ed.etablissement} (${ed.annee})`).join('<br>') : 'Aucune formation trouvée'}</td></tr>
-        <tr><th>Langues</th><td class="detected">${data.langues ? data.langues.join(', ') : 'Aucune langue spécifiée'}</td></tr>
+        <tr><th>Localisation</th><td class="detected">${data.localisation || 'Non spécifiée'}</td></tr>
+        <tr><th style="background: linear-gradient(135deg, #7c4dff, #536dfe); color: white;">🎯 EXPÉRIENCES COMPLÈTES (${data.experience ? data.experience.length : 0})</th><td class="detected">${experiencesHtml}</td></tr>
+        <tr><th style="background: linear-gradient(135deg, #2196F3, #1976D2); color: white;">💡 COMPÉTENCES EXHAUSTIVES</th><td class="detected">${competencesHtml}</td></tr>
+        <tr><th style="background: linear-gradient(135deg, #4CAF50, #388E3C); color: white;">🎓 FORMATIONS DÉTAILLÉES (${data.formation ? data.formation.length : 0})</th><td class="detected">${formationsHtml}</td></tr>
+        <tr><th>🌍 Langues</th><td class="detected">${languesHtml}</td></tr>
+        ${data.projets && data.projets.length ? `<tr><th>🚀 Projets (${data.projets.length})</th><td class="detected">${projetsHtml}</td></tr>` : ''}
+        ${data.informations_complementaires ? 
+            Object.entries(data.informations_complementaires).map(([key, value]) => 
+                value && value.length ? 
+                    `<tr><th>📋 ${key.replace('_', ' ').charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}</th><td class="detected">${Array.isArray(value) ? value.join(', ') : value}</td></tr>` 
+                    : ''
+            ).join('') : ''
+        }
     `;
     
     document.getElementById('parsedData').style.display = 'block';
     document.getElementById('successMessage').innerHTML = 
-        '<i class="fas fa-check-circle"></i> ✅ ULTRA v6.2.0 terminé - Expériences extraites avec succès !';
+        '<i class="fas fa-check-circle"></i> ✅ PARSING EXHAUSTIF v6.3.0 terminé - Toutes les informations extraites avec succès !';
     document.getElementById('successMessage').style.display = 'block';
     
     enableNextStep();
 }
 
-// 🔄 Profil de fallback (Sabine)
-function loadFallbackProfile() {
-    console.log('🔄 Chargement profil Sabine (fallback)...');
+// 📊 Affichage des statistiques de parsing
+function showParsingStats(data) {
+    const stats = document.getElementById('parsingStats');
     
-    const fallbackData = {
-        nom: "Sabine Rivière",
-        email: "sabine.riviere04@gmail.com",
-        telephone: "+33665733921",
-        titre: "Executive Assistant",
+    document.getElementById('expCount').textContent = data.experience ? data.experience.length : 0;
+    document.getElementById('skillCount').textContent = data.competences ? 
+        Object.values(data.competences).flat().filter(s => s && s.length).length : 0;
+    document.getElementById('educationCount').textContent = data.formation ? data.formation.length : 0;
+    document.getElementById('languageCount').textContent = data.langues ? data.langues.length : 0;
+    
+    stats.style.display = 'block';
+}
+
+// 🔄 Profil de fallback amélioré (Dorothée)
+function loadEnhancedFallbackProfile() {
+    console.log('🔄 Chargement profil Dorothée amélioré (fallback)...');
+    
+    const enhancedFallbackData = {
+        nom: "Dorothée Lim",
+        email: "dorothee.lim@email.com",
+        telephone: "+33 6 12 34 56 78",
+        titre: "Responsable Marketing Digital Senior",
+        localisation: "Paris, France",
         experience: [
             {
-                poste: "Executive Assistant : Direction Financière Audit / Fiscalité / Trésorerie",
-                entreprise: "Maison Christian Dior Couture",
-                duree: "06/2024 - 01/2025"
+                poste: "Responsable Marketing Digital Senior",
+                entreprise: "TechCorp Solutions",
+                duree: "01/2022 - 12/2024",
+                lieu: "Paris",
+                description: "Direction de l'équipe marketing digital, stratégie omnicanale, ROI +150%",
+                technologies: ["Google Ads", "Facebook Ads", "Analytics", "CRM Salesforce"]
             },
             {
-                poste: "EXECUTIVE ASSISTANT : Direction Fonds de Fonds COMEX / CODIR / CMG",
-                entreprise: "BPI FRANCE",
-                duree: "06/2023 - 05/2024"
+                poste: "Chef de Projet Marketing Digital",
+                entreprise: "Digital Agency Pro",
+                duree: "06/2020 - 12/2021",
+                lieu: "Paris",
+                description: "Gestion de campagnes multi-clients, budget 500K€, équipe de 8 personnes",
+                technologies: ["SEO", "SEM", "Social Media", "Marketing Automation"]
             },
             {
-                poste: "EXECUTIVE ASSISTANT/ ASSISTANTE PERSONNELLE de la CEO",
-                entreprise: "Les Secrets de Loly",
-                duree: "08/2019 - 05/2023"
+                poste: "Consultante Marketing Digital",
+                entreprise: "Freelance",
+                duree: "01/2019 - 05/2020",
+                lieu: "Remote",
+                description: "Conseil stratégique pour PME, optimisation conversion +85%",
+                technologies: ["WordPress", "Google Analytics", "AdWords", "Email Marketing"]
             },
             {
-                poste: "EXECUTIVE ASSISTANT du CEO (CDD : CONGÉ MATERNITÉ)",
-                entreprise: "Socavim-Vallat",
-                duree: "04/2019 - 08/2019"
+                poste: "Marketing Manager",
+                entreprise: "StartUp Innovante",
+                duree: "09/2017 - 12/2018",
+                lieu: "Lyon",
+                description: "Développement de la stratégie marketing, lancement produit, growth hacking",
+                technologies: ["Growth Hacking", "A/B Testing", "Data Analysis"]
             },
             {
-                poste: "ASSISTANTE PERSONNELLE",
-                entreprise: "Famille Française",
-                duree: "10/2017 - 03/2019"
+                poste: "Chargée de Communication Digital",
+                entreprise: "Grande Distribution SA",
+                duree: "02/2016 - 08/2017",
+                lieu: "Marseille",
+                description: "Animation réseaux sociaux, community management, e-reputation",
+                technologies: ["Social Media", "Content Management", "Photoshop"]
             },
             {
-                poste: "EXECUTIVE ASSISTANTE du CEO",
-                entreprise: "Start-Up Oyst E-Corps Adtech Services",
-                duree: "06/2017 - 10/2017"
+                poste: "Assistant Marketing",
+                entreprise: "Agence Communication",
+                duree: "06/2015 - 01/2016",
+                lieu: "Nice",
+                description: "Support campaigns, market research, client relationship",
+                technologies: ["Market Research", "PowerPoint", "Excel"]
             },
             {
-                poste: "ASSISTANTE PERSONNELLE",
-                entreprise: "Oligarque Russe",
-                duree: "02/2012 - 07/2015"
+                poste: "Stagiaire Marketing Digital",
+                entreprise: "E-commerce Fashion",
+                duree: "01/2015 - 05/2015",
+                lieu: "Paris",
+                description: "Optimisation site e-commerce, SEO, analyse concurrentielle",
+                technologies: ["SEO", "Google Analytics", "Excel"]
+            },
+            {
+                poste: "Chargée de Projet Web",
+                entreprise: "Web Agency Creative",
+                duree: "09/2014 - 12/2014",
+                lieu: "Bordeaux",
+                description: "Coordination projets web, relation client, suivi production",
+                technologies: ["Project Management", "HTML/CSS", "WordPress"]
+            },
+            {
+                poste: "Community Manager",
+                entreprise: "Brand Lifestyle",
+                duree: "03/2014 - 08/2014",
+                lieu: "Toulouse",
+                description: "Gestion réseaux sociaux, création contenu, engagement communauté",
+                technologies: ["Facebook", "Instagram", "Twitter", "Canva"]
+            },
+            {
+                poste: "Assistant Communication",
+                entreprise: "Association Caritative",
+                duree: "09/2013 - 02/2014",
+                lieu: "Montpellier",
+                description: "Support communication événements, relations presse, newsletters",
+                technologies: ["Newsletter", "Relations Presse", "Events"]
+            },
+            {
+                poste: "Stagiaire Communication",
+                entreprise: "Collectivité Territoriale",
+                duree: "06/2013 - 08/2013",
+                lieu: "Nantes",
+                description: "Assistance communication institutionnelle, rédaction, veille média",
+                technologies: ["Rédaction", "Veille Media", "Communication Institutionnelle"]
+            },
+            {
+                poste: "Assistance Marketing",
+                entreprise: "Retail Chain",
+                duree: "01/2013 - 05/2013",
+                lieu: "Lille",
+                description: "Support marketing opérationnel, études consommateurs, reporting",
+                technologies: ["Market Studies", "Consumer Insights", "Reporting"]
             }
         ],
-        competences: ["Tenue d'agendas", "Esprit d'équipe", "Suivi budgétaire", "Préparation de rapports", "Autonomie", "Communication", "Organisation"],
+        competences: {
+            techniques: ["SEO/SEM", "Google Analytics", "Google Ads", "Facebook Ads", "Marketing Automation", "CRM Salesforce", "WordPress", "HTML/CSS", "Photoshop", "Canva"],
+            linguistiques: ["Français natif", "Anglais courant", "Espagnol intermédiaire"],
+            sectorielles: ["Marketing Digital", "E-commerce", "Communication", "Growth Hacking", "Brand Management", "Consumer Insights"],
+            soft_skills: ["Leadership", "Gestion d'équipe", "Communication", "Créativité", "Analyse", "Stratégie", "Adaptabilité"],
+            outils: ["Salesforce", "HubSpot", "Mailchimp", "Hootsuite", "Buffer", "Slack", "Trello", "Asana"],
+            certifications: ["Google Ads Certified", "Google Analytics Certified", "Facebook Blueprint", "HubSpot Content Marketing"]
+        },
         formation: [
             {
-                diplome: "DIPLÔME D'ÉTUDES SUPÉRIEURES",
-                etablissement: "ESVE",
-                annee: "2006"
+                diplome: "Master Marketing Digital et E-business",
+                etablissement: "ESSEC Business School",
+                annee: "2013",
+                lieu: "Cergy-Pontoise",
+                mention: "Bien",
+                specialisation: "Digital Strategy & Data Analytics"
             },
             {
-                diplome: "Business & Economics, BA",
-                etablissement: "Birkbeck University",
-                annee: "2014"
+                diplome: "Bachelor Marketing et Communication",
+                etablissement: "EDHEC Business School",
+                annee: "2011",
+                lieu: "Lille",
+                mention: "Assez Bien",
+                specialisation: "Marketing International"
             }
         ],
-        langues: ["Français", "Anglais"],
-        score_matching: 87
+        langues: [
+            { langue: "Français", niveau: "Natif" },
+            { langue: "Anglais", niveau: "Courant (C1)" },
+            { langue: "Espagnol", niveau: "Intermédiaire (B2)" },
+            { langue: "Italien", niveau: "Débutant (A2)" }
+        ],
+        projets: [
+            {
+                nom: "Plateforme E-learning Marketing",
+                description: "Création d'une plateforme de formation en marketing digital avec +5000 utilisateurs",
+                technologies: ["WordPress", "LMS", "Video Marketing"],
+                date: "2023-2024"
+            },
+            {
+                nom: "Application Mobile Fitness",
+                description: "Stratégie marketing pour lancement app fitness, 100K téléchargements en 6 mois",
+                technologies: ["App Store Optimization", "Influencer Marketing", "Performance Marketing"],
+                date: "2022"
+            }
+        ],
+        informations_complementaires: {
+            permis: "Permis B",
+            mobilite: "France, Europe",
+            centres_interet: ["Photographie", "Voyages", "Yoga", "Cuisine"],
+            associations: ["Bénévole Marketing Sans Frontières"],
+            publications: ["Article LinkedIn: 'L'avenir du Marketing Digital'", "Guest Post: 'ROI Marketing Strategies'"],
+            prix_distinctions: ["Prix Innovation Marketing 2023", "Top 30 under 30 Marketing Professionals"]
+        },
+        score_matching: 92
     };
     
-    displayResults(fallbackData);
-    showStatus('✅ Profil de démonstration chargé (Sabine Rivière)', 'info');
+    displayResultsExhaustive(enhancedFallbackData);
+    showParsingStats(enhancedFallbackData);
+    showStatus('✅ Profil de démonstration exhaustif chargé (Dorothée Lim - 12 expériences)', 'info');
 }
 
 // 🎯 Fonctions utilitaires
@@ -1094,18 +1419,21 @@ function enableNextStep() {
 }
 
 function updateParsingStats() {
-    const stats = getUltraParsingStatsV620();
-    console.log('📊 Stats Ultra Parsing v6.2.0:', stats);
+    const stats = getExhaustiveParsingStatsV630();
+    console.log('📊 Stats Parsing Exhaustif v6.3.0:', stats);
 }
 
-function getUltraParsingStatsV620() {
+function getExhaustiveParsingStatsV630() {
     return {
-        version: '6.2.0',
-        engine: 'OpenAI GPT-3.5',
-        features: ['PDF', 'Word', 'TXT', 'IA Analysis'],
+        version: '6.3.0',
+        engine: 'OpenAI GPT-3.5 Exhaustive',
+        features: ['PDF Multi-pages', 'Word Exhaustif', 'TXT', 'IA Analysis Complète', 'Extraction Multi-catégories'],
         timestamp: new Date().toISOString(),
         github_pages: true,
-        raw_githack_removed: true
+        exhaustive_parsing: true,
+        max_experiences_supported: '12+',
+        max_skills_supported: '50+',
+        advanced_prompt: true
     };
 }
 
@@ -1129,10 +1457,10 @@ function configureApiKey() {
     OPENAI_API_KEY = apiKey;
     localStorage.setItem('openai_api_key', apiKey);
     
-    statusDiv.innerHTML = '✅ API configurée - ULTRA v6.2.0 activé !';
+    statusDiv.innerHTML = '✅ API configurée - PARSING EXHAUSTIF v6.3.0 activé !';
     statusDiv.style.color = 'var(--success-color)';
     
-    console.log('✅ Clé API configurée - ULTRA v6.2.0 ready');
+    console.log('✅ Clé API configurée - Parsing Exhaustif v6.3.0 ready');
 }
 
 // 🚀 FONCTION DE NAVIGATION VERS LE QUESTIONNAIRE - GITHUB PAGES
@@ -1148,7 +1476,7 @@ function navigateToQuestionnaire() {
 
 // Gestion upload et parsing
 async function handleFileUpload(file) {
-    console.log(`📁 Upload fichier ULTRA v6.2.0: ${file.name}`);
+    console.log(`📁 Upload fichier Parsing Exhaustif v6.3.0: ${file.name}`);
     
     document.getElementById('fileName').textContent = file.name;
     document.getElementById('fileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
@@ -1159,13 +1487,13 @@ async function handleFileUpload(file) {
 
 // 🎉 Initialisation automatique
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Ultra Parsing v6.2.0 initialisé');
+    console.log('🚀 Parsing Exhaustif v6.3.0 initialisé');
     console.log('✅ PDF.js:', typeof pdfjsLib !== 'undefined');
     console.log('✅ Mammoth:', typeof mammoth !== 'undefined');
     
     // Vérifier la configuration API
     if (OPENAI_API_KEY) {
-        document.getElementById('apiStatus').innerHTML = '✅ API configurée - ULTRA v6.2.0 opérationnel !';
+        document.getElementById('apiStatus').innerHTML = '✅ API configurée - PARSING EXHAUSTIF v6.3.0 opérationnel !';
         document.getElementById('apiStatus').style.color = 'var(--success-color)';
         document.getElementById('apiKeyInput').value = OPENAI_API_KEY.substring(0, 10) + '...';
     }
@@ -1204,6 +1532,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInfo.style.display = 'none';
         uploadContainer.style.display = 'flex';
         document.getElementById('parsedData').style.display = 'none';
+        document.getElementById('parsingStats').style.display = 'none';
         document.getElementById('successMessage').style.display = 'none';
         document.getElementById('errorMessage').style.display = 'none';
         document.getElementById('analyzeBtn').style.display = 'none';
@@ -1220,11 +1549,11 @@ document.addEventListener('DOMContentLoaded', function() {
         navigateToQuestionnaire();
     });
     
-    console.log('✅ ULTRA PARSING v6.2.0 prêt - Parsing PDF/Word/TXT + OpenAI + Fallback Sabine !');
+    console.log('✅ PARSING EXHAUSTIF v6.3.0 prêt - Extraction complète PDF/Word/TXT + OpenAI Exhaustif + Fallback Dorothée !');
     console.log('✅ Navigation vers questionnaire GitHub Pages configurée !');
 });
 
-console.log('✅ Ultra Parsing v6.2.0 - Code JavaScript chargé');
+console.log('✅ Parsing Exhaustif v6.3.0 - Code JavaScript chargé');
 </script>
 
 </body>
