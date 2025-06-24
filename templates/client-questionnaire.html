@@ -805,6 +805,36 @@
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
         }
+
+        /* Style pour diagnostic */
+        .diagnostic-banner {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
+
+        .diagnostic-banner .diagnostic-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .diagnostic-banner .diagnostic-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -829,6 +859,16 @@
             </div>
             <button class="test-btn" onclick="window.fixJobParserPriority?.test?.()">
                 Test ChatGPT
+            </button>
+        </div>
+
+        <!-- Bannière de diagnostic avancé -->
+        <div id="diagnostic-banner" class="diagnostic-banner">
+            <div class="status-info">
+                <span>🔍 <strong>DIAGNOSTIC AVANCÉ</strong> - Identifier précisément pourquoi l'analyse ne fonctionne pas</span>
+            </div>
+            <button class="diagnostic-btn" onclick="window.diagnoseChatGPTProblem?.()">
+                Diagnostic Complet
             </button>
         </div>
 
@@ -1150,6 +1190,9 @@
     <!-- 🚨 SCRIPT DE FIX PRIORITAIRE - DOIT ÊTRE EN PREMIER -->
     <script src="../scripts/fix-job-parser-priority.js"></script>
     
+    <!-- 🔍 SCRIPT DE DIAGNOSTIC AVANCÉ -->
+    <script src="../scripts/diagnostic-chatgpt-avance.js"></script>
+    
     <!-- 1. Fonctionnalités d'interface de base -->
     <script src="../scripts/questionnaire-navigation.js"></script>
     <script src="../scripts/summary-generator.js"></script>
@@ -1166,17 +1209,10 @@
         const DASHBOARD_URL = "company-dashboard.html";
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎯 VERSION CORRIGÉE - ChatGPT Parser avec fix de priorité !');
+            console.log('🎯 VERSION DIAGNOSTIC - ChatGPT Parser avec diagnostic avancé !');
+            console.log('🔍 Script de diagnostic ajouté pour identifier les blocages');
             console.log('🤖 Ancien système désactivé, nouveau système ChatGPT activé');
-            console.log('🔧 Script de fix chargé en priorité pour résoudre les conflits');
-            console.log('🚀 Plus de generateMockResults() - Seul ChatGPT fonctionne maintenant !');
-            
-            // Test de vérification du système
-            setTimeout(() => {
-                if (window.fixJobParserPriority && window.fixJobParserPriority.test) {
-                    window.fixJobParserPriority.test();
-                }
-            }, 1000);
+            console.log('🚀 Cliquez sur "Diagnostic Complet" pour analyser le problème !');
         });
     </script>
     
