@@ -827,8 +827,8 @@
                 <div class="fix-icon"></div>
                 <span>🤖 ChatGPT Parser AUTOMATIQUE - Upload ou colle ton texte, l'analyse se lance seule !</span>
             </div>
-            <button class="test-btn" onclick="window.triggerAutoTest?.()">
-                Test Auto
+            <button class="test-btn" onclick="window.fixJobParserPriority?.test?.()">
+                Test ChatGPT
             </button>
         </div>
 
@@ -1145,7 +1145,11 @@
         </div>
     </div>
     
-    <!-- Scripts - Ordre important pour les dépendances -->
+    <!-- Scripts - Ordre CRITIQUE pour résoudre les conflits -->
+    
+    <!-- 🚨 SCRIPT DE FIX PRIORITAIRE - DOIT ÊTRE EN PREMIER -->
+    <script src="../scripts/fix-job-parser-priority.js"></script>
+    
     <!-- 1. Fonctionnalités d'interface de base -->
     <script src="../scripts/questionnaire-navigation.js"></script>
     <script src="../scripts/summary-generator.js"></script>
@@ -1154,11 +1158,7 @@
     <script src="../js/job-parser-gpt.js"></script>
     <script src="../scripts/job-parsing-ui-gpt.js"></script>
     
-    <!-- 🔧 SCRIPTS DE CORRECTION ET DIAGNOSTIC -->
-    <script src="../scripts/fix-job-parser-conflicts.js"></script>
-    <script src="../scripts/diagnostic-chatgpt-detailed.js"></script>
-    <script src="../scripts/debug-chatgpt-analysis.js"></script>
-    <script src="../scripts/fix-event-listeners.js"></script>
+    <!-- ❌ ANCIEN SCRIPT RETIRÉ - NE PLUS CHARGER job-parsing-ui.js -->
     
     <script>
         // Définir les URLs de redirection
@@ -1166,22 +1166,17 @@
         const DASHBOARD_URL = "company-dashboard.html";
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🤖 ChatGPT Job Parser AUTOMATIQUE activé !');
-            console.log('🔧 Event listeners automatiques en cours d\'installation...');
-            console.log('🔍 Debug et diagnostic activés !');
-            console.log('🚀 Plus besoin de manipulation manuelle - Upload ou colle et ça analyse !');
+            console.log('🎯 VERSION CORRIGÉE - ChatGPT Parser avec fix de priorité !');
+            console.log('🤖 Ancien système désactivé, nouveau système ChatGPT activé');
+            console.log('🔧 Script de fix chargé en priorité pour résoudre les conflits');
+            console.log('🚀 Plus de generateMockResults() - Seul ChatGPT fonctionne maintenant !');
             
-            // Fonction de test rapide pour l'utilisateur
-            window.testQuickChatGPT = function() {
-                console.log('🧪 Test rapide ChatGPT...');
-                if (window.triggerAutoTest) {
-                    window.triggerAutoTest();
-                } else if (window.testCompleteFlow) {
-                    window.testCompleteFlow();
-                } else {
-                    console.log('⏳ Fonctions de test en cours d\'initialisation...');
+            // Test de vérification du système
+            setTimeout(() => {
+                if (window.fixJobParserPriority && window.fixJobParserPriority.test) {
+                    window.fixJobParserPriority.test();
                 }
-            };
+            }, 1000);
         });
     </script>
     
