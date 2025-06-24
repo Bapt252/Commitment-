@@ -1,0 +1,14 @@
+FORCE GITHUB PAGES REBUILD: 2025-06-24T08:06:00Z
+
+This file forces GitHub Pages to rebuild and clear cache.
+
+Actions performed:
+- Modified candidate-login.html with v6.2.0 
+- Modified candidate-upload.html with v6.2.0
+- Cache not propagating for 1h+
+- Force rebuild required
+
+Expected to be visible:
+✅ Badge "GitHub Pages Integration v6.2.0"
+✅ Function redirectToGitHubPages()
+✅ New parsing functionality
