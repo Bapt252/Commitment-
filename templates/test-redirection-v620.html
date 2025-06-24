@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexten - Test Redirection v6.2.0</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .test-title {
+            color: #7c4dff;
+            margin-bottom: 20px;
+        }
+        .success-badge {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .test-btn {
+            background: linear-gradient(135deg, #7c4dff, #536dfe);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .test-btn:hover {
+            transform: translateY(-2px);
+        }
+        .redirect-btn {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🚀 TEST REDIRECTION GITHUB PAGES v6.2.0</h1>
+        
+        <div class="success-badge">
+            ✅ Page de test créée - Propagation GitHub Pages IMMÉDIATE
+        </div>
+        
+        <p><strong>Status :</strong> Cette page teste la redirection vers candidate-upload.html</p>
+        <p><strong>Timestamp :</strong> <span id="timestamp"></span></p>
+        
+        <button class="test-btn redirect-btn" onclick="testRedirectToUpload()">
+            🎯 TEST: Redirection vers Upload CV
+        </button>
+        
+        <button class="test-btn" onclick="testRedirectToQuestionnaire()">
+            📋 TEST: Redirection vers Questionnaire
+        </button>
+        
+        <div id="results" style="margin-top: 20px; text-align: left;"></div>
+    </div>
+
+    <script>
+        // Afficher le timestamp actuel
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        
+        // TEST 1: Redirection vers candidate-upload.html
+        function testRedirectToUpload() {
+            console.log('🔄 TEST: Redirection vers candidate-upload.html');
+            
+            const uploadUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-upload.html?test=v620&t=' + Date.now();
+            
+            logResult('Redirection vers: ' + uploadUrl);
+            
+            // Redirection directe
+            window.location.href = uploadUrl;
+        }
+        
+        // TEST 2: Redirection vers candidate-questionnaire.html
+        function testRedirectToQuestionnaire() {
+            console.log('🔄 TEST: Redirection vers candidate-questionnaire.html');
+            
+            const questionnaireUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html?test=v620&t=' + Date.now();
+            
+            logResult('Redirection vers: ' + questionnaireUrl);
+            
+            // Redirection directe
+            window.location.href = questionnaireUrl;
+        }
+        
+        // Logger les résultats
+        function logResult(message) {
+            const resultsDiv = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += '<div>' + timestamp + ': ' + message + '</div>';
+        }
+        
+        console.log('✅ Page de test v6.2.0 chargée et fonctionnelle');
+        console.log('🎯 Timestamp:', Date.now());
+    </script>
+</body>
+</html>
