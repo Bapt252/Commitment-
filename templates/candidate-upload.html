@@ -4,27 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🚀 GITHUB PAGES INTEGRATION v6.3.0 - PARSING EXHAUSTIF ---->
+    <!-- 🚀 GITHUB PAGES INTEGRATION v6.3.1 - PARSING EXHAUSTIF FIXED -->
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
-    <meta name="integration-id" content="github-pages-v630-exhaustive-parsing">
-    <meta name="timestamp" content="2025-06-24T18:00:00Z">
+    <meta name="integration-id" content="github-pages-v631-exhaustive-parsing-fixed">
+    <meta name="timestamp" content="2025-06-24T18:30:00Z">
     
-    <title>Nexten - Chargement de CV - EXHAUSTIF v6.3.0</title>
+    <title>Nexten - Chargement de CV - EXHAUSTIF v6.3.1 FIXED</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- PDF.js pour lecture PDF multi-pages -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- Mammoth.js pour parsing Word -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    
-    <script>
-        if (window.pdfjsLib) {
-            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            console.log('✅ PDF.js configuré automatiquement');
-        }
-    </script>
     
     <style>
         /* Styles CSS identiques - DESIGN VIOLET CONSERVÉ */
@@ -326,9 +319,15 @@
             transition: all 0.3s;
             cursor: pointer;
             text-align: center;
+            min-height: 200px;
         }
 
         .upload-container:hover {
+            border-color: var(--universal-color);
+            background-color: var(--universal-light);
+        }
+
+        .upload-container.dragover {
             border-color: var(--universal-color);
             background-color: var(--universal-light);
         }
@@ -569,6 +568,7 @@
             align-items: center;
             gap: 0.5rem;
             transition: all 0.3s;
+            align-self: center;
         }
 
         .analyze-btn:hover {
@@ -663,11 +663,11 @@
         
         <span class="ai-badge">
             <i class="fas fa-robot"></i>
-            🎯 PARSING EXHAUSTIF v6.3.0 - EXTRACTION COMPLÈTE ✅
+            🎯 PARSING EXHAUSTIF v6.3.1 FIXED - EXTRACTION COMPLÈTE ✅
         </span>
         
         <div class="github-integration-status">
-            ✅ GitHub Pages Integration v6.3.0 - Parsing exhaustif pour TOUS les CVs (12+ expériences supportées)
+            ✅ GitHub Pages Integration v6.3.1 - Parsing exhaustif CORRIGÉ pour TOUS les CVs (12+ expériences supportées)
         </div>
         
         <!-- CONFIGURATION API OPENAI -->
@@ -706,7 +706,7 @@
             
             <h2 class="form-section-title">Analyse automatique exhaustive de votre CV</h2>
             
-            <p>Uploadez votre CV pour que nous puissions extraire automatiquement <strong>TOUTES</strong> vos informations : expériences complètes, compétences détaillées, formations, langues, certifications et projets. Notre nouveau moteur de parsing v6.3.0 garantit une extraction exhaustive même pour les CVs de plusieurs pages.</p>
+            <p>Uploadez votre CV pour que nous puissions extraire automatiquement <strong>TOUTES</strong> vos informations : expériences complètes, compétences détaillées, formations, langues, certifications et projets. Notre nouveau moteur de parsing v6.3.1 garantit une extraction exhaustive même pour les CVs de plusieurs pages.</p>
             
             <div class="upload-container" id="uploadContainer">
                 <i class="fas fa-cloud-upload-alt upload-icon"></i>
@@ -734,7 +734,7 @@
             
             <div class="loading-indicator" id="loadingIndicator">
                 <div class="spinner"></div>
-                <p class="loading-text">PARSING EXHAUSTIF v6.3.0 en cours...</p>
+                <p class="loading-text">PARSING EXHAUSTIF v6.3.1 en cours...</p>
             </div>
             
             <!-- Statistiques de parsing -->
@@ -763,7 +763,7 @@
             <div class="parsed-data" id="parsedData">
                 <div class="parsed-data-title">
                     <i class="fas fa-check-circle"></i>
-                    🎯 PARSING EXHAUSTIF v6.3.0 - Informations extraites
+                    🎯 PARSING EXHAUSTIF v6.3.1 - Informations extraites
                 </div>
                 <p style="margin-bottom: 1rem; color: var(--gray-dark); font-size: 0.9rem;">
                     ✅ EXTRACTION COMPLÈTE terminée ! Vous pourrez modifier ou compléter ces informations lors de l'étape suivante.
@@ -776,7 +776,7 @@
             
             <div class="success-message" id="successMessage">
                 <i class="fas fa-check-circle"></i>
-                ✅ PARSING EXHAUSTIF v6.3.0 terminé avec succès !
+                ✅ PARSING EXHAUSTIF v6.3.1 terminé avec succès !
             </div>
             
             <div class="error-message" id="errorMessage">
@@ -797,25 +797,31 @@
         </div>
     </div>
 
-<!-- 🚀 PARSING EXHAUSTIF v6.3.0 - CODE JAVASCRIPT AMÉLIORÉ -->
+<!-- 🚀 PARSING EXHAUSTIF v6.3.1 FIXED - CODE JAVASCRIPT CORRIGÉ -->
 <script>
-console.log('🚀 === PARSING EXHAUSTIF v6.3.0 - GITHUB PAGES INTEGRATION ===');
+console.log('🚀 === PARSING EXHAUSTIF v6.3.1 FIXED - GITHUB PAGES INTEGRATION ===');
 
-// Configuration PDF.js
-if (window.pdfjsLib) {
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// Configuration PDF.js sécurisée
+function initializePDFJS() {
+    if (typeof pdfjsLib !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        console.log('✅ PDF.js configuré automatiquement');
+    } else {
+        console.warn('⚠️ PDF.js non disponible');
+    }
 }
 
 // Variables globales
 let currentFile = null;
 let parsedContent = null;
 let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
+let isInitialized = false;
 
 // 🎯 Fonction principale de parsing CV
 async function parseCV() {
-    console.log('🚀 Démarrage Parsing Exhaustif v6.3.0...');
+    console.log('🚀 Démarrage Parsing Exhaustif v6.3.1...');
     
-    const fileInput = document.querySelector('input[type="file"]');
+    const fileInput = document.getElementById('cvFile');
     if (!fileInput || !fileInput.files.length) {
         showStatus('❌ Veuillez sélectionner un fichier', 'error');
         return;
@@ -858,7 +864,6 @@ async function parseCV() {
             displayResultsExhaustive(analysis);
             showParsingStats(analysis);
             showStatus('✅ Analyse exhaustive terminée avec succès !', 'success');
-            updateParsingStats();
         } else {
             throw new Error('Erreur lors de l\'analyse IA');
         }
@@ -881,85 +886,102 @@ async function parseCV() {
 async function parsePDFExhaustive(file) {
     console.log('📄 Parsing PDF exhaustif...');
     
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await window.pdfjsLib.getDocument(arrayBuffer).promise;
-    let fullText = '';
-    const pageTexts = [];
-    
-    console.log(`📊 PDF detecté: ${pdf.numPages} pages`);
-    
-    // Extraire chaque page séparément pour préserver la structure
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        
-        // Améliorer l'extraction en préservant la position des éléments
-        const items = textContent.items;
-        let pageText = '';
-        let currentY = null;
-        
-        items.forEach((item, index) => {
-            // Ajouter un retour à la ligne si on change de ligne
-            if (currentY !== null && Math.abs(currentY - item.transform[5]) > 5) {
-                pageText += '\n';
-            }
-            pageText += item.str;
-            
-            // Ajouter un espace si l'élément suivant n'est pas sur la même ligne
-            const nextItem = items[index + 1];
-            if (nextItem && Math.abs(item.transform[5] - nextItem.transform[5]) < 5) {
-                pageText += ' ';
-            }
-            
-            currentY = item.transform[5];
-        });
-        
-        pageTexts.push(pageText);
-        fullText += `\n--- PAGE ${i} ---\n` + pageText + '\n';
+    if (typeof pdfjsLib === 'undefined') {
+        throw new Error('PDF.js non disponible');
     }
     
-    console.log(`✅ PDF exhaustif parsé: ${fullText.length} caractères sur ${pdf.numPages} pages`);
-    return fullText;
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        let fullText = '';
+        
+        console.log(`📊 PDF detecté: ${pdf.numPages} pages`);
+        
+        // Extraire chaque page séparément pour préserver la structure
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            
+            // Améliorer l'extraction en préservant la position des éléments
+            const items = textContent.items;
+            let pageText = '';
+            let currentY = null;
+            
+            items.forEach((item, index) => {
+                // Ajouter un retour à la ligne si on change de ligne
+                if (currentY !== null && Math.abs(currentY - item.transform[5]) > 5) {
+                    pageText += '\n';
+                }
+                pageText += item.str;
+                
+                // Ajouter un espace si l'élément suivant n'est pas sur la même ligne
+                const nextItem = items[index + 1];
+                if (nextItem && Math.abs(item.transform[5] - nextItem.transform[5]) < 5) {
+                    pageText += ' ';
+                }
+                
+                currentY = item.transform[5];
+            });
+            
+            fullText += `\n--- PAGE ${i} ---\n` + pageText + '\n';
+        }
+        
+        console.log(`✅ PDF exhaustif parsé: ${fullText.length} caractères sur ${pdf.numPages} pages`);
+        return fullText;
+    } catch (error) {
+        console.error('❌ Erreur parsing PDF:', error);
+        throw new Error('Erreur lors de l\'analyse du PDF: ' + error.message);
+    }
 }
 
 // 📝 Parsing Word exhaustif
 async function parseWordExhaustive(file) {
     console.log('📝 Parsing Word exhaustif...');
     
-    if (!window.mammoth) {
+    if (typeof mammoth === 'undefined') {
         throw new Error('Mammoth.js non disponible pour le parsing Word');
     }
     
-    const arrayBuffer = await file.arrayBuffer();
-    
-    // Extraire à la fois le texte brut et le HTML pour plus d'informations
-    const [textResult, htmlResult] = await Promise.all([
-        window.mammoth.extractRawText({ arrayBuffer }),
-        window.mammoth.convertToHtml({ arrayBuffer })
-    ]);
-    
-    let text = textResult.value;
-    const html = htmlResult.value;
-    
-    // Utiliser le HTML pour améliorer la structure si nécessaire
-    if (text.length < 100 && html.length > text.length) {
-        // Fallback: extraire le texte du HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        text = tempDiv.textContent || tempDiv.innerText || '';
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        
+        // Extraire le texte brut et le HTML pour plus d'informations
+        const textResult = await mammoth.extractRawText({ arrayBuffer });
+        let text = textResult.value;
+        
+        // Améliorer le texte si nécessaire
+        if (text.length < 100) {
+            const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
+            const html = htmlResult.value;
+            
+            if (html.length > text.length) {
+                // Fallback: extraire le texte du HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                text = tempDiv.textContent || tempDiv.innerText || '';
+            }
+        }
+        
+        console.log(`✅ Word exhaustif parsé: ${text.length} caractères`);
+        return text;
+    } catch (error) {
+        console.error('❌ Erreur parsing Word:', error);
+        throw new Error('Erreur lors de l\'analyse du document Word: ' + error.message);
     }
-    
-    console.log(`✅ Word exhaustif parsé: ${text.length} caractères`);
-    return text;
 }
 
 // 📄 Parsing TXT
 async function parseText(file) {
     console.log('📄 Parsing TXT...');
     
-    const text = await file.text();
-    console.log(`✅ TXT parsé: ${text.length} caractères`);
-    return text;
+    try {
+        const text = await file.text();
+        console.log(`✅ TXT parsé: ${text.length} caractères`);
+        return text;
+    } catch (error) {
+        console.error('❌ Erreur parsing TXT:', error);
+        throw new Error('Erreur lors de la lecture du fichier texte: ' + error.message);
+    }
 }
 
 // 🤖 Appel OpenAI avec prompt exhaustif
@@ -967,7 +989,7 @@ async function callOpenAIExhaustive(cvText) {
     console.log('🤖 Appel OpenAI API avec prompt exhaustif...');
     
     // Récupérer la clé API
-    const apiKey = document.querySelector('input[placeholder*="sk-"]')?.value || OPENAI_API_KEY;
+    const apiKey = document.getElementById('apiKeyInput').value || OPENAI_API_KEY;
     if (!apiKey || !apiKey.startsWith('sk-')) {
         throw new Error('Clé API OpenAI invalide ou manquante - utilisation du fallback');
     }
@@ -996,9 +1018,8 @@ Format JSON attendu (COMPLET ET EXHAUSTIF) :
       "duree": "période exacte (mois/année - mois/année)",
       "lieu": "lieu si mentionné",
       "description": "description détaillée des missions et réalisations",
-      "technologies": ["tech1", "tech2"] // si applicables
+      "technologies": ["tech1", "tech2"]
     }
-    // RÉPÉTER POUR CHAQUE EXPÉRIENCE TROUVÉE
   ],
   "competences": {
     "techniques": ["compétence technique 1", "compétence technique 2"],
@@ -1017,12 +1038,11 @@ Format JSON attendu (COMPLET ET EXHAUSTIF) :
       "mention": "mention si indiquée",
       "specialisation": "spécialisation si mentionnée"
     }
-    // RÉPÉTER POUR CHAQUE FORMATION
   ],
   "langues": [
     {
       "langue": "nom de la langue",
-      "niveau": "niveau précis (débutant, intermédiaire, avancé, bilingue, natif)"
+      "niveau": "niveau précis"
     }
   ],
   "projets": [
@@ -1044,14 +1064,6 @@ Format JSON attendu (COMPLET ET EXHAUSTIF) :
   "score_matching": 85
 }
 
-RÈGLES ABSOLUES :
-- Ne manque AUCUNE expérience professionnelle
-- Inclus TOUS les stages, missions, projets professionnels
-- Liste TOUTES les compétences mentionnées explicitement ou implicitement
-- Capture TOUS les diplômes, formations, certifications
-- Si une information n'est pas trouvée, utilise "Non spécifié" ou laisse un tableau vide []
-- Sois exhaustif mais précis
-
 CV à analyser:
 ${cvText}`;
 
@@ -1070,8 +1082,8 @@ ${cvText}`;
                         content: promptExhaustif
                     }
                 ],
-                max_tokens: 3000, // Augmenté pour les réponses exhaustives
-                temperature: 0.1 // Réduit pour plus de précision
+                max_tokens: 3000,
+                temperature: 0.1
             })
         });
         
@@ -1166,18 +1178,11 @@ function displayResultsExhaustive(data) {
         <tr><th style="background: linear-gradient(135deg, #4CAF50, #388E3C); color: white;">🎓 FORMATIONS DÉTAILLÉES (${data.formation ? data.formation.length : 0})</th><td class="detected">${formationsHtml}</td></tr>
         <tr><th>🌍 Langues</th><td class="detected">${languesHtml}</td></tr>
         ${data.projets && data.projets.length ? `<tr><th>🚀 Projets (${data.projets.length})</th><td class="detected">${projetsHtml}</td></tr>` : ''}
-        ${data.informations_complementaires ? 
-            Object.entries(data.informations_complementaires).map(([key, value]) => 
-                value && value.length ? 
-                    `<tr><th>📋 ${key.replace('_', ' ').charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}</th><td class="detected">${Array.isArray(value) ? value.join(', ') : value}</td></tr>` 
-                    : ''
-            ).join('') : ''
-        }
     `;
     
     document.getElementById('parsedData').style.display = 'block';
     document.getElementById('successMessage').innerHTML = 
-        '<i class="fas fa-check-circle"></i> ✅ PARSING EXHAUSTIF v6.3.0 terminé - Toutes les informations extraites avec succès !';
+        '<i class="fas fa-check-circle"></i> ✅ PARSING EXHAUSTIF v6.3.1 FIXED terminé - Toutes les informations extraites avec succès !';
     document.getElementById('successMessage').style.display = 'block';
     
     enableNextStep();
@@ -1363,7 +1368,7 @@ function loadEnhancedFallbackProfile() {
     
     displayResultsExhaustive(enhancedFallbackData);
     showParsingStats(enhancedFallbackData);
-    showStatus('✅ Profil de démonstration exhaustif chargé (Dorothée Lim - 12 expériences)', 'info');
+    showStatus('✅ Profil de démonstration exhaustif chargé (Dorothée Lim - 12 expériences)', 'success');
 }
 
 // 🎯 Fonctions utilitaires
@@ -1403,7 +1408,7 @@ function showStatus(message, type) {
     // Auto-hide après 5 secondes pour success et info
     if (type === 'success' || type === 'info') {
         setTimeout(() => {
-            if (statusElement.parentNode) {
+            if (statusElement && statusElement.parentNode) {
                 statusElement.parentNode.removeChild(statusElement);
             }
         }, 5000);
@@ -1414,27 +1419,11 @@ function enableNextStep() {
     console.log('🎯 Activation étape suivante...');
     
     // Activer les boutons de navigation
-    document.getElementById('nextBtn').style.display = 'block';
-    document.getElementById('skipBtn').style.display = 'block';
-}
-
-function updateParsingStats() {
-    const stats = getExhaustiveParsingStatsV630();
-    console.log('📊 Stats Parsing Exhaustif v6.3.0:', stats);
-}
-
-function getExhaustiveParsingStatsV630() {
-    return {
-        version: '6.3.0',
-        engine: 'OpenAI GPT-3.5 Exhaustive',
-        features: ['PDF Multi-pages', 'Word Exhaustif', 'TXT', 'IA Analysis Complète', 'Extraction Multi-catégories'],
-        timestamp: new Date().toISOString(),
-        github_pages: true,
-        exhaustive_parsing: true,
-        max_experiences_supported: '12+',
-        max_skills_supported: '50+',
-        advanced_prompt: true
-    };
+    const nextBtn = document.getElementById('nextBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    
+    if (nextBtn) nextBtn.style.display = 'block';
+    if (skipBtn) skipBtn.style.display = 'block';
 }
 
 // Configuration API
@@ -1457,10 +1446,10 @@ function configureApiKey() {
     OPENAI_API_KEY = apiKey;
     localStorage.setItem('openai_api_key', apiKey);
     
-    statusDiv.innerHTML = '✅ API configurée - PARSING EXHAUSTIF v6.3.0 activé !';
+    statusDiv.innerHTML = '✅ API configurée - PARSING EXHAUSTIF v6.3.1 activé !';
     statusDiv.style.color = 'var(--success-color)';
     
-    console.log('✅ Clé API configurée - Parsing Exhaustif v6.3.0 ready');
+    console.log('✅ Clé API configurée - Parsing Exhaustif v6.3.1 ready');
 }
 
 // 🚀 FONCTION DE NAVIGATION VERS LE QUESTIONNAIRE - GITHUB PAGES
@@ -1475,85 +1464,142 @@ function navigateToQuestionnaire() {
 }
 
 // Gestion upload et parsing
-async function handleFileUpload(file) {
-    console.log(`📁 Upload fichier Parsing Exhaustif v6.3.0: ${file.name}`);
+function handleFileUpload(file) {
+    console.log(`📁 Upload fichier Parsing Exhaustif v6.3.1: ${file.name}`);
     
-    document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-    document.getElementById('fileInfo').style.display = 'flex';
-    document.getElementById('uploadContainer').style.display = 'none';
-    document.getElementById('analyzeBtn').style.display = 'flex';
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileInfo = document.getElementById('fileInfo');
+    const uploadContainer = document.getElementById('uploadContainer');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    
+    if (fileName) fileName.textContent = file.name;
+    if (fileSize) fileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+    if (fileInfo) fileInfo.style.display = 'flex';
+    if (uploadContainer) uploadContainer.style.display = 'none';
+    if (analyzeBtn) analyzeBtn.style.display = 'flex';
 }
 
-// 🎉 Initialisation automatique
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Parsing Exhaustif v6.3.0 initialisé');
+// 🎉 Initialisation sécurisée
+function initializeApplication() {
+    if (isInitialized) {
+        console.log('⚠️ Application déjà initialisée');
+        return;
+    }
+    
+    console.log('🚀 Initialisation Parsing Exhaustif v6.3.1 FIXED...');
+    
+    // Initialiser PDF.js de manière sécurisée
+    initializePDFJS();
+    
+    // Vérifier les librairies
     console.log('✅ PDF.js:', typeof pdfjsLib !== 'undefined');
     console.log('✅ Mammoth:', typeof mammoth !== 'undefined');
     
     // Vérifier la configuration API
     if (OPENAI_API_KEY) {
-        document.getElementById('apiStatus').innerHTML = '✅ API configurée - PARSING EXHAUSTIF v6.3.0 opérationnel !';
-        document.getElementById('apiStatus').style.color = 'var(--success-color)';
-        document.getElementById('apiKeyInput').value = OPENAI_API_KEY.substring(0, 10) + '...';
+        const apiStatus = document.getElementById('apiStatus');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        
+        if (apiStatus) {
+            apiStatus.innerHTML = '✅ API configurée - PARSING EXHAUSTIF v6.3.1 opérationnel !';
+            apiStatus.style.color = 'var(--success-color)';
+        }
+        
+        if (apiKeyInput) {
+            apiKeyInput.value = OPENAI_API_KEY.substring(0, 10) + '...';
+        }
     }
     
-    // Configuration des événements d'upload
+    // Configuration des événements d'upload de manière sécurisée
     const uploadContainer = document.getElementById('uploadContainer');
     const fileInput = document.getElementById('cvFile');
     const fileInfo = document.getElementById('fileInfo');
+    const removeFile = document.getElementById('removeFile');
+    const nextBtn = document.getElementById('nextBtn');
+    const skipBtn = document.getElementById('skipBtn');
     
-    uploadContainer.addEventListener('click', () => fileInput.click());
-    uploadContainer.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadContainer.style.borderColor = 'var(--universal-color)';
-    });
-    uploadContainer.addEventListener('dragleave', () => {
-        uploadContainer.style.borderColor = '#ddd';
-    });
-    uploadContainer.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadContainer.style.borderColor = '#ddd';
+    if (uploadContainer && fileInput) {
+        // Événement clic sur container
+        uploadContainer.addEventListener('click', function(e) {
+            e.preventDefault();
+            fileInput.click();
+        });
         
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFileUpload(files[0]);
-        }
-    });
+        // Événements drag & drop
+        uploadContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadContainer.classList.add('dragover');
+        });
+        
+        uploadContainer.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadContainer.classList.remove('dragover');
+        });
+        
+        uploadContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadContainer.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+        
+        // Événement changement de fichier
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+    }
     
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFileUpload(e.target.files[0]);
-        }
-    });
-    
-    document.getElementById('removeFile').addEventListener('click', () => {
-        fileInput.value = '';
-        fileInfo.style.display = 'none';
-        uploadContainer.style.display = 'flex';
-        document.getElementById('parsedData').style.display = 'none';
-        document.getElementById('parsingStats').style.display = 'none';
-        document.getElementById('successMessage').style.display = 'none';
-        document.getElementById('errorMessage').style.display = 'none';
-        document.getElementById('analyzeBtn').style.display = 'none';
-    });
+    // Événement supprimer fichier
+    if (removeFile && fileInput && fileInfo && uploadContainer) {
+        removeFile.addEventListener('click', function() {
+            fileInput.value = '';
+            fileInfo.style.display = 'none';
+            uploadContainer.style.display = 'flex';
+            
+            // Masquer les résultats
+            const elements = ['parsedData', 'parsingStats', 'successMessage', 'errorMessage', 'analyzeBtn'];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        });
+    }
     
     // 🎯 NAVIGATION INTÉGRÉE - REDIRECTION VERS LE QUESTIONNAIRE GITHUB PAGES
-    document.getElementById('nextBtn').addEventListener('click', () => {
-        console.log('🚀 Clic sur Continuer - Navigation vers questionnaire GitHub Pages...');
-        navigateToQuestionnaire();
-    });
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            console.log('🚀 Clic sur Continuer - Navigation vers questionnaire GitHub Pages...');
+            navigateToQuestionnaire();
+        });
+    }
     
-    document.getElementById('skipBtn').addEventListener('click', () => {
-        console.log('🚀 Clic sur Passer cette étape - Navigation vers questionnaire GitHub Pages...');
-        navigateToQuestionnaire();
-    });
+    if (skipBtn) {
+        skipBtn.addEventListener('click', function() {
+            console.log('🚀 Clic sur Passer cette étape - Navigation vers questionnaire GitHub Pages...');
+            navigateToQuestionnaire();
+        });
+    }
     
-    console.log('✅ PARSING EXHAUSTIF v6.3.0 prêt - Extraction complète PDF/Word/TXT + OpenAI Exhaustif + Fallback Dorothée !');
+    isInitialized = true;
+    console.log('✅ PARSING EXHAUSTIF v6.3.1 FIXED prêt - Extraction complète PDF/Word/TXT + OpenAI Exhaustif + Fallback Dorothée !');
     console.log('✅ Navigation vers questionnaire GitHub Pages configurée !');
-});
+}
 
-console.log('✅ Parsing Exhaustif v6.3.0 - Code JavaScript chargé');
+// Initialisation sécurisée au chargement du DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApplication);
+} else {
+    // Document déjà chargé
+    initializeApplication();
+}
+
+console.log('✅ Parsing Exhaustif v6.3.1 FIXED - Code JavaScript chargé');
 </script>
 
 </body>
