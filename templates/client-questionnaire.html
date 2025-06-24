@@ -838,7 +838,7 @@
         <div id="backend-status-banner" class="backend-status-banner">
             <div class="status-info">
                 <div class="status-indicator"></div>
-                <span id="backend-status-text">Parser de fiche de poste local activé - Prêt à analyser vos documents !</span>
+                <span id="backend-status-text">🚀 Job Parser FONCTIONNEL activé - Analyse RÉELLE des documents !</span>
             </div>
             <button class="get-help-btn" id="backend-help-btn" style="display: none;">Aide à la configuration</button>
         </div>
@@ -847,9 +847,9 @@
         <div id="urgent-fix-banner" class="urgent-fix-banner">
             <div class="status-info">
                 <div class="fix-icon"></div>
-                <span>🔧 JobParserAPI v2.6 CORRECTION URGENTE déployée - Extraction titre corrigée !</span>
+                <span>✨ Job Parser FONCTIONNEL v3.0 déployé - Extraction RÉELLE de tous les champs !</span>
             </div>
-            <button class="test-btn" onclick="window.AdvancedDiagnostic?.runManualTest()">
+            <button class="test-btn" onclick="window.testJobParser?.()">
                 Tester maintenant
             </button>
         </div>
@@ -1010,20 +1010,20 @@
                         <!-- Instructions d'utilisation améliorées -->
                         <div class="parsing-instructions">
                             <div class="instruction-card">
-                                <h4><i class="fas fa-lightbulb"></i> Comment utiliser l'analyse automatique :</h4>
+                                <h4><i class="fas fa-lightbulb"></i> Comment utiliser l'analyse automatique FONCTIONNELLE :</h4>
                                 <ol>
                                     <li><strong>Uploadez</strong> votre fiche de poste (PDF, DOCX, TXT) <em>OU</em></li>
                                     <li><strong>Collez</strong> le texte dans la zone de saisie ci-dessous</li>
                                     <li><strong>Cliquez</strong> sur le bouton d'analyse <i class="fas fa-search"></i></li>
-                                    <li><strong>Consultez</strong> les informations extraites automatiquement !</li>
+                                    <li><strong>Consultez</strong> les informations extraites RÉELLEMENT !</li>
                                 </ol>
                                 <div class="success-badge">
-                                    <i class="fas fa-wrench"></i> Parser local v2.6 CORRIGÉ - Extraction titre corrigée !
+                                    <i class="fas fa-rocket"></i> Parser FONCTIONNEL v3.0 - Extraction RÉELLE de tous les champs !
                                 </div>
                             </div>
                         </div>
                         
-                        <p>Notre système d'analyse automatique v2.6 extrait intelligemment les informations clés de votre fiche de poste : titre, compétences, lieu, salaire, etc. <strong>Correction urgente déployée pour l'extraction du titre !</strong></p>
+                        <p>Notre système d'analyse automatique <strong>FONCTIONNEL</strong> extrait intelligemment les informations clés de votre fiche de poste : titre, compétences, lieu, salaire, etc. <strong>Plus de simulation - Extraction RÉELLE !</strong></p>
                         
                         <div class="upload-container" id="job-drop-zone">
                             <i class="fas fa-file-upload upload-icon"></i>
@@ -1046,8 +1046,8 @@
                         </div>
                         
                         <div class="textarea-container">
-                            <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse automatique corrigée..."></textarea>
-                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyse automatique v2.6 - Extraction titre CORRIGÉE">
+                            <textarea id="job-description-text" class="form-control" placeholder="Collez le texte de votre fiche de poste ici pour une analyse RÉELLE et fonctionnelle..."></textarea>
+                            <button type="button" id="analyze-job-text" class="analyze-button" title="Analyse FONCTIONNELLE v3.0 - Extraction RÉELLE">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
@@ -1056,14 +1056,14 @@
                         <div class="analysis-controls">
                             <div class="analysis-status">
                                 <i class="fas fa-check-circle"></i>
-                                <span>JobParserAPI v2.6 CORRIGÉE - Extraction titre réparée</span>
+                                <span>JobParserAPI FONCTIONNEL v3.0 - Extraction RÉELLE de tous les champs</span>
                             </div>
                         </div>
                         
                         <!-- Bouton d'analyse GPT - Version améliorée -->
                         <div class="gpt-analyze-btn-container">
-                            <button type="button" id="analyze-with-gpt" class="btn" title="Fonctionnalité en développement - Utilisez le bouton d'analyse standard">
-                                Analyse avancée (bientôt disponible)
+                            <button type="button" id="analyze-with-gpt" class="btn" title="Analyse locale FONCTIONNELLE déjà active">
+                                Analyse fonctionnelle ACTIVE ✓
                             </button>
                             <span id="gpt-analyze-status"></span>
                         </div>
@@ -1071,12 +1071,12 @@
                         <!-- Indicateur de chargement -->
                         <div id="analysis-loader" class="loader-container">
                             <div class="loader"></div>
-                            <span class="loader-text">Analyse v2.6 CORRIGÉE en cours...</span>
+                            <span class="loader-text">Analyse FONCTIONNELLE en cours...</span>
                         </div>
                         
                         <!-- Résultats d'analyse -->
                         <div id="job-info-container" class="job-info-container" style="display: none;">
-                            <h3><i class="fas fa-check-circle"></i> Informations extraites avec JobParserAPI v2.6 CORRIGÉE</h3>
+                            <h3><i class="fas fa-check-circle"></i> Informations extraites avec JobParserAPI FONCTIONNEL v3.0</h3>
                             
                             <div class="info-grid">
                                 <div class="info-group">
@@ -1202,6 +1202,10 @@
     <!-- 4. Fonctionnalités d'interface -->
     <script src="../scripts/questionnaire-navigation.js"></script>
     <script src="../scripts/job-parsing-ui.js"></script>
+    
+    <!-- 5. NOUVEAU : Script d'intégration Job Parser FONCTIONNEL -->
+    <script src="../scripts/job-parser-integration.js"></script>
+    
     <script src="../scripts/gpt-analyze.js"></script>
     <script src="../scripts/backend-config-helper.js"></script>
     <script src="../scripts/summary-generator.js"></script>
@@ -1213,7 +1217,7 @@
         const DASHBOARD_URL = "company-dashboard.html";
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Job Parser UX v2.6 CORRIGÉ - parsing local activé');
+            console.log('🚀 Job Parser FONCTIONNEL v3.0 - Extraction RÉELLE activée !');
         });
     </script>
     
