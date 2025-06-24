@@ -1,0 +1,15 @@
+CANDIDAT TEST
+Email: test@example.com
+Téléphone: +33123456789
+
+EXPÉRIENCE PAGE 1:
+- Développeur Senior (2023-2025) chez TechCorp
+- Développeur (2021-2023) chez StartupInc
+
+FORMATION PAGE 2:
+- Master Informatique (2021) - Université Paris
+- Licence Info (2019) - IUT Paris
+
+COMPÉTENCES:
+- Python, JavaScript, React
+- PostgreSQL, Docker
