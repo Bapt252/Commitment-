@@ -1271,6 +1271,51 @@ if (typeof pdfjsLib !== 'undefined') {
     console.log('✅ PDF.js configuré');
 }
 
+// 🛠️ FONCTION CORRIGÉE POUR GÉRER L'UPLOAD DE FICHIER
+function handleFileUpload(file) {
+    console.log('📁 Fichier sélectionné:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+    updateDebug(`📁 Fichier sélectionné: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+    
+    // Vérification du fichier
+    if (!file) {
+        console.error('❌ Aucun fichier sélectionné');
+        return;
+    }
+    
+    // Vérification de la taille (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('❌ Le fichier est trop volumineux (max 10MB)');
+        return;
+    }
+    
+    // Vérification du format
+    const allowedTypes = ['.pdf', '.docx', '.doc', '.txt'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    if (!allowedTypes.includes(fileExtension)) {
+        alert('❌ Format de fichier non supporté. Utilisez PDF, DOCX, DOC ou TXT');
+        return;
+    }
+    
+    // Mettre à jour l'interface
+    const uploadContainer = document.getElementById('uploadContainer');
+    const fileInfo = document.getElementById('fileInfo');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    
+    if (fileName) fileName.textContent = file.name;
+    if (fileSize) fileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+    
+    // Masquer upload, afficher infos et bouton
+    if (uploadContainer) uploadContainer.style.display = 'none';
+    if (fileInfo) fileInfo.style.display = 'flex';
+    if (analyzeBtn) analyzeBtn.style.display = 'flex';
+    
+    console.log('✅ Interface mise à jour - Bouton analyser affiché');
+    updateDebug('✅ Interface mise à jour - Bouton analyser affiché');
+    updateDebug('🎯 Prêt pour analyse VRAIMENT exhaustive');
+}
+
 // 🎯 Fonction principale de parsing CV - VRAIMENT EXHAUSTIF
 async function parseCV() {
     console.log('🚀 Démarrage Parsing VRAIMENT Exhaustif v6.3.3...');
@@ -2495,72 +2540,97 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDebug('✅ API OpenAI préconfigurée détectée');
     }
     
-    // Configuration upload OPTIMISÉE
+    // 🛠️ CONFIGURATION UPLOAD CORRIGÉE
     const uploadContainer = document.getElementById('uploadContainer');
     const fileInput = document.getElementById('cvFile');
     const fileInfo = document.getElementById('fileInfo');
     const removeFile = document.getElementById('removeFile');
     const analyzeBtn = document.getElementById('analyzeBtn');
     
+    // Vérification des éléments
+    console.log('🔍 Vérification éléments DOM:');
+    console.log('uploadContainer:', uploadContainer ? '✅' : '❌');
+    console.log('fileInput:', fileInput ? '✅' : '❌');
+    console.log('fileInfo:', fileInfo ? '✅' : '❌');
+    console.log('analyzeBtn:', analyzeBtn ? '✅' : '❌');
+    
     if (uploadContainer && fileInput) {
-        uploadContainer.onclick = () => {
-            updateDebug('📁 Ouverture sélecteur de fichier...');
-            fileInput.click();
-        };
+        console.log('🔧 Configuration des événements d\'upload...');
         
-        uploadContainer.ondragover = (e) => {
+        // 🎯 ÉVÉNEMENT ONCLICK CORRIGÉ
+        uploadContainer.addEventListener('click', function(e) {
+            console.log('🖱️ Clic détecté sur uploadContainer');
+            updateDebug('🖱️ Clic détecté - Ouverture sélecteur de fichier...');
+            
             e.preventDefault();
+            e.stopPropagation();
+            
+            if (fileInput) {
+                console.log('📁 Ouverture du sélecteur de fichier...');
+                fileInput.click();
+            } else {
+                console.error('❌ Élément fileInput introuvable');
+            }
+        });
+        
+        // 🎯 ÉVÉNEMENT DRAG & DROP
+        uploadContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             uploadContainer.style.borderColor = '#2196F3';
             uploadContainer.classList.add('dragover');
-        };
+        });
         
-        uploadContainer.ondragleave = () => {
-            uploadContainer.style.borderColor = '#ddd';
-            uploadContainer.classList.remove('dragover');
-        };
-        
-        uploadContainer.ondrop = (e) => {
+        uploadContainer.addEventListener('dragleave', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             uploadContainer.style.borderColor = '#ddd';
             uploadContainer.classList.remove('dragover');
+        });
+        
+        uploadContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadContainer.style.borderColor = '#ddd';
+            uploadContainer.classList.remove('dragover');
+            
             const files = e.dataTransfer.files;
             if (files.length > 0) {
+                console.log('📁 Fichier déposé:', files[0].name);
+                updateDebug(`📁 Fichier déposé: ${files[0].name}`);
+                // Mettre le fichier dans l'input
+                fileInput.files = files;
                 handleFileUpload(files[0]);
             }
-        };
+        });
         
-        fileInput.onchange = (e) => {
+        // 🎯 ÉVÉNEMENT CHANGE SUR INPUT FILE
+        fileInput.addEventListener('change', function(e) {
+            console.log('📁 Fichier sélectionné via input:', e.target.files.length);
             if (e.target.files.length > 0) {
+                console.log('📁 Fichier:', e.target.files[0].name);
+                updateDebug(`📁 Fichier choisi: ${e.target.files[0].name}`);
                 handleFileUpload(e.target.files[0]);
             }
-        };
+        });
+        
+        console.log('✅ Événements d\'upload configurés');
+        updateDebug('✅ Événements d\'upload configurés');
+    } else {
+        console.error('❌ Éléments DOM manquants pour l\'upload');
+        updateDebug('❌ Éléments DOM manquants pour l\'upload');
     }
-    
-    // Fonction handleFileUpload VRAIMENT optimisée
-    window.handleFileUpload = function(file) {
-        updateDebug(`📁 Fichier sélectionné: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
-        
-        // Afficher les infos du fichier
-        document.getElementById('fileName').textContent = file.name;
-        document.getElementById('fileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-        
-        // Masquer upload, afficher infos et bouton
-        uploadContainer.style.display = 'none';
-        fileInfo.style.display = 'flex';
-        analyzeBtn.style.display = 'flex';
-        
-        updateDebug('✅ Interface mise à jour - Bouton analyser affiché');
-        updateDebug('🎯 Prêt pour analyse VRAIMENT exhaustive');
-    };
     
     // Supprimer fichier
     if (removeFile) {
-        removeFile.onclick = () => {
+        removeFile.addEventListener('click', function() {
+            console.log('🗑️ Suppression fichier...');
             updateDebug('🗑️ Suppression fichier...');
-            fileInput.value = '';
-            fileInfo.style.display = 'none';
-            uploadContainer.style.display = 'flex';
-            analyzeBtn.style.display = 'none';
+            
+            if (fileInput) fileInput.value = '';
+            if (fileInfo) fileInfo.style.display = 'none';
+            if (uploadContainer) uploadContainer.style.display = 'flex';
+            if (analyzeBtn) analyzeBtn.style.display = 'none';
             
             // Masquer tous les résultats
             ['parsedData', 'parsingStats', 'successMessage', 'errorMessage', 'debugInfo'].forEach(id => {
@@ -2569,9 +2639,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // Reset debug
-            document.getElementById('debugContent').innerHTML = '';
+            const debugContent = document.getElementById('debugContent');
+            if (debugContent) debugContent.innerHTML = '';
             updateDebug('🔄 Interface réinitialisée');
-        };
+        });
     }
     
     // Navigation
@@ -2579,17 +2650,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const skipBtn = document.getElementById('skipBtn');
     
     if (nextBtn) {
-        nextBtn.onclick = () => {
+        nextBtn.addEventListener('click', function() {
             updateDebug('🚀 Navigation vers questionnaire...');
             navigateToQuestionnaire();
-        };
+        });
     }
     
     if (skipBtn) {
-        skipBtn.onclick = () => {
+        skipBtn.addEventListener('click', function() {
             updateDebug('⏭️ Étape ignorée - Navigation vers questionnaire...');
             navigateToQuestionnaire();
-        };
+        });
     }
     
     updateDebug('✅ PARSING VRAIMENT EXHAUSTIF v6.3.3 initialisé avec succès !');
