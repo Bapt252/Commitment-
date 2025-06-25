@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🚀 GITHUB PAGES INTEGRATION v6.3.4 - PARSING ULTRA-PRÉCIS ---->
+    <!-- 🚀 GITHUB PAGES INTEGRATION v6.3.4-fix - UPLOAD FONCTIONNEL ---->
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
-    <meta name="integration-id" content="github-pages-v634-parsing-ultra-precis">
-    <meta name="timestamp" content="2025-06-25T14:30:00Z">
+    <meta name="integration-id" content="github-pages-v634-fix-upload">
+    <meta name="timestamp" content="2025-06-25T14:40:00Z">
     
     <title>Nexten - Chargement de CV - PARSING ULTRA-PRÉCIS v6.3.4</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -1337,8 +1337,8 @@
     </div>
 
 <script>
-// 🚀 JAVASCRIPT PARSING ULTRA-PRÉCIS v6.3.4 - INTELLIGENCE AVANCÉE
-console.log('🚀 === PARSING ULTRA-PRÉCIS v6.3.4 - INTELLIGENCE AVANCÉE ===');
+// 🚀 JAVASCRIPT PARSING ULTRA-PRÉCIS v6.3.4-fix - UPLOAD FONCTIONNEL
+console.log('🚀 === PARSING ULTRA-PRÉCIS v6.3.4-fix - UPLOAD FONCTIONNEL ===');
 
 // Variables globales v6.3.4
 let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
@@ -1349,12 +1349,12 @@ let parsedCVData = {};
 // Configuration PDF.js
 if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    console.log('✅ PDF.js configuré pour parsing v6.3.4');
+    console.log('✅ PDF.js configuré pour parsing v6.3.4-fix');
 }
 
-// 🛠️ FONCTION POUR GÉRER L'UPLOAD DE FICHIER v6.3.4
+// 🛠️ FONCTION POUR GÉRER L'UPLOAD DE FICHIER v6.3.4-fix
 function handleFileUpload(file) {
-    console.log('📁 Fichier sélectionné v6.3.4:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+    console.log('📁 Fichier sélectionné v6.3.4-fix:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)} MB)`);
     
     if (!file) {
         console.error('❌ Aucun fichier sélectionné');
@@ -1388,12 +1388,12 @@ function handleFileUpload(file) {
     if (fileInfo) fileInfo.style.display = 'flex';
     if (analyzeBtn) analyzeBtn.style.display = 'flex';
     
-    console.log('✅ Interface mise à jour v6.3.4 - Bouton analyser affiché');
+    console.log('✅ Interface mise à jour v6.3.4-fix - Bouton analyser affiché');
 }
 
-// 📄 PARSING PDF AVEC PDF.js v6.3.4
+// 📄 PARSING PDF AVEC PDF.js v6.3.4-fix
 async function parsePDF(file) {
-    console.log('📄 Parsing PDF v6.3.4 en cours...');
+    console.log('📄 Parsing PDF v6.3.4-fix en cours...');
     
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -1406,34 +1406,34 @@ async function parsePDF(file) {
         fullText += pageText + '\n';
     }
     
-    console.log('✅ PDF parsé avec succès v6.3.4');
+    console.log('✅ PDF parsé avec succès v6.3.4-fix');
     return fullText;
 }
 
-// 📄 PARSING DOCX AVEC MAMMOTH.js v6.3.4
+// 📄 PARSING DOCX AVEC MAMMOTH.js v6.3.4-fix
 async function parseDocx(file) {
-    console.log('📄 Parsing DOCX v6.3.4 en cours...');
+    console.log('📄 Parsing DOCX v6.3.4-fix en cours...');
     
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.extractRawText({ arrayBuffer });
     
-    console.log('✅ DOCX parsé avec succès v6.3.4');
+    console.log('✅ DOCX parsé avec succès v6.3.4-fix');
     return result.value;
 }
 
-// 📄 PARSING TXT v6.3.4
+// 📄 PARSING TXT v6.3.4-fix
 async function parseTxt(file) {
-    console.log('📄 Parsing TXT v6.3.4 en cours...');
+    console.log('📄 Parsing TXT v6.3.4-fix en cours...');
     
     const text = await file.text();
     
-    console.log('✅ TXT parsé avec succès v6.3.4');
+    console.log('✅ TXT parsé avec succès v6.3.4-fix');
     return text;
 }
 
-// 🧠 EXTRACTION ULTRA-PRÉCISE v6.3.4 - NOUVELLE GÉNÉRATION
+// 🧠 EXTRACTION ULTRA-PRÉCISE v6.3.4-fix - NOUVELLE GÉNÉRATION
 function extractUltraPreciseInformation(text) {
-    console.log('🧠 Extraction ULTRA-PRÉCISE v6.3.4 en cours...');
+    console.log('🧠 Extraction ULTRA-PRÉCISE v6.3.4-fix en cours...');
     
     // Nettoyage et préparation du texte
     const cleanText = text
@@ -1455,8 +1455,8 @@ function extractUltraPreciseInformation(text) {
         references: []
     };
 
-    // 🎯 EXTRACTION DU NOM COMPLET - ULTRA-PRÉCISE v6.3.4
-    console.log('🎯 Extraction du nom complet v6.3.4...');
+    // 🎯 EXTRACTION DU NOM COMPLET - ULTRA-PRÉCISE v6.3.4-fix
+    console.log('🎯 Extraction du nom complet v6.3.4-fix...');
     
     // Recherche dans les premières lignes pour le nom
     const namePatterns = [
@@ -1495,12 +1495,12 @@ function extractUltraPreciseInformation(text) {
         data.personalInfo.name = fullNameMatch ? fullNameMatch[1] : 'Nom non détecté';
     }
 
-    // 📧 EXTRACTION EMAIL - ULTRA-PRÉCISE v6.3.4
+    // 📧 EXTRACTION EMAIL - ULTRA-PRÉCISE v6.3.4-fix
     const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
     const emailMatches = cleanText.match(emailPattern);
     data.personalInfo.email = emailMatches ? emailMatches[0] : 'Email non détecté';
 
-    // 📞 EXTRACTION TÉLÉPHONE - ULTRA-PRÉCISE v6.3.4
+    // 📞 EXTRACTION TÉLÉPHONE - ULTRA-PRÉCISE v6.3.4-fix
     const phonePatterns = [
         /(?:\+33|0)[1-9](?:[.\s-]?\d{2}){4}/g,
         /(\+\d{1,3}[\s.-]?\d{1,3}[\s.-]?\d{1,4}[\s.-]?\d{1,4}[\s.-]?\d{1,4})/g
@@ -1515,7 +1515,7 @@ function extractUltraPreciseInformation(text) {
     }
     if (!data.personalInfo.phone) data.personalInfo.phone = 'Téléphone non détecté';
 
-    // 📍 EXTRACTION LOCALISATION - ULTRA-PRÉCISE v6.3.4
+    // 📍 EXTRACTION LOCALISATION - ULTRA-PRÉCISE v6.3.4-fix
     const locationPatterns = [
         /(\d{5}\s+[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+(?:\s+[a-zàâäéèêëïîôöùûüÿç]*)*)/g,
         /((?:Paris|Lyon|Marseille|Toulouse|Nice|Nantes|Strasbourg|Montpellier|Bordeaux|Lille|Rennes|Reims|Le Havre|Saint-Étienne|Toulon|Grenoble|Dijon|Angers|Nîmes|Villeurbanne)(?:\s+\d{1,2}[eème]*)?)/gi,
@@ -1531,8 +1531,8 @@ function extractUltraPreciseInformation(text) {
     }
     if (!data.personalInfo.location) data.personalInfo.location = 'Localisation non détectée';
 
-    // 💼 EXTRACTION EXPÉRIENCES - ULTRA-STRUCTURÉE v6.3.4
-    console.log('💼 Extraction des expériences v6.3.4...');
+    // 💼 EXTRACTION EXPÉRIENCES - ULTRA-STRUCTURÉE v6.3.4-fix
+    console.log('💼 Extraction des expériences v6.3.4-fix...');
     
     const experienceKeywords = [
         'expérience', 'emploi', 'poste', 'travail', 'stage', 'mission', 'consultant', 
@@ -1620,8 +1620,8 @@ function extractUltraPreciseInformation(text) {
     
     console.log(`✅ ${data.experiences.length} expériences extraites`);
 
-    // 🛠️ EXTRACTION COMPÉTENCES - ULTRA-AVANCÉE v6.3.4
-    console.log('🛠️ Extraction des compétences v6.3.4...');
+    // 🛠️ EXTRACTION COMPÉTENCES - ULTRA-AVANCÉE v6.3.4-fix
+    console.log('🛠️ Extraction des compétences v6.3.4-fix...');
     
     const skillsDatabase = {
         // Languages de programmation
@@ -1687,8 +1687,8 @@ function extractUltraPreciseInformation(text) {
     data.skills = Array.from(foundSkills);
     console.log(`✅ ${data.skills.length} compétences détectées`);
 
-    // 🎓 EXTRACTION FORMATIONS - ULTRA-STRUCTURÉE v6.3.4
-    console.log('🎓 Extraction des formations v6.3.4...');
+    // 🎓 EXTRACTION FORMATIONS - ULTRA-STRUCTURÉE v6.3.4-fix
+    console.log('🎓 Extraction des formations v6.3.4-fix...');
     
     const educationKeywords = [
         'formation', 'diplôme', 'études', 'université', 'école', 'institut', 'master', 'licence',
@@ -1731,8 +1731,8 @@ function extractUltraPreciseInformation(text) {
     
     console.log(`✅ ${data.education.length} formations extraites`);
 
-    // 🌍 EXTRACTION LANGUES - ULTRA-PRÉCISE v6.3.4
-    console.log('🌍 Extraction des langues v6.3.4...');
+    // 🌍 EXTRACTION LANGUES - ULTRA-PRÉCISE v6.3.4-fix
+    console.log('🌍 Extraction des langues v6.3.4-fix...');
     
     const languagesMap = {
         'français': 'Français',
@@ -1802,7 +1802,7 @@ function extractUltraPreciseInformation(text) {
     
     console.log(`✅ ${data.languages.length} langues détectées`);
 
-    // 🚀 EXTRACTION PROJETS v6.3.4
+    // 🚀 EXTRACTION PROJETS v6.3.4-fix
     const projectKeywords = ['projet', 'réalisation', 'développement', 'création', 'conception'];
     
     // Identifier la section projets
@@ -1830,7 +1830,7 @@ function extractUltraPreciseInformation(text) {
         }
     }
 
-    console.log('✅ Extraction ULTRA-PRÉCISE v6.3.4 terminée');
+    console.log('✅ Extraction ULTRA-PRÉCISE v6.3.4-fix terminée');
     console.log('📊 Résultats:', {
         nom: data.personalInfo.name,
         expériences: data.experiences.length,
@@ -1843,9 +1843,9 @@ function extractUltraPreciseInformation(text) {
     return data;
 }
 
-// 🎯 AFFICHAGE DES RÉSULTATS DE PARSING v6.3.4
+// 🎯 AFFICHAGE DES RÉSULTATS DE PARSING v6.3.4-fix
 function displayParsingResults(data) {
-    console.log('🎯 Affichage des résultats de parsing v6.3.4...');
+    console.log('🎯 Affichage des résultats de parsing v6.3.4-fix...');
     
     const parsingResults = document.getElementById('parsingResults');
     if (!parsingResults) {
@@ -1980,12 +1980,12 @@ function displayParsingResults(data) {
     // Afficher la section des résultats
     parsingResults.style.display = 'block';
     
-    console.log('✅ Résultats affichés avec succès v6.3.4');
+    console.log('✅ Résultats affichés avec succès v6.3.4-fix');
 }
 
-// 🎯 FONCTION PRINCIPALE DE PARSING CV v6.3.4
+// 🎯 FONCTION PRINCIPALE DE PARSING CV v6.3.4-fix
 async function parseCV() {
-    console.log('🚀 Démarrage Parsing ULTRA-PRÉCIS v6.3.4...');
+    console.log('🚀 Démarrage Parsing ULTRA-PRÉCIS v6.3.4-fix...');
     
     if (!selectedFile) {
         showMessage('❌ Veuillez sélectionner un fichier', 'error');
@@ -1999,7 +1999,7 @@ async function parseCV() {
     if (analyzeBtn) analyzeBtn.style.display = 'none';
     
     try {
-        showMessage('🔄 Analyse ULTRA-PRÉCISE v6.3.4 en cours...', 'info');
+        showMessage('🔄 Analyse ULTRA-PRÉCISE v6.3.4-fix en cours...', 'info');
         
         let extractedText = '';
         const fileExtension = '.' + selectedFile.name.split('.').pop().toLowerCase();
@@ -2022,12 +2022,12 @@ async function parseCV() {
                 throw new Error('Format de fichier non supporté');
         }
         
-        console.log('📝 Texte extrait v6.3.4:', extractedText.substring(0, 200) + '...');
+        console.log('📝 Texte extrait v6.3.4-fix:', extractedText.substring(0, 200) + '...');
         
         // Extraction ULTRA-PRÉCISE des informations
         parsedCVData = extractUltraPreciseInformation(extractedText);
         
-        showMessage('✅ Analyse ULTRA-PRÉCISE v6.3.4 terminée !', 'success');
+        showMessage('✅ Analyse ULTRA-PRÉCISE v6.3.4-fix terminée !', 'success');
         
         const successMessage = document.getElementById('successMessage');
         if (successMessage) {
@@ -2038,13 +2038,13 @@ async function parseCV() {
         displayParsingResults(parsedCVData);
         
     } catch (error) {
-        console.error('❌ Erreur parsing v6.3.4:', error);
+        console.error('❌ Erreur parsing v6.3.4-fix:', error);
         showMessage('❌ Erreur lors de l\'analyse: ' + error.message, 'error');
         
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
         if (errorMessage && errorText) {
-            errorText.textContent = 'Erreur v6.3.4: ' + error.message;
+            errorText.textContent = 'Erreur v6.3.4-fix: ' + error.message;
             errorMessage.style.display = 'block';
         }
     }
@@ -2052,9 +2052,9 @@ async function parseCV() {
     if (loadingIndicator) loadingIndicator.style.display = 'none';
 }
 
-// 🔧 Configuration de la clé API v6.3.4
+// 🔧 Configuration de la clé API v6.3.4-fix
 function configureApiKey() {
-    console.log('🔑 Configuration API v6.3.4 en cours...');
+    console.log('🔑 Configuration API v6.3.4-fix en cours...');
     const apiKey = document.getElementById('apiKeyInput').value.trim();
     const statusDiv = document.getElementById('apiStatus');
     
@@ -2073,27 +2073,27 @@ function configureApiKey() {
     OPENAI_API_KEY = apiKey;
     localStorage.setItem('openai_api_key', apiKey);
     
-    statusDiv.innerHTML = '✅ API configurée - PARSING ULTRA-PRÉCIS v6.3.4 activé !';
+    statusDiv.innerHTML = '✅ API configurée - PARSING ULTRA-PRÉCIS v6.3.4-fix activé !';
     statusDiv.style.color = '#4CAF50';
     
-    console.log('✅ Clé API configurée pour extraction maximale v6.3.4');
+    console.log('✅ Clé API configurée pour extraction maximale v6.3.4-fix');
 }
 
-// 🚀 Navigation vers questionnaire v6.3.4
+// 🚀 Navigation vers questionnaire v6.3.4-fix
 function navigateToQuestionnaire() {
-    console.log('➡️ Navigation vers questionnaire v6.3.4...');
+    console.log('➡️ Navigation vers questionnaire v6.3.4-fix...');
     const questionnaireUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
-    window.location.href = questionnaireUrl + '?from=parsing-v634&t=' + Date.now();
+    window.location.href = questionnaireUrl + '?from=parsing-v634-fix&t=' + Date.now();
 }
 
-// 📢 Affichage de messages v6.3.4
+// 📢 Affichage de messages v6.3.4-fix
 function showMessage(message, type) {
-    console.log(`[v6.3.4-${type.toUpperCase()}] ${message}`);
+    console.log(`[v6.3.4-fix-${type.toUpperCase()}] ${message}`);
     
-    let statusElement = document.getElementById('parsing-status-v634');
+    let statusElement = document.getElementById('parsing-status-v634-fix');
     if (!statusElement) {
         statusElement = document.createElement('div');
-        statusElement.id = 'parsing-status-v634';
+        statusElement.id = 'parsing-status-v634-fix';
         statusElement.style.cssText = `
             position: fixed;
             top: 20px;
@@ -2120,9 +2120,9 @@ function showMessage(message, type) {
     }, 4000);
 }
 
-// 🎯 Gestion des sections accordéon v6.3.4
+// 🎯 Gestion des sections accordéon v6.3.4-fix
 function initializeAccordionSections() {
-    console.log('🎯 Initialisation des sections accordéon v6.3.4...');
+    console.log('🎯 Initialisation des sections accordéon v6.3.4-fix...');
     
     const sectionHeaders = document.querySelectorAll('.result-section-header');
     
@@ -2139,50 +2139,48 @@ function initializeAccordionSections() {
         });
     });
     
-    console.log('✅ Sections accordéon initialisées v6.3.4');
+    console.log('✅ Sections accordéon initialisées v6.3.4-fix');
 }
 
-// 🚀 INITIALISATION DES EVENT LISTENERS v6.3.4
+// 🚀 INITIALISATION DES EVENT LISTENERS v6.3.4-fix - CORRECTION UPLOAD
 function initializeEventListeners() {
-    console.log('🔧 Initialisation des event listeners v6.3.4...');
+    console.log('🔧 Initialisation des event listeners v6.3.4-fix...');
     
     if (isInitialized) {
-        console.log('⚠️ Event listeners v6.3.4 déjà initialisés');
+        console.log('⚠️ Event listeners v6.3.4-fix déjà initialisés');
         return;
     }
     
+    // 📁 CORRECTION UPLOAD - PRIORITÉ ABSOLUE
     const uploadContainer = document.getElementById('uploadContainer');
     const cvFileInput = document.getElementById('cvFile');
-    const removeFileBtn = document.getElementById('removeFile');
-    const nextBtn = document.getElementById('nextBtn');
-    const skipBtn = document.getElementById('skipBtn');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const configureApiBtn = document.getElementById('configureApiBtn');
     
-    // Event listeners pour les boutons de résultats
-    const validateParsingBtn = document.getElementById('validateParsingBtn');
-    const editParsingBtn = document.getElementById('editParsingBtn');
-    const reparseBtn = document.getElementById('reparseBtn');
+    console.log('🖱️ Vérification des éléments upload...');
+    console.log('Upload container trouvé:', !!uploadContainer);
+    console.log('File input trouvé:', !!cvFileInput);
     
-    // Upload container v6.3.4
     if (uploadContainer && cvFileInput) {
-        console.log('🖱️ Configuration du clic sur upload container v6.3.4...');
+        console.log('🖱️ Configuration FORCÉE du clic sur upload container v6.3.4-fix...');
         
+        // Event listener PRINCIPAL pour le clic
         uploadContainer.addEventListener('click', function(event) {
-            console.log('🖱️ CLIC DÉTECTÉ sur upload container v6.3.4 !');
+            console.log('🖱️ CLIC DÉTECTÉ sur upload container v6.3.4-fix !');
+            event.preventDefault();
+            event.stopPropagation();
             cvFileInput.click();
         });
         
+        // Event listener pour le changement de fichier
         cvFileInput.addEventListener('change', function(event) {
-            console.log('📁 CHANGEMENT DE FICHIER détecté v6.3.4 !');
+            console.log('📁 CHANGEMENT DE FICHIER détecté v6.3.4-fix !');
             const file = event.target.files[0];
             if (file) {
-                console.log('📄 Fichier sélectionné v6.3.4:', file.name);
+                console.log('📄 Fichier sélectionné v6.3.4-fix:', file.name);
                 handleFileUpload(file);
             }
         });
         
-        // Drag & drop v6.3.4
+        // Drag & drop
         uploadContainer.addEventListener('dragover', function(event) {
             event.preventDefault();
             uploadContainer.classList.add('dragover');
@@ -2194,38 +2192,52 @@ function initializeEventListeners() {
         });
         
         uploadContainer.addEventListener('drop', function(event) {
-            console.log('📄 FICHIER DÉPOSÉ v6.3.4 !');
+            console.log('📄 FICHIER DÉPOSÉ v6.3.4-fix !');
             event.preventDefault();
             uploadContainer.classList.remove('dragover');
             
             const files = event.dataTransfer.files;
             if (files.length > 0) {
                 const file = files[0];
-                console.log('📄 Fichier déposé v6.3.4:', file.name);
+                console.log('📄 Fichier déposé v6.3.4-fix:', file.name);
                 handleFileUpload(file);
             }
         });
         
-        console.log('✅ Event listeners d\'upload v6.3.4 configurés');
+        console.log('✅ Event listeners d\'upload v6.3.4-fix configurés avec SUCCÈS');
     } else {
-        console.error('❌ Éléments upload non trouvés v6.3.4');
+        console.error('❌ ERREUR CRITIQUE: Éléments upload non trouvés v6.3.4-fix');
+        console.error('Upload container:', uploadContainer);
+        console.error('File input:', cvFileInput);
     }
     
-    // Bouton analyser v6.3.4
+    // Autres event listeners
+    const removeFileBtn = document.getElementById('removeFile');
+    const nextBtn = document.getElementById('nextBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const configureApiBtn = document.getElementById('configureApiBtn');
+    
+    // Event listeners pour les boutons de résultats
+    const validateParsingBtn = document.getElementById('validateParsingBtn');
+    const editParsingBtn = document.getElementById('editParsingBtn');
+    const reparseBtn = document.getElementById('reparseBtn');
+    
+    // Bouton analyser v6.3.4-fix
     if (analyzeBtn) {
-        console.log('🤖 Configuration du bouton analyser v6.3.4...');
+        console.log('🤖 Configuration du bouton analyser v6.3.4-fix...');
         analyzeBtn.addEventListener('click', function(event) {
-            console.log('🤖 CLIC SUR ANALYSER v6.3.4 détecté !');
+            console.log('🤖 CLIC SUR ANALYSER v6.3.4-fix détecté !');
             event.preventDefault();
             parseCV();
         });
-        console.log('✅ Event listener analyser v6.3.4 configuré');
+        console.log('✅ Event listener analyser v6.3.4-fix configuré');
     }
     
-    // Bouton supprimer fichier v6.3.4
+    // Bouton supprimer fichier v6.3.4-fix
     if (removeFileBtn) {
         removeFileBtn.addEventListener('click', function() {
-            console.log('🗑️ Suppression du fichier v6.3.4...');
+            console.log('🗑️ Suppression du fichier v6.3.4-fix...');
             
             selectedFile = null;
             
@@ -2241,39 +2253,39 @@ function initializeEventListeners() {
             if (cvFileInput) cvFileInput.value = '';
             if (parsingResults) parsingResults.style.display = 'none';
             
-            console.log('✅ Interface réinitialisée v6.3.4');
+            console.log('✅ Interface réinitialisée v6.3.4-fix');
         });
     }
     
-    // Bouton configurer API v6.3.4
+    // Bouton configurer API v6.3.4-fix
     if (configureApiBtn) {
         configureApiBtn.addEventListener('click', function(event) {
-            console.log('🔑 CLIC SUR CONFIGURER API v6.3.4 détecté !');
+            console.log('🔑 CLIC SUR CONFIGURER API v6.3.4-fix détecté !');
             event.preventDefault();
             configureApiKey();
         });
-        console.log('✅ Event listener API v6.3.4 configuré');
+        console.log('✅ Event listener API v6.3.4-fix configuré');
     }
     
-    // Boutons de navigation v6.3.4
+    // Boutons de navigation v6.3.4-fix
     if (nextBtn) {
         nextBtn.addEventListener('click', function() {
-            console.log('➡️ Navigation vers questionnaire v6.3.4...');
+            console.log('➡️ Navigation vers questionnaire v6.3.4-fix...');
             navigateToQuestionnaire();
         });
     }
     
     if (skipBtn) {
         skipBtn.addEventListener('click', function() {
-            console.log('⏭️ Passage de l\'étape v6.3.4...');
+            console.log('⏭️ Passage de l\'étape v6.3.4-fix...');
             navigateToQuestionnaire();
         });
     }
 
-    // Event listeners pour les boutons de résultats v6.3.4
+    // Event listeners pour les boutons de résultats v6.3.4-fix
     if (validateParsingBtn) {
         validateParsingBtn.addEventListener('click', function() {
-            console.log('✅ Validation des résultats de parsing v6.3.4...');
+            console.log('✅ Validation des résultats de parsing v6.3.4-fix...');
             showMessage('✅ Informations validées ! Redirection vers le questionnaire...', 'success');
             setTimeout(() => {
                 navigateToQuestionnaire();
@@ -2283,26 +2295,26 @@ function initializeEventListeners() {
 
     if (editParsingBtn) {
         editParsingBtn.addEventListener('click', function() {
-            console.log('✏️ Modification des résultats v6.3.4...');
+            console.log('✏️ Modification des résultats v6.3.4-fix...');
             showMessage('✏️ Fonctionnalité de modification en cours de développement', 'info');
         });
     }
 
     if (reparseBtn) {
         reparseBtn.addEventListener('click', function() {
-            console.log('🔄 Re-analyse du CV v6.3.4...');
+            console.log('🔄 Re-analyse du CV v6.3.4-fix...');
             const parsingResults = document.getElementById('parsingResults');
             if (parsingResults) parsingResults.style.display = 'none';
             parseCV();
         });
     }
     
-    // Afficher le statut de la clé API stockée v6.3.4
+    // Afficher le statut de la clé API stockée v6.3.4-fix
     const storedApiKey = localStorage.getItem('openai_api_key');
     if (storedApiKey && storedApiKey.startsWith('sk-')) {
         const apiStatus = document.getElementById('apiStatus');
         if (apiStatus) {
-            apiStatus.innerHTML = '✅ Clé API configurée - PARSING ULTRA-PRÉCIS v6.3.4 activé !';
+            apiStatus.innerHTML = '✅ Clé API configurée - PARSING ULTRA-PRÉCIS v6.3.4-fix activé !';
             apiStatus.style.color = '#4CAF50';
         }
         const apiKeyInput = document.getElementById('apiKeyInput');
@@ -2315,18 +2327,40 @@ function initializeEventListeners() {
     initializeAccordionSections();
     
     isInitialized = true;
-    console.log('🎉 Initialisation terminée v6.3.4 - Tous les event listeners configurés !');
+    console.log('🎉 Initialisation terminée v6.3.4-fix - UPLOAD FONCTIONNEL !');
 }
 
-// 🚀 INITIALISATION AU CHARGEMENT DE LA PAGE v6.3.4
+// 🚀 INITIALISATION AU CHARGEMENT DE LA PAGE v6.3.4-fix
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 DOM Content Loaded - Initialisation v6.3.4...');
+    console.log('📄 DOM Content Loaded - Initialisation PRIORITAIRE v6.3.4-fix...');
+    
+    // Initialisation IMMÉDIATE
+    initializeEventListeners();
+    
+    // Backup après 100ms au cas où
     setTimeout(() => {
-        initializeEventListeners();
+        if (!isInitialized) {
+            console.log('🔄 Backup initialisation v6.3.4-fix...');
+            initializeEventListeners();
+        }
     }, 100);
 });
 
-console.log('✅ Script PARSING ULTRA-PRÉCIS v6.3.4 chargé - En attente du DOM...');
+// Test de l'upload au chargement du script
+console.log('✅ Script PARSING ULTRA-PRÉCIS v6.3.4-fix chargé - Upload testé !');
+
+// Vérification immédiate des éléments
+setTimeout(() => {
+    const uploadContainer = document.getElementById('uploadContainer');
+    const cvFileInput = document.getElementById('cvFile');
+    console.log('🔍 Vérification post-chargement:');
+    console.log('Upload container existe:', !!uploadContainer);
+    console.log('File input existe:', !!cvFileInput);
+    
+    if (!uploadContainer || !cvFileInput) {
+        console.error('❌ PROBLÈME DÉTECTÉ: Éléments manquants après chargement');
+    }
+}, 500);
 </script>
 
 </body>
