@@ -9,7 +9,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
     <meta name="integration-id" content="github-pages-v633-parsing-vraiment-exhaustif">
-    <meta name="timestamp" content="2025-06-24T20:00:00Z">
+    <meta name="timestamp" content="2025-06-25T15:00:00Z">
     
     <title>Nexten - Chargement de CV - VRAIMENT EXHAUSTIF v6.3.3</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -711,12 +711,13 @@
     </div>
 
 <script>
-// 🚀 JAVASCRIPT CORRIGÉ - VERSION FONCTIONNELLE
-console.log('🚀 === PARSING VRAIMENT EXHAUSTIF v6.3.3 - GITHUB PAGES INTEGRATION ===');
+// 🚀 JAVASCRIPT CORRIGÉ - VERSION FONCTIONNELLE v6.3.4
+console.log('🚀 === PARSING VRAIMENT EXHAUSTIF v6.3.4 - BUG UPLOAD CORRIGÉ ===');
 
 // Variables globales
 let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
 let selectedFile = null;
+let isInitialized = false; // Protection contre la double initialisation
 
 // Configuration PDF.js
 if (typeof pdfjsLib !== 'undefined') {
@@ -771,7 +772,7 @@ function handleFileUpload(file) {
 
 // 🎯 Fonction principale de parsing CV
 async function parseCV() {
-    console.log('🚀 Démarrage Parsing VRAIMENT Exhaustif v6.3.3...');
+    console.log('🚀 Démarrage Parsing VRAIMENT Exhaustif v6.3.4...');
     
     if (!selectedFile) {
         showMessage('❌ Veuillez sélectionner un fichier', 'error');
@@ -828,7 +829,7 @@ function configureApiKey() {
     OPENAI_API_KEY = apiKey;
     localStorage.setItem('openai_api_key', apiKey);
     
-    statusDiv.innerHTML = '✅ API configurée - PARSING VRAIMENT EXHAUSTIF v6.3.3 activé !';
+    statusDiv.innerHTML = '✅ API configurée - PARSING VRAIMENT EXHAUSTIF v6.3.4 activé !';
     statusDiv.style.color = '#4CAF50';
     
     console.log('✅ Clé API configurée pour extraction maximale');
@@ -875,9 +876,15 @@ function showMessage(message, type) {
     }, 4000);
 }
 
-// 🚀 INITIALISATION DES EVENT LISTENERS - VERSION CORRIGÉE
+// 🚀 INITIALISATION DES EVENT LISTENERS - VERSION CORRIGÉE v6.3.4
 function initializeEventListeners() {
-    console.log('🔧 Initialisation des event listeners...');
+    console.log('🔧 Initialisation des event listeners v6.3.4...');
+    
+    // Protection contre la double initialisation
+    if (isInitialized) {
+        console.log('⚠️ Event listeners déjà initialisés, arrêt de la double initialisation');
+        return;
+    }
     
     // Récupérer les éléments
     const uploadContainer = document.getElementById('uploadContainer');
@@ -888,17 +895,16 @@ function initializeEventListeners() {
     const analyzeBtn = document.getElementById('analyzeBtn');
     const configureApiBtn = document.getElementById('configureApiBtn');
     
-    // ✅ UPLOAD CONTAINER - CLIC POUR OUVRIR LE SÉLECTEUR
+    // ✅ UPLOAD CONTAINER - CLIC POUR OUVRIR LE SÉLECTEUR (VERSION CORRIGÉE)
     if (uploadContainer && cvFileInput) {
         console.log('🖱️ Configuration du clic sur upload container...');
         
-        // Event listener pour le clic
+        // Event listener pour le clic - VERSION SIMPLIFIÉE SANS CAPTURE
         uploadContainer.addEventListener('click', function(event) {
             console.log('🖱️ CLIC DÉTECTÉ sur upload container !');
-            event.preventDefault();
-            event.stopPropagation();
+            // Ne pas empêcher la propagation pour éviter les conflits
             cvFileInput.click();
-        }, true);
+        });
         
         // Event listener pour la sélection de fichier
         cvFileInput.addEventListener('change', function(event) {
@@ -1005,7 +1011,7 @@ function initializeEventListeners() {
     if (storedApiKey && storedApiKey.startsWith('sk-')) {
         const apiStatus = document.getElementById('apiStatus');
         if (apiStatus) {
-            apiStatus.innerHTML = '✅ Clé API configurée - PARSING EXHAUSTIF v6.3.3 activé !';
+            apiStatus.innerHTML = '✅ Clé API configurée - PARSING EXHAUSTIF v6.3.4 activé !';
             apiStatus.style.color = '#4CAF50';
         }
         const apiKeyInput = document.getElementById('apiKeyInput');
@@ -1014,29 +1020,21 @@ function initializeEventListeners() {
         }
     }
     
-    console.log('🎉 Initialisation terminée - Tous les event listeners configurés !');
+    // Marquer comme initialisé
+    isInitialized = true;
+    console.log('🎉 Initialisation terminée v6.3.4 - Tous les event listeners configurés !');
 }
 
-// 🚀 INITIALISATION AU CHARGEMENT DE LA PAGE
+// 🚀 INITIALISATION AU CHARGEMENT DE LA PAGE - VERSION UNIQUE
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 DOM Content Loaded - Initialisation...');
-    initializeEventListeners();
-});
-
-// 🚀 INITIALISATION DE SECOURS
-window.addEventListener('load', function() {
-    console.log('🌐 Window Load - Initialisation de secours...');
-    // Attendre un peu puis réinitialiser si nécessaire
+    console.log('📄 DOM Content Loaded - Initialisation v6.3.4...');
+    // Petit délai pour s'assurer que tous les éléments sont chargés
     setTimeout(() => {
-        const uploadContainer = document.getElementById('uploadContainer');
-        if (uploadContainer && !uploadContainer.hasAttribute('data-initialized')) {
-            console.log('🔄 Réinitialisation des event listeners...');
-            initializeEventListeners();
-            uploadContainer.setAttribute('data-initialized', 'true');
-        }
-    }, 500);
+        initializeEventListeners();
+    }, 100);
 });
 
+console.log('✅ Script chargé - En attente du DOM...');
 </script>
 
 </body>
