@@ -635,6 +635,308 @@
             margin-bottom: 0.5rem;
         }
 
+        /* 🎯 STYLES POUR L'AFFICHAGE DES RÉSULTATS DE PARSING v6.3.3 */
+        .parsing-results {
+            display: none;
+            margin-top: 2rem;
+            background: white;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+
+        .parsing-results-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .parsing-results-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .parsing-results-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .parsing-results-content {
+            padding: 0;
+        }
+
+        .result-section {
+            border-bottom: 1px solid var(--gray-200);
+            background: white;
+        }
+
+        .result-section:last-child {
+            border-bottom: none;
+        }
+
+        .result-section-header {
+            background: var(--gray-50);
+            padding: 1rem 1.5rem;
+            border-left: 4px solid var(--primary-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+
+        .result-section-header:hover {
+            background: var(--gray-100);
+        }
+
+        .result-section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 1.1rem;
+        }
+
+        .result-section-icon {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+
+        .result-section-toggle {
+            font-size: 1rem;
+            color: var(--gray-500);
+            transition: transform 0.2s;
+        }
+
+        .result-section.expanded .result-section-toggle {
+            transform: rotate(180deg);
+        }
+
+        .result-section-content {
+            padding: 1.5rem;
+            background: white;
+            display: none;
+        }
+
+        .result-section.expanded .result-section-content {
+            display: block;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .experience-item, .education-item, .project-item, .certification-item {
+            background: var(--gray-50);
+            padding: 1.25rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.2s;
+        }
+
+        .experience-item:hover, .education-item:hover, .project-item:hover, .certification-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .experience-title, .education-title, .project-title, .certification-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .experience-details, .education-details, .project-details, .certification-details {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .skill-tag {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-align: center;
+            border: 1px solid var(--primary-color);
+            transition: all 0.2s;
+        }
+
+        .skill-tag:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .languages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .language-item {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border-left: 3px solid var(--accent-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .language-name {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .language-level {
+            background: var(--accent-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .no-data-message {
+            text-align: center;
+            color: var(--gray-500);
+            font-style: italic;
+            padding: 2rem;
+            background: var(--gray-50);
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+        }
+
+        .parsing-actions {
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #45a049);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--gray-600);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-700);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .recommended-position {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            margin: 1rem 0;
+            font-weight: 600;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: white;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 1rem;
@@ -659,6 +961,26 @@
 
             .exhaustive-parsing-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .result-section-header {
+                padding: 1rem;
+            }
+
+            .result-section-content {
+                padding: 1rem;
+            }
+
+            .parsing-actions {
+                flex-direction: column;
+            }
+
+            .skills-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .stats-summary {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -819,6 +1141,186 @@
             <div class="error-message" id="errorMessage">
                 <i class="fas fa-exclamation-circle"></i>
                 <span id="errorText">Une erreur est survenue lors de l'analyse.</span>
+            </div>
+
+            <!-- 🎯 SECTION D'AFFICHAGE DES RÉSULTATS DE PARSING v6.3.3 -->
+            <div class="parsing-results" id="parsingResults">
+                <div class="parsing-results-header">
+                    <h3>
+                        <i class="fas fa-magic"></i>
+                        Résultats du Parsing VRAIMENT Exhaustif v6.3.3
+                    </h3>
+                    <p>Toutes vos informations ont été extraites avec succès !</p>
+                </div>
+
+                <!-- Statistiques générales -->
+                <div class="stats-summary" id="statsSummary">
+                    <div class="stat-item">
+                        <div class="stat-number" id="experiencesCount">0</div>
+                        <div class="stat-label">Expériences</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="skillsCount">0</div>
+                        <div class="stat-label">Compétences</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="educationCount">0</div>
+                        <div class="stat-label">Formations</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="languagesCount">0</div>
+                        <div class="stat-label">Langues</div>
+                    </div>
+                </div>
+
+                <div class="parsing-results-content">
+                    <!-- 👤 Section Identité -->
+                    <div class="result-section expanded" id="identitySection">
+                        <div class="result-section-header">
+                            <div class="result-section-title">
+                                <i class="fas fa-user result-section-icon"></i>
+                                👤 Informations Personnelles
+                            </div>
+                            <i class="fas fa-chevron-down result-section-toggle"></i>
+                        </div>
+                        <div class="result-section-content">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <div class="info-label">Nom complet</div>
+                                    <div class="info-value" id="identityName">-</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Email</div>
+                                    <div class="info-value" id="identityEmail">-</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Téléphone</div>
+                                    <div class="info-value" id="identityPhone">-</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Localisation</div>
+                                    <div class="info-value" id="identityLocation">-</div>
+                                </div>
+                            </div>
+                            <div class="recommended-position" id="recommendedPosition" style="display: none;">
+                                <i class="fas fa-target"></i>
+                                <strong>Poste Recommandé :</strong> <span id="recommendedPositionText">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 💼 Section Professionnel -->
+                    <div class="result-section" id="professionalSection">
+                        <div class="result-section-header">
+                            <div class="result-section-title">
+                                <i class="fas fa-briefcase result-section-icon"></i>
+                                💼 Expériences Professionnelles
+                            </div>
+                            <i class="fas fa-chevron-down result-section-toggle"></i>
+                        </div>
+                        <div class="result-section-content">
+                            <div id="experiencesList">
+                                <!-- Les expériences seront ajoutées ici dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🛠️ Section Compétences -->
+                    <div class="result-section" id="skillsSection">
+                        <div class="result-section-header">
+                            <div class="result-section-title">
+                                <i class="fas fa-tools result-section-icon"></i>
+                                🛠️ Compétences & Technologies
+                            </div>
+                            <i class="fas fa-chevron-down result-section-toggle"></i>
+                        </div>
+                        <div class="result-section-content">
+                            <div class="skills-grid" id="skillsList">
+                                <!-- Les compétences seront ajoutées ici dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🎓 Section Formation -->
+                    <div class="result-section" id="educationSection">
+                        <div class="result-section-header">
+                            <div class="result-section-title">
+                                <i class="fas fa-graduation-cap result-section-icon"></i>
+                                🎓 Formation & Éducation
+                            </div>
+                            <i class="fas fa-chevron-down result-section-toggle"></i>
+                        </div>
+                        <div class="result-section-content">
+                            <div id="educationList">
+                                <!-- Les formations seront ajoutées ici dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🌍 Section Langues -->
+                    <div class="result-section" id="languagesSection">
+                        <div class="result-section-header">
+                            <div class="result-section-title">
+                                <i class="fas fa-globe result-section-icon"></i>
+                                🌍 Langues Parlées
+                            </div>
+                            <i class="fas fa-chevron-down result-section-toggle"></i>
+                        </div>
+                        <div class="result-section-content">
+                            <div class="languages-grid" id="languagesList">
+                                <!-- Les langues seront ajoutées ici dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🚀 Section Projets (si présents) -->
+                    <div class="result-section" id="projectsSection" style="display: none;">
+                        <div class="result-section-header">
+                            <div class="result-section-title">
+                                <i class="fas fa-rocket result-section-icon"></i>
+                                🚀 Projets & Réalisations
+                            </div>
+                            <i class="fas fa-chevron-down result-section-toggle"></i>
+                        </div>
+                        <div class="result-section-content">
+                            <div id="projectsList">
+                                <!-- Les projets seront ajoutés ici dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🏆 Section Certifications (si présentes) -->
+                    <div class="result-section" id="certificationsSection" style="display: none;">
+                        <div class="result-section-header">
+                            <div class="result-section-title">
+                                <i class="fas fa-certificate result-section-icon"></i>
+                                🏆 Certifications & Accréditations
+                            </div>
+                            <i class="fas fa-chevron-down result-section-toggle"></i>
+                        </div>
+                        <div class="result-section-content">
+                            <div id="certificationsList">
+                                <!-- Les certifications seront ajoutées ici dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="parsing-actions">
+                    <button class="btn-success" id="validateParsingBtn">
+                        <i class="fas fa-check"></i>
+                        ✅ Valider les informations
+                    </button>
+                    <button class="btn-secondary" id="editParsingBtn">
+                        <i class="fas fa-edit"></i>
+                        ✏️ Modifier les informations
+                    </button>
+                    <button class="btn-secondary" id="reparseBtn">
+                        <i class="fas fa-redo"></i>
+                        🔄 Re-analyser le CV
+                    </button>
+                </div>
             </div>
             
             <div class="or-divider">
@@ -1111,6 +1613,167 @@ function extractExhaustiveInformation(text) {
     return data;
 }
 
+// 🎯 AFFICHAGE DES RÉSULTATS DE PARSING v6.3.3
+function displayParsingResults(data) {
+    console.log('🎯 Affichage des résultats de parsing v6.3.3...');
+    
+    const parsingResults = document.getElementById('parsingResults');
+    if (!parsingResults) {
+        console.error('❌ Élément parsingResults non trouvé');
+        return;
+    }
+
+    // Mise à jour des statistiques
+    const experiencesCount = document.getElementById('experiencesCount');
+    const skillsCount = document.getElementById('skillsCount');
+    const educationCount = document.getElementById('educationCount');
+    const languagesCount = document.getElementById('languagesCount');
+
+    if (experiencesCount) experiencesCount.textContent = data.experiences?.length || 0;
+    if (skillsCount) skillsCount.textContent = data.skills?.length || 0;
+    if (educationCount) educationCount.textContent = data.education?.length || 0;
+    if (languagesCount) languagesCount.textContent = data.languages?.length || 0;
+
+    // 👤 Informations personnelles
+    const identityName = document.getElementById('identityName');
+    const identityEmail = document.getElementById('identityEmail');
+    const identityPhone = document.getElementById('identityPhone');
+    const identityLocation = document.getElementById('identityLocation');
+
+    if (identityName) identityName.textContent = data.personalInfo?.name || 'Non trouvé';
+    if (identityEmail) identityEmail.textContent = data.personalInfo?.email || 'Non trouvé';
+    if (identityPhone) identityPhone.textContent = data.personalInfo?.phone || 'Non trouvé';
+    if (identityLocation) identityLocation.textContent = data.personalInfo?.location || 'Non trouvé';
+
+    // 💼 Expériences professionnelles
+    const experiencesList = document.getElementById('experiencesList');
+    if (experiencesList) {
+        experiencesList.innerHTML = '';
+        if (data.experiences && data.experiences.length > 0) {
+            data.experiences.forEach(exp => {
+                const expDiv = document.createElement('div');
+                expDiv.className = 'experience-item';
+                expDiv.innerHTML = `
+                    <div class="experience-title">${exp.title || 'Expérience'}</div>
+                    <div class="experience-details">
+                        ${exp.period ? `<strong>Période :</strong> ${exp.period}<br>` : ''}
+                        ${exp.description ? `<strong>Description :</strong> ${exp.description}` : ''}
+                    </div>
+                `;
+                experiencesList.appendChild(expDiv);
+            });
+        } else {
+            experiencesList.innerHTML = '<div class="no-data-message">Aucune expérience professionnelle détectée</div>';
+        }
+    }
+
+    // 🛠️ Compétences
+    const skillsList = document.getElementById('skillsList');
+    if (skillsList) {
+        skillsList.innerHTML = '';
+        if (data.skills && data.skills.length > 0) {
+            data.skills.forEach(skill => {
+                const skillDiv = document.createElement('div');
+                skillDiv.className = 'skill-tag';
+                skillDiv.textContent = skill;
+                skillsList.appendChild(skillDiv);
+            });
+        } else {
+            skillsList.innerHTML = '<div class="no-data-message">Aucune compétence détectée</div>';
+        }
+    }
+
+    // 🎓 Formations
+    const educationList = document.getElementById('educationList');
+    if (educationList) {
+        educationList.innerHTML = '';
+        if (data.education && data.education.length > 0) {
+            data.education.forEach(edu => {
+                const eduDiv = document.createElement('div');
+                eduDiv.className = 'education-item';
+                eduDiv.innerHTML = `
+                    <div class="education-title">${edu.degree || 'Formation'}</div>
+                    <div class="education-details">
+                        ${edu.institution ? `<strong>Établissement :</strong> ${edu.institution}<br>` : ''}
+                        ${edu.year ? `<strong>Année :</strong> ${edu.year}` : ''}
+                    </div>
+                `;
+                educationList.appendChild(eduDiv);
+            });
+        } else {
+            educationList.innerHTML = '<div class="no-data-message">Aucune formation détectée</div>';
+        }
+    }
+
+    // 🌍 Langues
+    const languagesList = document.getElementById('languagesList');
+    if (languagesList) {
+        languagesList.innerHTML = '';
+        if (data.languages && data.languages.length > 0) {
+            data.languages.forEach(lang => {
+                const langDiv = document.createElement('div');
+                langDiv.className = 'language-item';
+                langDiv.innerHTML = `
+                    <span class="language-name">${lang.language}</span>
+                    <span class="language-level">${lang.level}</span>
+                `;
+                languagesList.appendChild(langDiv);
+            });
+        } else {
+            languagesList.innerHTML = '<div class="no-data-message">Aucune langue détectée</div>';
+        }
+    }
+
+    // 🚀 Projets (affichage conditionnel)
+    const projectsSection = document.getElementById('projectsSection');
+    const projectsList = document.getElementById('projectsList');
+    if (data.projects && data.projects.length > 0) {
+        if (projectsSection) projectsSection.style.display = 'block';
+        if (projectsList) {
+            projectsList.innerHTML = '';
+            data.projects.forEach(project => {
+                const projectDiv = document.createElement('div');
+                projectDiv.className = 'project-item';
+                projectDiv.innerHTML = `
+                    <div class="project-title">${project.name || 'Projet'}</div>
+                    <div class="project-details">
+                        ${project.description ? `<strong>Description :</strong> ${project.description}<br>` : ''}
+                        ${project.technologies && project.technologies.length > 0 ? `<strong>Technologies :</strong> ${project.technologies.join(', ')}` : ''}
+                    </div>
+                `;
+                projectsList.appendChild(projectDiv);
+            });
+        }
+    }
+
+    // 🏆 Certifications (affichage conditionnel)
+    const certificationsSection = document.getElementById('certificationsSection');
+    const certificationsList = document.getElementById('certificationsList');
+    if (data.certifications && data.certifications.length > 0) {
+        if (certificationsSection) certificationsSection.style.display = 'block';
+        if (certificationsList) {
+            certificationsList.innerHTML = '';
+            data.certifications.forEach(cert => {
+                const certDiv = document.createElement('div');
+                certDiv.className = 'certification-item';
+                certDiv.innerHTML = `
+                    <div class="certification-title">${cert.name || 'Certification'}</div>
+                    <div class="certification-details">
+                        ${cert.issuer ? `<strong>Organisme :</strong> ${cert.issuer}<br>` : ''}
+                        ${cert.year ? `<strong>Année :</strong> ${cert.year}` : ''}
+                    </div>
+                `;
+                certificationsList.appendChild(certDiv);
+            });
+        }
+    }
+
+    // Afficher la section des résultats
+    parsingResults.style.display = 'block';
+    
+    console.log('✅ Résultats affichés avec succès v6.3.3');
+}
+
 // 🎯 FONCTION PRINCIPALE DE PARSING CV v6.3.3
 async function parseCV() {
     console.log('🚀 Démarrage Parsing VRAIMENT Exhaustif v6.3.3...');
@@ -1161,6 +1824,9 @@ async function parseCV() {
         if (successMessage) {
             successMessage.style.display = 'block';
         }
+
+        // 🎯 AFFICHAGE DES RÉSULTATS
+        displayParsingResults(parsedCVData);
         
     } catch (error) {
         console.error('❌ Erreur parsing v6.3.3:', error);
@@ -1245,6 +1911,28 @@ function showMessage(message, type) {
     }, 4000);
 }
 
+// 🎯 Gestion des sections accordéon v6.3.3
+function initializeAccordionSections() {
+    console.log('🎯 Initialisation des sections accordéon v6.3.3...');
+    
+    const sectionHeaders = document.querySelectorAll('.result-section-header');
+    
+    sectionHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const section = this.parentElement;
+            const isExpanded = section.classList.contains('expanded');
+            
+            if (isExpanded) {
+                section.classList.remove('expanded');
+            } else {
+                section.classList.add('expanded');
+            }
+        });
+    });
+    
+    console.log('✅ Sections accordéon initialisées v6.3.3');
+}
+
 // 🚀 INITIALISATION DES EVENT LISTENERS v6.3.3
 function initializeEventListeners() {
     console.log('🔧 Initialisation des event listeners v6.3.3...');
@@ -1261,6 +1949,11 @@ function initializeEventListeners() {
     const skipBtn = document.getElementById('skipBtn');
     const analyzeBtn = document.getElementById('analyzeBtn');
     const configureApiBtn = document.getElementById('configureApiBtn');
+    
+    // Event listeners pour les boutons de résultats
+    const validateParsingBtn = document.getElementById('validateParsingBtn');
+    const editParsingBtn = document.getElementById('editParsingBtn');
+    const reparseBtn = document.getElementById('reparseBtn');
     
     // Upload container v6.3.3
     if (uploadContainer && cvFileInput) {
@@ -1331,11 +2024,13 @@ function initializeEventListeners() {
             const fileInfo = document.getElementById('fileInfo');
             const analyzeBtn = document.getElementById('analyzeBtn');
             const cvFileInput = document.getElementById('cvFile');
+            const parsingResults = document.getElementById('parsingResults');
             
             if (uploadContainer) uploadContainer.style.display = 'flex';
             if (fileInfo) fileInfo.style.display = 'none';
             if (analyzeBtn) analyzeBtn.style.display = 'none';
             if (cvFileInput) cvFileInput.value = '';
+            if (parsingResults) parsingResults.style.display = 'none';
             
             console.log('✅ Interface réinitialisée v6.3.3');
         });
@@ -1365,6 +2060,33 @@ function initializeEventListeners() {
             navigateToQuestionnaire();
         });
     }
+
+    // Event listeners pour les boutons de résultats v6.3.3
+    if (validateParsingBtn) {
+        validateParsingBtn.addEventListener('click', function() {
+            console.log('✅ Validation des résultats de parsing v6.3.3...');
+            showMessage('✅ Informations validées ! Redirection vers le questionnaire...', 'success');
+            setTimeout(() => {
+                navigateToQuestionnaire();
+            }, 2000);
+        });
+    }
+
+    if (editParsingBtn) {
+        editParsingBtn.addEventListener('click', function() {
+            console.log('✏️ Modification des résultats v6.3.3...');
+            showMessage('✏️ Fonctionnalité de modification en cours de développement', 'info');
+        });
+    }
+
+    if (reparseBtn) {
+        reparseBtn.addEventListener('click', function() {
+            console.log('🔄 Re-analyse du CV v6.3.3...');
+            const parsingResults = document.getElementById('parsingResults');
+            if (parsingResults) parsingResults.style.display = 'none';
+            parseCV();
+        });
+    }
     
     // Afficher le statut de la clé API stockée v6.3.3
     const storedApiKey = localStorage.getItem('openai_api_key');
@@ -1379,6 +2101,9 @@ function initializeEventListeners() {
             apiKeyInput.value = storedApiKey;
         }
     }
+
+    // Initialiser les sections accordéon
+    initializeAccordionSections();
     
     isInitialized = true;
     console.log('🎉 Initialisation terminée v6.3.3 - Tous les event listeners configurés !');
