@@ -341,6 +341,7 @@
             cursor: pointer;
             text-align: center;
             min-height: 200px;
+            position: relative;
         }
 
         .upload-container:hover {
@@ -710,10 +711,12 @@
     </div>
 
 <script>
+// 🚀 JAVASCRIPT CORRIGÉ - VERSION FONCTIONNELLE
 console.log('🚀 === PARSING VRAIMENT EXHAUSTIF v6.3.3 - GITHUB PAGES INTEGRATION ===');
 
 // Variables globales
 let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
+let selectedFile = null;
 
 // Configuration PDF.js
 if (typeof pdfjsLib !== 'undefined') {
@@ -745,6 +748,9 @@ function handleFileUpload(file) {
         return;
     }
     
+    // Stocker le fichier
+    selectedFile = file;
+    
     // Mettre à jour l'interface
     const uploadContainer = document.getElementById('uploadContainer');
     const fileInfo = document.getElementById('fileInfo');
@@ -767,35 +773,43 @@ function handleFileUpload(file) {
 async function parseCV() {
     console.log('🚀 Démarrage Parsing VRAIMENT Exhaustif v6.3.3...');
     
-    const fileInput = document.getElementById('cvFile');
-    if (!fileInput || !fileInput.files.length) {
+    if (!selectedFile) {
         showMessage('❌ Veuillez sélectionner un fichier', 'error');
         return;
     }
     
-    const file = fileInput.files[0];
-    
     // Afficher le loading
-    document.getElementById('loadingIndicator').style.display = 'flex';
-    document.getElementById('analyzeBtn').style.display = 'none';
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    
+    if (loadingIndicator) loadingIndicator.style.display = 'flex';
+    if (analyzeBtn) analyzeBtn.style.display = 'none';
     
     try {
         // Simuler le parsing pour la démo
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        showMessage('🔄 Analyse en cours...', 'info');
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Afficher un message de succès
         showMessage('✅ Analyse VRAIMENT exhaustive terminée !', 'success');
+        
+        // Afficher le message de succès dans l'interface
+        const successMessage = document.getElementById('successMessage');
+        if (successMessage) {
+            successMessage.style.display = 'block';
+        }
         
     } catch (error) {
         console.error('❌ Erreur parsing:', error);
         showMessage('❌ Erreur lors de l\'analyse', 'error');
     }
     
-    document.getElementById('loadingIndicator').style.display = 'none';
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
 }
 
 // 🔧 Configuration de la clé API
 function configureApiKey() {
+    console.log('🔑 Configuration API en cours...');
     const apiKey = document.getElementById('apiKeyInput').value.trim();
     const statusDiv = document.getElementById('apiStatus');
     
@@ -822,6 +836,7 @@ function configureApiKey() {
 
 // 🚀 Navigation vers questionnaire
 function navigateToQuestionnaire() {
+    console.log('➡️ Navigation vers questionnaire...');
     const questionnaireUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
     window.location.href = questionnaireUrl + '?from=parsing&t=' + Date.now();
 }
@@ -860,10 +875,11 @@ function showMessage(message, type) {
     }, 4000);
 }
 
-// 🚀 INITIALISATION DES EVENT LISTENERS
-document.addEventListener('DOMContentLoaded', function() {
+// 🚀 INITIALISATION DES EVENT LISTENERS - VERSION CORRIGÉE
+function initializeEventListeners() {
     console.log('🔧 Initialisation des event listeners...');
     
+    // Récupérer les éléments
     const uploadContainer = document.getElementById('uploadContainer');
     const cvFileInput = document.getElementById('cvFile');
     const removeFileBtn = document.getElementById('removeFile');
@@ -872,39 +888,45 @@ document.addEventListener('DOMContentLoaded', function() {
     const analyzeBtn = document.getElementById('analyzeBtn');
     const configureApiBtn = document.getElementById('configureApiBtn');
     
-    // ✅ EVENT LISTENER POUR LE CLIC SUR LA ZONE D'UPLOAD
+    // ✅ UPLOAD CONTAINER - CLIC POUR OUVRIR LE SÉLECTEUR
     if (uploadContainer && cvFileInput) {
-        uploadContainer.addEventListener('click', function(e) {
-            console.log('📁 Clic sur zone d\'upload détecté');
-            e.preventDefault();
-            cvFileInput.click();
-        });
+        console.log('🖱️ Configuration du clic sur upload container...');
         
-        // ✅ EVENT LISTENER POUR LA SÉLECTION DE FICHIER
-        cvFileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
+        // Event listener pour le clic
+        uploadContainer.addEventListener('click', function(event) {
+            console.log('🖱️ CLIC DÉTECTÉ sur upload container !');
+            event.preventDefault();
+            event.stopPropagation();
+            cvFileInput.click();
+        }, true);
+        
+        // Event listener pour la sélection de fichier
+        cvFileInput.addEventListener('change', function(event) {
+            console.log('📁 CHANGEMENT DE FICHIER détecté !');
+            const file = event.target.files[0];
             if (file) {
                 console.log('📄 Fichier sélectionné:', file.name);
                 handleFileUpload(file);
             }
         });
         
-        // ✅ EVENT LISTENERS POUR LE DRAG & DROP
-        uploadContainer.addEventListener('dragover', function(e) {
-            e.preventDefault();
+        // Event listeners pour drag & drop
+        uploadContainer.addEventListener('dragover', function(event) {
+            event.preventDefault();
             uploadContainer.classList.add('dragover');
         });
         
-        uploadContainer.addEventListener('dragleave', function(e) {
-            e.preventDefault();
+        uploadContainer.addEventListener('dragleave', function(event) {
+            event.preventDefault();
             uploadContainer.classList.remove('dragover');
         });
         
-        uploadContainer.addEventListener('drop', function(e) {
-            e.preventDefault();
+        uploadContainer.addEventListener('drop', function(event) {
+            console.log('📄 FICHIER DÉPOSÉ !');
+            event.preventDefault();
             uploadContainer.classList.remove('dragover');
             
-            const files = e.dataTransfer.files;
+            const files = event.dataTransfer.files;
             if (files.length > 0) {
                 const file = files[0];
                 console.log('📄 Fichier déposé:', file.name);
@@ -917,10 +939,26 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('❌ Éléments upload non trouvés:', { uploadContainer, cvFileInput });
     }
     
-    // ✅ EVENT LISTENER POUR SUPPRIMER LE FICHIER
+    // ✅ BOUTON ANALYSER
+    if (analyzeBtn) {
+        console.log('🤖 Configuration du bouton analyser...');
+        analyzeBtn.addEventListener('click', function(event) {
+            console.log('🤖 CLIC SUR ANALYSER détecté !');
+            event.preventDefault();
+            parseCV();
+        });
+        console.log('✅ Event listener analyser configuré');
+    } else {
+        console.error('❌ Bouton analyser non trouvé');
+    }
+    
+    // ✅ BOUTON SUPPRIMER FICHIER
     if (removeFileBtn) {
         removeFileBtn.addEventListener('click', function() {
             console.log('🗑️ Suppression du fichier...');
+            
+            // Réinitialiser les variables
+            selectedFile = null;
             
             // Réinitialiser l'interface
             const uploadContainer = document.getElementById('uploadContainer');
@@ -937,23 +975,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // ✅ EVENT LISTENER POUR LE BOUTON ANALYSER
-    if (analyzeBtn) {
-        analyzeBtn.addEventListener('click', function() {
-            console.log('🤖 Démarrage analyse...');
-            parseCV();
-        });
-    }
-    
-    // ✅ EVENT LISTENER POUR CONFIGURER API
+    // ✅ BOUTON CONFIGURER API
     if (configureApiBtn) {
-        configureApiBtn.addEventListener('click', function() {
-            console.log('🔑 Configuration API...');
+        configureApiBtn.addEventListener('click', function(event) {
+            console.log('🔑 CLIC SUR CONFIGURER API détecté !');
+            event.preventDefault();
             configureApiKey();
         });
+        console.log('✅ Event listener API configuré');
     }
     
-    // ✅ EVENT LISTENERS POUR LA NAVIGATION
+    // ✅ BOUTONS DE NAVIGATION
     if (nextBtn) {
         nextBtn.addEventListener('click', function() {
             console.log('➡️ Navigation vers questionnaire...');
@@ -971,12 +1003,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Afficher le statut de la clé API stockée
     const storedApiKey = localStorage.getItem('openai_api_key');
     if (storedApiKey && storedApiKey.startsWith('sk-')) {
-        document.getElementById('apiStatus').innerHTML = '✅ Clé API configurée - PARSING EXHAUSTIF v6.3.3 activé !';
-        document.getElementById('apiStatus').style.color = '#4CAF50';
-        document.getElementById('apiKeyInput').value = storedApiKey;
+        const apiStatus = document.getElementById('apiStatus');
+        if (apiStatus) {
+            apiStatus.innerHTML = '✅ Clé API configurée - PARSING EXHAUSTIF v6.3.3 activé !';
+            apiStatus.style.color = '#4CAF50';
+        }
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        if (apiKeyInput) {
+            apiKeyInput.value = storedApiKey;
+        }
     }
     
-    console.log('🎉 Initialisation terminée - Upload fonctionnel !');
+    console.log('🎉 Initialisation terminée - Tous les event listeners configurés !');
+}
+
+// 🚀 INITIALISATION AU CHARGEMENT DE LA PAGE
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM Content Loaded - Initialisation...');
+    initializeEventListeners();
+});
+
+// 🚀 INITIALISATION DE SECOURS
+window.addEventListener('load', function() {
+    console.log('🌐 Window Load - Initialisation de secours...');
+    // Attendre un peu puis réinitialiser si nécessaire
+    setTimeout(() => {
+        const uploadContainer = document.getElementById('uploadContainer');
+        if (uploadContainer && !uploadContainer.hasAttribute('data-initialized')) {
+            console.log('🔄 Réinitialisation des event listeners...');
+            initializeEventListeners();
+            uploadContainer.setAttribute('data-initialized', 'true');
+        }
+    }, 500);
 });
 
 </script>
