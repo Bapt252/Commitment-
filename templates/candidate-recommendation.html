@@ -10,67 +10,82 @@
     <link rel="stylesheet" href="../static/css/job-parser-styles.css">
     <link rel="stylesheet" href="../static/css/client-questionnaire.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Style supplémentaire pour la recommandation de candidats -->
     <style>
         :root {
-            --purple: #7c3aed;
-            --purple-dark: #5b21b6;
-            --purple-light: #a78bfa;
-            --purple-glass: rgba(124, 58, 237, 0.1);
-            --black: #1f2937;
-            --black-light: #4b5563;
+            --primary: #7c3aed;
+            --primary-light: #a855f7;
+            --primary-dark: #6d28d9;
+            --primary-ultra-light: #f3f0ff;
             --gray: #6b7280;
-            --gray-light: #e5e7eb;
+            --gray-dark: #374151;
+            --gray-light: #d1d5db;
+            --gray-lightest: #f9fafb;
             --white: #ffffff;
-            --cream: #f9fafb;
-            --cream-dark: #f3f4f6;
-            --green: #10b981;
-            --green-light: rgba(16, 185, 129, 0.1);
-            --red: #f43f5e;
-            --red-light: rgba(244, 63, 94, 0.1);
-            --blue: #3b82f6;
-            --blue-light: rgba(59, 130, 246, 0.1);
-            --yellow: #f59e0b;
-            --yellow-light: rgba(245, 158, 11, 0.1);
-            --border-radius-sm: 8px;
-            --border-radius-md: 12px;
-            --border-radius-lg: 16px;
-            --border-radius-xl: 24px;
-            --spacing-xs: 8px;
-            --spacing-sm: 12px;
-            --spacing-md: 16px;
-            --spacing-lg: 24px;
-            --spacing-xl: 32px;
-            --spacing-xxl: 48px;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
-            --transition-sm: all 0.2s ease;
-            --transition-md: all 0.3s ease;
-            --transition-lg: all 0.5s ease;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.12);
+            --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+            --shadow-primary: 0 8px 25px rgba(124, 58, 237, 0.15);
+            
+            /* Border radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-2xl: 24px;
+            
+            /* Transitions */
+            --transition-fast: all 0.15s ease;
+            --transition-normal: all 0.25s ease;
+            --transition-slow: all 0.4s ease;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--cream);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             margin: 0;
             padding: 0;
-            color: var(--black);
+            color: var(--gray-dark);
             line-height: 1.6;
             overflow-x: hidden;
+            min-height: 100vh;
         }
         
-        /* Header avec effet dégradé */
+        /* ===== HEADER MODERNISÉ ===== */
         .header {
-            background: linear-gradient(120deg, var(--purple) 0%, var(--purple-dark) 100%);
-            color: white;
-            padding: 2.5rem 0;
-            text-align: center;
             position: relative;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #5b21b6 100%);
+            color: white;
+            padding: var(--space-3xl) 0;
+            text-align: center;
             overflow: hidden;
-            margin-bottom: 3rem;
+            margin-bottom: var(--space-2xl);
         }
         
         .header::before {
@@ -80,82 +95,408 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.2;
+            background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.05'%3E%3Cpath d='M20 20h20v20H20V20zm40 0h20v20H60V20zm-20 20h20v20H40V40zm20 20h20v20H60V60zm-40 0h20v20H20V60z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.1) 100%);
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
         }
         
         .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            position: relative;
-            z-index: 2;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            margin-bottom: var(--space-md);
+            background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
+            font-weight: 400;
             max-width: 600px;
             margin: 0 auto;
+            opacity: 0.95;
+            line-height: 1.7;
+        }
+        
+        .header-stats {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-xl);
+            margin-top: var(--space-xl);
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-lg);
+            padding: var(--space-md) var(--space-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
             opacity: 0.9;
-            position: relative;
-            z-index: 2;
         }
         
-        /* Container principal */
+        /* ===== CONTAINER PRINCIPAL ===== */
         .main-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 0 1.5rem 3rem;
+            padding: 0 var(--space-lg) var(--space-3xl);
         }
         
-        /* Section de résumé */
+        /* ===== SECTION RÉSUMÉ DU POSTE AMÉLIORÉE ===== */
         .job-summary {
-            background-color: white;
-            border-radius: var(--border-radius-lg);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-md);
-            border-left: 5px solid var(--purple);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-2xl);
+            margin-bottom: var(--space-2xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .job-summary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+        
+        .job-summary-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-lg);
+            border-bottom: 2px solid var(--primary-ultra-light);
+        }
+        
+        .job-summary-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-primary);
         }
         
         .job-summary h2 {
-            color: var(--purple);
-            font-size: 1.6rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--gray-light);
+            color: var(--gray-dark);
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
         }
         
         .job-details {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-xl);
         }
         
         .job-detail {
-            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+            padding: var(--space-lg);
+            background: var(--gray-lightest);
+            border-radius: var(--radius-md);
+            transition: var(--transition-normal);
+            border: 1px solid transparent;
+        }
+        
+        .job-detail:hover {
+            background: var(--primary-ultra-light);
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        
+        .detail-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .detail-content {
+            flex: 1;
         }
         
         .detail-label {
-            font-size: 0.85rem;
+            font-size: 0.875rem;
             font-weight: 600;
             text-transform: uppercase;
             color: var(--gray);
-            margin-bottom: 0.5rem;
+            margin-bottom: 4px;
             letter-spacing: 0.5px;
         }
         
         .detail-value {
-            font-weight: 500;
-            color: var(--black);
-            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-dark);
+            font-size: 1.125rem;
         }
         
-        /* Carte des candidats */
+        /* ===== SÉLECTION DE CANDIDATS AMÉLIORÉE ===== */
+        .selection-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-2xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .selection-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--success), #059669);
+        }
+        
+        .selection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-lg);
+            border-bottom: 2px solid var(--success-light);
+        }
+        
+        .selection-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            color: var(--success);
+        }
+        
+        .selection-title i {
+            font-size: 1.75rem;
+        }
+        
+        .selection-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .selection-count {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .selected-candidates {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-lg);
+        }
+        
+        .selected-candidate {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            background: white;
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            transition: var(--transition-normal);
+            border: 1px solid var(--gray-light);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .selected-candidate:hover {
+            border-color: var(--success);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .selected-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.125rem;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .selected-info {
+            flex: 1;
+        }
+        
+        .selected-name {
+            font-weight: 700;
+            color: var(--gray-dark);
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+        
+        .selected-match {
+            color: var(--gray);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .remove-selected {
+            color: var(--error);
+            cursor: pointer;
+            padding: var(--space-sm);
+            border-radius: 50%;
+            transition: var(--transition-fast);
+            background: transparent;
+        }
+        
+        .remove-selected:hover {
+            background: rgba(239, 68, 68, 0.1);
+            transform: scale(1.1);
+        }
+        
+        /* ===== FILTRES SOPHISTIQUÉS ===== */
+        .filters-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-2xl);
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-lg);
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-dark);
+            white-space: nowrap;
+        }
+        
+        .filter-select {
+            padding: var(--space-sm) var(--space-md);
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            color: var(--gray-dark);
+            background: white;
+            transition: var(--transition-fast);
+            font-weight: 500;
+            min-width: 140px;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .search-container {
+            position: relative;
+            flex-grow: 1;
+            min-width: 280px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-md) var(--space-md) var(--space-md) 2.75rem;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            color: var(--gray-dark);
+            transition: var(--transition-fast);
+            font-weight: 500;
+            background: white;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .search-input::placeholder {
+            color: var(--gray);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: var(--space-md);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 1rem;
+        }
+        
+        /* ===== SECTION CANDIDATS AMÉLIORÉE ===== */
         .candidates-section h2 {
-            color: var(--black);
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
+            color: var(--gray-dark);
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: var(--space-xl);
             position: relative;
             display: inline-block;
         }
@@ -165,73 +506,79 @@
             position: absolute;
             bottom: -8px;
             left: 0;
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
             border-radius: 2px;
         }
         
         .candidate-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: var(--space-xl);
         }
         
+        /* ===== CARTES CANDIDATS PREMIUM ===== */
         .candidate-card {
-            background-color: white;
-            border-radius: var(--border-radius-lg);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-2xl);
             overflow: hidden;
             box-shadow: var(--shadow-md);
-            transition: var(--transition-md);
+            transition: var(--transition-slow);
             position: relative;
             display: flex;
             flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .candidate-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary-light);
         }
         
         .match-indicator {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
+            top: var(--space-lg);
+            right: var(--space-lg);
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
-            background: linear-gradient(120deg, var(--purple) 0%, var(--purple-dark) 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 1.2rem;
-            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
-            z-index: 2;
+            font-weight: 800;
+            font-size: 1.125rem;
+            box-shadow: var(--shadow-primary);
+            z-index: 3;
+            border: 3px solid white;
         }
         
         .candidate-header {
             display: flex;
-            padding: 1.5rem;
-            background-color: var(--purple-glass);
-            gap: 1.2rem;
+            padding: var(--space-xl);
+            background: linear-gradient(135deg, var(--primary-ultra-light) 0%, rgba(124, 58, 237, 0.05) 100%);
+            gap: var(--space-lg);
             position: relative;
+            align-items: center;
         }
         
         .candidate-avatar {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
-            background-color: var(--purple-light);
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 2rem;
-            font-weight: 600;
-            border: 3px solid white;
-            box-shadow: var(--shadow-sm);
+            font-weight: 700;
+            border: 4px solid white;
+            box-shadow: var(--shadow-lg);
             flex-shrink: 0;
         }
         
@@ -239,41 +586,66 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            flex: 1;
         }
         
         .candidate-name {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--black);
-            margin-bottom: 0.3rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--gray-dark);
+            margin-bottom: 4px;
         }
         
         .candidate-title {
-            font-size: 1rem;
+            font-size: 1.125rem;
             color: var(--gray);
-            margin-bottom: 0.5rem;
+            font-weight: 500;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .candidate-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px var(--space-sm);
+            background: var(--success-light);
+            color: var(--success);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .candidate-content {
-            padding: 1.5rem;
+            padding: var(--space-xl);
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: var(--space-lg);
             flex-grow: 1;
         }
         
         .candidate-info-item {
             display: flex;
             align-items: flex-start;
-            gap: 0.8rem;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--gray-lightest);
+            border-radius: var(--radius-md);
+            transition: var(--transition-fast);
+        }
+        
+        .candidate-info-item:hover {
+            background: var(--primary-ultra-light);
         }
         
         .info-icon {
-            color: var(--purple);
-            font-size: 1.1rem;
+            color: var(--primary);
+            font-size: 1.125rem;
             margin-top: 2px;
-            width: 20px;
+            width: 24px;
             text-align: center;
+            flex-shrink: 0;
         }
         
         .info-content {
@@ -281,334 +653,225 @@
         }
         
         .info-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--gray);
-            margin-bottom: 0.2rem;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .info-value {
-            font-weight: 500;
-            color: var(--black);
+            font-weight: 600;
+            color: var(--gray-dark);
+            font-size: 1rem;
         }
         
         .skills-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+            gap: var(--space-sm);
+            margin-top: var(--space-sm);
         }
         
         .skill-tag {
-            background-color: var(--purple-glass);
-            color: var(--purple-dark);
-            font-size: 0.85rem;
-            padding: 0.3rem 0.7rem;
-            border-radius: 20px;
-            font-weight: 500;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            font-size: 0.8rem;
+            padding: 6px var(--space-sm);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+            transition: var(--transition-fast);
+        }
+        
+        .skill-tag:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
         }
         
         .candidate-footer {
-            padding: 1.5rem;
-            background-color: var(--cream-dark);
+            padding: var(--space-xl);
+            background: rgba(248, 250, 252, 0.8);
             border-top: 1px solid var(--gray-light);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: var(--space-md);
         }
         
         .candidate-actions {
             display: flex;
-            gap: 1rem;
+            gap: var(--space-md);
+            flex: 1;
         }
         
+        /* ===== BOUTONS AMÉLIORÉS ===== */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            padding: 0.7rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
+            gap: var(--space-sm);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
+            transition: var(--transition-normal);
+            font-size: 0.875rem;
             border: none;
+            white-space: nowrap;
+            text-decoration: none;
         }
         
         .btn-primary {
-            background-color: var(--purple);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            box-shadow: 0 3px 10px rgba(124, 58, 237, 0.2);
+            box-shadow: var(--shadow-primary);
         }
         
         .btn-primary:hover {
-            background-color: var(--purple-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.25);
         }
         
         .btn-outline {
-            background-color: transparent;
+            background: white;
             color: var(--gray-dark);
-            border: 1px solid var(--gray-light);
+            border: 2px solid var(--gray-light);
         }
         
         .btn-outline:hover {
-            border-color: var(--purple);
-            color: var(--purple);
-            background-color: var(--purple-glass);
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-ultra-light);
         }
         
         .btn-icon {
-            padding: 0.7rem;
+            padding: var(--space-md);
             border-radius: 50%;
+            width: 44px;
+            height: 44px;
         }
         
-        /* Animation de pulsation pour le bouton continuer */
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(124, 58, 237, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
-            }
-        }
-        
+        /* ===== BOUTON CONTINUER AMÉLIORÉ ===== */
         .continue-btn-container {
             text-align: center;
-            margin-top: 3rem;
+            margin-top: var(--space-3xl);
         }
         
         .continue-btn-container .btn-primary {
-            padding: 1rem 2.5rem;
-            font-size: 1.1rem;
-            animation: pulse 2s infinite;
+            padding: var(--space-lg) var(--space-2xl);
+            font-size: 1.125rem;
+            font-weight: 700;
+            border-radius: var(--radius-lg);
+            animation: pulse 3s infinite;
         }
         
-        /* Section des filtres */
-        .filters-section {
-            background-color: white;
-            border-radius: var(--border-radius-md);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: center;
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 8px 25px rgba(124, 58, 237, 0.15);
+            }
+            50% {
+                box-shadow: 0 8px 25px rgba(124, 58, 237, 0.25), 0 0 0 8px rgba(124, 58, 237, 0.1);
+            }
+            100% {
+                box-shadow: 0 8px 25px rgba(124, 58, 237, 0.15);
+            }
         }
         
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
+        /* ===== ANIMATIONS ET ÉTATS DE CHARGEMENT ===== */
+        .loading-state {
+            opacity: 0.6;
+            pointer-events: none;
         }
         
-        .filter-label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--black-light);
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
         }
         
-        .filter-select {
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--gray-light);
-            border-radius: var(--border-radius-sm);
-            font-size: 0.9rem;
-            color: var(--black);
-            background-color: white;
-            transition: var(--transition-sm);
+        .slide-up {
+            animation: slideUp 0.6s ease forwards;
         }
         
-        .filter-select:focus {
-            outline: none;
-            border-color: var(--purple);
-            box-shadow: 0 0 0 2px var(--purple-glass);
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
-        .search-container {
-            position: relative;
-            flex-grow: 1;
-            min-width: 250px;
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
-        .search-input {
-            width: 100%;
-            padding: 0.5rem 1rem 0.5rem 2.5rem;
-            border: 1px solid var(--gray-light);
-            border-radius: var(--border-radius-sm);
-            font-size: 0.9rem;
-            color: var(--black);
-            transition: var(--transition-sm);
+        /* ===== RESPONSIVE DESIGN AMÉLIORÉ ===== */
+        @media (max-width: 1200px) {
+            .candidate-cards {
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            }
         }
         
-        .search-input:focus {
-            outline: none;
-            border-color: var(--purple);
-            box-shadow: 0 0 0 2px var(--purple-glass);
-        }
-        
-        .search-icon {
-            position: absolute;
-            left: 0.8rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-        
-        /* Carte de sélection */
-        .selection-card {
-            background-color: white;
-            border-radius: var(--border-radius-lg);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-md);
-            border-left: 5px solid var(--green);
-        }
-        
-        .selection-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--gray-light);
-        }
-        
-        .selection-title {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            color: var(--green);
-        }
-        
-        .selection-title i {
-            font-size: 1.5rem;
-        }
-        
-        .selection-title h2 {
-            font-size: 1.4rem;
-            margin: 0;
-        }
-        
-        .selection-count {
-            background-color: var(--green-light);
-            color: var(--green);
-            padding: 0.3rem 0.8rem;
-            border-radius: var(--border-radius-sm);
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        
-        .selected-candidates {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        .selected-candidate {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            background-color: var(--cream);
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius-sm);
-            transition: var(--transition-sm);
-        }
-        
-        .selected-candidate:hover {
-            background-color: var(--cream-dark);
-        }
-        
-        .selected-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--purple-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-        
-        .selected-info {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .selected-name {
-            font-weight: 600;
-            color: var(--black);
-            font-size: 0.95rem;
-        }
-        
-        .selected-match {
-            color: var(--gray);
-            font-size: 0.8rem;
-        }
-        
-        .remove-selected {
-            color: var(--red);
-            cursor: pointer;
-            margin-left: 0.5rem;
-            transition: var(--transition-sm);
-        }
-        
-        .remove-selected:hover {
-            transform: scale(1.2);
-        }
-        
-        /* Responsivité */
         @media (max-width: 992px) {
             .job-details {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             }
             
             .candidate-cards {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: var(--space-lg);
+            }
+            
+            .header-stats {
+                gap: var(--space-lg);
             }
         }
         
         @media (max-width: 768px) {
+            .main-container {
+                padding: 0 var(--space-md) var(--space-2xl);
+            }
+            
             .header {
-                padding: 2rem 1rem;
+                padding: var(--space-2xl) 0;
             }
             
-            .header h1 {
-                font-size: 2rem;
+            .header-content {
+                padding: 0 var(--space-md);
             }
             
-            .header p {
-                font-size: 1rem;
-            }
-            
-            .job-summary {
-                padding: 1.5rem;
+            .job-summary,
+            .selection-card,
+            .filters-section {
+                padding: var(--space-lg);
             }
             
             .candidate-cards {
-                gap: 1.5rem;
+                grid-template-columns: 1fr;
+                gap: var(--space-lg);
             }
             
             .filters-section {
                 flex-direction: column;
                 align-items: stretch;
+                gap: var(--space-md);
             }
             
             .filter-group {
                 flex-wrap: wrap;
+                justify-content: space-between;
             }
             
             .search-container {
                 width: 100%;
+            }
+            
+            .selected-candidates {
+                grid-template-columns: 1fr;
             }
         }
         
@@ -617,72 +880,184 @@
                 flex-direction: column;
                 align-items: center;
                 text-align: center;
+                gap: var(--space-md);
             }
             
             .match-indicator {
-                top: 10px;
-                right: 10px;
-                width: 50px;
-                height: 50px;
+                top: var(--space-md);
+                right: var(--space-md);
+                width: 60px;
+                height: 60px;
                 font-size: 1rem;
             }
             
             .candidate-footer {
                 flex-direction: column;
-                gap: 1rem;
+                gap: var(--space-md);
             }
             
             .candidate-actions {
                 width: 100%;
                 justify-content: center;
             }
+            
+            .header-stats {
+                flex-direction: column;
+                gap: var(--space-md);
+            }
+            
+            .stat-item {
+                width: 100%;
+            }
+        }
+        
+        /* ===== MICRO-INTERACTIONS ===== */
+        .candidate-card .skill-tag:nth-child(1) { animation-delay: 0.1s; }
+        .candidate-card .skill-tag:nth-child(2) { animation-delay: 0.2s; }
+        .candidate-card .skill-tag:nth-child(3) { animation-delay: 0.3s; }
+        .candidate-card .skill-tag:nth-child(4) { animation-delay: 0.4s; }
+        .candidate-card .skill-tag:nth-child(5) { animation-delay: 0.5s; }
+        
+        .candidate-card:hover .skill-tag {
+            animation: skillPop 0.3s ease;
+        }
+        
+        @keyframes skillPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* ===== ÉTATS SPÉCIAUX ===== */
+        .candidate-card.selected {
+            border-color: var(--success);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+        }
+        
+        .candidate-card.selected .match-indicator {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+        
+        /* ===== SCROLL SMOOTH ===== */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* ===== ACCESSIBILITÉ ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* ===== FOCUS STATES ===== */
+        .btn:focus,
+        .filter-select:focus,
+        .search-input:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
         }
     </style>
 </head>
 <body>
     <header class="header">
-        <h1>Recommandation de candidats</h1>
-        <p>Voici les candidats qui correspondent le mieux à votre offre d'emploi</p>
+        <div class="header-content">
+            <h1>Recommandation de candidats</h1>
+            <p>Découvrez les candidats qui correspondent parfaitement à votre offre d'emploi grâce à notre algorithme de matching intelligent</p>
+            
+            <div class="header-stats">
+                <div class="stat-item">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Candidats trouvés</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">87%</div>
+                    <div class="stat-label">Matching moyen</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24h</div>
+                    <div class="stat-label">Temps de réponse</div>
+                </div>
+            </div>
+        </div>
     </header>
     
     <div class="main-container">
-        <!-- Récapitulatif du poste -->
+        <!-- Récapitulatif du poste amélioré -->
         <section class="job-summary">
-            <h2>Résumé de votre offre</h2>
+            <div class="job-summary-header">
+                <div class="job-summary-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <h2>Résumé de votre offre d'emploi</h2>
+            </div>
+            
             <div class="job-details">
                 <div class="job-detail">
-                    <div class="detail-label">Titre du poste</div>
-                    <div class="detail-value" id="job-title-summary">Développeur Full Stack</div>
+                    <div class="detail-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="detail-content">
+                        <div class="detail-label">Titre du poste</div>
+                        <div class="detail-value" id="job-title-summary">Développeur Full Stack</div>
+                    </div>
                 </div>
                 
                 <div class="job-detail">
-                    <div class="detail-label">Localisation</div>
-                    <div class="detail-value" id="job-location-summary">Paris</div>
+                    <div class="detail-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="detail-content">
+                        <div class="detail-label">Localisation</div>
+                        <div class="detail-value" id="job-location-summary">Paris</div>
+                    </div>
                 </div>
                 
                 <div class="job-detail">
-                    <div class="detail-label">Type de contrat</div>
-                    <div class="detail-value" id="job-contract-summary">CDI</div>
+                    <div class="detail-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <div class="detail-content">
+                        <div class="detail-label">Type de contrat</div>
+                        <div class="detail-value" id="job-contract-summary">CDI</div>
+                    </div>
                 </div>
                 
                 <div class="job-detail">
-                    <div class="detail-label">Rémunération</div>
-                    <div class="detail-value" id="job-salary-summary">45K€ - 55K€</div>
+                    <div class="detail-icon">
+                        <i class="fas fa-euro-sign"></i>
+                    </div>
+                    <div class="detail-content">
+                        <div class="detail-label">Rémunération</div>
+                        <div class="detail-value" id="job-salary-summary">45K€ - 55K€</div>
+                    </div>
                 </div>
                 
                 <div class="job-detail">
-                    <div class="detail-label">Expérience requise</div>
-                    <div class="detail-value" id="job-experience-summary">3-5 ans</div>
+                    <div class="detail-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="detail-content">
+                        <div class="detail-label">Expérience requise</div>
+                        <div class="detail-value" id="job-experience-summary">3-5 ans</div>
+                    </div>
                 </div>
                 
                 <div class="job-detail">
-                    <div class="detail-label">Date de publication</div>
-                    <div class="detail-value" id="job-date-summary">13 mai 2025</div>
+                    <div class="detail-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="detail-content">
+                        <div class="detail-label">Date de publication</div>
+                        <div class="detail-value" id="job-date-summary">13 mai 2025</div>
+                    </div>
                 </div>
             </div>
         </section>
         
-        <!-- Sélection de candidats -->
+        <!-- Sélection de candidats améliorée -->
         <section class="selection-card" id="selection-container" style="display: none;">
             <div class="selection-header">
                 <div class="selection-title">
@@ -697,31 +1072,31 @@
             </div>
         </section>
         
-        <!-- Filtres -->
+        <!-- Filtres améliorés -->
         <section class="filters-section">
             <div class="filter-group">
-                <span class="filter-label">Trier par:</span>
+                <span class="filter-label">Trier par :</span>
                 <select class="filter-select" id="sort-filter">
-                    <option value="match-desc">Matching (décroissant)</option>
-                    <option value="match-asc">Matching (croissant)</option>
-                    <option value="location">Localisation</option>
-                    <option value="experience">Expérience</option>
+                    <option value="match-desc">🎯 Matching (décroissant)</option>
+                    <option value="match-asc">📈 Matching (croissant)</option>
+                    <option value="location">📍 Localisation</option>
+                    <option value="experience">💼 Expérience</option>
                 </select>
             </div>
             
             <div class="filter-group">
-                <span class="filter-label">Expérience:</span>
+                <span class="filter-label">Expérience :</span>
                 <select class="filter-select" id="experience-filter">
-                    <option value="all">Tous</option>
-                    <option value="junior">Junior (0-2 ans)</option>
-                    <option value="mid">Intermédiaire (3-5 ans)</option>
-                    <option value="senior">Sénior (6+ ans)</option>
+                    <option value="all">👥 Tous les niveaux</option>
+                    <option value="junior">🌱 Junior (0-2 ans)</option>
+                    <option value="mid">🚀 Intermédiaire (3-5 ans)</option>
+                    <option value="senior">⭐ Sénior (6+ ans)</option>
                 </select>
             </div>
             
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input" placeholder="Rechercher par nom ou compétence..." id="search-input">
+                <input type="text" class="search-input" placeholder="Rechercher par nom, compétence ou ville..." id="search-input">
             </div>
         </section>
         
@@ -738,6 +1113,10 @@
                         <div class="candidate-header-content">
                             <h3 class="candidate-name">Jean Dupont</h3>
                             <p class="candidate-title">Développeur Full Stack Senior</p>
+                            <div class="candidate-status">
+                                <i class="fas fa-circle"></i>
+                                Disponible
+                            </div>
                         </div>
                     </div>
                     
@@ -758,7 +1137,7 @@
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Expérience</div>
-                                <div class="info-value">8 ans</div>
+                                <div class="info-value">8 ans d'expérience</div>
                             </div>
                         </div>
                         
@@ -777,7 +1156,7 @@
                                 <i class="fas fa-code"></i>
                             </div>
                             <div class="info-content">
-                                <div class="info-label">Compétences</div>
+                                <div class="info-label">Compétences clés</div>
                                 <div class="skills-container">
                                     <span class="skill-tag">React</span>
                                     <span class="skill-tag">Node.js</span>
@@ -795,10 +1174,10 @@
                                 <i class="fas fa-check"></i> Sélectionner
                             </button>
                             <button class="btn btn-outline view-profile" data-id="1">
-                                <i class="fas fa-user"></i> Profil
+                                <i class="fas fa-user"></i> Voir le profil
                             </button>
                         </div>
-                        <button class="btn btn-outline btn-icon">
+                        <button class="btn btn-outline btn-icon" title="Ajouter aux favoris">
                             <i class="fas fa-bookmark"></i>
                         </button>
                     </div>
@@ -812,6 +1191,10 @@
                         <div class="candidate-header-content">
                             <h3 class="candidate-name">Sophie Laurent</h3>
                             <p class="candidate-title">Développeuse Front-End</p>
+                            <div class="candidate-status">
+                                <i class="fas fa-circle"></i>
+                                Disponible
+                            </div>
                         </div>
                     </div>
                     
@@ -832,7 +1215,7 @@
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Expérience</div>
-                                <div class="info-value">4 ans</div>
+                                <div class="info-value">4 ans d'expérience</div>
                             </div>
                         </div>
                         
@@ -851,7 +1234,7 @@
                                 <i class="fas fa-code"></i>
                             </div>
                             <div class="info-content">
-                                <div class="info-label">Compétences</div>
+                                <div class="info-label">Compétences clés</div>
                                 <div class="skills-container">
                                     <span class="skill-tag">React</span>
                                     <span class="skill-tag">Vue.js</span>
@@ -869,10 +1252,10 @@
                                 <i class="fas fa-check"></i> Sélectionner
                             </button>
                             <button class="btn btn-outline view-profile" data-id="2">
-                                <i class="fas fa-user"></i> Profil
+                                <i class="fas fa-user"></i> Voir le profil
                             </button>
                         </div>
-                        <button class="btn btn-outline btn-icon">
+                        <button class="btn btn-outline btn-icon" title="Ajouter aux favoris">
                             <i class="fas fa-bookmark"></i>
                         </button>
                     </div>
@@ -886,6 +1269,10 @@
                         <div class="candidate-header-content">
                             <h3 class="candidate-name">Thomas Martin</h3>
                             <p class="candidate-title">Développeur JavaScript</p>
+                            <div class="candidate-status">
+                                <i class="fas fa-circle"></i>
+                                Disponible
+                            </div>
                         </div>
                     </div>
                     
@@ -906,7 +1293,7 @@
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Expérience</div>
-                                <div class="info-value">2 ans</div>
+                                <div class="info-value">2 ans d'expérience</div>
                             </div>
                         </div>
                         
@@ -925,7 +1312,7 @@
                                 <i class="fas fa-code"></i>
                             </div>
                             <div class="info-content">
-                                <div class="info-label">Compétences</div>
+                                <div class="info-label">Compétences clés</div>
                                 <div class="skills-container">
                                     <span class="skill-tag">JavaScript</span>
                                     <span class="skill-tag">React</span>
@@ -942,10 +1329,10 @@
                                 <i class="fas fa-check"></i> Sélectionner
                             </button>
                             <button class="btn btn-outline view-profile" data-id="3">
-                                <i class="fas fa-user"></i> Profil
+                                <i class="fas fa-user"></i> Voir le profil
                             </button>
                         </div>
-                        <button class="btn btn-outline btn-icon">
+                        <button class="btn btn-outline btn-icon" title="Ajouter aux favoris">
                             <i class="fas fa-bookmark"></i>
                         </button>
                     </div>
@@ -959,6 +1346,10 @@
                         <div class="candidate-header-content">
                             <h3 class="candidate-name">Claire Leroy</h3>
                             <p class="candidate-title">Développeuse Full Stack</p>
+                            <div class="candidate-status">
+                                <i class="fas fa-circle"></i>
+                                Disponible
+                            </div>
                         </div>
                     </div>
                     
@@ -979,7 +1370,7 @@
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Expérience</div>
-                                <div class="info-value">5 ans</div>
+                                <div class="info-value">5 ans d'expérience</div>
                             </div>
                         </div>
                         
@@ -998,7 +1389,7 @@
                                 <i class="fas fa-code"></i>
                             </div>
                             <div class="info-content">
-                                <div class="info-label">Compétences</div>
+                                <div class="info-label">Compétences clés</div>
                                 <div class="skills-container">
                                     <span class="skill-tag">Angular</span>
                                     <span class="skill-tag">NodeJS</span>
@@ -1015,10 +1406,10 @@
                                 <i class="fas fa-check"></i> Sélectionner
                             </button>
                             <button class="btn btn-outline view-profile" data-id="4">
-                                <i class="fas fa-user"></i> Profil
+                                <i class="fas fa-user"></i> Voir le profil
                             </button>
                         </div>
-                        <button class="btn btn-outline btn-icon">
+                        <button class="btn btn-outline btn-icon" title="Ajouter aux favoris">
                             <i class="fas fa-bookmark"></i>
                         </button>
                     </div>
@@ -1026,10 +1417,12 @@
             </div>
         </section>
         
-        <!-- Bouton continuer -->
+        <!-- Bouton continuer amélioré -->
         <div class="continue-btn-container">
             <button class="btn btn-primary" id="continue-btn" onclick="window.location.href='company-dashboard.html'">
-                Continuer vers le dashboard <i class="fas fa-arrow-right"></i>
+                <i class="fas fa-rocket"></i>
+                Continuer vers le dashboard
+                <i class="fas fa-arrow-right"></i>
             </button>
         </div>
     </div>
@@ -1063,7 +1456,7 @@
                 }
             }
             
-            // Fonction pour gérer la sélection de candidats
+            // Fonction pour gérer la sélection de candidats avec animations améliorées
             function setupCandidateSelection() {
                 const selectButtons = document.querySelectorAll('.select-candidate');
                 const selectedCandidatesContainer = document.getElementById('selected-candidates-container');
@@ -1077,6 +1470,7 @@
                         const candidateId = this.getAttribute('data-id');
                         const candidateName = this.getAttribute('data-name');
                         const candidateMatch = this.getAttribute('data-match');
+                        const candidateCard = this.closest('.candidate-card');
                         
                         // Vérifier si le candidat est déjà sélectionné
                         const alreadySelected = selectedCandidates.find(c => c.id === candidateId);
@@ -1089,6 +1483,9 @@
                             this.innerHTML = '<i class="fas fa-check"></i> Sélectionner';
                             this.classList.remove('btn-outline');
                             this.classList.add('btn-primary');
+                            
+                            // Retirer la classe selected de la carte
+                            candidateCard.classList.remove('selected');
                         } else {
                             // Sinon, l'ajouter
                             selectedCandidates.push({
@@ -1101,6 +1498,15 @@
                             this.innerHTML = '<i class="fas fa-times"></i> Désélectionner';
                             this.classList.remove('btn-primary');
                             this.classList.add('btn-outline');
+                            
+                            // Ajouter la classe selected à la carte
+                            candidateCard.classList.add('selected');
+                            
+                            // Animation de succès
+                            this.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                this.style.transform = 'scale(1)';
+                            }, 150);
                         }
                         
                         // Mise à jour de l'affichage
@@ -1110,22 +1516,51 @@
                 
                 // Fonction pour mettre à jour l'affichage des candidats sélectionnés
                 function updateSelectedCandidatesDisplay() {
-                    // Mise à jour du compteur
-                    selectionCount.textContent = selectedCandidates.length;
+                    // Mise à jour du compteur avec animation
+                    const currentCount = parseInt(selectionCount.textContent);
+                    const newCount = selectedCandidates.length;
                     
-                    // Afficher ou masquer le conteneur de sélection
+                    if (currentCount !== newCount) {
+                        selectionCount.style.transform = 'scale(1.2)';
+                        setTimeout(() => {
+                            selectionCount.textContent = newCount;
+                            selectionCount.style.transform = 'scale(1)';
+                        }, 150);
+                    }
+                    
+                    // Afficher ou masquer le conteneur de sélection avec animation
                     if (selectedCandidates.length > 0) {
-                        selectionContainer.style.display = 'block';
+                        if (selectionContainer.style.display === 'none') {
+                            selectionContainer.style.display = 'block';
+                            selectionContainer.style.opacity = '0';
+                            selectionContainer.style.transform = 'translateY(-20px)';
+                            
+                            setTimeout(() => {
+                                selectionContainer.style.transition = 'all 0.4s ease';
+                                selectionContainer.style.opacity = '1';
+                                selectionContainer.style.transform = 'translateY(0)';
+                            }, 10);
+                        }
                     } else {
-                        selectionContainer.style.display = 'none';
+                        if (selectionContainer.style.display !== 'none') {
+                            selectionContainer.style.transition = 'all 0.4s ease';
+                            selectionContainer.style.opacity = '0';
+                            selectionContainer.style.transform = 'translateY(-20px)';
+                            
+                            setTimeout(() => {
+                                selectionContainer.style.display = 'none';
+                            }, 400);
+                        }
                     }
                     
                     // Vider et reconstruire la liste des candidats sélectionnés
                     selectedCandidatesContainer.innerHTML = '';
                     
-                    selectedCandidates.forEach(candidate => {
+                    selectedCandidates.forEach((candidate, index) => {
                         const candidateElement = document.createElement('div');
                         candidateElement.className = 'selected-candidate';
+                        candidateElement.style.opacity = '0';
+                        candidateElement.style.transform = 'translateY(10px)';
                         
                         // Obtenir les initiales pour l'avatar
                         const initials = candidate.name
@@ -1143,35 +1578,55 @@
                         `;
                         
                         selectedCandidatesContainer.appendChild(candidateElement);
+                        
+                        // Animation d'apparition
+                        setTimeout(() => {
+                            candidateElement.style.transition = 'all 0.3s ease';
+                            candidateElement.style.opacity = '1';
+                            candidateElement.style.transform = 'translateY(0)';
+                        }, index * 100);
                     });
                     
                     // Ajouter des écouteurs pour les boutons de suppression
-                    document.querySelectorAll('.remove-selected').forEach(removeBtn => {
-                        removeBtn.addEventListener('click', function() {
-                            const idToRemove = this.getAttribute('data-id');
-                            
-                            // Retirer de la liste des sélectionnés
-                            selectedCandidates = selectedCandidates.filter(c => c.id !== idToRemove);
-                            
-                            // Mettre à jour le bouton de sélection correspondant
-                            const selectBtn = document.querySelector(`.select-candidate[data-id="${idToRemove}"]`);
-                            if (selectBtn) {
-                                selectBtn.innerHTML = '<i class="fas fa-check"></i> Sélectionner';
-                                selectBtn.classList.remove('btn-outline');
-                                selectBtn.classList.add('btn-primary');
-                            }
-                            
-                            // Mettre à jour l'affichage
-                            updateSelectedCandidatesDisplay();
+                    setTimeout(() => {
+                        document.querySelectorAll('.remove-selected').forEach(removeBtn => {
+                            removeBtn.addEventListener('click', function() {
+                                const idToRemove = this.getAttribute('data-id');
+                                
+                                // Animation de sortie
+                                const candidateElement = this.closest('.selected-candidate');
+                                candidateElement.style.transition = 'all 0.3s ease';
+                                candidateElement.style.opacity = '0';
+                                candidateElement.style.transform = 'translateX(20px)';
+                                
+                                setTimeout(() => {
+                                    // Retirer de la liste des sélectionnés
+                                    selectedCandidates = selectedCandidates.filter(c => c.id !== idToRemove);
+                                    
+                                    // Mettre à jour le bouton de sélection correspondant
+                                    const selectBtn = document.querySelector(`.select-candidate[data-id="${idToRemove}"]`);
+                                    const candidateCard = selectBtn.closest('.candidate-card');
+                                    
+                                    if (selectBtn) {
+                                        selectBtn.innerHTML = '<i class="fas fa-check"></i> Sélectionner';
+                                        selectBtn.classList.remove('btn-outline');
+                                        selectBtn.classList.add('btn-primary');
+                                        candidateCard.classList.remove('selected');
+                                    }
+                                    
+                                    // Mettre à jour l'affichage
+                                    updateSelectedCandidatesDisplay();
+                                }, 300);
+                            });
                         });
-                    });
+                    }, 100);
                     
                     // Sauvegarder les candidats sélectionnés dans sessionStorage
                     sessionStorage.setItem('selectedCandidates', JSON.stringify(selectedCandidates));
                 }
             }
             
-            // Fonction pour configurer les filtres et la recherche
+            // Fonction pour configurer les filtres et la recherche avec animations
             function setupFilters() {
                 const sortFilter = document.getElementById('sort-filter');
                 const experienceFilter = document.getElementById('experience-filter');
@@ -1179,91 +1634,119 @@
                 const candidatesContainer = document.getElementById('candidates-container');
                 const candidateCards = document.querySelectorAll('.candidate-card');
                 
-                // Fonction pour appliquer tous les filtres
+                // Fonction pour appliquer tous les filtres avec animations
                 function applyFilters() {
                     const sortValue = sortFilter.value;
                     const experienceValue = experienceFilter.value;
                     const searchQuery = searchInput.value.toLowerCase();
                     
-                    // Convertir NodeList en Array pour pouvoir trier
-                    let candidatesArray = Array.from(candidateCards);
+                    // Ajouter un état de chargement
+                    candidatesContainer.classList.add('loading-state');
                     
-                    // Appliquer le tri
-                    candidatesArray.sort((a, b) => {
-                        const aMatch = parseInt(a.getAttribute('data-match'));
-                        const bMatch = parseInt(b.getAttribute('data-match'));
-                        const aLocation = a.getAttribute('data-location');
-                        const bLocation = b.getAttribute('data-location');
-                        const aExperience = a.getAttribute('data-experience');
-                        const bExperience = b.getAttribute('data-experience');
+                    setTimeout(() => {
+                        // Convertir NodeList en Array pour pouvoir trier
+                        let candidatesArray = Array.from(candidateCards);
                         
-                        switch (sortValue) {
-                            case 'match-desc':
-                                return bMatch - aMatch;
-                            case 'match-asc':
-                                return aMatch - bMatch;
-                            case 'location':
-                                return aLocation.localeCompare(bLocation);
-                            case 'experience':
-                                // Ordre: junior, mid, senior
-                                const expOrder = { 'junior': 1, 'mid': 2, 'senior': 3 };
-                                return expOrder[aExperience] - expOrder[bExperience];
-                            default:
-                                return 0;
-                        }
-                    });
-                    
-                    // Réorganiser les cartes dans le DOM
-                    candidatesArray.forEach(card => {
-                        // Vérifier le filtre d'expérience
-                        const cardExperience = card.getAttribute('data-experience');
-                        let showByExperience = experienceValue === 'all' || cardExperience === experienceValue;
-                        
-                        // Vérifier la recherche
-                        let showBySearch = true;
-                        if (searchQuery) {
-                            const candidateName = card.querySelector('.candidate-name').textContent.toLowerCase();
-                            const candidateTitle = card.querySelector('.candidate-title').textContent.toLowerCase();
-                            const skills = Array.from(card.querySelectorAll('.skill-tag')).map(s => s.textContent.toLowerCase());
+                        // Appliquer le tri
+                        candidatesArray.sort((a, b) => {
+                            const aMatch = parseInt(a.getAttribute('data-match'));
+                            const bMatch = parseInt(b.getAttribute('data-match'));
+                            const aLocation = a.getAttribute('data-location');
+                            const bLocation = b.getAttribute('data-location');
+                            const aExperience = a.getAttribute('data-experience');
+                            const bExperience = b.getAttribute('data-experience');
                             
-                            const matchesSearch = candidateName.includes(searchQuery) || 
-                                candidateTitle.includes(searchQuery) || 
-                                skills.some(skill => skill.includes(searchQuery));
+                            switch (sortValue) {
+                                case 'match-desc':
+                                    return bMatch - aMatch;
+                                case 'match-asc':
+                                    return aMatch - bMatch;
+                                case 'location':
+                                    return aLocation.localeCompare(bLocation);
+                                case 'experience':
+                                    // Ordre: junior, mid, senior
+                                    const expOrder = { 'junior': 1, 'mid': 2, 'senior': 3 };
+                                    return expOrder[aExperience] - expOrder[bExperience];
+                                default:
+                                    return 0;
+                            }
+                        });
+                        
+                        // Réorganiser les cartes dans le DOM avec animations
+                        candidatesArray.forEach((card, index) => {
+                            // Vérifier le filtre d'expérience
+                            const cardExperience = card.getAttribute('data-experience');
+                            let showByExperience = experienceValue === 'all' || cardExperience === experienceValue;
                             
-                            showBySearch = matchesSearch;
-                        }
+                            // Vérifier la recherche
+                            let showBySearch = true;
+                            if (searchQuery) {
+                                const candidateName = card.querySelector('.candidate-name').textContent.toLowerCase();
+                                const candidateTitle = card.querySelector('.candidate-title').textContent.toLowerCase();
+                                const skills = Array.from(card.querySelectorAll('.skill-tag')).map(s => s.textContent.toLowerCase());
+                                const location = card.getAttribute('data-location').toLowerCase();
+                                
+                                const matchesSearch = candidateName.includes(searchQuery) || 
+                                    candidateTitle.includes(searchQuery) || 
+                                    location.includes(searchQuery) ||
+                                    skills.some(skill => skill.includes(searchQuery));
+                                
+                                showBySearch = matchesSearch;
+                            }
+                            
+                            // Animation de filtrage
+                            if (showByExperience && showBySearch) {
+                                card.style.display = 'flex';
+                                card.style.opacity = '0';
+                                card.style.transform = 'translateY(20px)';
+                                
+                                setTimeout(() => {
+                                    card.style.transition = 'all 0.4s ease';
+                                    card.style.opacity = '1';
+                                    card.style.transform = 'translateY(0)';
+                                }, index * 50);
+                            } else {
+                                card.style.transition = 'all 0.3s ease';
+                                card.style.opacity = '0';
+                                card.style.transform = 'translateY(-10px)';
+                                
+                                setTimeout(() => {
+                                    card.style.display = 'none';
+                                }, 300);
+                            }
+                            
+                            // Déplacer à la fin du conteneur (pour le tri)
+                            candidatesContainer.appendChild(card);
+                        });
                         
-                        // Afficher ou masquer la carte
-                        if (showByExperience && showBySearch) {
-                            card.style.display = 'flex';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                        
-                        // Déplacer à la fin du conteneur (pour le tri)
-                        candidatesContainer.appendChild(card);
-                    });
+                        // Retirer l'état de chargement
+                        setTimeout(() => {
+                            candidatesContainer.classList.remove('loading-state');
+                        }, 500);
+                    }, 200);
                 }
                 
                 // Événements de changement de filtre
                 sortFilter.addEventListener('change', applyFilters);
                 experienceFilter.addEventListener('change', applyFilters);
                 
-                // Recherche avec délai
+                // Recherche avec délai et feedback visuel
                 let searchTimeout;
                 searchInput.addEventListener('input', function() {
                     clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(applyFilters, 300);
+                    
+                    // Ajouter une classe de loading à l'input
+                    this.style.borderColor = 'var(--primary)';
+                    
+                    searchTimeout = setTimeout(() => {
+                        applyFilters();
+                        searchInput.style.borderColor = '';
+                    }, 400);
                 });
                 
                 // Appliquer les filtres au chargement
                 applyFilters();
             }
-            
-            // Initialisation
-            loadJobData();
-            setupCandidateSelection();
-            setupFilters();
             
             // Animation pour les éléments au chargement de la page
             function animateElements() {
@@ -1274,48 +1757,97 @@
                 const continueBtn = document.querySelector('.continue-btn-container');
                 
                 // Fonction pour animer un élément avec délai
-                function animateWithDelay(element, delay) {
+                function animateWithDelay(element, delay, animation = 'slide-up') {
                     setTimeout(() => {
-                        element.style.opacity = '1';
-                        element.style.transform = 'translateY(0)';
+                        element.classList.add(animation);
                     }, delay);
                 }
                 
                 // Définir l'état initial (invisible)
                 [header, jobSummary, filtersSection, ...candidateCards, continueBtn].forEach(el => {
                     el.style.opacity = '0';
-                    el.style.transform = 'translateY(20px)';
-                    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    el.style.transform = 'translateY(30px)';
+                    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
                 });
                 
-                // Animer avec délais
+                // Animer avec délais progressifs
                 animateWithDelay(header, 100);
                 animateWithDelay(jobSummary, 300);
                 animateWithDelay(filtersSection, 500);
                 
-                // Animer les cartes une par une
+                // Animer les cartes avec un délai en cascade
                 candidateCards.forEach((card, index) => {
-                    animateWithDelay(card, 700 + (index * 100));
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 700 + (index * 150));
                 });
                 
                 // Animer le bouton continuer en dernier
-                animateWithDelay(continueBtn, 1200);
+                setTimeout(() => {
+                    continueBtn.style.opacity = '1';
+                    continueBtn.style.transform = 'translateY(0)';
+                }, 1400);
             }
             
-            // Lancer les animations
-            animateElements();
+            // Initialisation
+            loadJobData();
+            setupCandidateSelection();
+            setupFilters();
             
-            // Gérer les boutons de profil
+            // Lancer les animations après un court délai
+            setTimeout(animateElements, 100);
+            
+            // Gérer les boutons de profil avec feedback visuel
             document.querySelectorAll('.view-profile').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
                     const candidateId = this.getAttribute('data-id');
-                    alert('Visualisation du profil du candidat #' + candidateId + ' (À implémenter)');
+                    
+                    // Animation de feedback
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+                    
+                    // Placeholder pour la visualisation du profil
+                    alert('🔍 Visualisation du profil du candidat #' + candidateId + '\n(Fonctionnalité à implémenter)');
                 });
             });
             
-            // Gérer le bouton continuer
+            // Gérer les boutons favoris
+            document.querySelectorAll('.btn-icon').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const icon = this.querySelector('i');
+                    
+                    // Toggle de l'état favori
+                    if (icon.classList.contains('fas')) {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        this.style.color = 'var(--gray)';
+                    } else {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        this.style.color = 'var(--warning)';
+                        
+                        // Animation de succès
+                        this.style.transform = 'scale(1.1)';
+                        setTimeout(() => {
+                            this.style.transform = 'scale(1)';
+                        }, 200);
+                    }
+                });
+            });
+            
+            // Gérer le bouton continuer avec animations
             document.getElementById('continue-btn').addEventListener('click', function(e) {
                 e.preventDefault();
+                
+                // Animation de chargement
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+                this.disabled = true;
                 
                 // Sauvegarder les préférences de recrutement avant de rediriger
                 const selectedCandidates = sessionStorage.getItem('selectedCandidates');
@@ -1323,8 +1855,19 @@
                     console.log('Candidats sélectionnés sauvegardés:', JSON.parse(selectedCandidates));
                 }
                 
-                // Rediriger vers le dashboard
-                window.location.href = 'company-dashboard.html';
+                // Simuler un chargement et rediriger
+                setTimeout(() => {
+                    window.location.href = 'company-dashboard.html';
+                }, 1500);
+            });
+            
+            // Ajouter des effets de parallaxe subtils au header
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.header');
+                if (header) {
+                    header.style.transform = `translateY(${scrolled * 0.5}px)`;
+                }
             });
         });
     </script>
