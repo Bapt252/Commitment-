@@ -20,7 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     
     <style>
-        /* Styles CSS identiques - DESIGN VIOLET CONSERVÉ */
+        /* Styles CSS identiques - DESIGN VIOLET CONSERVÉ + NOUVEAUX STYLES MODERNES */
         :root {
             --primary-color: #7c4dff;
             --primary-light: #e8e3ff;
@@ -36,6 +36,27 @@
             --error-light: #FFEBEE;
             --universal-color: #2196F3;
             --universal-light: #E3F2FD;
+            
+            /* Nouvelles variables pour l'interface moderne */
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --border-radius-lg: 16px;
         }
 
         * {
@@ -424,6 +445,7 @@
             display: none;
             margin-top: 2rem;
             width: 100%;
+            max-width: 1200px;
         }
 
         .parsed-data-title {
@@ -436,6 +458,399 @@
             gap: 0.5rem;
         }
 
+        /* NOUVEAUX STYLES MODERNES POUR LES RÉSULTATS */
+        .success-banner {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-lg);
+            animation: slideInDown 0.6s ease-out;
+        }
+
+        .success-banner .icon {
+            font-size: 1.5rem;
+        }
+
+        .success-banner .content {
+            flex: 1;
+        }
+
+        .success-banner .title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .success-banner .subtitle {
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+
+        .modern-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .modern-stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .modern-stat-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .modern-stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .modern-stat-label {
+            color: var(--gray-600);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+
+        .results-grid {
+            display: grid;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .section-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .section-card:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-4px);
+        }
+
+        .section-header {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+        }
+
+        .section-header .title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-header .icon {
+            font-size: 1.5rem;
+        }
+
+        .section-content {
+            padding: 2rem;
+        }
+
+        /* Styles spécifiques par section */
+        .personal-info .section-header {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .experiences .section-header {
+            background: linear-gradient(135deg, var(--primary-color), #4f46e5);
+        }
+
+        .education .section-header {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+
+        .skills .section-header {
+            background: linear-gradient(135deg, var(--accent-color), #0891b2);
+        }
+
+        .languages .section-header {
+            background: linear-gradient(135deg, var(--secondary-color), #7c3aed);
+        }
+
+        .additional .section-header {
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+        }
+
+        .analysis .section-header {
+            background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .info-item .icon {
+            color: var(--primary-color);
+            font-size: 1.125rem;
+            margin-top: 0.125rem;
+            flex-shrink: 0;
+        }
+
+        .info-item .content {
+            flex: 1;
+        }
+
+        .info-item .label {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-item .value {
+            color: var(--gray-800);
+            font-size: 1rem;
+        }
+
+        .experience-item, .education-item {
+            background: var(--gray-50);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .experience-item:hover, .education-item:hover {
+            background: var(--white);
+            box-shadow: var(--shadow);
+            transform: translateX(4px);
+        }
+
+        .experience-item:last-child, .education-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .item-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .item-company {
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .item-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
+            text-align: right;
+        }
+
+        .item-duration {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .item-location {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .item-description {
+            color: var(--gray-700);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .item-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .skills-category {
+            margin-bottom: 2rem;
+        }
+
+        .skills-category:last-child {
+            margin-bottom: 0;
+        }
+
+        .category-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .skill-tag {
+            background: linear-gradient(135deg, var(--accent-color), #0891b2);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .skill-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .language-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .language-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .language-name {
+            font-weight: 600;
+            color: var(--gray-800);
+            font-size: 1rem;
+        }
+
+        .language-level {
+            background: var(--secondary-color);
+            color: var(--white);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Animations */
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Animation delays pour un effet cascade */
+        .section-card:nth-child(1) { animation-delay: 0.1s; }
+        .section-card:nth-child(2) { animation-delay: 0.2s; }
+        .section-card:nth-child(3) { animation-delay: 0.3s; }
+        .section-card:nth-child(4) { animation-delay: 0.4s; }
+        .section-card:nth-child(5) { animation-delay: 0.5s; }
+        .section-card:nth-child(6) { animation-delay: 0.6s; }
+        .section-card:nth-child(7) { animation-delay: 0.7s; }
+
+        .modern-stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .modern-stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .modern-stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .modern-stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Anciens styles pour compatibilité */
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -443,6 +858,7 @@
             border-radius: var(--border-radius);
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: none; /* Caché par défaut, utilisé seulement en fallback */
         }
 
         .data-table th, .data-table td {
@@ -651,6 +1067,29 @@
             .btn {
                 width: 100%;
             }
+            
+            .section-content {
+                padding: 1.5rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .item-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .item-meta {
+                align-items: flex-start;
+                text-align: left;
+            }
+
+            .modern-stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+            }
         }
     </style>
 </head>
@@ -787,8 +1226,12 @@
                     ✅ EXTRACTION VRAIMENT COMPLÈTE terminée ! Toutes les informations de votre CV ont été extraites.
                 </p>
                 
-                <table class="data-table" id="resultsTable">
-                    <!-- Les résultats s'afficheront ici -->
+                <!-- Container pour l'interface moderne -->
+                <div id="modernResultsContainer"></div>
+                
+                <!-- Tableau de fallback (caché par défaut) -->
+                <table class="data-table" id="resultsTable" style="display: none;">
+                    <!-- Les résultats s'afficheront ici en fallback -->
                 </table>
             </div>
             
@@ -887,8 +1330,8 @@ async function parseCV() {
             analysis = getCompletelyExhaustiveFallbackProfile();
         }
         
-        // Afficher les résultats VRAIMENT exhaustifs
-        displayReallyExhaustiveResults(analysis);
+        // Afficher les résultats VRAIMENT exhaustifs avec la nouvelle interface
+        displayModernResults(analysis);
         showMessage('✅ Analyse VRAIMENT exhaustive terminée !', 'success');
         
     } catch (error) {
@@ -897,7 +1340,7 @@ async function parseCV() {
         
         // En cas d'erreur, utiliser le fallback VRAIMENT exhaustif
         const fallbackData = getCompletelyExhaustiveFallbackProfile();
-        displayReallyExhaustiveResults(fallbackData);
+        displayModernResults(fallbackData);
         showMessage('✅ Profil exhaustif de démonstration chargé', 'success');
     }
     
@@ -1463,11 +1906,385 @@ function getCompletelyExhaustiveFallbackProfile() {
     };
 }
 
-// 📊 Affichage des résultats VRAIMENT exhaustifs
+// 🎨 NOUVELLE FONCTION D'AFFICHAGE MODERNE
+function displayModernResults(data) {
+    updateDebug('🎨 Affichage de l'interface moderne...');
+    
+    const container = document.getElementById('modernResultsContainer');
+    const personalInfo = data.informations_personnelles || {};
+    const experiences = data.experiences_professionnelles || [];
+    const formations = data.formations_education || [];
+    const competences = data.competences_detaillees || {};
+    const langues = data.langues || [];
+    const complements = data.informations_complementaires || {};
+    const analyse = data.analyse_cv || {};
+    
+    // Créer le HTML de l'interface moderne
+    container.innerHTML = `
+        <!-- Banner de succès -->
+        <div class="success-banner">
+            <div class="icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="content">
+                <div class="title">✅ Extraction Complète Réussie !</div>
+                <div class="subtitle">Toutes les informations de votre CV ont été analysées et structurées automatiquement.</div>
+            </div>
+        </div>
+
+        <!-- Statistiques modernes -->
+        <div class="modern-stats-grid">
+            <div class="modern-stat-card">
+                <div class="modern-stat-number">${experiences.length}</div>
+                <div class="modern-stat-label">Expériences</div>
+            </div>
+            <div class="modern-stat-card">
+                <div class="modern-stat-number">${Object.values(competences).flat().filter(s => s && s.length).length}</div>
+                <div class="modern-stat-label">Compétences</div>
+            </div>
+            <div class="modern-stat-card">
+                <div class="modern-stat-number">${formations.length}</div>
+                <div class="modern-stat-label">Formations</div>
+            </div>
+            <div class="modern-stat-card">
+                <div class="modern-stat-number">${langues.length}</div>
+                <div class="modern-stat-label">Langues</div>
+            </div>
+        </div>
+
+        <!-- Grille de résultats modernes -->
+        <div class="results-grid">
+            <!-- Informations Personnelles -->
+            <div class="section-card personal-info">
+                <div class="section-header">
+                    <div class="title">
+                        <i class="fas fa-user icon"></i>
+                        Informations Personnelles
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <i class="fas fa-id-card icon"></i>
+                            <div class="content">
+                                <div class="label">Nom Complet</div>
+                                <div class="value">${personalInfo.nom_complet || 'Non spécifié'}</div>
+                            </div>
+                        </div>
+                        ${personalInfo.age ? `
+                        <div class="info-item">
+                            <i class="fas fa-birthday-cake icon"></i>
+                            <div class="content">
+                                <div class="label">Âge</div>
+                                <div class="value">${personalInfo.age}</div>
+                            </div>
+                        </div>` : ''}
+                        <div class="info-item">
+                            <i class="fas fa-envelope icon"></i>
+                            <div class="content">
+                                <div class="label">Email</div>
+                                <div class="value">${personalInfo.email || 'Non spécifié'}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-phone icon"></i>
+                            <div class="content">
+                                <div class="label">Téléphone</div>
+                                <div class="value">${personalInfo.telephone || 'Non spécifié'}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt icon"></i>
+                            <div class="content">
+                                <div class="label">Localisation</div>
+                                <div class="value">${personalInfo.ville || 'Non spécifié'}${personalInfo.pays ? `, ${personalInfo.pays}` : ''}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-briefcase icon"></i>
+                            <div class="content">
+                                <div class="label">Poste Recherché</div>
+                                <div class="value">${personalInfo.titre_recherche || 'Non spécifié'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expériences Professionnelles -->
+            <div class="section-card experiences">
+                <div class="section-header">
+                    <div class="title">
+                        <i class="fas fa-briefcase icon"></i>
+                        Expériences Professionnelles (${experiences.length})
+                    </div>
+                </div>
+                <div class="section-content">
+                    ${experiences.slice(0, 3).map(exp => `
+                        <div class="experience-item">
+                            <div class="item-header">
+                                <div>
+                                    <div class="item-title">${exp.poste}</div>
+                                    <div class="item-company">${exp.entreprise}</div>
+                                </div>
+                                <div class="item-meta">
+                                    <div class="item-duration">${exp.duree || 'Durée non spécifiée'}</div>
+                                    ${exp.lieu ? `
+                                    <div class="item-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        ${exp.lieu}
+                                    </div>` : ''}
+                                </div>
+                            </div>
+                            ${exp.description_complete ? `<div class="item-description">${exp.description_complete}</div>` : ''}
+                            ${exp.missions && exp.missions.length ? `
+                            <div class="item-tags">
+                                ${exp.missions.map(mission => `<span class="tag">${mission}</span>`).join('')}
+                            </div>` : ''}
+                        </div>
+                    `).join('')}
+                    ${experiences.length > 3 ? `
+                    <div style="text-align: center; margin-top: 1rem; padding: 1rem; background: var(--gray-50); border-radius: var(--border-radius); color: var(--gray-600);">
+                        <i class="fas fa-plus-circle"></i>
+                        Et ${experiences.length - 3} expériences supplémentaires détectées...
+                    </div>` : ''}
+                </div>
+            </div>
+
+            <!-- Formations -->
+            <div class="section-card education">
+                <div class="section-header">
+                    <div class="title">
+                        <i class="fas fa-graduation-cap icon"></i>
+                        Formations & Education (${formations.length})
+                    </div>
+                </div>
+                <div class="section-content">
+                    ${formations.map(ed => `
+                        <div class="education-item">
+                            <div class="item-header">
+                                <div>
+                                    <div class="item-title">${ed.intitule_complet}</div>
+                                    <div class="item-company">${ed.etablissement}</div>
+                                </div>
+                                <div class="item-meta">
+                                    <div class="item-duration">${ed.annee_fin}</div>
+                                    ${ed.ville ? `
+                                    <div class="item-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        ${ed.ville}
+                                    </div>` : ''}
+                                </div>
+                            </div>
+                            ${ed.notes_importantes ? `<div class="item-description">${ed.notes_importantes}</div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- Compétences -->
+            <div class="section-card skills">
+                <div class="section-header">
+                    <div class="title">
+                        <i class="fas fa-cogs icon"></i>
+                        Compétences Détaillées
+                    </div>
+                </div>
+                <div class="section-content">
+                    ${Object.entries(competences).map(([category, skills]) => {
+                        if (!skills || (Array.isArray(skills) && skills.length === 0)) return '';
+                        const skillsList = Array.isArray(skills) ? skills : (typeof skills === 'object' ? Object.entries(skills).map(([k,v]) => `${k}: ${v}`) : [skills]);
+                        return `
+                        <div class="skills-category">
+                            <div class="category-title">
+                                <i class="fas fa-${getCategoryIcon(category)}"></i>
+                                ${formatCategoryName(category)}
+                            </div>
+                            <div class="skills-list">
+                                ${skillsList.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>
+
+            <!-- Langues -->
+            <div class="section-card languages">
+                <div class="section-header">
+                    <div class="title">
+                        <i class="fas fa-globe icon"></i>
+                        Langues (${langues.length})
+                    </div>
+                </div>
+                <div class="section-content">
+                    ${langues.map(lang => `
+                        <div class="language-item">
+                            <div class="language-name">
+                                <i class="fas fa-flag"></i>
+                                ${typeof lang === 'object' ? lang.langue : lang}
+                            </div>
+                            <div class="language-level">${typeof lang === 'object' ? (lang.niveau_global || lang.niveau || 'Non spécifié') : 'Niveau non spécifié'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            ${Object.keys(complements).length > 0 ? `
+            <!-- Informations Complémentaires -->
+            <div class="section-card additional">
+                <div class="section-header">
+                    <div class="title">
+                        <i class="fas fa-info-circle icon"></i>
+                        Informations Complémentaires
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="info-grid">
+                        ${Object.entries(complements).filter(([key, value]) => value && (Array.isArray(value) ? value.length > 0 : true)).map(([key, value]) => `
+                            <div class="info-item">
+                                <i class="fas fa-${getComplementIcon(key)} icon"></i>
+                                <div class="content">
+                                    <div class="label">${formatCategoryName(key)}</div>
+                                    <div class="value">${Array.isArray(value) ? value.join(', ') : value}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>` : ''}
+
+            ${Object.keys(analyse).length > 0 ? `
+            <!-- Analyse du Profil -->
+            <div class="section-card analysis">
+                <div class="section-header">
+                    <div class="title">
+                        <i class="fas fa-chart-line icon"></i>
+                        Analyse du Profil
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="info-grid">
+                        ${Object.entries(analyse).filter(([key, value]) => value && (Array.isArray(value) ? value.length > 0 : true)).map(([key, value]) => `
+                            <div class="info-item">
+                                <i class="fas fa-${getAnalysisIcon(key)} icon"></i>
+                                <div class="content">
+                                    <div class="label">${formatCategoryName(key)}</div>
+                                    <div class="value">${Array.isArray(value) ? value.join(', ') : value}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>` : ''}
+        </div>
+    `;
+    
+    // Animer les compteurs
+    setTimeout(() => {
+        animateCounters();
+    }, 500);
+    
+    // Masquer l'ancien tableau et afficher les nouveaux résultats
+    document.getElementById('resultsTable').style.display = 'none';
+    document.getElementById('parsedData').style.display = 'block';
+    document.getElementById('parsingStats').style.display = 'block';
+    
+    // Mettre à jour les anciens compteurs
+    document.getElementById('expCount').textContent = experiences.length;
+    document.getElementById('skillCount').textContent = Object.values(competences).flat().filter(s => s && s.length).length;
+    document.getElementById('educationCount').textContent = formations.length;
+    document.getElementById('languageCount').textContent = langues.length;
+    
+    updateDebug('✅ Interface moderne affichée avec succès');
+}
+
+// Fonctions utilitaires pour les icônes
+function getCategoryIcon(category) {
+    const icons = {
+        'techniques_informatiques': 'laptop-code',
+        'logiciels_maitrise': 'desktop',
+        'langages_programmation': 'code',
+        'outils_professionnels': 'tools',
+        'competences_metier': 'business-time',
+        'soft_skills': 'heart',
+        'competences_sectorielles': 'industry',
+        'certifications': 'award',
+        'niveaux_maitrise': 'star'
+    };
+    return icons[category] || 'cog';
+}
+
+function getComplementIcon(key) {
+    const icons = {
+        'permis_conduire': 'id-card',
+        'vehicule': 'car',
+        'mobilite_geographique': 'map',
+        'disponibilite': 'clock',
+        'pretentions_salariales': 'euro-sign',
+        'statut_recherche': 'search',
+        'centres_interet': 'heart',
+        'hobbies': 'smile',
+        'sports': 'running',
+        'activites_associatives': 'hands-helping',
+        'publications': 'book',
+        'prix_distinctions': 'trophy',
+        'references': 'users'
+    };
+    return icons[key] || 'info';
+}
+
+function getAnalysisIcon(key) {
+    const icons = {
+        'nombre_total_experiences': 'hashtag',
+        'anciennete_professionnelle': 'clock',
+        'secteurs_experiences': 'chart-area',
+        'evolution_carriere': 'chart-line',
+        'points_forts': 'star',
+        'profil_type': 'user-tie'
+    };
+    return icons[key] || 'chart-bar';
+}
+
+function formatCategoryName(name) {
+    return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+// Animation des compteurs modernes
+function animateCounters() {
+    const counters = document.querySelectorAll('.modern-stat-number');
+    counters.forEach(counter => {
+        const target = parseInt(counter.textContent);
+        const increment = target / 50;
+        let current = 0;
+        
+        const updateCounter = () => {
+            if (current < target) {
+                current += increment;
+                counter.textContent = Math.ceil(current);
+                requestAnimationFrame(updateCounter);
+            } else {
+                counter.textContent = target;
+            }
+        };
+        
+        updateCounter();
+    });
+}
+
+// 📊 Fonction de fallback pour l'affichage en tableau (conservée pour compatibilité)
 function displayReallyExhaustiveResults(data) {
     updateDebug('📊 Affichage résultats VRAIMENT exhaustifs...');
     
-    // Affichage des informations personnelles
+    // Essayer d'abord l'affichage moderne
+    try {
+        displayModernResults(data);
+        return;
+    } catch (error) {
+        updateDebug(`❌ Erreur affichage moderne: ${error.message}`);
+        updateDebug('🔄 Utilisation du fallback tableau...');
+    }
+    
+    // Fallback vers l'ancien système de tableau
     const personalInfo = data.informations_personnelles || {};
     const personalHtml = `
         <strong>👤 INFORMATIONS PERSONNELLES COMPLÈTES</strong><br>
@@ -1548,6 +2365,7 @@ function displayReallyExhaustiveResults(data) {
     
     // Remplir le tableau COMPLET
     const table = document.getElementById('resultsTable');
+    table.style.display = 'table';
     table.innerHTML = `
         <tr><th style="background: linear-gradient(135deg, #FF6B6B, #E74C3C); color: white;">👤 INFORMATIONS PERSONNELLES</th><td class="detected">${personalHtml}</td></tr>
         <tr><th style="background: linear-gradient(135deg, #7c4dff, #536dfe); color: white;">🎯 TOUTES LES EXPÉRIENCES (${experiences.length})</th><td class="detected">${experiencesHtml}</td></tr>
@@ -1573,7 +2391,7 @@ function displayReallyExhaustiveResults(data) {
     document.getElementById('nextBtn').style.display = 'block';
     document.getElementById('skipBtn').style.display = 'block';
     
-    updateDebug('✅ Affichage VRAIMENT exhaustif terminé');
+    updateDebug('✅ Affichage VRAIMENT exhaustif terminé (mode fallback)');
 }
 
 // Fonction utilitaires
