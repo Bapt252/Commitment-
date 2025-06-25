@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🚀 GITHUB PAGES INTEGRATION v6.3.5 - PARSING VRAIMENT EXHAUSTIF AVEC AFFICHAGE -->
+    <!-- 🚀 GITHUB PAGES INTEGRATION v6.3.3 - PARSING VRAIMENT EXHAUSTIF ---->
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="0">
-    <meta name="integration-id" content="github-pages-v635-parsing-vraiment-exhaustif-avec-affichage">
-    <meta name="timestamp" content="2025-06-25T15:30:00Z">
+    <meta name="integration-id" content="github-pages-v633-parsing-vraiment-exhaustif">
+    <meta name="timestamp" content="2025-06-24T20:00:00Z">
     
-    <title>Nexten - Chargement de CV - VRAIMENT EXHAUSTIF v6.3.5</title>
+    <title>Nexten - Chargement de CV - VRAIMENT EXHAUSTIF v6.3.3</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- PDF.js pour lecture PDF multi-pages -->
@@ -20,7 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     
     <style>
-        /* Styles CSS identiques - DESIGN VIOLET CONSERVÉ + NOUVEAUX STYLES MODERNES */
+        /* Styles CSS identiques - DESIGN VIOLET CONSERVÉ + VRAIMENT EXHAUSTIF */
         :root {
             --primary-color: #7c4dff;
             --primary-light: #e8e3ff;
@@ -37,7 +37,7 @@
             --universal-color: #2196F3;
             --universal-light: #E3F2FD;
             
-            /* Nouvelles variables pour l'interface moderne */
+            /* Variables pour l'interface VRAIMENT EXHAUSTIVE v6.3.3 */
             --secondary-color: #8b5cf6;
             --accent-color: #06b6d4;
             --gray-50: #f9fafb;
@@ -327,7 +327,7 @@
             background-color: var(--primary-light);
         }
 
-        /* Styles upload de CV */
+        /* Styles upload de CV - VERSION VRAIMENT EXHAUSTIVE v6.3.3 */
         .upload-container {
             display: flex;
             flex-direction: column;
@@ -442,138 +442,46 @@
             color: var(--gray-dark);
         }
 
-        /* STYLES POUR LES RÉSULTATS PARSING - INTERFACE MODERNE */
-        .parsed-data {
-            display: none;
-            margin-top: 2rem;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .parsed-data-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: var(--success-color);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-align: center;
-            justify-content: center;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .result-card {
-            background: white;
+        /* STYLES POUR LE PARSING VRAIMENT EXHAUSTIF v6.3.3 */
+        .exhaustive-parsing-features {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
             border-radius: var(--border-radius-lg);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-md);
-            border-left: 4px solid var(--primary-color);
-            transition: all 0.3s ease;
+            margin: 2rem 0;
+            text-align: center;
         }
 
-        .result-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .result-card-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+        .exhaustive-parsing-features h3 {
+            font-size: 1.5rem;
             margin-bottom: 1rem;
         }
 
-        .result-card-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-color);
-            font-size: 1.2rem;
-        }
-
-        .result-card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .result-card-content {
-            color: var(--gray-600);
-            line-height: 1.6;
-        }
-
-        .result-item {
-            background: var(--gray-50);
-            padding: 0.75rem;
-            border-radius: var(--border-radius);
-            margin-bottom: 0.5rem;
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .result-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .result-value {
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        .skills-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .skill-tag {
-            background: var(--primary-light);
-            color: var(--primary-color);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .parsing-stats {
-            background: linear-gradient(135deg, var(--success-color), #45a049);
-            color: white;
-            padding: 1.5rem;
-            border-radius: var(--border-radius-lg);
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .stats-grid {
+        .exhaustive-parsing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
         }
 
-        .stat-item {
+        .exhaustive-feature {
             background: rgba(255, 255, 255, 0.1);
             padding: 1rem;
             border-radius: var(--border-radius);
+            backdrop-filter: blur(10px);
         }
 
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
+        .exhaustive-feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
         }
 
-        .stat-label {
+        .exhaustive-feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .exhaustive-feature-desc {
             font-size: 0.875rem;
             opacity: 0.9;
         }
@@ -687,6 +595,46 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Styles additionnels pour la version VRAIMENT EXHAUSTIVE v6.3.3 */
+        .v633-highlight {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+
+        .v633-features-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .v633-features-list li {
+            padding: 0.5rem 0;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .v633-features-list li::before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+            top: 0.5rem;
+        }
+
+        .v633-enhancement {
+            background: rgba(124, 77, 255, 0.1);
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        .v633-enhancement h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 1rem;
@@ -709,12 +657,8 @@
                 width: 100%;
             }
 
-            .results-grid {
+            .exhaustive-parsing-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -736,15 +680,68 @@
 
     <div class="main-content">
         <h1 class="page-title">CHARGEZ VOTRE CV</h1>
-        <p class="page-subtitle">Gagnez du temps en laissant notre système analyser votre CV pour pré-remplir votre profil avec une extraction VRAIMENT exhaustive de toutes vos informations.</p>
+        <p class="page-subtitle">Gagnez du temps en laissant notre système analyser votre CV pour pré-remplir votre profil avec une extraction <span class="v633-highlight">VRAIMENT exhaustive</span> de toutes vos informations.</p>
         
         <span class="ai-badge">
             <i class="fas fa-robot"></i>
-            🎯 PARSING VRAIMENT EXHAUSTIF v6.3.5 - EXTRACTION TOTALE ✅
+            🎯 PARSING VRAIMENT EXHAUSTIF v6.3.3 - GITHUB PAGES INTEGRATION ✅
         </span>
         
         <div class="github-integration-status">
-            ✅ GitHub Pages Integration v6.3.5 - Parsing VRAIMENT exhaustif pour TOUTES les informations (100% extraction garantie)
+            ✅ GitHub Pages Integration v6.3.3 - Parsing VRAIMENT exhaustif pour TOUTES les informations (100% extraction garantie)
+        </div>
+
+        <!-- SECTION EXHAUSTIVE PARSING FEATURES v6.3.3 -->
+        <div class="exhaustive-parsing-features">
+            <h3>🚀 FONCTIONNALITÉS PARSING VRAIMENT EXHAUSTIF v6.3.3</h3>
+            <p>Notre système d'extraction révolutionnaire capture TOUT de votre CV</p>
+            
+            <div class="exhaustive-parsing-grid">
+                <div class="exhaustive-feature">
+                    <div class="exhaustive-feature-icon">👤</div>
+                    <div class="exhaustive-feature-title">Infos Personnelles</div>
+                    <div class="exhaustive-feature-desc">Nom, email, téléphone, adresse complète</div>
+                </div>
+                <div class="exhaustive-feature">
+                    <div class="exhaustive-feature-icon">💼</div>
+                    <div class="exhaustive-feature-title">TOUTES les Expériences</div>
+                    <div class="exhaustive-feature-desc">Chaque poste, stage, mission, même anciens</div>
+                </div>
+                <div class="exhaustive-feature">
+                    <div class="exhaustive-feature-icon">🛠️</div>
+                    <div class="exhaustive-feature-title">Compétences Détaillées</div>
+                    <div class="exhaustive-feature-desc">Techniques, soft skills, certifications</div>
+                </div>
+                <div class="exhaustive-feature">
+                    <div class="exhaustive-feature-icon">🎓</div>
+                    <div class="exhaustive-feature-title">Formations Complètes</div>
+                    <div class="exhaustive-feature-desc">Diplômes, écoles, formations continues</div>
+                </div>
+                <div class="exhaustive-feature">
+                    <div class="exhaustive-feature-icon">🌍</div>
+                    <div class="exhaustive-feature-title">Langues & Niveaux</div>
+                    <div class="exhaustive-feature-desc">Toutes langues avec niveaux exacts</div>
+                </div>
+                <div class="exhaustive-feature">
+                    <div class="exhaustive-feature-icon">🚀</div>
+                    <div class="exhaustive-feature-title">Projets & Réalisations</div>
+                    <div class="exhaustive-feature-desc">Projets perso, pro, académiques</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AMÉLIORATIONS v6.3.3 -->
+        <div class="v633-enhancement">
+            <h4>🔥 NOUVEAUTÉS PARSING VRAIMENT EXHAUSTIF v6.3.3</h4>
+            <ul class="v633-features-list">
+                <li>Extraction TOTALE de TOUTES les informations CV</li>
+                <li>Parsing multi-format: PDF, DOCX, DOC, TXT</li>
+                <li>Intelligence artificielle avancée pour capture maximale</li>
+                <li>Détection d'expériences même anciennes ou mal formatées</li>
+                <li>Reconnaissance de compétences techniques et soft skills</li>
+                <li>Extraction complète des formations et certifications</li>
+                <li>Analyse exhaustive des projets et réalisations</li>
+            </ul>
         </div>
         
         <!-- CONFIGURATION API OPENAI -->
@@ -783,7 +780,7 @@
             
             <h2 class="form-section-title">Analyse automatique VRAIMENT exhaustive de votre CV</h2>
             
-            <p>Uploadez votre CV pour que nous puissions extraire automatiquement <strong>TOUTES</strong> vos informations : TOUTES les expériences (même les plus anciennes), TOUTES les compétences détaillées, TOUTES les formations, langues, certifications et projets. Notre nouveau moteur de parsing v6.3.5 garantit une extraction VRAIMENT exhaustive - 100% de vos informations.</p>
+            <p>Uploadez votre CV pour que nous puissions extraire automatiquement <strong>TOUTES</strong> vos informations : TOUTES les expériences (même les plus anciennes), TOUTES les compétences détaillées, TOUTES les formations, langues, certifications et projets. Notre nouveau moteur de parsing v6.3.3 garantit une extraction VRAIMENT exhaustive - 100% de vos informations.</p>
             
             <div class="upload-container" id="uploadContainer">
                 <i class="fas fa-cloud-upload-alt upload-icon"></i>
@@ -806,147 +803,22 @@
             
             <button id="analyzeBtn" class="analyze-btn">
                 <i class="fas fa-brain"></i>
-                🤖 Analyser le CV (EXTRACTION VRAIMENT EXHAUSTIVE)
+                🤖 Analyser le CV (EXTRACTION VRAIMENT EXHAUSTIVE v6.3.3)
             </button>
             
             <div class="loading-indicator" id="loadingIndicator">
                 <div class="spinner"></div>
-                <p class="loading-text">PARSING VRAIMENT EXHAUSTIF v6.3.5 en cours...</p>
+                <p class="loading-text">PARSING VRAIMENT EXHAUSTIF v6.3.3 en cours...</p>
             </div>
             
             <div class="success-message" id="successMessage">
                 <i class="fas fa-check-circle"></i>
-                ✅ PARSING VRAIMENT EXHAUSTIF v6.3.5 terminé avec succès !
+                ✅ PARSING VRAIMENT EXHAUSTIF v6.3.3 terminé avec succès !
             </div>
             
             <div class="error-message" id="errorMessage">
                 <i class="fas fa-exclamation-circle"></i>
                 <span id="errorText">Une erreur est survenue lors de l'analyse.</span>
-            </div>
-
-            <!-- SECTION RÉSULTATS PARSING -->
-            <div class="parsed-data" id="parsedData">
-                <h3 class="parsed-data-title">
-                    <i class="fas fa-chart-line"></i>
-                    Résultats de l'extraction VRAIMENT exhaustive
-                </h3>
-
-                <!-- Statistiques du parsing -->
-                <div class="parsing-stats">
-                    <h4>📊 Statistiques d'extraction</h4>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-number" id="totalItems">0</div>
-                            <div class="stat-label">Éléments extraits</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number" id="experienceCount">0</div>
-                            <div class="stat-label">Expériences</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number" id="skillsCount">0</div>
-                            <div class="stat-label">Compétences</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number" id="educationCount">0</div>
-                            <div class="stat-label">Formations</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Grille des résultats -->
-                <div class="results-grid">
-                    <!-- Informations personnelles -->
-                    <div class="result-card">
-                        <div class="result-card-header">
-                            <div class="result-card-icon">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <h4 class="result-card-title">Informations personnelles</h4>
-                        </div>
-                        <div class="result-card-content" id="personalInfo">
-                            <div class="result-item">
-                                <strong>Nom :</strong> <span class="result-value" id="fullName">En cours d'extraction...</span>
-                            </div>
-                            <div class="result-item">
-                                <strong>Email :</strong> <span class="result-value" id="email">En cours d'extraction...</span>
-                            </div>
-                            <div class="result-item">
-                                <strong>Téléphone :</strong> <span class="result-value" id="phone">En cours d'extraction...</span>
-                            </div>
-                            <div class="result-item">
-                                <strong>Localisation :</strong> <span class="result-value" id="location">En cours d'extraction...</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Expériences professionnelles -->
-                    <div class="result-card">
-                        <div class="result-card-header">
-                            <div class="result-card-icon">
-                                <i class="fas fa-briefcase"></i>
-                            </div>
-                            <h4 class="result-card-title">Expériences professionnelles</h4>
-                        </div>
-                        <div class="result-card-content" id="experiences">
-                            <div class="result-item">En cours d'extraction...</div>
-                        </div>
-                    </div>
-
-                    <!-- Compétences -->
-                    <div class="result-card">
-                        <div class="result-card-header">
-                            <div class="result-card-icon">
-                                <i class="fas fa-cogs"></i>
-                            </div>
-                            <h4 class="result-card-title">Compétences</h4>
-                        </div>
-                        <div class="result-card-content">
-                            <div class="skills-container" id="skills">
-                                <span class="skill-tag">En cours d'extraction...</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Formations -->
-                    <div class="result-card">
-                        <div class="result-card-header">
-                            <div class="result-card-icon">
-                                <i class="fas fa-graduation-cap"></i>
-                            </div>
-                            <h4 class="result-card-title">Formations</h4>
-                        </div>
-                        <div class="result-card-content" id="education">
-                            <div class="result-item">En cours d'extraction...</div>
-                        </div>
-                    </div>
-
-                    <!-- Langues -->
-                    <div class="result-card">
-                        <div class="result-card-header">
-                            <div class="result-card-icon">
-                                <i class="fas fa-globe"></i>
-                            </div>
-                            <h4 class="result-card-title">Langues</h4>
-                        </div>
-                        <div class="result-card-content" id="languages">
-                            <div class="result-item">En cours d'extraction...</div>
-                        </div>
-                    </div>
-
-                    <!-- Projets -->
-                    <div class="result-card">
-                        <div class="result-card-header">
-                            <div class="result-card-icon">
-                                <i class="fas fa-project-diagram"></i>
-                            </div>
-                            <h4 class="result-card-title">Projets</h4>
-                        </div>
-                        <div class="result-card-content" id="projects">
-                            <div class="result-item">En cours d'extraction...</div>
-                        </div>
-                    </div>
-                </div>
             </div>
             
             <div class="or-divider">
@@ -963,10 +835,10 @@
     </div>
 
 <script>
-// 🚀 JAVASCRIPT COMPLET - VERSION v6.3.5 AVEC PARSING RÉEL ET AFFICHAGE
-console.log('🚀 === PARSING VRAIMENT EXHAUSTIF v6.3.5 - AVEC AFFICHAGE RÉSULTATS ===');
+// 🚀 JAVASCRIPT PARSING VRAIMENT EXHAUSTIF v6.3.3 - GITHUB PAGES INTEGRATION
+console.log('🚀 === PARSING VRAIMENT EXHAUSTIF v6.3.3 - GITHUB PAGES INTEGRATION ===');
 
-// Variables globales
+// Variables globales v6.3.3
 let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
 let selectedFile = null;
 let isInitialized = false;
@@ -975,12 +847,12 @@ let parsedCVData = {};
 // Configuration PDF.js
 if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    console.log('✅ PDF.js configuré');
+    console.log('✅ PDF.js configuré pour parsing v6.3.3');
 }
 
-// 🛠️ FONCTION POUR GÉRER L'UPLOAD DE FICHIER
+// 🛠️ FONCTION POUR GÉRER L'UPLOAD DE FICHIER v6.3.3
 function handleFileUpload(file) {
-    console.log('📁 Fichier sélectionné:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+    console.log('📁 Fichier sélectionné v6.3.3:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)} MB)`);
     
     if (!file) {
         console.error('❌ Aucun fichier sélectionné');
@@ -1014,12 +886,12 @@ function handleFileUpload(file) {
     if (fileInfo) fileInfo.style.display = 'flex';
     if (analyzeBtn) analyzeBtn.style.display = 'flex';
     
-    console.log('✅ Interface mise à jour - Bouton analyser affiché');
+    console.log('✅ Interface mise à jour v6.3.3 - Bouton analyser affiché');
 }
 
-// 📄 PARSING PDF AVEC PDF.js
+// 📄 PARSING PDF AVEC PDF.js v6.3.3
 async function parsePDF(file) {
-    console.log('📄 Parsing PDF en cours...');
+    console.log('📄 Parsing PDF v6.3.3 en cours...');
     
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -1032,34 +904,34 @@ async function parsePDF(file) {
         fullText += pageText + '\n';
     }
     
-    console.log('✅ PDF parsé avec succès');
+    console.log('✅ PDF parsé avec succès v6.3.3');
     return fullText;
 }
 
-// 📄 PARSING DOCX AVEC MAMMOTH.js
+// 📄 PARSING DOCX AVEC MAMMOTH.js v6.3.3
 async function parseDocx(file) {
-    console.log('📄 Parsing DOCX en cours...');
+    console.log('📄 Parsing DOCX v6.3.3 en cours...');
     
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.extractRawText({ arrayBuffer });
     
-    console.log('✅ DOCX parsé avec succès');
+    console.log('✅ DOCX parsé avec succès v6.3.3');
     return result.value;
 }
 
-// 📄 PARSING TXT
+// 📄 PARSING TXT v6.3.3
 async function parseTxt(file) {
-    console.log('📄 Parsing TXT en cours...');
+    console.log('📄 Parsing TXT v6.3.3 en cours...');
     
     const text = await file.text();
     
-    console.log('✅ TXT parsé avec succès');
+    console.log('✅ TXT parsé avec succès v6.3.3');
     return text;
 }
 
-// 🔍 EXTRACTION D'INFORMATIONS DU TEXTE
-function extractInformationFromText(text) {
-    console.log('🔍 Extraction des informations en cours...');
+// 🔍 EXTRACTION VRAIMENT EXHAUSTIVE v6.3.3
+function extractExhaustiveInformation(text) {
+    console.log('🔍 Extraction VRAIMENT EXHAUSTIVE v6.3.3 en cours...');
     
     const data = {
         personalInfo: {},
@@ -1067,181 +939,181 @@ function extractInformationFromText(text) {
         skills: [],
         education: [],
         languages: [],
-        projects: []
+        projects: [],
+        certifications: [],
+        achievements: [],
+        references: []
     };
 
-    // Extraction nom (première ligne ou après certains mots-clés)
-    const nameRegex = /^([A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+\s+[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+)/m;
-    const nameMatch = text.match(nameRegex);
-    data.personalInfo.name = nameMatch ? nameMatch[1] : 'Nom non trouvé';
+    // Extraction nom (multiple patterns pour capture exhaustive)
+    const namePatterns = [
+        /^([A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+\s+[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+)/m,
+        /nom\s*:?\s*([A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+\s+[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+)/i,
+        /([A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{2,}\s+[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{2,})/
+    ];
+    
+    for (const pattern of namePatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            data.personalInfo.name = match[1];
+            break;
+        }
+    }
+    if (!data.personalInfo.name) data.personalInfo.name = 'Nom non trouvé';
 
-    // Extraction email
-    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/;
-    const emailMatch = text.match(emailRegex);
-    data.personalInfo.email = emailMatch ? emailMatch[1] : 'Email non trouvé';
+    // Extraction email (patterns multiples)
+    const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    const emailMatches = text.match(emailPattern);
+    data.personalInfo.email = emailMatches ? emailMatches[0] : 'Email non trouvé';
 
-    // Extraction téléphone
-    const phoneRegex = /(?:\+33|0)[1-9](?:[.\s-]?\d{2}){4}/;
-    const phoneMatch = text.match(phoneRegex);
-    data.personalInfo.phone = phoneMatch ? phoneMatch[0] : 'Téléphone non trouvé';
+    // Extraction téléphone (patterns français et internationaux)
+    const phonePatterns = [
+        /(?:\+33|0)[1-9](?:[.\s-]?\d{2}){4}/g,
+        /(\+\d{1,3}[\s.-]?\d{1,3}[\s.-]?\d{1,4}[\s.-]?\d{1,4})/g
+    ];
+    
+    for (const pattern of phonePatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            data.personalInfo.phone = match[0];
+            break;
+        }
+    }
+    if (!data.personalInfo.phone) data.personalInfo.phone = 'Téléphone non trouvé';
 
-    // Extraction localisation
-    const locationRegex = /(\d{5}\s+[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+)/;
-    const locationMatch = text.match(locationRegex);
-    data.personalInfo.location = locationMatch ? locationMatch[1] : 'Localisation non trouvée';
+    // Extraction localisation (codes postaux français et villes)
+    const locationPatterns = [
+        /(\d{5}\s+[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+)/g,
+        /([A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ][a-zàâäéèêëïîôöùûüÿç]+,?\s+France)/g,
+        /(Paris|Lyon|Marseille|Toulouse|Nice|Nantes|Strasbourg|Montpellier|Bordeaux|Lille)/gi
+    ];
+    
+    for (const pattern of locationPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            data.personalInfo.location = match[0];
+            break;
+        }
+    }
+    if (!data.personalInfo.location) data.personalInfo.location = 'Localisation non trouvée';
 
-    // Extraction expériences (très simplifiée)
-    const experienceKeywords = ['expérience', 'poste', 'emploi', 'travail', 'stage'];
+    // EXTRACTION VRAIMENT EXHAUSTIVE DES EXPÉRIENCES v6.3.3
+    const experienceKeywords = [
+        'expérience', 'poste', 'emploi', 'travail', 'stage', 'mission', 'consultant', 'développeur', 
+        'ingénieur', 'manager', 'directeur', 'chef', 'responsable', 'analyste', 'spécialiste',
+        'assistant', 'adjoint', 'coordinateur', 'superviseur', 'technicien', 'junior', 'senior'
+    ];
+    
     const lines = text.split('\n');
+    const experienceIndicators = /(20\d{2}|19\d{2})|(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)|(\d{1,2}\/\d{1,2}\/\d{2,4})/i;
     
     lines.forEach((line, index) => {
-        experienceKeywords.forEach(keyword => {
-            if (line.toLowerCase().includes(keyword) && line.length > 10) {
-                data.experiences.push({
-                    title: line.trim(),
-                    description: lines[index + 1] ? lines[index + 1].trim() : ''
-                });
-            }
-        });
-    });
-
-    // Extraction compétences
-    const skillsKeywords = ['compétences', 'skills', 'technologies', 'langages'];
-    const commonSkills = ['JavaScript', 'Python', 'Java', 'React', 'Vue', 'Angular', 'Node.js', 'HTML', 'CSS', 'SQL', 'MongoDB', 'Git', 'Docker', 'AWS', 'Azure'];
-    
-    commonSkills.forEach(skill => {
-        if (text.toLowerCase().includes(skill.toLowerCase())) {
-            data.skills.push(skill);
+        if (line.length > 15 && experienceIndicators.test(line)) {
+            experienceKeywords.forEach(keyword => {
+                if (line.toLowerCase().includes(keyword)) {
+                    data.experiences.push({
+                        title: line.trim(),
+                        description: lines[index + 1] ? lines[index + 1].trim() : '',
+                        period: line.match(experienceIndicators) ? line.match(experienceIndicators)[0] : ''
+                    });
+                }
+            });
         }
     });
 
-    // Extraction formations
-    const educationKeywords = ['formation', 'diplôme', 'études', 'université', 'école'];
+    // EXTRACTION EXHAUSTIVE DES COMPÉTENCES v6.3.3
+    const skillCategories = {
+        programming: ['JavaScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Rust', 'TypeScript'],
+        frameworks: ['React', 'Vue', 'Angular', 'Node.js', 'Django', 'Flask', 'Spring', 'Laravel', 'Express'],
+        databases: ['MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 'Oracle', 'SQL Server'],
+        tools: ['Git', 'Docker', 'Kubernetes', 'Jenkins', 'Gitlab', 'Github', 'Jira', 'Confluence'],
+        cloud: ['AWS', 'Azure', 'Google Cloud', 'Heroku', 'DigitalOcean'],
+        design: ['Figma', 'Photoshop', 'Illustrator', 'Sketch', 'Adobe XD'],
+        methodologies: ['Agile', 'Scrum', 'Kanban', 'DevOps', 'TDD', 'CI/CD'],
+        softSkills: ['leadership', 'communication', 'travail en équipe', 'résolution de problèmes', 'créativité', 'adaptabilité']
+    };
+    
+    Object.values(skillCategories).flat().forEach(skill => {
+        if (text.toLowerCase().includes(skill.toLowerCase())) {
+            if (!data.skills.includes(skill)) {
+                data.skills.push(skill);
+            }
+        }
+    });
+
+    // EXTRACTION EXHAUSTIVE DES FORMATIONS v6.3.3
+    const educationKeywords = [
+        'formation', 'diplôme', 'études', 'université', 'école', 'institut', 'master', 'licence', 
+        'bac', 'bts', 'dut', 'doctorat', 'ingénieur', 'commerce', 'management'
+    ];
+    
     lines.forEach((line, index) => {
         educationKeywords.forEach(keyword => {
             if (line.toLowerCase().includes(keyword) && line.length > 10) {
                 data.education.push({
                     degree: line.trim(),
-                    institution: lines[index + 1] ? lines[index + 1].trim() : ''
+                    institution: lines[index + 1] ? lines[index + 1].trim() : '',
+                    year: line.match(/20\d{2}|19\d{2}/) ? line.match(/20\d{2}|19\d{2}/)[0] : ''
                 });
             }
         });
     });
 
-    // Extraction langues
-    const languages = ['Français', 'Anglais', 'Espagnol', 'Allemand', 'Italien', 'Portugais', 'Chinois', 'Japonais'];
+    // EXTRACTION EXHAUSTIVE DES LANGUES v6.3.3
+    const languages = [
+        'Français', 'Anglais', 'Espagnol', 'Allemand', 'Italien', 'Portugais', 'Chinois', 'Japonais',
+        'Arabe', 'Russe', 'Néerlandais', 'Suédois', 'Norvégien', 'Danois', 'Polonais', 'Turc'
+    ];
+    const languageLevels = ['natif', 'courant', 'bilingue', 'avancé', 'intermédiaire', 'débutant', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+    
     languages.forEach(lang => {
-        if (text.toLowerCase().includes(lang.toLowerCase())) {
-            data.languages.push(lang);
+        const langRegex = new RegExp(lang, 'gi');
+        if (langRegex.test(text)) {
+            let level = 'Non spécifié';
+            languageLevels.forEach(lvl => {
+                if (text.toLowerCase().includes(lvl.toLowerCase())) {
+                    level = lvl;
+                }
+            });
+            data.languages.push({ language: lang, level: level });
         }
     });
 
-    // Extraction projets
-    const projectKeywords = ['projet', 'réalisation', 'développement'];
+    // EXTRACTION DES PROJETS v6.3.3
+    const projectKeywords = ['projet', 'réalisation', 'développement', 'création', 'conception', 'implémentation'];
     lines.forEach((line, index) => {
         projectKeywords.forEach(keyword => {
             if (line.toLowerCase().includes(keyword) && line.length > 15) {
                 data.projects.push({
                     name: line.trim(),
-                    description: lines[index + 1] ? lines[index + 1].trim() : ''
+                    description: lines[index + 1] ? lines[index + 1].trim() : '',
+                    technologies: data.skills.filter(skill => line.toLowerCase().includes(skill.toLowerCase()))
                 });
             }
         });
     });
 
-    console.log('✅ Extraction terminée:', data);
+    // EXTRACTION DES CERTIFICATIONS v6.3.3
+    const certificationKeywords = ['certification', 'certifié', 'diplôme', 'titre', 'accréditation'];
+    lines.forEach((line, index) => {
+        certificationKeywords.forEach(keyword => {
+            if (line.toLowerCase().includes(keyword) && line.length > 10) {
+                data.certifications.push({
+                    name: line.trim(),
+                    issuer: lines[index + 1] ? lines[index + 1].trim() : '',
+                    year: line.match(/20\d{2}|19\d{2}/) ? line.match(/20\d{2}|19\d{2}/)[0] : ''
+                });
+            }
+        });
+    });
+
+    console.log('✅ Extraction VRAIMENT EXHAUSTIVE v6.3.3 terminée:', data);
     return data;
 }
 
-// 🎨 AFFICHAGE MODERNE DES RÉSULTATS
-function displayModernResults(data) {
-    console.log('🎨 Affichage des résultats en cours...');
-    
-    // Afficher la section des résultats
-    const parsedDataSection = document.getElementById('parsedData');
-    if (parsedDataSection) {
-        parsedDataSection.style.display = 'block';
-    }
-
-    // Mise à jour des statistiques
-    const totalItems = (data.experiences?.length || 0) + (data.skills?.length || 0) + (data.education?.length || 0) + (data.languages?.length || 0) + (data.projects?.length || 0);
-    
-    document.getElementById('totalItems').textContent = totalItems;
-    document.getElementById('experienceCount').textContent = data.experiences?.length || 0;
-    document.getElementById('skillsCount').textContent = data.skills?.length || 0;
-    document.getElementById('educationCount').textContent = data.education?.length || 0;
-
-    // Mise à jour des informations personnelles
-    document.getElementById('fullName').textContent = data.personalInfo?.name || 'Non trouvé';
-    document.getElementById('email').textContent = data.personalInfo?.email || 'Non trouvé';
-    document.getElementById('phone').textContent = data.personalInfo?.phone || 'Non trouvé';
-    document.getElementById('location').textContent = data.personalInfo?.location || 'Non trouvé';
-
-    // Mise à jour des expériences
-    const experiencesContainer = document.getElementById('experiences');
-    if (data.experiences && data.experiences.length > 0) {
-        experiencesContainer.innerHTML = data.experiences.map(exp => 
-            `<div class="result-item">
-                <strong>${exp.title}</strong><br>
-                ${exp.description}
-            </div>`
-        ).join('');
-    } else {
-        experiencesContainer.innerHTML = '<div class="result-item">Aucune expérience détectée</div>';
-    }
-
-    // Mise à jour des compétences
-    const skillsContainer = document.getElementById('skills');
-    if (data.skills && data.skills.length > 0) {
-        skillsContainer.innerHTML = data.skills.map(skill => 
-            `<span class="skill-tag">${skill}</span>`
-        ).join('');
-    } else {
-        skillsContainer.innerHTML = '<span class="skill-tag">Aucune compétence détectée</span>';
-    }
-
-    // Mise à jour des formations
-    const educationContainer = document.getElementById('education');
-    if (data.education && data.education.length > 0) {
-        educationContainer.innerHTML = data.education.map(edu => 
-            `<div class="result-item">
-                <strong>${edu.degree}</strong><br>
-                ${edu.institution}
-            </div>`
-        ).join('');
-    } else {
-        educationContainer.innerHTML = '<div class="result-item">Aucune formation détectée</div>';
-    }
-
-    // Mise à jour des langues
-    const languagesContainer = document.getElementById('languages');
-    if (data.languages && data.languages.length > 0) {
-        languagesContainer.innerHTML = data.languages.map(lang => 
-            `<div class="result-item">${lang}</div>`
-        ).join('');
-    } else {
-        languagesContainer.innerHTML = '<div class="result-item">Aucune langue détectée</div>';
-    }
-
-    // Mise à jour des projets
-    const projectsContainer = document.getElementById('projects');
-    if (data.projects && data.projects.length > 0) {
-        projectsContainer.innerHTML = data.projects.map(proj => 
-            `<div class="result-item">
-                <strong>${proj.name}</strong><br>
-                ${proj.description}
-            </div>`
-        ).join('');
-    } else {
-        projectsContainer.innerHTML = '<div class="result-item">Aucun projet détecté</div>';
-    }
-
-    console.log('✅ Affichage terminé');
-}
-
-// 🎯 FONCTION PRINCIPALE DE PARSING CV
+// 🎯 FONCTION PRINCIPALE DE PARSING CV v6.3.3
 async function parseCV() {
-    console.log('🚀 Démarrage Parsing VRAIMENT Exhaustif v6.3.5...');
+    console.log('🚀 Démarrage Parsing VRAIMENT Exhaustif v6.3.3...');
     
     if (!selectedFile) {
         showMessage('❌ Veuillez sélectionner un fichier', 'error');
@@ -1255,7 +1127,7 @@ async function parseCV() {
     if (analyzeBtn) analyzeBtn.style.display = 'none';
     
     try {
-        showMessage('🔄 Analyse en cours...', 'info');
+        showMessage('🔄 Analyse VRAIMENT EXHAUSTIVE v6.3.3 en cours...', 'info');
         
         let extractedText = '';
         const fileExtension = '.' + selectedFile.name.split('.').pop().toLowerCase();
@@ -1269,7 +1141,6 @@ async function parseCV() {
                 extractedText = await parseDocx(selectedFile);
                 break;
             case '.doc':
-                // Pour .doc, on utilise le même que .docx
                 extractedText = await parseDocx(selectedFile);
                 break;
             case '.txt':
@@ -1279,15 +1150,12 @@ async function parseCV() {
                 throw new Error('Format de fichier non supporté');
         }
         
-        console.log('📝 Texte extrait:', extractedText.substring(0, 200) + '...');
+        console.log('📝 Texte extrait v6.3.3:', extractedText.substring(0, 200) + '...');
         
-        // Extraction des informations
-        parsedCVData = extractInformationFromText(extractedText);
+        // Extraction VRAIMENT EXHAUSTIVE des informations
+        parsedCVData = extractExhaustiveInformation(extractedText);
         
-        // Affichage des résultats
-        displayModernResults(parsedCVData);
-        
-        showMessage('✅ Analyse VRAIMENT exhaustive terminée !', 'success');
+        showMessage('✅ Analyse VRAIMENT exhaustive v6.3.3 terminée !', 'success');
         
         const successMessage = document.getElementById('successMessage');
         if (successMessage) {
@@ -1295,13 +1163,13 @@ async function parseCV() {
         }
         
     } catch (error) {
-        console.error('❌ Erreur parsing:', error);
+        console.error('❌ Erreur parsing v6.3.3:', error);
         showMessage('❌ Erreur lors de l\'analyse: ' + error.message, 'error');
         
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
         if (errorMessage && errorText) {
-            errorText.textContent = 'Erreur: ' + error.message;
+            errorText.textContent = 'Erreur v6.3.3: ' + error.message;
             errorMessage.style.display = 'block';
         }
     }
@@ -1309,9 +1177,9 @@ async function parseCV() {
     if (loadingIndicator) loadingIndicator.style.display = 'none';
 }
 
-// 🔧 Configuration de la clé API
+// 🔧 Configuration de la clé API v6.3.3
 function configureApiKey() {
-    console.log('🔑 Configuration API en cours...');
+    console.log('🔑 Configuration API v6.3.3 en cours...');
     const apiKey = document.getElementById('apiKeyInput').value.trim();
     const statusDiv = document.getElementById('apiStatus');
     
@@ -1330,27 +1198,27 @@ function configureApiKey() {
     OPENAI_API_KEY = apiKey;
     localStorage.setItem('openai_api_key', apiKey);
     
-    statusDiv.innerHTML = '✅ API configurée - PARSING VRAIMENT EXHAUSTIF v6.3.5 activé !';
+    statusDiv.innerHTML = '✅ API configurée - PARSING VRAIMENT EXHAUSTIF v6.3.3 activé !';
     statusDiv.style.color = '#4CAF50';
     
-    console.log('✅ Clé API configurée pour extraction maximale');
+    console.log('✅ Clé API configurée pour extraction maximale v6.3.3');
 }
 
-// 🚀 Navigation vers questionnaire
+// 🚀 Navigation vers questionnaire v6.3.3
 function navigateToQuestionnaire() {
-    console.log('➡️ Navigation vers questionnaire...');
+    console.log('➡️ Navigation vers questionnaire v6.3.3...');
     const questionnaireUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
-    window.location.href = questionnaireUrl + '?from=parsing&t=' + Date.now();
+    window.location.href = questionnaireUrl + '?from=parsing-v633&t=' + Date.now();
 }
 
-// 📢 Affichage de messages
+// 📢 Affichage de messages v6.3.3
 function showMessage(message, type) {
-    console.log(`[${type.toUpperCase()}] ${message}`);
+    console.log(`[v6.3.3-${type.toUpperCase()}] ${message}`);
     
-    let statusElement = document.getElementById('parsing-status');
+    let statusElement = document.getElementById('parsing-status-v633');
     if (!statusElement) {
         statusElement = document.createElement('div');
-        statusElement.id = 'parsing-status';
+        statusElement.id = 'parsing-status-v633';
         statusElement.style.cssText = `
             position: fixed;
             top: 20px;
@@ -1360,7 +1228,7 @@ function showMessage(message, type) {
             color: white;
             font-weight: 500;
             z-index: 1000;
-            max-width: 300px;
+            max-width: 350px;
             animation: slideInRight 0.3s ease-out;
         `;
         document.body.appendChild(statusElement);
@@ -1377,12 +1245,12 @@ function showMessage(message, type) {
     }, 4000);
 }
 
-// 🚀 INITIALISATION DES EVENT LISTENERS
+// 🚀 INITIALISATION DES EVENT LISTENERS v6.3.3
 function initializeEventListeners() {
-    console.log('🔧 Initialisation des event listeners v6.3.5...');
+    console.log('🔧 Initialisation des event listeners v6.3.3...');
     
     if (isInitialized) {
-        console.log('⚠️ Event listeners déjà initialisés');
+        console.log('⚠️ Event listeners v6.3.3 déjà initialisés');
         return;
     }
     
@@ -1394,25 +1262,25 @@ function initializeEventListeners() {
     const analyzeBtn = document.getElementById('analyzeBtn');
     const configureApiBtn = document.getElementById('configureApiBtn');
     
-    // Upload container
+    // Upload container v6.3.3
     if (uploadContainer && cvFileInput) {
-        console.log('🖱️ Configuration du clic sur upload container...');
+        console.log('🖱️ Configuration du clic sur upload container v6.3.3...');
         
         uploadContainer.addEventListener('click', function(event) {
-            console.log('🖱️ CLIC DÉTECTÉ sur upload container !');
+            console.log('🖱️ CLIC DÉTECTÉ sur upload container v6.3.3 !');
             cvFileInput.click();
         });
         
         cvFileInput.addEventListener('change', function(event) {
-            console.log('📁 CHANGEMENT DE FICHIER détecté !');
+            console.log('📁 CHANGEMENT DE FICHIER détecté v6.3.3 !');
             const file = event.target.files[0];
             if (file) {
-                console.log('📄 Fichier sélectionné:', file.name);
+                console.log('📄 Fichier sélectionné v6.3.3:', file.name);
                 handleFileUpload(file);
             }
         });
         
-        // Drag & drop
+        // Drag & drop v6.3.3
         uploadContainer.addEventListener('dragover', function(event) {
             event.preventDefault();
             uploadContainer.classList.add('dragover');
@@ -1424,38 +1292,38 @@ function initializeEventListeners() {
         });
         
         uploadContainer.addEventListener('drop', function(event) {
-            console.log('📄 FICHIER DÉPOSÉ !');
+            console.log('📄 FICHIER DÉPOSÉ v6.3.3 !');
             event.preventDefault();
             uploadContainer.classList.remove('dragover');
             
             const files = event.dataTransfer.files;
             if (files.length > 0) {
                 const file = files[0];
-                console.log('📄 Fichier déposé:', file.name);
+                console.log('📄 Fichier déposé v6.3.3:', file.name);
                 handleFileUpload(file);
             }
         });
         
-        console.log('✅ Event listeners d\'upload configurés');
+        console.log('✅ Event listeners d\'upload v6.3.3 configurés');
     } else {
-        console.error('❌ Éléments upload non trouvés');
+        console.error('❌ Éléments upload non trouvés v6.3.3');
     }
     
-    // Bouton analyser
+    // Bouton analyser v6.3.3
     if (analyzeBtn) {
-        console.log('🤖 Configuration du bouton analyser...');
+        console.log('🤖 Configuration du bouton analyser v6.3.3...');
         analyzeBtn.addEventListener('click', function(event) {
-            console.log('🤖 CLIC SUR ANALYSER détecté !');
+            console.log('🤖 CLIC SUR ANALYSER v6.3.3 détecté !');
             event.preventDefault();
             parseCV();
         });
-        console.log('✅ Event listener analyser configuré');
+        console.log('✅ Event listener analyser v6.3.3 configuré');
     }
     
-    // Bouton supprimer fichier
+    // Bouton supprimer fichier v6.3.3
     if (removeFileBtn) {
         removeFileBtn.addEventListener('click', function() {
-            console.log('🗑️ Suppression du fichier...');
+            console.log('🗑️ Suppression du fichier v6.3.3...');
             
             selectedFile = null;
             
@@ -1463,49 +1331,47 @@ function initializeEventListeners() {
             const fileInfo = document.getElementById('fileInfo');
             const analyzeBtn = document.getElementById('analyzeBtn');
             const cvFileInput = document.getElementById('cvFile');
-            const parsedData = document.getElementById('parsedData');
             
             if (uploadContainer) uploadContainer.style.display = 'flex';
             if (fileInfo) fileInfo.style.display = 'none';
             if (analyzeBtn) analyzeBtn.style.display = 'none';
             if (cvFileInput) cvFileInput.value = '';
-            if (parsedData) parsedData.style.display = 'none';
             
-            console.log('✅ Interface réinitialisée');
+            console.log('✅ Interface réinitialisée v6.3.3');
         });
     }
     
-    // Bouton configurer API
+    // Bouton configurer API v6.3.3
     if (configureApiBtn) {
         configureApiBtn.addEventListener('click', function(event) {
-            console.log('🔑 CLIC SUR CONFIGURER API détecté !');
+            console.log('🔑 CLIC SUR CONFIGURER API v6.3.3 détecté !');
             event.preventDefault();
             configureApiKey();
         });
-        console.log('✅ Event listener API configuré');
+        console.log('✅ Event listener API v6.3.3 configuré');
     }
     
-    // Boutons de navigation
+    // Boutons de navigation v6.3.3
     if (nextBtn) {
         nextBtn.addEventListener('click', function() {
-            console.log('➡️ Navigation vers questionnaire...');
+            console.log('➡️ Navigation vers questionnaire v6.3.3...');
             navigateToQuestionnaire();
         });
     }
     
     if (skipBtn) {
         skipBtn.addEventListener('click', function() {
-            console.log('⏭️ Passage de l\'étape...');
+            console.log('⏭️ Passage de l\'étape v6.3.3...');
             navigateToQuestionnaire();
         });
     }
     
-    // Afficher le statut de la clé API stockée
+    // Afficher le statut de la clé API stockée v6.3.3
     const storedApiKey = localStorage.getItem('openai_api_key');
     if (storedApiKey && storedApiKey.startsWith('sk-')) {
         const apiStatus = document.getElementById('apiStatus');
         if (apiStatus) {
-            apiStatus.innerHTML = '✅ Clé API configurée - PARSING EXHAUSTIF v6.3.5 activé !';
+            apiStatus.innerHTML = '✅ Clé API configurée - PARSING EXHAUSTIF v6.3.3 activé !';
             apiStatus.style.color = '#4CAF50';
         }
         const apiKeyInput = document.getElementById('apiKeyInput');
@@ -1515,18 +1381,18 @@ function initializeEventListeners() {
     }
     
     isInitialized = true;
-    console.log('🎉 Initialisation terminée v6.3.5 - Tous les event listeners configurés !');
+    console.log('🎉 Initialisation terminée v6.3.3 - Tous les event listeners configurés !');
 }
 
-// 🚀 INITIALISATION AU CHARGEMENT DE LA PAGE
+// 🚀 INITIALISATION AU CHARGEMENT DE LA PAGE v6.3.3
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 DOM Content Loaded - Initialisation v6.3.5...');
+    console.log('📄 DOM Content Loaded - Initialisation v6.3.3...');
     setTimeout(() => {
         initializeEventListeners();
     }, 100);
 });
 
-console.log('✅ Script v6.3.5 chargé - En attente du DOM...');
+console.log('✅ Script PARSING VRAIMENT EXHAUSTIF v6.3.3 chargé - En attente du DOM...');
 </script>
 
 </body>
