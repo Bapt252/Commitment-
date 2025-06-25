@@ -1496,7 +1496,7 @@ function cleanExtractedText(text) {
         // Préserver la structure importante
         .replace(/([.!?])\s+([A-Z])/g, '$1\n$2')
         // Nettoyer les caractères indésirables
-        .replace(/[^\w\s\-.,;:()\/@+%&']/g, ' ')
+        .replace(/[^\w\s\-.,;:()/@+%&']/g, ' ')
         .trim();
 }
 
@@ -2494,181 +2494,126 @@ function showMessage(message, type) {
             padding: 15px 20px;
             border-radius: 8px;
             color: white;
-            font-weight: 600;
-            z-index: 9999;
-            max-width: 400px;
+            font-weight: 500;
+            z-index: 1000;
+            max-width: 300px;
+            animation: slideInRight 0.3s ease-out;
         `;
         document.body.appendChild(statusElement);
     }
     
-    const colors = {
-        success: '#4CAF50',
-        error: '#f44336',
-        info: '#2196F3',
-        warning: '#ff9800'
-    };
-    
-    statusElement.style.backgroundColor = colors[type] || colors.info;
     statusElement.textContent = message;
+    statusElement.style.backgroundColor = type === 'success' ? '#4CAF50' : type === 'error' ? '#F44336' : '#FF9800';
+    statusElement.style.display = 'block';
     
-    if (type === 'success' || type === 'info') {
-        setTimeout(() => {
-            if (statusElement && statusElement.parentNode) {
-                statusElement.parentNode.removeChild(statusElement);
-            }
-        }, 5000);
-    }
+    setTimeout(() => {
+        if (statusElement) {
+            statusElement.style.display = 'none';
+        }
+    }, 4000);
 }
 
-// Initialisation VRAIMENT exhaustive
+// 🚀 INITIALISATION DES EVENT LISTENERS - CORRECTION DU BUG !
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Initialisation PARSING VRAIMENT EXHAUSTIF v6.3.3');
-    updateDebug('🚀 Initialisation système VRAIMENT exhaustif v6.3.3');
+    console.log('🔧 Initialisation des event listeners...');
     
-    // Vérifier la configuration API existante
-    if (OPENAI_API_KEY) {
-        const statusDiv = document.getElementById('apiStatus');
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        
-        if (statusDiv) {
-            statusDiv.innerHTML = '✅ API configurée - PARSING VRAIMENT EXHAUSTIF v6.3.3 opérationnel !';
-            statusDiv.style.color = '#4CAF50';
-        }
-        if (apiKeyInput) {
-            apiKeyInput.value = OPENAI_API_KEY.substring(0, 10) + '...';
-        }
-        updateDebug('✅ API OpenAI préconfigurée détectée');
-    }
-    
-    // 🛠️ CONFIGURATION UPLOAD CORRIGÉE
     const uploadContainer = document.getElementById('uploadContainer');
-    const fileInput = document.getElementById('cvFile');
-    const fileInfo = document.getElementById('fileInfo');
-    const removeFile = document.getElementById('removeFile');
-    const analyzeBtn = document.getElementById('analyzeBtn');
+    const cvFileInput = document.getElementById('cvFile');
+    const removeFileBtn = document.getElementById('removeFile');
+    const nextBtn = document.getElementById('nextBtn');
+    const skipBtn = document.getElementById('skipBtn');
     
-    // Vérification des éléments
-    console.log('🔍 Vérification éléments DOM:');
-    console.log('uploadContainer:', uploadContainer ? '✅' : '❌');
-    console.log('fileInput:', fileInput ? '✅' : '❌');
-    console.log('fileInfo:', fileInfo ? '✅' : '❌');
-    console.log('analyzeBtn:', analyzeBtn ? '✅' : '❌');
-    
-    if (uploadContainer && fileInput) {
-        console.log('🔧 Configuration des événements d\'upload...');
-        
-        // 🎯 ÉVÉNEMENT ONCLICK CORRIGÉ
+    // ✅ EVENT LISTENER POUR LE CLIC SUR LA ZONE D'UPLOAD
+    if (uploadContainer && cvFileInput) {
         uploadContainer.addEventListener('click', function(e) {
-            console.log('🖱️ Clic détecté sur uploadContainer');
-            updateDebug('🖱️ Clic détecté - Ouverture sélecteur de fichier...');
-            
+            console.log('📁 Clic sur zone d\'upload détecté');
             e.preventDefault();
-            e.stopPropagation();
-            
-            if (fileInput) {
-                console.log('📁 Ouverture du sélecteur de fichier...');
-                fileInput.click();
-            } else {
-                console.error('❌ Élément fileInput introuvable');
+            cvFileInput.click();
+        });
+        
+        // ✅ EVENT LISTENER POUR LA SÉLECTION DE FICHIER
+        cvFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                console.log('📄 Fichier sélectionné:', file.name);
+                handleFileUpload(file);
             }
         });
         
-        // 🎯 ÉVÉNEMENT DRAG & DROP
+        // ✅ EVENT LISTENERS POUR LE DRAG & DROP
         uploadContainer.addEventListener('dragover', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            uploadContainer.style.borderColor = '#2196F3';
             uploadContainer.classList.add('dragover');
         });
         
         uploadContainer.addEventListener('dragleave', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            uploadContainer.style.borderColor = '#ddd';
             uploadContainer.classList.remove('dragover');
         });
         
         uploadContainer.addEventListener('drop', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            uploadContainer.style.borderColor = '#ddd';
             uploadContainer.classList.remove('dragover');
             
             const files = e.dataTransfer.files;
             if (files.length > 0) {
-                console.log('📁 Fichier déposé:', files[0].name);
-                updateDebug(`📁 Fichier déposé: ${files[0].name}`);
-                // Mettre le fichier dans l'input
-                fileInput.files = files;
-                handleFileUpload(files[0]);
+                const file = files[0];
+                console.log('📄 Fichier déposé:', file.name);
+                handleFileUpload(file);
             }
         });
         
-        // 🎯 ÉVÉNEMENT CHANGE SUR INPUT FILE
-        fileInput.addEventListener('change', function(e) {
-            console.log('📁 Fichier sélectionné via input:', e.target.files.length);
-            if (e.target.files.length > 0) {
-                console.log('📁 Fichier:', e.target.files[0].name);
-                updateDebug(`📁 Fichier choisi: ${e.target.files[0].name}`);
-                handleFileUpload(e.target.files[0]);
-            }
-        });
-        
-        console.log('✅ Événements d\'upload configurés');
-        updateDebug('✅ Événements d\'upload configurés');
+        console.log('✅ Event listeners d\'upload configurés');
     } else {
-        console.error('❌ Éléments DOM manquants pour l\'upload');
-        updateDebug('❌ Éléments DOM manquants pour l\'upload');
+        console.error('❌ Éléments upload non trouvés:', { uploadContainer, cvFileInput });
     }
     
-    // Supprimer fichier
-    if (removeFile) {
-        removeFile.addEventListener('click', function() {
-            console.log('🗑️ Suppression fichier...');
-            updateDebug('🗑️ Suppression fichier...');
+    // ✅ EVENT LISTENER POUR SUPPRIMER LE FICHIER
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function() {
+            console.log('🗑️ Suppression du fichier...');
             
-            if (fileInput) fileInput.value = '';
-            if (fileInfo) fileInfo.style.display = 'none';
+            // Réinitialiser l'interface
+            const uploadContainer = document.getElementById('uploadContainer');
+            const fileInfo = document.getElementById('fileInfo');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const cvFileInput = document.getElementById('cvFile');
+            
             if (uploadContainer) uploadContainer.style.display = 'flex';
+            if (fileInfo) fileInfo.style.display = 'none';
             if (analyzeBtn) analyzeBtn.style.display = 'none';
+            if (cvFileInput) cvFileInput.value = '';
             
-            // Masquer tous les résultats
-            ['parsedData', 'parsingStats', 'successMessage', 'errorMessage', 'debugInfo'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = 'none';
-            });
-            
-            // Reset debug
-            const debugContent = document.getElementById('debugContent');
-            if (debugContent) debugContent.innerHTML = '';
-            updateDebug('🔄 Interface réinitialisée');
+            console.log('✅ Interface réinitialisée');
         });
     }
     
-    // Navigation
-    const nextBtn = document.getElementById('nextBtn');
-    const skipBtn = document.getElementById('skipBtn');
-    
+    // ✅ EVENT LISTENERS POUR LA NAVIGATION
     if (nextBtn) {
         nextBtn.addEventListener('click', function() {
-            updateDebug('🚀 Navigation vers questionnaire...');
+            console.log('➡️ Navigation vers questionnaire...');
             navigateToQuestionnaire();
         });
     }
     
     if (skipBtn) {
         skipBtn.addEventListener('click', function() {
-            updateDebug('⏭️ Étape ignorée - Navigation vers questionnaire...');
+            console.log('⏭️ Passage de l\'étape...');
             navigateToQuestionnaire();
         });
     }
     
-    updateDebug('✅ PARSING VRAIMENT EXHAUSTIF v6.3.3 initialisé avec succès !');
-    updateDebug('🎯 Système prêt pour extraction TOTALE de CV');
-    console.log('✅ PARSING VRAIMENT EXHAUSTIF v6.3.3 prêt !');
+    // Afficher le statut de la clé API stockée
+    const storedApiKey = localStorage.getItem('openai_api_key');
+    if (storedApiKey && storedApiKey.startsWith('sk-')) {
+        document.getElementById('apiStatus').innerHTML = '✅ Clé API configurée - PARSING EXHAUSTIF v6.3.3 activé !';
+        document.getElementById('apiStatus').style.color = '#4CAF50';
+        document.getElementById('apiKeyInput').value = storedApiKey;
+    }
+    
+    console.log('🎉 Initialisation terminée - Upload fonctionnel !');
 });
 
-console.log('✅ Parsing VRAIMENT Exhaustif v6.3.3 - Code JavaScript chargé');
 </script>
 
 </body>
