@@ -1379,6 +1379,65 @@
                         </div>
                     </div>
                     
+                    <!-- NOUVELLE SECTION: Constitution de l'équipe -->
+                    <div class="question-section">
+                        <h3><i class="fas fa-sitemap"></i> Constitution de l'équipe</h3>
+                        
+                        <div class="form-group">
+                            <label for="team-size"><strong>Taille de l'équipe :</strong></label>
+                            <select id="team-size" class="form-control">
+                                <option value="">Sélectionnez</option>
+                                <option value="solo">Poste individuel (pas d'équipe)</option>
+                                <option value="small">Petite équipe (2-5 personnes)</option>
+                                <option value="medium">Équipe moyenne (6-15 personnes)</option>
+                                <option value="large">Grande équipe (16+ personnes)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><strong>Le poste inclut-il du management ?</strong></label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="management-yes" name="management-role" value="yes">
+                                    <label for="management-yes">Oui</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="management-no" name="management-role" value="no">
+                                    <label for="management-no">Non</label>
+                                </div>
+                            </div>
+                            
+                            <div id="management-options" class="sub-options" style="display: none;">
+                                <label><strong>Nombre de personnes à manager :</strong></label>
+                                <select id="team-management-size" class="form-control">
+                                    <option value="">Sélectionnez</option>
+                                    <option value="1-2">1-2 personnes</option>
+                                    <option value="3-5">3-5 personnes</option>
+                                    <option value="6-10">6-10 personnes</option>
+                                    <option value="10plus">Plus de 10 personnes</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="team-composition"><strong>Composition actuelle de l'équipe :</strong></label>
+                            <textarea id="team-composition" class="form-control" rows="3" 
+                                placeholder="Ex: 1 Chef de projet, 2 Développeurs, 1 Designer..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="reporting-hierarchy"><strong>Reporting hiérarchique :</strong></label>
+                            <input type="text" id="reporting-hierarchy" class="form-control" 
+                                placeholder="Ex: Directeur Technique, Manager, Chef d'équipe...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="team-collaboration"><strong>Collaboration avec d'autres services :</strong></label>
+                            <textarea id="team-collaboration" class="form-control" rows="3" 
+                                placeholder="Ex: Marketing, Commercial, Support client, R&D..."></textarea>
+                        </div>
+                    </div>
+                    
                     <!-- Section 3: Rémunération et contrat -->
                     <div class="question-section">
                         <h3><i class="fas fa-euro-sign"></i> Rémunération et contrat</h3>
@@ -2179,6 +2238,11 @@
             const noticeNo = document.getElementById('notice-no');
             const noticeOptions = document.getElementById('notice-options');
             
+            // Gestion du management conditionnel
+            const managementYes = document.getElementById('management-yes');
+            const managementNo = document.getElementById('management-no');
+            const managementOptions = document.getElementById('management-options');
+            
             function toggleNoticeOptions() {
                 if (noticeYes.checked) {
                     noticeOptions.style.display = 'block';
@@ -2187,9 +2251,22 @@
                 }
             }
             
+            function toggleManagementOptions() {
+                if (managementYes.checked) {
+                    managementOptions.style.display = 'block';
+                } else {
+                    managementOptions.style.display = 'none';
+                }
+            }
+            
             if (noticeYes && noticeNo) {
                 noticeYes.addEventListener('change', toggleNoticeOptions);
                 noticeNo.addEventListener('change', toggleNoticeOptions);
+            }
+            
+            if (managementYes && managementNo) {
+                managementYes.addEventListener('change', toggleManagementOptions);
+                managementNo.addEventListener('change', toggleManagementOptions);
             }
         }
 
@@ -2329,6 +2406,14 @@
             const context = getRadioValue('recruitment-context');
             const experience = getFieldValue('experience-required');
             
+            // NOUVEAU: Section équipe
+            const teamSize = getFieldValue('team-size');
+            const managementRole = getRadioValue('management-role');
+            const managementSize = getFieldValue('team-management-size');
+            const teamComposition = getFieldValue('team-composition');
+            const reportingHierarchy = getFieldValue('reporting-hierarchy');
+            const teamCollaboration = getFieldValue('team-collaboration');
+            
             // Section contrat
             const contractNature = getRadioValue('contract-nature');
             const salary = getFieldValue('salary-range');
@@ -2369,6 +2454,45 @@
                         <div class="info-label">Expérience:</div>
                         <div class="info-value">${experience || 'Non renseigné'}</div>
                     </div>
+                </div>
+                
+                <div class="job-section">
+                    <div class="job-section-title">
+                        <i class="fas fa-sitemap"></i>
+                        Constitution de l'équipe
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Taille équipe:</div>
+                        <div class="info-value">${teamSize || 'Non renseigné'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Management:</div>
+                        <div class="info-value">${managementRole || 'Non renseigné'}</div>
+                    </div>
+                    ${managementSize ? `
+                        <div class="info-item">
+                            <div class="info-label">Personnes à manager:</div>
+                            <div class="info-value">${managementSize}</div>
+                        </div>
+                    ` : ''}
+                    ${teamComposition ? `
+                        <div class="info-item">
+                            <div class="info-label">Composition:</div>
+                            <div class="info-value">${teamComposition}</div>
+                        </div>
+                    ` : ''}
+                    ${reportingHierarchy ? `
+                        <div class="info-item">
+                            <div class="info-label">Reporting:</div>
+                            <div class="info-value">${reportingHierarchy}</div>
+                        </div>
+                    ` : ''}
+                    ${teamCollaboration ? `
+                        <div class="info-item">
+                            <div class="info-label">Collaboration:</div>
+                            <div class="info-value">${teamCollaboration}</div>
+                        </div>
+                    ` : ''}
                 </div>
                 
                 <div class="job-section">
