@@ -1538,12 +1538,25 @@
             try {
                 let extractedText = '';
                 
+                // Test des capacités avant l'extraction
+                testExtractionCapabilities();
+                
                 if (file.type === 'text/plain') {
                     extractedText = await extractTextFromTXT(file);
                 } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    // Vérifier que Mammoth est disponible
+                    if (typeof mammoth === 'undefined') {
+                        throw new Error('Mammoth.js non chargé. Impossible d\'extraire le texte DOCX.');
+                    }
                     extractedText = await extractTextFromDOCX(file);
                 } else if (file.type === 'application/pdf') {
+                    // Vérifier que PDF.js est disponible
+                    if (typeof pdfjsLib === 'undefined') {
+                        throw new Error('PDF.js non chargé. Impossible d\'extraire le texte PDF.');
+                    }
                     extractedText = await extractTextFromPDF(file);
+                } else {
+                    throw new Error(`Type de fichier non supporté: ${file.type}`);
                 }
                 
                 if (extractedText.trim()) {
@@ -1559,7 +1572,7 @@
                 
             } catch (error) {
                 console.error('❌ Erreur extraction:', error);
-                showNotification('Erreur lors de l\'extraction du texte. Essayez de coller le texte manuellement.', 'error');
+                showNotification(`Erreur lors de l'extraction: ${error.message}`, 'error');
             } finally {
                 showLoader(false);
             }
@@ -1576,6 +1589,125 @@
                 };
                 reader.readAsText(file);
             });
+        }
+
+        // ===== FONCTIONS D'EXTRACTION AJOUTÉES =====
+        
+        // Extraction de texte depuis un fichier PDF
+        async function extractTextFromPDF(file) {
+            console.log('📄 Extraction PDF avec PDF.js...');
+            
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    try {
+                        const arrayBuffer = e.target.result;
+                        
+                        // Configuration PDF.js
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                        
+                        // Charger le PDF
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        console.log(`📄 PDF chargé: ${pdf.numPages} pages`);
+                        
+                        let fullText = '';
+                        
+                        // Extraire le texte de chaque page
+                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                            const page = await pdf.getPage(pageNum);
+                            const textContent = await page.getTextContent();
+                            
+                            const pageText = textContent.items
+                                .map(item => item.str)
+                                .join(' ');
+                            
+                            fullText += pageText + '\n';
+                        }
+                        
+                        console.log(`✅ PDF extrait: ${fullText.length} caractères`);
+                        resolve(fullText.trim());
+                        
+                    } catch (error) {
+                        console.error('❌ Erreur extraction PDF:', error);
+                        reject(new Error(`Erreur extraction PDF: ${error.message}`));
+                    }
+                };
+                
+                reader.onerror = function() {
+                    reject(new Error('Erreur lecture fichier PDF'));
+                };
+                
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Extraction de texte depuis un fichier DOCX
+        async function extractTextFromDOCX(file) {
+            console.log('📝 Extraction DOCX avec Mammoth.js...');
+            
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    try {
+                        const arrayBuffer = e.target.result;
+                        
+                        // Utiliser Mammoth.js pour extraire le texte
+                        const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                        
+                        if (result.value && result.value.trim()) {
+                            console.log(`✅ DOCX extrait: ${result.value.length} caractères`);
+                            
+                            // Afficher les messages d'avertissement s'il y en a
+                            if (result.messages && result.messages.length > 0) {
+                                console.warn('⚠️ Avertissements DOCX:', result.messages);
+                            }
+                            
+                            resolve(result.value.trim());
+                        } else {
+                            throw new Error('Aucun texte extrait du fichier DOCX');
+                        }
+                        
+                    } catch (error) {
+                        console.error('❌ Erreur extraction DOCX:', error);
+                        reject(new Error(`Erreur extraction DOCX: ${error.message}`));
+                    }
+                };
+                
+                reader.onerror = function() {
+                    reject(new Error('Erreur lecture fichier DOCX'));
+                };
+                
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // ===== FONCTION DE DIAGNOSTIC =====
+        function testExtractionCapabilities() {
+            console.log('🔍 Test des capacités d\'extraction...');
+            
+            // Vérifier PDF.js
+            if (typeof pdfjsLib !== 'undefined') {
+                console.log('✅ PDF.js chargé, version:', pdfjsLib.version);
+            } else {
+                console.error('❌ PDF.js non disponible');
+            }
+            
+            // Vérifier Mammoth.js
+            if (typeof mammoth !== 'undefined') {
+                console.log('✅ Mammoth.js chargé');
+            } else {
+                console.error('❌ Mammoth.js non disponible');
+            }
+            
+            // Vérifier l'API OpenAI
+            const apiKey = localStorage.getItem('openai_api_key');
+            if (apiKey) {
+                console.log('✅ Clé API OpenAI configurée');
+            } else {
+                console.warn('⚠️ Clé API OpenAI manquante');
+            }
         }
 
         // ===== ANALYSE CHATGPT =====
