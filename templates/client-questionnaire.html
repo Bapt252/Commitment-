@@ -1008,7 +1008,7 @@
                         <button type="button" class="btn btn-outline prev-step" data-step="2">
                             <i class="fas fa-arrow-left"></i> Précédent
                         </button>
-                        <button type="button" class="btn btn-primary next-step" data-step="4">
+                        <button type="button" class="btn btn-primary next-step" data-step="4" id="step3-continue-btn">
                             Continuer <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
@@ -1209,7 +1209,7 @@
     <!-- Scripts intégrés et améliorés -->
     <script>
         // ===============================================
-        // SOLUTION DE REDIRECTION NEXTEN - VERSION ROBUSTE
+        // SOLUTION DE REDIRECTION NEXTEN - VERSION ULTRA ROBUSTE
         // ===============================================
         
         (function() {
@@ -1217,11 +1217,12 @@
             
             // Variables de configuration
             const DASHBOARD_URL = 'https://bapt252.github.io/Commitment-/templates/company-dashboard.html';
-            const DEBUG_MODE = true; // Mettre à false en production
+            const DEBUG_MODE = true;
             
             // Variables globales
             let currentStep = 1;
             let extractedJobInfo = null;
+            let redirectionInProgress = false;
             
             // Fonction de debug
             function debugLog(message, data = null) {
@@ -1232,90 +1233,57 @@
             
             // Fonction pour afficher une notification personnalisée
             function showNotificationCustom(message, type = 'info') {
-                // Créer la notification si elle n'existe pas
-                let notification = document.getElementById('nexten-notification');
+                debugLog('📢 Affichage notification:', { message, type });
+                
+                // Utiliser l'élément notification existant ou en créer un nouveau
+                let notification = document.getElementById('notification');
                 if (!notification) {
                     notification = document.createElement('div');
-                    notification.id = 'nexten-notification';
-                    notification.style.cssText = `
-                        position: fixed;
-                        top: 20px;
-                        right: 20px;
-                        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-                        color: white;
-                        padding: 15px 20px;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                        z-index: 10000;
-                        max-width: 300px;
-                        font-family: 'Inter', sans-serif;
-                        font-weight: 500;
-                        opacity: 0;
-                        transform: translateX(100%);
-                        transition: all 0.3s ease;
+                    notification.id = 'notification';
+                    notification.innerHTML = `
+                        <div class="notification-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="notification-content">
+                            <div class="notification-title">Information</div>
+                            <div class="notification-message">Message</div>
+                        </div>
                     `;
                     document.body.appendChild(notification);
                 }
                 
-                notification.textContent = message;
-                notification.style.background = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+                // Mettre à jour le contenu
+                notification.className = `notification ${type}`;
+                const titleEl = notification.querySelector('.notification-title');
+                const messageEl = notification.querySelector('.notification-message');
+                const iconEl = notification.querySelector('.notification-icon i');
                 
-                // Animer l'apparition
-                setTimeout(() => {
-                    notification.style.opacity = '1';
-                    notification.style.transform = 'translateX(0)';
-                }, 10);
+                if (titleEl) titleEl.textContent = type === 'success' ? 'Succès' : type === 'error' ? 'Erreur' : 'Information';
+                if (messageEl) messageEl.textContent = message;
+                if (iconEl) {
+                    iconEl.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle';
+                }
+                
+                // Afficher
+                notification.classList.add('show');
                 
                 // Masquer après 4 secondes
                 setTimeout(() => {
-                    notification.style.opacity = '0';
-                    notification.style.transform = 'translateX(100%)';
+                    notification.classList.remove('show');
                 }, 4000);
             }
             
             // Fonction pour créer l'overlay de transition
             function createRedirectOverlay() {
-                let overlay = document.getElementById('nexten-redirect-overlay');
+                let overlay = document.getElementById('redirectTransition');
                 if (!overlay) {
                     overlay = document.createElement('div');
-                    overlay.id = 'nexten-redirect-overlay';
-                    overlay.style.cssText = `
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: linear-gradient(135deg, #7c3aed, #a855f7);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        z-index: 9999;
-                        opacity: 0;
-                        visibility: hidden;
-                        transition: all 0.5s ease;
-                    `;
-                    
+                    overlay.id = 'redirectTransition';
+                    overlay.className = 'redirect-transition';
                     overlay.innerHTML = `
-                        <div style="text-align: center; color: white;">
-                            <div style="width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; animation: nexten-spin 1s linear infinite; margin: 0 auto 20px;"></div>
-                            <h3 style="font-size: 1.5rem; margin-bottom: 10px; font-family: 'Inter', sans-serif;">Redirection vers le dashboard...</h3>
-                            <p style="font-size: 1rem; opacity: 0.9; font-family: 'Inter', sans-serif;">Accès aux fonctionnalités entreprise</p>
+                        <div class="redirect-content">
+                            <h3><i class="fas fa-check-circle"></i> Redirection vers le dashboard...</h3>
+                            <p>Accès aux fonctionnalités entreprise</p>
                         </div>
                     `;
-                    
-                    // Ajouter l'animation CSS
-                    if (!document.getElementById('nexten-spin-style')) {
-                        const style = document.createElement('style');
-                        style.id = 'nexten-spin-style';
-                        style.textContent = `
-                            @keyframes nexten-spin {
-                                0% { transform: rotate(0deg); }
-                                100% { transform: rotate(360deg); }
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
-                    
                     document.body.appendChild(overlay);
                 }
                 return overlay;
@@ -1323,7 +1291,13 @@
             
             // Fonction de redirection avec overlay
             function performRedirection() {
-                debugLog('🚀 Début de la redirection vers le dashboard');
+                if (redirectionInProgress) {
+                    debugLog('⚠️ Redirection déjà en cours, annulation');
+                    return;
+                }
+                
+                redirectionInProgress = true;
+                debugLog('🚀 DÉBUT DE LA REDIRECTION VERS LE DASHBOARD');
                 
                 // Sauvegarder les données des étapes 1-2
                 const step1Data = {
@@ -1359,13 +1333,12 @@
                 // Créer et afficher l'overlay
                 const overlay = createRedirectOverlay();
                 setTimeout(() => {
-                    overlay.style.opacity = '1';
-                    overlay.style.visibility = 'visible';
+                    overlay.classList.add('active');
                 }, 300);
                 
                 // Redirection après 2 secondes
                 setTimeout(() => {
-                    debugLog('🎯 Redirection vers:', DASHBOARD_URL);
+                    debugLog('🎯 REDIRECTION VERS:', DASHBOARD_URL);
                     window.location.href = DASHBOARD_URL;
                 }, 2000);
             }
@@ -1388,150 +1361,28 @@
                 return false;
             }
             
-            // Fonction pour intercepter la navigation à l'étape 3
-            function interceptStep3Navigation(event) {
-                debugLog('🎯 Interception navigation étape 3');
+            // Fonction de navigation normale
+            function navigateToStep(stepNumber) {
+                debugLog(`🔄 Navigation normale vers l'étape ${stepNumber}`);
                 
-                // Vérifier si on est bien à l'étape 3
-                const currentSection = document.querySelector('.form-section.active');
-                if (!currentSection || currentSection.getAttribute('data-step') !== '3') {
-                    debugLog('⚠️ Pas à l\'étape 3, navigation normale');
-                    return;
-                }
-                
-                // Vérifier si une option est sélectionnée
-                const recruitmentChoice = document.querySelector('input[name="recruitment-need"]:checked');
-                if (!recruitmentChoice) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    showNotificationCustom('Veuillez sélectionner une option avant de continuer.', 'error');
-                    debugLog('❌ Aucune option sélectionnée');
-                    return;
-                }
-                
-                // Si "Non" est sélectionné, déclencher la redirection
-                if (recruitmentChoice.value === 'no') {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    debugLog('🔄 Option "Non" détectée - Redirection');
-                    
-                    setTimeout(() => {
+                // Si on tente d'aller à l'étape 4 depuis l'étape 3 avec "Non" sélectionné
+                if (stepNumber === 4 && currentStep === 3) {
+                    const recruitmentChoice = document.querySelector('input[name="recruitment-need"]:checked');
+                    if (recruitmentChoice && recruitmentChoice.value === 'no') {
+                        debugLog('🚨 INTERCEPTION: Tentative navigation étape 4 avec "Non" sélectionné');
                         performRedirection();
-                    }, 100);
-                } else {
-                    debugLog('✅ Option "Oui" sélectionnée - Navigation normale vers étape 4');
-                }
-            }
-            
-            // Fonction d'initialisation principale
-            function initializeRedirectionLogic() {
-                debugLog('🚀 Initialisation de la logique de redirection Nexten');
-                
-                // Attendre que le DOM soit complètement chargé
-                const initializeWhenReady = () => {
-                    // Vérifier les éléments essentiels
-                    const step3Section = document.querySelector('.form-section[data-step="3"]');
-                    const recruitmentNo = document.getElementById('recruitment-no');
-                    const recruitmentYes = document.getElementById('recruitment-yes');
-                    
-                    if (!step3Section || !recruitmentNo || !recruitmentYes) {
-                        debugLog('⏳ Éléments pas encore disponibles, nouvelle tentative...');
-                        setTimeout(initializeWhenReady, 500);
-                        return;
+                        return false; // Empêcher la navigation
                     }
-                    
-                    debugLog('✅ Éléments trouvés, configuration des listeners');
-                    
-                    // Intercepter tous les clics sur les boutons "Continuer"
-                    document.addEventListener('click', function(event) {
-                        const button = event.target;
-                        
-                        // Vérifier si c'est un bouton "next-step" vers l'étape 4
-                        if (button.classList.contains('next-step') && 
-                            button.getAttribute('data-step') === '4') {
-                            debugLog('🎯 Clic détecté sur bouton Continuer étape 3->4');
-                            interceptStep3Navigation(event);
-                        }
-                        
-                        // Vérifier si c'est un bouton avec le texte "Continuer"
-                        if ((button.textContent.includes('Continuer') || 
-                             button.innerHTML.includes('Continuer')) &&
-                            document.querySelector('.form-section.active[data-step="3"]')) {
-                            debugLog('🎯 Clic détecté sur bouton Continuer (texte) à l\'étape 3');
-                            interceptStep3Navigation(event);
-                        }
-                    }, true); // Utiliser capture pour intercepter avant autres handlers
-                    
-                    // Ajouter aussi un listener sur les changements de radio buttons
-                    recruitmentNo.addEventListener('change', function() {
-                        if (this.checked) {
-                            debugLog('✅ Option "Non" sélectionnée');
-                            showNotificationCustom('Option "Non" sélectionnée. Cliquez sur "Continuer" pour accéder au dashboard.', 'info');
-                        }
-                    });
-                    
-                    recruitmentYes.addEventListener('change', function() {
-                        if (this.checked) {
-                            debugLog('✅ Option "Oui" sélectionnée');
-                            const jobParsingSection = document.getElementById('job-parsing-section');
-                            if (jobParsingSection) {
-                                jobParsingSection.classList.add('active');
-                            }
-                        }
-                    });
-                    
-                    debugLog('🎉 Logique de redirection initialisée avec succès');
-                    
-                    // Test des éléments
-                    setTimeout(() => {
-                        debugLog('🔍 Test des éléments après initialisation', {
-                            step3Section: !!step3Section,
-                            recruitmentNo: !!recruitmentNo,
-                            recruitmentYes: !!recruitmentYes,
-                            nextButton: !!document.querySelector('.next-step[data-step="4"]')
-                        });
-                    }, 1000);
-                };
-                
-                // Démarrer l'initialisation
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', initializeWhenReady);
-                } else {
-                    initializeWhenReady();
-                }
-            }
-            
-            // Fonction de diagnostic complet
-            function runDiagnostics() {
-                debugLog('🔍 === DIAGNOSTIC COMPLET NEXTEN ===');
-                
-                const diagnostics = {
-                    domReady: document.readyState,
-                    step3Section: !!document.querySelector('.form-section[data-step="3"]'),
-                    recruitmentRadios: {
-                        no: !!document.getElementById('recruitment-no'),
-                        yes: !!document.getElementById('recruitment-yes'),
-                        checked: document.querySelector('input[name="recruitment-need"]:checked')?.value || 'none'
-                    },
-                    continueButton: !!document.querySelector('.next-step[data-step="4"]'),
-                    activeSection: document.querySelector('.form-section.active')?.getAttribute('data-step') || 'none',
-                    localStorage: typeof(Storage) !== 'undefined'
-                };
-                
-                debugLog('Diagnostics:', diagnostics);
-                
-                if (diagnostics.step3Section && diagnostics.recruitmentRadios.no && diagnostics.recruitmentRadios.yes) {
-                    debugLog('✅ Tous les éléments essentiels sont présents');
-                } else {
-                    debugLog('❌ Des éléments manquent - vérification nécessaire');
                 }
                 
-                return diagnostics;
+                // Navigation normale
+                showStep(stepNumber);
+                return true;
             }
             
-            // ===== NAVIGATION BASIQUE =====
+            // Fonction pour afficher une étape
             function showStep(stepNumber) {
-                debugLog(`🔄 Navigation vers l'étape ${stepNumber}`);
+                debugLog(`📄 Affichage de l'étape ${stepNumber}`);
                 
                 // Masquer toutes les sections
                 document.querySelectorAll('.form-section').forEach(section => {
@@ -1571,27 +1422,148 @@
                 });
             }
             
-            // Gestion de la navigation basique
-            document.addEventListener('click', function(event) {
-                const button = event.target;
+            // Fonction d'initialisation principale
+            function initializeRedirectionLogic() {
+                debugLog('🚀 INITIALISATION DE LA LOGIQUE DE REDIRECTION NEXTEN');
                 
-                // Gestion des boutons de navigation normaux (pas étape 3->4)
-                if (button.classList.contains('next-step')) {
-                    const targetStep = parseInt(button.getAttribute('data-step'));
-                    if (targetStep && targetStep !== 4) { // Pas de redirection pour l'étape 4
-                        event.preventDefault();
-                        showStep(targetStep);
+                // Attendre que le DOM soit complètement chargé
+                const initializeWhenReady = () => {
+                    // Vérifier les éléments essentiels
+                    const step3Section = document.querySelector('.form-section[data-step="3"]');
+                    const recruitmentNo = document.getElementById('recruitment-no');
+                    const recruitmentYes = document.getElementById('recruitment-yes');
+                    const continueBtn = document.getElementById('step3-continue-btn');
+                    
+                    if (!step3Section || !recruitmentNo || !recruitmentYes || !continueBtn) {
+                        debugLog('⏳ Éléments pas encore disponibles, nouvelle tentative...');
+                        setTimeout(initializeWhenReady, 500);
+                        return;
                     }
+                    
+                    debugLog('✅ TOUS LES ÉLÉMENTS TROUVÉS, CONFIGURATION DES LISTENERS');
+                    
+                    // MÉTHODE 1: Intercepter directement le bouton spécifique de l'étape 3
+                    continueBtn.addEventListener('click', function(event) {
+                        debugLog('🎯 CLIC DÉTECTÉ SUR LE BOUTON CONTINUER ÉTAPE 3');
+                        
+                        // Vérifier si une option est sélectionnée
+                        const recruitmentChoice = document.querySelector('input[name="recruitment-need"]:checked');
+                        if (!recruitmentChoice) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            showNotificationCustom('Veuillez sélectionner une option avant de continuer.', 'error');
+                            debugLog('❌ Aucune option sélectionnée');
+                            return false;
+                        }
+                        
+                        // Si "Non" est sélectionné, déclencher la redirection
+                        if (recruitmentChoice.value === 'no') {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            debugLog('🔄 OPTION "NON" DÉTECTÉE - REDIRECTION IMMÉDIATE');
+                            
+                            setTimeout(() => {
+                                performRedirection();
+                            }, 100);
+                            return false;
+                        } else {
+                            debugLog('✅ Option "Oui" sélectionnée - Navigation normale vers étape 4');
+                            event.preventDefault();
+                            navigateToStep(4);
+                            return false;
+                        }
+                    });
+                    
+                    // MÉTHODE 2: Intercepter tous les clics de navigation
+                    document.addEventListener('click', function(event) {
+                        const button = event.target;
+                        
+                        // Gestion des boutons de navigation
+                        if (button.classList.contains('next-step') || button.classList.contains('prev-step')) {
+                            const targetStep = parseInt(button.getAttribute('data-step'));
+                            if (targetStep) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                
+                                // Utiliser la fonction de navigation qui inclut la logique de redirection
+                                const canNavigate = navigateToStep(targetStep);
+                                if (!canNavigate) {
+                                    debugLog('🚫 Navigation bloquée par la logique de redirection');
+                                }
+                                return false;
+                            }
+                        }
+                    }, true); // Capture pour intercepter avant autres handlers
+                    
+                    // MÉTHODE 3: Listeners sur les radio buttons
+                    recruitmentNo.addEventListener('change', function() {
+                        if (this.checked) {
+                            debugLog('✅ Option "Non" sélectionnée');
+                            showNotificationCustom('Option "Non" sélectionnée. Cliquez sur "Continuer" pour accéder au dashboard.', 'info');
+                        }
+                    });
+                    
+                    recruitmentYes.addEventListener('change', function() {
+                        if (this.checked) {
+                            debugLog('✅ Option "Oui" sélectionnée');
+                            const jobParsingSection = document.getElementById('job-parsing-section');
+                            if (jobParsingSection) {
+                                jobParsingSection.classList.add('active');
+                            }
+                        }
+                    });
+                    
+                    debugLog('🎉 LOGIQUE DE REDIRECTION INITIALISÉE AVEC SUCCÈS');
+                    
+                    // Test des éléments après initialisation
+                    setTimeout(() => {
+                        debugLog('🔍 Test des éléments après initialisation', {
+                            step3Section: !!step3Section,
+                            recruitmentNo: !!recruitmentNo,
+                            recruitmentYes: !!recruitmentYes,
+                            continueBtn: !!continueBtn,
+                            currentStep: currentStep
+                        });
+                    }, 1000);
+                };
+                
+                // Démarrer l'initialisation
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initializeWhenReady);
+                } else {
+                    initializeWhenReady();
+                }
+            }
+            
+            // Fonction de diagnostic complet
+            function runDiagnostics() {
+                debugLog('🔍 === DIAGNOSTIC COMPLET NEXTEN ===');
+                
+                const diagnostics = {
+                    domReady: document.readyState,
+                    step3Section: !!document.querySelector('.form-section[data-step="3"]'),
+                    recruitmentRadios: {
+                        no: !!document.getElementById('recruitment-no'),
+                        yes: !!document.getElementById('recruitment-yes'),
+                        checked: document.querySelector('input[name="recruitment-need"]:checked')?.value || 'none'
+                    },
+                    continueButton: !!document.getElementById('step3-continue-btn'),
+                    activeSection: document.querySelector('.form-section.active')?.getAttribute('data-step') || 'none',
+                    localStorage: typeof(Storage) !== 'undefined',
+                    redirectionInProgress: redirectionInProgress,
+                    currentStep: currentStep
+                };
+                
+                debugLog('📊 DIAGNOSTICS COMPLETS:', diagnostics);
+                
+                if (diagnostics.step3Section && diagnostics.recruitmentRadios.no && diagnostics.recruitmentRadios.yes && diagnostics.continueButton) {
+                    debugLog('✅ TOUS LES ÉLÉMENTS ESSENTIELS SONT PRÉSENTS');
+                } else {
+                    debugLog('❌ DES ÉLÉMENTS MANQUENT - VÉRIFICATION NÉCESSAIRE');
                 }
                 
-                if (button.classList.contains('prev-step')) {
-                    const targetStep = parseInt(button.getAttribute('data-step'));
-                    if (targetStep) {
-                        event.preventDefault();
-                        showStep(targetStep);
-                    }
-                }
-            });
+                return diagnostics;
+            }
             
             // Démarrer l'initialisation
             initializeRedirectionLogic();
@@ -1605,10 +1577,11 @@
                     debugLog('🧪 Test de redirection forcé');
                     performRedirection();
                 },
-                showStep
+                showStep,
+                navigateToStep
             };
             
-            debugLog('🎉 Script de redirection Nexten chargé avec succès');
+            debugLog('🎉 SCRIPT DE REDIRECTION NEXTEN CHARGÉ AVEC SUCCÈS');
             
         })();
     </script>
