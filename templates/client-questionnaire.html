@@ -17,7 +17,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     
-    <!-- Style supplémentaire pour les améliorations -->
+    <!-- Google Maps API avec Places Library pour l'autocomplétion d'adresses -->
+    <script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initGoogleMaps">
+    </script>
+    
+    <!-- Style supplémentaire pour les améliorations + Google Maps -->
     <style>
         /* Variables CSS essentielles */
         :root {
@@ -228,6 +233,7 @@
 
         .form-group {
             margin-bottom: 1.5rem;
+            position: relative;
         }
 
         .form-group label {
@@ -251,6 +257,112 @@
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        /* === STYLES GOOGLE MAPS PLACES AUTOCOMPLETE === */
+        
+        /* Container spécifique pour le champ d'adresse avec autocomplétion */
+        .maps-autocomplete-container {
+            position: relative;
+        }
+
+        /* Styles pour le champ d'adresse avec Google Maps */
+        .maps-autocomplete-field {
+            background: white;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .maps-autocomplete-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        /* État géolocalisé */
+        .maps-autocomplete-field.maps-selected {
+            border-color: var(--success) !important;
+            background: rgba(16, 185, 129, 0.05) !important;
+        }
+
+        /* Indicateur de géolocalisation */
+        .geolocation-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: none;
+            animation: slideInRight 0.3s ease;
+            z-index: 10;
+        }
+
+        .maps-autocomplete-field.maps-selected + .geolocation-indicator {
+            display: block;
+        }
+
+        /* Styles personnalisés pour la dropdown Google Places */
+        .pac-container {
+            z-index: 10000 !important;
+            border-radius: 8px !important;
+            border: 1px solid var(--gray-light) !important;
+            box-shadow: var(--shadow-lg) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        .pac-item {
+            padding: 12px 16px !important;
+            border-bottom: 1px solid #f1f1f1 !important;
+            cursor: pointer !important;
+            transition: background-color 0.2s ease !important;
+            font-size: 0.95rem !important;
+        }
+
+        .pac-item:hover {
+            background-color: rgba(124, 58, 237, 0.05) !important;
+        }
+
+        .pac-item:last-child {
+            border-bottom: none !important;
+        }
+
+        .pac-matched {
+            color: var(--primary) !important;
+            font-weight: 600 !important;
+        }
+
+        .pac-icon {
+            background-image: none !important;
+            background: var(--primary) !important;
+            width: 16px !important;
+            height: 16px !important;
+            margin-top: 6px !important;
+            border-radius: 50% !important;
+        }
+
+        /* Indicateur de status Google Maps */
+        .google-maps-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        .google-maps-status.active {
+            display: block;
         }
 
         /* Navigation buttons */
@@ -841,6 +953,12 @@
                 font-size: 0.65rem;
                 padding: 0.15rem 0.4rem;
             }
+
+            /* Responsive pour Google Maps sur mobile */
+            .pac-container {
+                max-width: 90vw !important;
+                left: 5vw !important;
+            }
         }
 
         /* Responsive spécifique pour très petits écrans */
@@ -916,9 +1034,18 @@
                         <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
                     </div>
                     
-                    <div class="form-group">
+                    <!-- CHAMP D'ADRESSE AVEC GOOGLE MAPS PLACES AUTOCOMPLETE -->
+                    <div class="form-group maps-autocomplete-container">
                         <label for="company-address" class="required-field">Adresse complète</label>
-                        <input type="text" id="company-address" class="form-control" placeholder="Adresse complète de votre structure" required>
+                        <input type="text" 
+                               id="company-address" 
+                               class="form-control maps-autocomplete-field" 
+                               placeholder="Commencez à taper votre adresse..."
+                               autocomplete="off"
+                               required>
+                        <div class="geolocation-indicator">
+                            <i class="fas fa-map-marker-alt"></i> Géolocalisé
+                        </div>
                         <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
                     </div>
                     
@@ -1279,9 +1406,187 @@
             <p>Redirection vers la page de matching des candidats...</p>
         </div>
     </div>
+
+    <!-- Indicateur Google Maps -->
+    <div class="google-maps-status" id="googleMapsStatus">
+        <i class="fas fa-map-marker-alt"></i> Google Maps actif
+    </div>
     
     <!-- Scripts intégrés et améliorés -->
     <script>
+        // ===============================================
+        // 🗺️ INTÉGRATION GOOGLE MAPS PLACES AUTOCOMPLETE
+        // ===============================================
+        
+        let autocomplete;
+        let selectedPlace = null;
+        
+        // Callback d'initialisation Google Maps
+        function initGoogleMaps() {
+            console.log('🗺️ Initialisation Google Maps Places API');
+            
+            try {
+                initializeAddressAutocomplete();
+                showGoogleMapsStatus();
+                showNotificationCustom('🗺️ Google Maps intégré avec succès !', 'success');
+            } catch (error) {
+                console.error('❌ Erreur initialisation Google Maps:', error);
+                showNotificationCustom('Erreur lors de l\'initialisation de Google Maps', 'error');
+            }
+        }
+        
+        // Initialisation de l'autocomplétion d'adresse
+        function initializeAddressAutocomplete() {
+            const addressInput = document.getElementById('company-address');
+            
+            if (!addressInput) {
+                console.error('❌ Champ adresse non trouvé');
+                return;
+            }
+            
+            console.log('✅ Champ d\'adresse trouvé, configuration de l\'autocomplétion...');
+            
+            // Configuration de l'autocomplétion Google Places
+            const autocompleteOptions = {
+                types: ['address'], // Restriction aux adresses
+                componentRestrictions: { country: 'fr' }, // Restriction à la France
+                fields: [
+                    'formatted_address',
+                    'geometry.location',
+                    'place_id',
+                    'address_components',
+                    'name'
+                ]
+            };
+            
+            // Créer l'instance d'autocomplétion
+            autocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
+            
+            // Listener pour la sélection d'adresse
+            autocomplete.addListener('place_changed', function() {
+                handleAddressSelection();
+            });
+            
+            // Modifier le placeholder pour indiquer que l'autocomplétion est active
+            addressInput.placeholder = '🗺️ Commencez à taper votre adresse...';
+            
+            console.log('✅ Autocomplétion Google Places configurée avec succès');
+        }
+        
+        // Gestion de la sélection d'adresse
+        function handleAddressSelection() {
+            console.log('🎯 Adresse sélectionnée dans l\'autocomplétion');
+            
+            const place = autocomplete.getPlace();
+            
+            if (!place.geometry) {
+                console.warn('⚠️ Aucune géométrie trouvée pour ce lieu');
+                showNotificationCustom('Adresse non reconnue, veuillez en sélectionner une dans la liste', 'error');
+                return;
+            }
+            
+            // Stocker les informations du lieu sélectionné
+            selectedPlace = {
+                formatted_address: place.formatted_address,
+                place_id: place.place_id,
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+                address_components: place.address_components,
+                name: place.name
+            };
+            
+            // Marquer visuellement le champ comme géolocalisé
+            const addressField = document.getElementById('company-address');
+            addressField.classList.add('maps-selected');
+            
+            // Afficher notification de succès
+            showNotificationCustom('📍 Adresse géolocalisée avec succès !', 'success');
+            
+            // Journaliser les informations pour debug
+            console.log('📍 Lieu géolocalisé:', selectedPlace);
+            console.log('📋 Coordonnées:', selectedPlace.lat, selectedPlace.lng);
+            
+            // Traiter les composants d'adresse pour extraction d'informations
+            processAddressComponents(selectedPlace.address_components);
+        }
+        
+        // Traitement des composants d'adresse pour extraction d'informations détaillées
+        function processAddressComponents(components) {
+            console.log('🔧 Traitement des composants d\'adresse');
+            
+            const addressInfo = {
+                street_number: '',
+                route: '',
+                locality: '',
+                postal_code: '',
+                country: '',
+                administrative_area_level_1: '', // Région
+                administrative_area_level_2: ''  // Département
+            };
+            
+            // Extraire les informations pertinentes des composants
+            components.forEach(component => {
+                const types = component.types;
+                if (types.includes('street_number')) {
+                    addressInfo.street_number = component.long_name;
+                }
+                if (types.includes('route')) {
+                    addressInfo.route = component.long_name;
+                }
+                if (types.includes('locality')) {
+                    addressInfo.locality = component.long_name;
+                }
+                if (types.includes('postal_code')) {
+                    addressInfo.postal_code = component.long_name;
+                }
+                if (types.includes('country')) {
+                    addressInfo.country = component.long_name;
+                }
+                if (types.includes('administrative_area_level_1')) {
+                    addressInfo.administrative_area_level_1 = component.long_name;
+                }
+                if (types.includes('administrative_area_level_2')) {
+                    addressInfo.administrative_area_level_2 = component.long_name;
+                }
+            });
+            
+            console.log('📋 Informations d\'adresse extraites:', addressInfo);
+            
+            // Sauvegarder les informations détaillées pour utilisation ultérieure
+            selectedPlace.addressInfo = addressInfo;
+        }
+        
+        // Afficher l'indicateur de status Google Maps
+        function showGoogleMapsStatus() {
+            const statusIndicator = document.getElementById('googleMapsStatus');
+            if (statusIndicator) {
+                statusIndicator.classList.add('active');
+            }
+        }
+        
+        // Fonction pour valider qu'une adresse a été géolocalisée
+        function validateAddressGeolocation() {
+            const addressField = document.getElementById('company-address');
+            const addressValue = addressField ? addressField.value.trim() : '';
+            
+            if (!addressValue) {
+                showNotificationCustom('Veuillez renseigner l\'adresse complète', 'error');
+                return false;
+            }
+            
+            if (!selectedPlace) {
+                showNotificationCustom('Veuillez sélectionner une adresse dans la liste des suggestions pour la géolocaliser', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Fonction pour obtenir l'adresse sélectionnée (pour utilisation externe)
+        function getSelectedAddress() {
+            return selectedPlace;
+        }
+
         // ===============================================
         // SOLUTION DE REDIRECTION NEXTEN - VERSION ULTRA ROBUSTE
         // ===============================================
@@ -1373,13 +1678,15 @@
                 redirectionInProgress = true;
                 debugLog('🚀 DÉBUT DE LA REDIRECTION VERS LE MATCHING');
                 
-                // Sauvegarder les données des étapes 1-2
+                // Sauvegarder les données des étapes 1-2 + données de géolocalisation
                 const step1Data = {
                     companyName: document.getElementById('company-name')?.value || '',
                     companyAddress: document.getElementById('company-address')?.value || '',
                     companyWebsite: document.getElementById('company-website')?.value || '',
                     companyDescription: document.getElementById('company-description')?.value || '',
-                    companySize: document.getElementById('company-size')?.value || ''
+                    companySize: document.getElementById('company-size')?.value || '',
+                    // Ajouter les données de géolocalisation si disponibles
+                    geolocation: selectedPlace || null
                 };
                 
                 const step2Data = {
@@ -1435,9 +1742,16 @@
                 return false;
             }
             
-            // Fonction de navigation normale
+            // Fonction de navigation normale avec validation d'adresse
             function navigateToStep(stepNumber) {
-                debugLog(`🔄 Navigation normale vers l'étape ${stepNumber}`);
+                debugLog(`🔄 Navigation vers l'étape ${stepNumber}`);
+                
+                // Validation spéciale pour l'étape 1 (adresse géolocalisée)
+                if (stepNumber > 1 && currentStep === 1) {
+                    if (!validateStep1()) {
+                        return false;
+                    }
+                }
                 
                 // Si on tente d'aller à l'étape 4 depuis l'étape 3 avec "Non" sélectionné
                 if (stepNumber === 4 && currentStep === 3) {
@@ -1451,6 +1765,23 @@
                 
                 // Navigation normale
                 showStep(stepNumber);
+                return true;
+            }
+            
+            // Validation de l'étape 1 (avec vérification de géolocalisation)
+            function validateStep1() {
+                const companyName = document.getElementById('company-name')?.value.trim();
+                
+                if (!companyName) {
+                    showNotificationCustom('Veuillez renseigner le nom de la structure', 'error');
+                    return false;
+                }
+                
+                // Valider la géolocalisation de l'adresse
+                if (!validateAddressGeolocation()) {
+                    return false;
+                }
+                
                 return true;
             }
             
@@ -1578,7 +1909,7 @@
                                 // Utiliser la fonction de navigation qui inclut la logique de redirection
                                 const canNavigate = navigateToStep(targetStep);
                                 if (!canNavigate) {
-                                    debugLog('🚫 Navigation bloquée par la logique de redirection');
+                                    debugLog('🚫 Navigation bloquée par la logique de validation/redirection');
                                 }
                                 return false;
                             }
@@ -1607,18 +1938,6 @@
                     initializeSubmitButton();
                     
                     debugLog('🎉 LOGIQUE DE REDIRECTION INITIALISÉE AVEC SUCCÈS');
-                    
-                    // Test des éléments après initialisation
-                    setTimeout(() => {
-                        debugLog('🔍 Test des éléments après initialisation', {
-                            step3Section: !!step3Section,
-                            recruitmentNo: !!recruitmentNo,
-                            recruitmentYes: !!recruitmentYes,
-                            continueBtn: !!continueBtn,
-                            submitBtn: !!submitBtn,
-                            currentStep: currentStep
-                        });
-                    }, 1000);
                 };
                 
                 // Démarrer l'initialisation
@@ -1629,43 +1948,11 @@
                 }
             }
             
-            // Fonction de diagnostic complet
-            function runDiagnostics() {
-                debugLog('🔍 === DIAGNOSTIC COMPLET NEXTEN ===');
-                
-                const diagnostics = {
-                    domReady: document.readyState,
-                    step3Section: !!document.querySelector('.form-section[data-step="3"]'),
-                    recruitmentRadios: {
-                        no: !!document.getElementById('recruitment-no'),
-                        yes: !!document.getElementById('recruitment-yes'),
-                        checked: document.querySelector('input[name="recruitment-need"]:checked')?.value || 'none'
-                    },
-                    continueButton: !!document.getElementById('step3-continue-btn'),
-                    submitButton: !!document.getElementById('submit-form'),
-                    activeSection: document.querySelector('.form-section.active')?.getAttribute('data-step') || 'none',
-                    localStorage: typeof(Storage) !== 'undefined',
-                    redirectionInProgress: redirectionInProgress,
-                    currentStep: currentStep
-                };
-                
-                debugLog('📊 DIAGNOSTICS COMPLETS:', diagnostics);
-                
-                if (diagnostics.step3Section && diagnostics.recruitmentRadios.no && diagnostics.recruitmentRadios.yes && diagnostics.continueButton && diagnostics.submitButton) {
-                    debugLog('✅ TOUS LES ÉLÉMENTS ESSENTIELS SONT PRÉSENTS');
-                } else {
-                    debugLog('❌ DES ÉLÉMENTS MANQUENT - VÉRIFICATION NÉCESSAIRE');
-                }
-                
-                return diagnostics;
-            }
-            
             // Démarrer l'initialisation
             initializeRedirectionLogic();
             
             // Exposer des fonctions de debug dans la console
             window.nextenDebug = {
-                runDiagnostics,
                 checkRecruitmentChoice,
                 performRedirection,
                 testRedirection: () => {
@@ -1673,7 +1960,8 @@
                     performRedirection();
                 },
                 showStep,
-                navigateToStep
+                navigateToStep,
+                getSelectedAddress: () => selectedPlace
             };
             
             debugLog('🎉 SCRIPT DE REDIRECTION NEXTEN CHARGÉ AVEC SUCCÈS');
@@ -2229,6 +2517,16 @@ Répondez uniquement avec un objet JSON contenant:
             testAnalysis: (text) => analyzeJobText(text),
             showResults: (data) => showParsingResults(data)
         };
+
+        // Exposer les fonctions Google Maps pour debug
+        window.nextenMaps = {
+            getSelectedAddress,
+            selectedPlace: () => selectedPlace,
+            reinitialize: initGoogleMaps,
+            validateGeolocation: validateAddressGeolocation
+        };
+
+        console.log('🎉 QUESTIONNAIRE NEXTEN AVEC GOOGLE MAPS CHARGÉ AVEC SUCCÈS');
     </script>
 </body>
 </html>
