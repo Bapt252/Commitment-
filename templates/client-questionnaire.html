@@ -1276,7 +1276,7 @@
     <div class="redirect-transition" id="redirectTransition">
         <div class="redirect-content">
             <h3><i class="fas fa-check-circle"></i> Questionnaire soumis avec succès !</h3>
-            <p>Redirection vers le dashboard entreprise...</p>
+            <p>Redirection vers la page de matching des candidats...</p>
         </div>
     </div>
     
@@ -1289,8 +1289,8 @@
         (function() {
             'use strict';
             
-            // Variables de configuration
-            const DASHBOARD_URL = 'https://bapt252.github.io/Commitment-/templates/company-dashboard.html';
+            // Variables de configuration - MODIFIÉE POUR POINTER VERS CANDIDATE RECOMMENDATION
+            const MATCHING_URL = 'https://bapt252.github.io/Commitment-/templates/candidate-recommendation.html';
             const DEBUG_MODE = true;
             
             // Variables globales
@@ -1354,8 +1354,8 @@
                     overlay.className = 'redirect-transition';
                     overlay.innerHTML = `
                         <div class="redirect-content">
-                            <h3><i class="fas fa-check-circle"></i> Redirection vers le dashboard...</h3>
-                            <p>Accès aux fonctionnalités entreprise</p>
+                            <h3><i class="fas fa-check-circle"></i> Redirection vers le matching...</h3>
+                            <p>Recherche de candidats en cours</p>
                         </div>
                     `;
                     document.body.appendChild(overlay);
@@ -1371,7 +1371,7 @@
                 }
                 
                 redirectionInProgress = true;
-                debugLog('🚀 DÉBUT DE LA REDIRECTION VERS LE DASHBOARD');
+                debugLog('🚀 DÉBUT DE LA REDIRECTION VERS LE MATCHING');
                 
                 // Sauvegarder les données des étapes 1-2
                 const step1Data = {
@@ -1402,7 +1402,7 @@
                 }
                 
                 // Afficher notification de succès
-                showNotificationCustom('Données sauvegardées ! Redirection en cours...', 'success');
+                showNotificationCustom('Données sauvegardées ! Redirection vers le matching...', 'success');
                 
                 // Créer et afficher l'overlay
                 const overlay = createRedirectOverlay();
@@ -1412,8 +1412,8 @@
                 
                 // Redirection après 2 secondes
                 setTimeout(() => {
-                    debugLog('🎯 REDIRECTION VERS:', DASHBOARD_URL);
-                    window.location.href = DASHBOARD_URL;
+                    debugLog('🎯 REDIRECTION VERS:', MATCHING_URL);
+                    window.location.href = MATCHING_URL;
                 }, 2000);
             }
             
@@ -1496,6 +1496,21 @@
                 });
             }
             
+            // Fonction d'initialisation pour le bouton de soumission
+            function initializeSubmitButton() {
+                const submitButton = document.getElementById('submit-form');
+                if (submitButton) {
+                    submitButton.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        debugLog('🎯 BOUTON SOUMETTRE CLIQUÉ - REDIRECTION VERS MATCHING');
+                        performRedirection();
+                    });
+                    debugLog('✅ Event listener ajouté au bouton de soumission');
+                } else {
+                    debugLog('❌ Bouton de soumission non trouvé');
+                }
+            }
+            
             // Fonction d'initialisation principale
             function initializeRedirectionLogic() {
                 debugLog('🚀 INITIALISATION DE LA LOGIQUE DE REDIRECTION NEXTEN');
@@ -1507,8 +1522,9 @@
                     const recruitmentNo = document.getElementById('recruitment-no');
                     const recruitmentYes = document.getElementById('recruitment-yes');
                     const continueBtn = document.getElementById('step3-continue-btn');
+                    const submitBtn = document.getElementById('submit-form');
                     
-                    if (!step3Section || !recruitmentNo || !recruitmentYes || !continueBtn) {
+                    if (!step3Section || !recruitmentNo || !recruitmentYes || !continueBtn || !submitBtn) {
                         debugLog('⏳ Éléments pas encore disponibles, nouvelle tentative...');
                         setTimeout(initializeWhenReady, 500);
                         return;
@@ -1573,7 +1589,7 @@
                     recruitmentNo.addEventListener('change', function() {
                         if (this.checked) {
                             debugLog('✅ Option "Non" sélectionnée');
-                            showNotificationCustom('Option "Non" sélectionnée. Cliquez sur "Continuer" pour accéder au dashboard.', 'info');
+                            showNotificationCustom('Option "Non" sélectionnée. Cliquez sur "Continuer" pour accéder au matching.', 'info');
                         }
                     });
                     
@@ -1587,6 +1603,9 @@
                         }
                     });
                     
+                    // Initialiser le bouton de soumission
+                    initializeSubmitButton();
+                    
                     debugLog('🎉 LOGIQUE DE REDIRECTION INITIALISÉE AVEC SUCCÈS');
                     
                     // Test des éléments après initialisation
@@ -1596,6 +1615,7 @@
                             recruitmentNo: !!recruitmentNo,
                             recruitmentYes: !!recruitmentYes,
                             continueBtn: !!continueBtn,
+                            submitBtn: !!submitBtn,
                             currentStep: currentStep
                         });
                     }, 1000);
@@ -1622,6 +1642,7 @@
                         checked: document.querySelector('input[name="recruitment-need"]:checked')?.value || 'none'
                     },
                     continueButton: !!document.getElementById('step3-continue-btn'),
+                    submitButton: !!document.getElementById('submit-form'),
                     activeSection: document.querySelector('.form-section.active')?.getAttribute('data-step') || 'none',
                     localStorage: typeof(Storage) !== 'undefined',
                     redirectionInProgress: redirectionInProgress,
@@ -1630,7 +1651,7 @@
                 
                 debugLog('📊 DIAGNOSTICS COMPLETS:', diagnostics);
                 
-                if (diagnostics.step3Section && diagnostics.recruitmentRadios.no && diagnostics.recruitmentRadios.yes && diagnostics.continueButton) {
+                if (diagnostics.step3Section && diagnostics.recruitmentRadios.no && diagnostics.recruitmentRadios.yes && diagnostics.continueButton && diagnostics.submitButton) {
                     debugLog('✅ TOUS LES ÉLÉMENTS ESSENTIELS SONT PRÉSENTS');
                 } else {
                     debugLog('❌ DES ÉLÉMENTS MANQUENT - VÉRIFICATION NÉCESSAIRE');
