@@ -2382,5 +2382,152 @@ document.addEventListener('DOMContentLoaded', function() {
 console.log('✅ Parsing VRAIMENT Exhaustif v6.3.3 - PREMIUM UI - Code JavaScript chargé');
 </script>
 
+<!-- 🔗 SYSTÈME DE PONT CV → QUESTIONNAIRE -->
+<script>
+// ========================================
+// SYSTÈME DE PONT CV → QUESTIONNAIRE
+// Pré-remplissage automatique des données
+// ========================================
+
+// 🔗 Pont automatique CV → Questionnaire
+class CVQuestionnaireBridge {
+    constructor() {
+        this.storageKey = 'nexten_cv_parsed_data';
+        this.init();
+    }
+
+    init() {
+        console.log('🔗 CVQuestionnaireBridge initialisé');
+        
+        // Intercepter la fonction displayReallyExhaustiveResults existante
+        this.interceptResultsDisplay();
+        
+        // Modifier la navigation pour transmettre les données
+        this.enhanceNavigation();
+    }
+
+    // Intercepter l'affichage des résultats pour sauvegarder les données
+    interceptResultsDisplay() {
+        // Sauvegarder la fonction originale
+        const originalDisplayFunction = window.displayReallyExhaustiveResults;
+        
+        if (originalDisplayFunction) {
+            window.displayReallyExhaustiveResults = (data) => {
+                // Appeler la fonction originale
+                originalDisplayFunction(data);
+                
+                // Sauvegarder les données pour le questionnaire
+                this.saveDataForQuestionnaire(data);
+                
+                console.log('✅ Données CV sauvegardées pour pré-remplissage', data);
+            };
+        }
+    }
+
+    // Sauvegarder les données parsing dans localStorage
+    saveDataForQuestionnaire(cvData) {
+        try {
+            const questionnaireMappedData = this.mapCVDataToQuestionnaire(cvData);
+            
+            const bridgeData = {
+                originalCVData: cvData,
+                questionnaireMappedData: questionnaireMappedData,
+                timestamp: Date.now(),
+                source: 'cv_parsing'
+            };
+            
+            localStorage.setItem(this.storageKey, JSON.stringify(bridgeData));
+            
+            // Marquer la page comme ayant des données CV réelles
+            sessionStorage.setItem('has_real_cv_data', 'true');
+            
+            console.log('🎯 Données prêtes pour questionnaire:', questionnaireMappedData);
+            
+        } catch (error) {
+            console.error('❌ Erreur sauvegarde données CV:', error);
+        }
+    }
+
+    // Mapper les données CV vers les champs du questionnaire
+    mapCVDataToQuestionnaire(cvData) {
+        const personalInfo = cvData.informations_personnelles || {};
+        const experiences = cvData.experiences_professionnelles || [];
+        const analysis = cvData.analyse_cv || {};
+        
+        // Extraire le poste souhaité de la dernière expérience ou du titre recherché
+        let jobTitle = personalInfo.titre_recherche || '';
+        if (!jobTitle && experiences.length > 0) {
+            jobTitle = experiences[0].poste || '';
+        }
+        
+        // Extraire l'adresse
+        let address = '';
+        if (personalInfo.adresse) {
+            address = personalInfo.adresse;
+        } else if (personalInfo.ville) {
+            address = personalInfo.ville;
+            if (personalInfo.pays) {
+                address += ', ' + personalInfo.pays;
+            }
+        }
+
+        return {
+            // Étape 1: Informations personnelles
+            'full-name': personalInfo.nom_complet || '',
+            'job-title': jobTitle,
+            
+            // Étape 2: Mobilité et préférences  
+            'address': address,
+            
+            // Données additionnelles pour contexte
+            '_cv_source': true,
+            '_experience_count': experiences.length,
+            '_cv_profile': analysis.profil_type || '',
+            '_sectors': analysis.secteurs_experiences || [],
+            '_years_experience': analysis.anciennete_professionnelle || ''
+        };
+    }
+
+    // Améliorer la navigation pour inclure les paramètres
+    enhanceNavigation() {
+        const nextBtn = document.getElementById('nextBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        
+        if (nextBtn) {
+            nextBtn.onclick = () => {
+                this.navigateToQuestionnaireWithData();
+            };
+        }
+        
+        if (skipBtn) {
+            skipBtn.onclick = () => {
+                this.navigateToQuestionnaireWithData(true);
+            };
+        }
+    }
+
+    navigateToQuestionnaireWithData(skipped = false) {
+        const baseUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
+        const params = new URLSearchParams({
+            from: 'parsing',
+            t: Date.now(),
+            cv_data: skipped ? 'skipped' : 'available'
+        });
+        
+        const finalUrl = `${baseUrl}?${params.toString()}`;
+        
+        console.log('🚀 Navigation vers questionnaire avec données CV');
+        window.location.href = finalUrl;
+    }
+}
+
+// Initialisation automatique pour candidate-upload.html
+document.addEventListener('DOMContentLoaded', () => {
+    window.cvQuestionnaireBridge = new CVQuestionnaireBridge();
+});
+
+console.log('🔗 Système de pont CV-Questionnaire chargé pour candidate-upload.html');
+</script>
+
 </body>
 </html>
