@@ -63,6 +63,24 @@
     
     <!-- Styles spécifiques au questionnaire -->
     <style>
+        /* Variables CSS globales */
+        :root {
+            --white: #ffffff;
+            --black: #000000;
+            --purple: #7c3aed;
+            --purple-light: #a855f7;
+            --purple-dark: #5b21b6;
+            --gray: #6b7280;
+            --gray-light: #9ca3af;
+            --cream: #f9fafb;
+            --cream-dark: #e5e7eb;
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+        }
+
         /* Styles spécifiques au questionnaire candidat */
         .form-container {
             background-color: var(--white);
@@ -383,6 +401,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            cursor: pointer;
         }
 
         .btn-action::before {
@@ -1622,17 +1641,19 @@
             // Création des particules pour l'arrière-plan hero
             const heroParticles = document.querySelector('.hero-particles');
             
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.width = Math.random() * 10 + 5 + 'px';
-                particle.style.height = particle.style.width;
-                particle.style.background = 'rgba(124, 58, 237, ' + (Math.random() * 0.2 + 0.05) + ')';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 5 + 's';
-                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                heroParticles.appendChild(particle);
+            if (heroParticles) {
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.width = Math.random() * 10 + 5 + 'px';
+                    particle.style.height = particle.style.width;
+                    particle.style.background = 'rgba(124, 58, 237, ' + (Math.random() * 0.2 + 0.05) + ')';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 5 + 's';
+                    particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                    heroParticles.appendChild(particle);
+                }
             }
             
             // Gestion des moyens de transport et des questions sur le temps de trajet
@@ -1720,9 +1741,12 @@
             }
             
             // Fermer la notification
-            document.querySelector('.notification-close').addEventListener('click', function() {
-                document.getElementById('notification').classList.remove('show');
-            });
+            const notificationClose = document.querySelector('.notification-close');
+            if (notificationClose) {
+                notificationClose.addEventListener('click', function() {
+                    document.getElementById('notification').classList.remove('show');
+                });
+            }
             
             // Navigation entre les étapes
             function goToStep(currentStep, nextStep) {
@@ -1860,6 +1884,7 @@
             // Initialiser l'ordre des motivations
             updateMotivationNumbers();
             
+            // Navigation entre les étapes
             // Étape 1 -> Étape 2
             document.getElementById('next-step1').addEventListener('click', function() {
                 if (validateStep(1)) {
@@ -1923,29 +1948,33 @@
             // Bouton de retour en haut
             const scrollToTopButton = document.getElementById('scroll-to-top');
             
-            window.addEventListener('scroll', function() {
-                if (window.pageYOffset > 300) {
-                    scrollToTopButton.classList.add('visible');
-                } else {
-                    scrollToTopButton.classList.remove('visible');
-                }
-            });
-            
-            scrollToTopButton.addEventListener('click', function() {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
+            if (scrollToTopButton) {
+                window.addEventListener('scroll', function() {
+                    if (window.pageYOffset > 300) {
+                        scrollToTopButton.classList.add('visible');
+                    } else {
+                        scrollToTopButton.classList.remove('visible');
+                    }
                 });
-            });
+                
+                scrollToTopButton.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
             
             // Menu mobile
             const menuToggle = document.querySelector('.menu-toggle');
             const nav = document.querySelector('nav');
             
-            menuToggle.addEventListener('click', function() {
-                nav.classList.toggle('active');
-                menuToggle.classList.toggle('active');
-            });
+            if (menuToggle && nav) {
+                menuToggle.addEventListener('click', function() {
+                    nav.classList.toggle('active');
+                    menuToggle.classList.toggle('active');
+                });
+            }
         });
     </script>
     
@@ -1958,7 +1987,7 @@
     <!-- 🔗 SYSTÈME DE PONT CV → QUESTIONNAIRE - INTÉGRATION COMPLÈTE -->
     <script id="cv-questionnaire-bridge">
     // ========================================
-    // SYSTÈME DE PRÉ-REMPLISSAGE CV → QUESTIONNAIRE
+    // SYSTÈME DE PRÉ-REMPLISSAGE CV → QUESTIONNAIRE - VERSION COMPLÈTE
     // Détection et application automatique des données CV
     // ========================================
 
@@ -1990,19 +2019,23 @@
                 if (this.cvData) {
                     console.log('✅ Données CV détectées:', this.cvData);
                     
-                    // Pré-remplir les champs
-                    this.prefillFormFields();
+                    // Petite pause pour s'assurer que tous les éléments sont chargés
+                    setTimeout(() => {
+                        // Pré-remplir les champs
+                        this.prefillFormFields();
+                        
+                        // Générer les suggestions intelligentes
+                        this.generateSmartSuggestions();
+                        
+                        // Afficher la notification globale
+                        this.showGlobalNotification();
+                        
+                        // Ajouter le bouton debug
+                        this.addDebugButton();
+                        
+                        console.log('🎯 Pré-remplissage terminé avec succès');
+                    }, 500);
                     
-                    // Générer les suggestions intelligentes
-                    this.generateSmartSuggestions();
-                    
-                    // Afficher la notification globale
-                    this.showGlobalNotification();
-                    
-                    // Ajouter le bouton debug
-                    this.addDebugButton();
-                    
-                    console.log('🎯 Pré-remplissage terminé avec succès');
                 } else {
                     console.log('ℹ️ Aucune donnée CV disponible - fonctionnement normal');
                 }
@@ -2195,7 +2228,7 @@
             }
             
             if (suggestions.length > 0) {
-                this.addSuggestionsToField(salaryField, suggestions, 'Fourchettes salariales recommandées');
+                this.addSuggestionsToField(salaryField, suggestions, 'Suggestions salariales basées sur votre expérience');
             }
         }
 
@@ -2204,10 +2237,10 @@
             const suggestionsContainer = document.createElement('div');
             suggestionsContainer.className = 'smart-suggestions';
             
+            // Titre des suggestions
             const suggestionsTitle = document.createElement('div');
             suggestionsTitle.className = 'suggestions-title';
             suggestionsTitle.textContent = title;
-            
             suggestionsContainer.appendChild(suggestionsTitle);
             
             // Ajouter chaque suggestion
@@ -2216,17 +2249,22 @@
                 suggestionItem.className = 'suggestion-item';
                 suggestionItem.innerHTML = `
                     <i class="${suggestion.icon}"></i>
-                    <div>
-                        <strong>${suggestion.text}</strong>
-                        <div style="font-size: 0.85rem; color: #6B7280;">${suggestion.reason}</div>
-                    </div>
+                    <span class="suggestion-text">${suggestion.text}</span>
+                    <small class="suggestion-reason">${suggestion.reason}</small>
                 `;
                 
-                // Clic pour appliquer la suggestion
+                // Événement clic pour appliquer la suggestion
                 suggestionItem.addEventListener('click', () => {
                     field.value = suggestion.text;
                     field.dispatchEvent(new Event('change', { bubbles: true }));
-                    suggestionsContainer.style.display = 'none';
+                    
+                    // Animation de confirmation
+                    suggestionItem.style.background = '#10B981';
+                    suggestionItem.style.color = 'white';
+                    setTimeout(() => {
+                        suggestionItem.style.background = '';
+                        suggestionItem.style.color = '';
+                    }, 1000);
                 });
                 
                 suggestionsContainer.appendChild(suggestionItem);
@@ -2237,47 +2275,41 @@
         }
 
         showGlobalNotification() {
-            const formContainer = document.querySelector('.form-container');
-            if (!formContainer) return;
-
+            // Créer la notification globale
             const notification = document.createElement('div');
             notification.className = 'cv-notification';
             notification.innerHTML = `
-                <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
-                <strong>Formulaire pré-rempli automatiquement</strong> avec les informations de votre CV
-                <div style="font-size: 0.9rem; margin-top: 4px; opacity: 0.9;">
-                    ${this.prefilledFields.length} champs complétés • Suggestions intelligentes générées
-                </div>
+                <i class="fas fa-magic"></i>
+                ✨ Formulaire pré-rempli automatiquement avec les informations de votre CV !
+                <small style="display: block; margin-top: 8px; opacity: 0.9;">
+                    ${this.prefilledFields.length} champs remplis • Suggestions intelligentes générées
+                </small>
             `;
             
             // Insérer au début du formulaire
-            formContainer.insertBefore(notification, formContainer.firstChild);
-            
-            // Auto-masquer après 8 secondes
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => notification.remove(), 500);
-            }, 8000);
+            const formContainer = document.querySelector('.form-container');
+            if (formContainer) {
+                formContainer.insertBefore(notification, formContainer.firstChild);
+            }
         }
 
         addDebugButton() {
-            // Ajouter seulement en mode développement (paramètre URL ou localStorage)
-            const debugMode = localStorage.getItem('nexten_debug_mode') === 'true' || 
-                             new URLSearchParams(window.location.search).has('debug');
-            
-            if (!debugMode) return;
-
+            // Bouton debug pour les développeurs
             const debugBtn = document.createElement('button');
             debugBtn.className = 'debug-btn';
             debugBtn.innerHTML = '<i class="fas fa-bug"></i> Test CV API';
-            debugBtn.title = 'Inspecter les données CV (mode debug)';
+            debugBtn.title = 'Inspecter les données CV (mode développement)';
             
-            debugBtn.addEventListener('click', () => this.showDebugModal());
+            debugBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showDebugModal();
+            });
             
             document.body.appendChild(debugBtn);
         }
 
         showDebugModal() {
+            // Créer le modal de debug
             const modal = document.createElement('div');
             modal.className = 'debug-modal';
             modal.style.display = 'flex';
@@ -2285,48 +2317,79 @@
             modal.innerHTML = `
                 <div class="debug-content">
                     <div class="debug-header">
-                        <h3><i class="fas fa-bug"></i> Données CV - Inspection Debug</h3>
+                        <h3><i class="fas fa-code"></i> Debug - Données CV</h3>
                         <button class="debug-close">&times;</button>
                     </div>
-                    <div>
-                        <h4>Données CV originales :</h4>
-                        <div class="debug-data">${JSON.stringify(this.cvData, null, 2)}</div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4>📊 Statistiques</h4>
+                        <p><strong>Champs pré-remplis:</strong> ${this.prefilledFields.length}</p>
+                        <p><strong>Source:</strong> ${this.cvData ? 'Analyse CV réelle' : 'Aucune'}</p>
+                        <p><strong>Timestamp:</strong> ${this.cvData ? new Date().toLocaleString() : 'N/A'}</p>
                     </div>
-                    <div style="margin-top: 20px;">
-                        <h4>Mapping questionnaire :</h4>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4>🔗 Données mappées</h4>
                         <div class="debug-data">${JSON.stringify(this.mappedData, null, 2)}</div>
                     </div>
-                    <div style="margin-top: 20px;">
-                        <h4>Champs pré-remplis :</h4>
-                        <div class="debug-data">${this.prefilledFields.join(', ')}</div>
+                    
+                    <div>
+                        <h4>📄 Données CV complètes</h4>
+                        <div class="debug-data">${JSON.stringify(this.cvData, null, 2)}</div>
                     </div>
                 </div>
             `;
             
-            // Fermer le modal
+            // Événement fermeture
             modal.querySelector('.debug-close').addEventListener('click', () => {
                 modal.remove();
             });
             
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.remove();
+                if (e.target === modal) {
+                    modal.remove();
+                }
             });
             
             document.body.appendChild(modal);
         }
+
+        // Méthodes utilitaires
+        clearCVData() {
+            localStorage.removeItem(this.storageKey);
+            sessionStorage.removeItem('has_real_cv_data');
+            console.log('🧹 Données CV effacées');
+        }
+
+        refreshPrefilling() {
+            // Recharger le pré-remplissage
+            this.setupPrefilling();
+        }
     }
 
-    // Initialisation automatique pour candidate-questionnaire.html
-    console.log('🔗 Système de pont CV-Questionnaire chargé pour candidate-questionnaire.html');
+    // ========================================
+    // INITIALISATION AUTOMATIQUE
+    // ========================================
 
-    // Activer le mode debug si nécessaire
-    if (window.location.href.includes('debug') || window.location.href.includes('localhost')) {
-        localStorage.setItem('nexten_debug_mode', 'true');
-    }
+    // Initialiser le système dès que possible
+    document.addEventListener('DOMContentLoaded', () => {
+        // Créer l'instance globale
+        window.questionnairePrefiller = new QuestionnairePrefiller();
+        
+        console.log('🚀 Système de pré-remplissage CV → Questionnaire activé');
+    });
 
-    // Créer l'instance globale
-    window.questionnairePrefiller = new QuestionnairePrefiller();
+    // Fonction globale pour test manuel
+    window.testCVAPI = function() {
+        if (window.questionnairePrefiller) {
+            window.questionnairePrefiller.showDebugModal();
+        } else {
+            console.error('❌ QuestionnairePrefiller non initialisé');
+        }
+    };
 
+    console.log('🔗 Script QuestionnairePrefiller complet chargé pour candidate-questionnaire.html');
     </script>
+
 </body>
 </html>
