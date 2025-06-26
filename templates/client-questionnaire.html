@@ -417,7 +417,7 @@
             display: block;
         }
 
-        /* === NOUVEAU: PANNEAU RÉSULTATS PARSING CHATGPT === */
+        /* === PANNEAU RÉSULTATS PARSING CHATGPT === */
         .parsing-results-panel {
             margin-top: 2rem;
             background: white;
@@ -987,7 +987,7 @@
                             <span>Extraction et analyse ChatGPT en cours...</span>
                         </div>
 
-                        <!-- NOUVEAU: Panneau des résultats du parsing ChatGPT -->
+                        <!-- PANNEAU DES RÉSULTATS DU PARSING CHATGPT -->
                         <div id="parsing-results-panel" class="parsing-results-panel">
                             <div class="parsing-header">
                                 <h3>
@@ -1584,6 +1584,556 @@
             debugLog('🎉 SCRIPT DE REDIRECTION NEXTEN CHARGÉ AVEC SUCCÈS');
             
         })();
+
+        // ===============================================
+        // 🔧 NEXTEN JOB PARSING SYSTEM - VERSION RESTAURÉE
+        // ===============================================
+        // Basé sur les versions fonctionnelles v6.3.6 à v6.3.9
+
+        // Variables globales pour le parsing
+        var jobParsingManager = {
+            apiKey: localStorage.getItem('openai_api_key') || '',
+            currentFile: null,
+            isProcessing: false,
+            extractedData: {},
+            
+            // Configuration
+            config: {
+                maxFileSize: 5 * 1024 * 1024, // 5MB
+                allowedTypes: ['.pdf', '.doc', '.docx', '.txt'],
+                autoAnalyzeDelay: 2000 // 2 secondes
+            }
+        };
+
+        // Fonction principale d'initialisation du parsing
+        function initializeJobParsing() {
+            console.log('🔧 INITIALISATION DU SYSTÈME DE PARSING NEXTEN');
+            
+            try {
+                // Vérifier les éléments essentiels
+                const elements = {
+                    dropZone: document.getElementById('job-drop-zone'),
+                    fileInput: document.getElementById('job-file-input'),
+                    textArea: document.getElementById('job-description-text'),
+                    apiKeyInput: document.getElementById('api-key'),
+                    saveApiButton: document.getElementById('save-api-key'),
+                    loader: document.getElementById('analysis-loader'),
+                    resultsPanel: document.getElementById('parsing-results-panel')
+                };
+                
+                // Vérifier que tous les éléments sont présents
+                for (const [key, element] of Object.entries(elements)) {
+                    if (!element) {
+                        console.error(`❌ Élément manquant: ${key}`);
+                        return false;
+                    }
+                }
+                
+                console.log('✅ Tous les éléments DOM trouvés');
+                
+                // Initialiser les event listeners
+                setupEventListeners(elements);
+                
+                // Charger la clé API sauvegardée
+                loadApiKey(elements.apiKeyInput);
+                
+                console.log('🎉 Système de parsing initialisé avec succès');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Erreur lors de l\'initialisation du parsing:', error);
+                return false;
+            }
+        }
+
+        // Configuration des event listeners
+        function setupEventListeners(elements) {
+            console.log('🔗 Configuration des event listeners');
+            
+            // 1. DRAG & DROP
+            elements.dropZone.addEventListener('dragover', handleDragOver);
+            elements.dropZone.addEventListener('dragleave', handleDragLeave);
+            elements.dropZone.addEventListener('drop', handleFileDrop);
+            
+            // 2. CLIC SUR ZONE D'UPLOAD
+            elements.dropZone.addEventListener('click', function() {
+                console.log('🎯 CLIC SUR ZONE D\'UPLOAD DÉTECTÉ');
+                elements.fileInput.click();
+            });
+            
+            // 3. SÉLECTION DE FICHIER
+            elements.fileInput.addEventListener('change', function(event) {
+                if (event.target.files.length > 0) {
+                    handleFileSelection(event.target.files[0]);
+                }
+            });
+            
+            // 4. SAISIE DANS LE TEXTAREA (auto-analyse)
+            let textAnalyzeTimeout;
+            elements.textArea.addEventListener('input', function() {
+                const text = this.value.trim();
+                
+                // Annuler le timeout précédent
+                if (textAnalyzeTimeout) {
+                    clearTimeout(textAnalyzeTimeout);
+                }
+                
+                // Programmer l'analyse automatique après 2 secondes
+                if (text.length > 100) {
+                    textAnalyzeTimeout = setTimeout(() => {
+                        console.log('⚡ Déclenchement auto-analyse du texte');
+                        analyzeJobText(text);
+                    }, jobParsingManager.config.autoAnalyzeDelay);
+                }
+            });
+            
+            // 5. SAUVEGARDE DE LA CLÉ API
+            elements.saveApiButton.addEventListener('click', function() {
+                const apiKey = elements.apiKeyInput.value.trim();
+                if (apiKey) {
+                    saveApiKey(apiKey);
+                    showNotification('Clé API sauvegardée avec succès !', 'success');
+                } else {
+                    showNotification('Veuillez saisir une clé API valide', 'error');
+                }
+            });
+            
+            console.log('✅ Event listeners configurés');
+        }
+
+        // Gestion du drag over
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.classList.add('drag-active');
+        }
+
+        // Gestion du drag leave
+        function handleDragLeave(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.classList.remove('drag-active');
+        }
+
+        // Gestion du drop
+        function handleFileDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.classList.remove('drag-active');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelection(files[0]);
+            }
+        }
+
+        // Validation et traitement du fichier sélectionné
+        function handleFileSelection(file) {
+            console.log('📁 Fichier sélectionné:', file.name);
+            
+            // Validation de la taille
+            if (file.size > jobParsingManager.config.maxFileSize) {
+                showNotification('Fichier trop volumineux (max 5MB)', 'error');
+                return;
+            }
+            
+            // Validation du type
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            if (!jobParsingManager.config.allowedTypes.includes(fileExtension)) {
+                showNotification('Format de fichier non supporté', 'error');
+                return;
+            }
+            
+            // Stocker le fichier et commencer l'extraction
+            jobParsingManager.currentFile = file;
+            extractTextFromFile(file);
+        }
+
+        // Extraction de texte depuis le fichier
+        function extractTextFromFile(file) {
+            console.log('🔍 Extraction du texte depuis:', file.name);
+            showLoader(true, 'Extraction du texte en cours...');
+            
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            switch (fileExtension) {
+                case '.pdf':
+                    extractTextFromPDF(file);
+                    break;
+                case '.docx':
+                case '.doc':
+                    extractTextFromDocx(file);
+                    break;
+                case '.txt':
+                    extractTextFromTxt(file);
+                    break;
+                default:
+                    showNotification('Format non supporté', 'error');
+                    showLoader(false);
+            }
+        }
+
+        // Extraction depuis PDF (utilise PDF.js)
+        function extractTextFromPDF(file) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(event) {
+                const typedArray = new Uint8Array(event.target.result);
+                
+                pdfjsLib.getDocument(typedArray).promise.then(function(pdf) {
+                    let textContent = '';
+                    const numPages = pdf.numPages;
+                    let pagesProcessed = 0;
+                    
+                    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                        pdf.getPage(pageNum).then(function(page) {
+                            page.getTextContent().then(function(textContentObj) {
+                                const pageText = textContentObj.items.map(item => item.str).join(' ');
+                                textContent += pageText + '\n';
+                                pagesProcessed++;
+                                
+                                if (pagesProcessed === numPages) {
+                                    console.log('✅ Extraction PDF terminée');
+                                    analyzeJobText(textContent);
+                                }
+                            });
+                        });
+                    }
+                }).catch(function(error) {
+                    console.error('❌ Erreur extraction PDF:', error);
+                    showNotification('Erreur lors de l\'extraction du PDF', 'error');
+                    showLoader(false);
+                });
+            };
+            fileReader.readAsArrayBuffer(file);
+        }
+
+        // Extraction depuis DOCX (utilise Mammoth.js)
+        function extractTextFromDocx(file) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(event) {
+                mammoth.extractRawText({arrayBuffer: event.target.result})
+                    .then(function(result) {
+                        console.log('✅ Extraction DOCX terminée');
+                        analyzeJobText(result.value);
+                    })
+                    .catch(function(error) {
+                        console.error('❌ Erreur extraction DOCX:', error);
+                        showNotification('Erreur lors de l\'extraction du document', 'error');
+                        showLoader(false);
+                    });
+            };
+            fileReader.readAsArrayBuffer(file);
+        }
+
+        // Extraction depuis TXT
+        function extractTextFromTxt(file) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(event) {
+                console.log('✅ Extraction TXT terminée');
+                analyzeJobText(event.target.result);
+            };
+            fileReader.readAsText(file, 'UTF-8');
+        }
+
+        // Analyse du texte avec ChatGPT
+        function analyzeJobText(text) {
+            if (!text || text.trim().length < 50) {
+                showNotification('Texte trop court pour être analysé', 'error');
+                showLoader(false);
+                return;
+            }
+            
+            if (!jobParsingManager.apiKey) {
+                showNotification('Veuillez configurer votre clé API OpenAI', 'error');
+                showLoader(false);
+                return;
+            }
+            
+            console.log('🤖 Analyse ChatGPT en cours...');
+            showLoader(true, 'Analyse ChatGPT en cours...');
+            
+            const prompt = `Analysez cette fiche de poste et extrayez les informations clés au format JSON:
+
+${text}
+
+Répondez uniquement avec un objet JSON contenant:
+{
+  "titre_poste": "...",
+  "experience_requise": "junior|2-3years|5-10years|10plus",
+  "type_contrat": "cdi|cdd|interim|freelance",
+  "salaire": "...",
+  "avantages": "...",
+  "competences": ["comp1", "comp2", ...],
+  "mission_principale": "...",
+  "localisation": "..."
+}`;
+
+            fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jobParsingManager.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    max_tokens: 1000,
+                    temperature: 0.3
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                const content = data.choices[0].message.content;
+                console.log('✅ Réponse ChatGPT reçue');
+                
+                try {
+                    const extractedData = JSON.parse(content);
+                    jobParsingManager.extractedData = extractedData;
+                    
+                    // Afficher les résultats
+                    showParsingResults(extractedData);
+                    
+                    // Auto-remplir les champs
+                    autoFillFields(extractedData);
+                    
+                    showNotification('Analyse terminée avec succès !', 'success');
+                    
+                } catch (parseError) {
+                    console.error('❌ Erreur parsing JSON:', parseError);
+                    showNotification('Erreur lors de l\'analyse du contenu', 'error');
+                }
+                
+                showLoader(false);
+            })
+            .catch(error => {
+                console.error('❌ Erreur API ChatGPT:', error);
+                showNotification('Erreur lors de l\'analyse: ' + error.message, 'error');
+                showLoader(false);
+            });
+        }
+
+        // Affichage des résultats du parsing
+        function showParsingResults(data) {
+            console.log('📊 Affichage des résultats du parsing');
+            
+            const resultsPanel = document.getElementById('parsing-results-panel');
+            const resultsContent = document.getElementById('parsing-results-content');
+            
+            if (!resultsPanel || !resultsContent) {
+                console.error('❌ Panneau de résultats non trouvé');
+                return;
+            }
+            
+            // Générer le contenu HTML des résultats
+            const html = `
+                <div class="parsing-section">
+                    <div class="parsing-section-title">
+                        <i class="fas fa-briefcase"></i>
+                        Informations générales
+                    </div>
+                    <div class="parsing-item">
+                        <div class="parsing-label">Titre:</div>
+                        <div class="parsing-value highlight">${data.titre_poste || 'Non spécifié'}</div>
+                    </div>
+                    <div class="parsing-item">
+                        <div class="parsing-label">Lieu:</div>
+                        <div class="parsing-value">${data.localisation || 'Non spécifié'}</div>
+                    </div>
+                    <div class="parsing-item">
+                        <div class="parsing-label">Mission:</div>
+                        <div class="parsing-value">${data.mission_principale || 'Non spécifiée'}</div>
+                    </div>
+                </div>
+                
+                <div class="parsing-section">
+                    <div class="parsing-section-title">
+                        <i class="fas fa-user-tie"></i>
+                        Profil recherché
+                    </div>
+                    <div class="parsing-item">
+                        <div class="parsing-label">Expérience:</div>
+                        <div class="parsing-value highlight">${formatExperience(data.experience_requise)}</div>
+                        <span class="auto-fill-badge"><i class="fas fa-magic"></i> Auto-rempli</span>
+                    </div>
+                    <div class="parsing-item">
+                        <div class="parsing-label">Compétences:</div>
+                        <div class="parsing-value">
+                            <div class="competences-tags">
+                                ${(data.competences || []).map(comp => 
+                                    `<span class="competence-tag">${comp}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="parsing-section">
+                    <div class="parsing-section-title">
+                        <i class="fas fa-euro-sign"></i>
+                        Conditions d'emploi
+                    </div>
+                    <div class="parsing-item">
+                        <div class="parsing-label">Contrat:</div>
+                        <div class="parsing-value highlight">${formatContractType(data.type_contrat)}</div>
+                        <span class="auto-fill-badge"><i class="fas fa-magic"></i> Auto-rempli</span>
+                    </div>
+                    <div class="parsing-item">
+                        <div class="parsing-label">Salaire:</div>
+                        <div class="parsing-value highlight">${data.salaire || 'Non spécifié'}</div>
+                        <span class="auto-fill-badge"><i class="fas fa-magic"></i> Auto-rempli</span>
+                    </div>
+                    <div class="parsing-item">
+                        <div class="parsing-label">Avantages:</div>
+                        <div class="parsing-value highlight">${data.avantages || 'Non spécifiés'}</div>
+                        <span class="auto-fill-badge"><i class="fas fa-magic"></i> Auto-rempli</span>
+                    </div>
+                </div>
+            `;
+            
+            resultsContent.innerHTML = html;
+            
+            // Afficher le panneau avec animation
+            resultsPanel.classList.add('show');
+        }
+
+        // Auto-remplissage des champs du formulaire
+        function autoFillFields(data) {
+            console.log('✨ Auto-remplissage des champs');
+            
+            const fieldMappings = {
+                'experience-required': data.experience_requise,
+                'salary-range': data.salaire,
+                'job-benefits': data.avantages
+            };
+            
+            // Sélectionner le type de contrat
+            if (data.type_contrat) {
+                const contractRadio = document.getElementById(`contract-${data.type_contrat}`);
+                if (contractRadio) {
+                    contractRadio.checked = true;
+                    markFieldAsAutoFilled(contractRadio.closest('.form-group'));
+                }
+            }
+            
+            // Remplir les autres champs
+            for (const [fieldId, value] of Object.entries(fieldMappings)) {
+                if (value) {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.value = value;
+                        markFieldAsAutoFilled(field.closest('.form-group'));
+                    }
+                }
+            }
+        }
+
+        // Marquer un champ comme auto-rempli
+        function markFieldAsAutoFilled(fieldGroup) {
+            if (fieldGroup) {
+                fieldGroup.classList.add('auto-filled');
+                const field = fieldGroup.querySelector('.form-control');
+                if (field) {
+                    field.classList.add('auto-filled');
+                }
+            }
+        }
+
+        // Formatage de l'expérience
+        function formatExperience(exp) {
+            const formats = {
+                'junior': 'Profil Junior',
+                '2-3years': '2 ans - 3 ans',
+                '5-10years': '5 ans - 10 ans',
+                '10plus': '10 ans et plus'
+            };
+            return formats[exp] || exp || 'Non spécifié';
+        }
+
+        // Formatage du type de contrat
+        function formatContractType(type) {
+            const formats = {
+                'cdi': 'CDI',
+                'cdd': 'CDD',
+                'interim': 'INTERIM',
+                'freelance': 'FREELANCE'
+            };
+            return formats[type] || type || 'Non spécifié';
+        }
+
+        // Gestion de la clé API
+        function saveApiKey(apiKey) {
+            jobParsingManager.apiKey = apiKey;
+            localStorage.setItem('openai_api_key', apiKey);
+            console.log('💾 Clé API sauvegardée');
+        }
+
+        function loadApiKey(input) {
+            const savedKey = localStorage.getItem('openai_api_key');
+            if (savedKey) {
+                input.value = savedKey;
+                jobParsingManager.apiKey = savedKey;
+                console.log('🔑 Clé API chargée depuis localStorage');
+            }
+        }
+
+        // Affichage/masquage du loader
+        function showLoader(show, message = 'Chargement...') {
+            const loader = document.getElementById('analysis-loader');
+            if (loader) {
+                if (show) {
+                    loader.style.display = 'flex';
+                    const span = loader.querySelector('span');
+                    if (span) span.textContent = message;
+                } else {
+                    loader.style.display = 'none';
+                }
+            }
+        }
+
+        // Fonction de notification (utilise le système existant)
+        function showNotification(message, type = 'info') {
+            // Cette fonction utilise le système de notification déjà présent
+            if (typeof showNotificationCustom === 'function') {
+                showNotificationCustom(message, type);
+            } else {
+                console.log(`${type.toUpperCase()}: ${message}`);
+            }
+        }
+
+        // ===============================================
+        // INITIALISATION AUTOMATIQUE
+        // ===============================================
+
+        // Initialiser le système de parsing quand le DOM est prêt
+        function initializeWhenReady() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(initializeJobParsing, 500);
+                });
+            } else {
+                setTimeout(initializeJobParsing, 500);
+            }
+        }
+
+        // Démarrer l'initialisation
+        initializeWhenReady();
+
+        // Exposer les fonctions pour le debug
+        window.jobParsingDebug = {
+            manager: jobParsingManager,
+            reinitialize: initializeJobParsing,
+            testAnalysis: (text) => analyzeJobText(text),
+            showResults: (data) => showParsingResults(data)
+        };
     </script>
 </body>
 </html>
