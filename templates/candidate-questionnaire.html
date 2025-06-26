@@ -652,6 +652,233 @@
             border: 2px solid #10B981;
             animation: pulseCVIndicator 2s infinite;
         }
+
+        /* 🔗 STYLES SYSTÈME PONT CV-QUESTIONNAIRE */
+        /* Styles pour les champs pré-remplis avec données CV */
+        .cv-prefilled {
+            background-color: rgba(16, 185, 129, 0.08) !important;
+            border-color: #10B981 !important;
+            position: relative;
+        }
+
+        .cv-prefilled::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #10B981, #059669);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Badge CV pour les champs pré-remplis */
+        .cv-badge {
+            position: absolute;
+            top: -8px;
+            right: 8px;
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            animation: cvBadgePulse 2s infinite;
+        }
+
+        @keyframes cvBadgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Notification globale de pré-remplissage */
+        .cv-notification {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
+            animation: slideInFromTop 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cv-notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Suggestions intelligentes */
+        .smart-suggestions {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.05));
+            border: 2px solid #3B82F6;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            position: relative;
+            animation: suggestionsAppear 0.6s ease-out;
+        }
+
+        .smart-suggestions::before {
+            content: '💡';
+            position: absolute;
+            top: -8px;
+            left: 16px;
+            background: white;
+            padding: 0 8px;
+            font-size: 1.2rem;
+        }
+
+        .suggestions-title {
+            color: #3B82F6;
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .suggestion-item {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #E5E7EB;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .suggestion-item:hover {
+            background: #3B82F6;
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .suggestion-item i {
+            color: #3B82F6;
+            transition: color 0.3s ease;
+        }
+
+        .suggestion-item:hover i {
+            color: white;
+        }
+
+        @keyframes suggestionsAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Bouton debug (mode développement) */
+        .debug-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .debug-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Modal de debug */
+        .debug-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .debug-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .debug-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6B7280;
+        }
+
+        .debug-data {
+            background: #F3F4F6;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
         
         @media (max-width: 768px) {
             .stepper {
@@ -1727,5 +1954,379 @@
     
     <!-- Google Maps API avec clé API et callback -->
     <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initAutocompleteCallback" async defer></script>
+
+    <!-- 🔗 SYSTÈME DE PONT CV → QUESTIONNAIRE - INTÉGRATION COMPLÈTE -->
+    <script id="cv-questionnaire-bridge">
+    // ========================================
+    // SYSTÈME DE PRÉ-REMPLISSAGE CV → QUESTIONNAIRE
+    // Détection et application automatique des données CV
+    // ========================================
+
+    class QuestionnairePrefiller {
+        constructor() {
+            this.storageKey = 'nexten_cv_parsed_data';
+            this.cvData = null;
+            this.mappedData = null;
+            this.prefilledFields = [];
+            
+            console.log('🔗 QuestionnairePrefiller initialisé');
+            this.init();
+        }
+
+        init() {
+            // Attendre que le DOM soit chargé
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => this.setupPrefilling());
+            } else {
+                this.setupPrefilling();
+            }
+        }
+
+        setupPrefilling() {
+            try {
+                // Détecter les données CV disponibles
+                this.detectCVData();
+                
+                if (this.cvData) {
+                    console.log('✅ Données CV détectées:', this.cvData);
+                    
+                    // Pré-remplir les champs
+                    this.prefillFormFields();
+                    
+                    // Générer les suggestions intelligentes
+                    this.generateSmartSuggestions();
+                    
+                    // Afficher la notification globale
+                    this.showGlobalNotification();
+                    
+                    // Ajouter le bouton debug
+                    this.addDebugButton();
+                    
+                    console.log('🎯 Pré-remplissage terminé avec succès');
+                } else {
+                    console.log('ℹ️ Aucune donnée CV disponible - fonctionnement normal');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erreur lors du pré-remplissage:', error);
+            }
+        }
+
+        detectCVData() {
+            try {
+                // Vérifier localStorage
+                const storedData = localStorage.getItem(this.storageKey);
+                if (storedData) {
+                    const parsedStorage = JSON.parse(storedData);
+                    this.cvData = parsedStorage.originalCVData;
+                    this.mappedData = parsedStorage.questionnaireMappedData;
+                    
+                    console.log('📦 Données trouvées dans localStorage');
+                    return true;
+                }
+                
+                // Vérifier les paramètres URL
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('from') === 'parsing' && urlParams.get('cv_data') === 'available') {
+                    console.log('🔗 Redirection depuis parsing détectée');
+                    // Essayer de recharger depuis localStorage
+                    return this.detectCVData();
+                }
+                
+                return false;
+                
+            } catch (error) {
+                console.error('❌ Erreur détection données CV:', error);
+                return false;
+            }
+        }
+
+        prefillFormFields() {
+            if (!this.mappedData) return;
+
+            // Pré-remplir chaque champ mappé
+            Object.entries(this.mappedData).forEach(([fieldId, value]) => {
+                if (fieldId.startsWith('_')) return; // Ignorer les métadonnées
+                
+                const field = document.getElementById(fieldId);
+                if (field && value) {
+                    this.fillField(field, value);
+                    this.markFieldAsPrefilled(field);
+                    this.prefilledFields.push(fieldId);
+                }
+            });
+
+            console.log(`✅ ${this.prefilledFields.length} champs pré-remplis:`, this.prefilledFields);
+        }
+
+        fillField(field, value) {
+            if (field.type === 'text' || field.type === 'email' || field.tagName === 'TEXTAREA') {
+                field.value = value;
+            } else if (field.type === 'radio') {
+                // Pour les boutons radio, rechercher la valeur correspondante
+                const radioGroup = document.querySelectorAll(`input[name="${field.name}"]`);
+                radioGroup.forEach(radio => {
+                    if (radio.value === value) {
+                        radio.checked = true;
+                    }
+                });
+            } else if (field.type === 'checkbox') {
+                field.checked = value === true || value === 'true';
+            }
+            
+            // Déclencher l'événement change pour les validations
+            field.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        markFieldAsPrefilled(field) {
+            // Ajouter la classe de style
+            field.classList.add('cv-prefilled');
+            
+            // Ajouter le badge CV
+            if (!field.parentElement.querySelector('.cv-badge')) {
+                const badge = document.createElement('span');
+                badge.className = 'cv-badge';
+                badge.textContent = 'CV';
+                badge.title = 'Pré-rempli depuis votre CV';
+                
+                // Position relative pour le parent si nécessaire
+                if (getComputedStyle(field.parentElement).position === 'static') {
+                    field.parentElement.style.position = 'relative';
+                }
+                
+                field.parentElement.appendChild(badge);
+            }
+        }
+
+        generateSmartSuggestions() {
+            // Suggestions pour l'intitulé de poste
+            this.generateJobTitleSuggestions();
+            
+            // Suggestions pour la fourchette salariale
+            this.generateSalarySuggestions();
+        }
+
+        generateJobTitleSuggestions() {
+            const jobTitleField = document.getElementById('job-title');
+            if (!jobTitleField || !this.cvData) return;
+
+            const experiences = this.cvData.experiences_professionnelles || [];
+            const sectors = this.mappedData._sectors || [];
+            
+            let suggestions = [];
+            
+            // Suggestions basées sur les expériences
+            if (experiences.length > 0) {
+                const latestExp = experiences[0];
+                if (latestExp.poste) {
+                    suggestions.push({
+                        icon: 'fas fa-briefcase',
+                        text: latestExp.poste,
+                        reason: 'Votre dernier poste'
+                    });
+                }
+            }
+            
+            // Suggestions basées sur les secteurs
+            if (sectors.includes('Luxe')) {
+                suggestions.push(
+                    {
+                        icon: 'fas fa-gem',
+                        text: 'Assistante Direction Luxe',
+                        reason: 'Basé sur votre expérience dans le luxe'
+                    },
+                    {
+                        icon: 'fas fa-star',
+                        text: 'Coordinatrice Projets Premium',
+                        reason: 'Évolution dans le secteur luxe'
+                    }
+                );
+            }
+            
+            if (sectors.includes('Mode')) {
+                suggestions.push({
+                    icon: 'fas fa-palette',
+                    text: 'Assistante Direction Artistique Mode',
+                    reason: 'Spécialisation mode'
+                });
+            }
+            
+            if (suggestions.length > 0) {
+                this.addSuggestionsToField(jobTitleField, suggestions, 'Suggestions de postes basées sur votre CV');
+            }
+        }
+
+        generateSalarySuggestions() {
+            const salaryField = document.getElementById('salary-range');
+            if (!salaryField || !this.mappedData._years_experience) return;
+
+            const yearsExperience = this.mappedData._years_experience;
+            let suggestions = [];
+            
+            // Calcul basé sur l'expérience
+            if (yearsExperience.includes('15+') || yearsExperience.includes('17+')) {
+                suggestions.push(
+                    {
+                        icon: 'fas fa-euro-sign',
+                        text: '45K€ - 60K€',
+                        reason: 'Profil senior (15+ ans d\'expérience)'
+                    },
+                    {
+                        icon: 'fas fa-chart-line',
+                        text: '50K€ - 65K€',
+                        reason: 'Avec responsabilités managériales'
+                    }
+                );
+            } else if (yearsExperience.includes('10+')) {
+                suggestions.push({
+                    icon: 'fas fa-euro-sign',
+                    text: '38K€ - 50K€',
+                    reason: 'Profil confirmé (10+ ans)'
+                });
+            }
+            
+            // Ajustement secteur luxe
+            if (this.mappedData._sectors && this.mappedData._sectors.includes('Luxe')) {
+                suggestions.push({
+                    icon: 'fas fa-gem',
+                    text: '55K€ - 70K€',
+                    reason: 'Premium secteur luxe'
+                });
+            }
+            
+            if (suggestions.length > 0) {
+                this.addSuggestionsToField(salaryField, suggestions, 'Fourchettes salariales recommandées');
+            }
+        }
+
+        addSuggestionsToField(field, suggestions, title) {
+            // Créer le conteneur de suggestions
+            const suggestionsContainer = document.createElement('div');
+            suggestionsContainer.className = 'smart-suggestions';
+            
+            const suggestionsTitle = document.createElement('div');
+            suggestionsTitle.className = 'suggestions-title';
+            suggestionsTitle.textContent = title;
+            
+            suggestionsContainer.appendChild(suggestionsTitle);
+            
+            // Ajouter chaque suggestion
+            suggestions.forEach(suggestion => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.className = 'suggestion-item';
+                suggestionItem.innerHTML = `
+                    <i class="${suggestion.icon}"></i>
+                    <div>
+                        <strong>${suggestion.text}</strong>
+                        <div style="font-size: 0.85rem; color: #6B7280;">${suggestion.reason}</div>
+                    </div>
+                `;
+                
+                // Clic pour appliquer la suggestion
+                suggestionItem.addEventListener('click', () => {
+                    field.value = suggestion.text;
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                    suggestionsContainer.style.display = 'none';
+                });
+                
+                suggestionsContainer.appendChild(suggestionItem);
+            });
+            
+            // Insérer après le champ
+            field.parentElement.appendChild(suggestionsContainer);
+        }
+
+        showGlobalNotification() {
+            const formContainer = document.querySelector('.form-container');
+            if (!formContainer) return;
+
+            const notification = document.createElement('div');
+            notification.className = 'cv-notification';
+            notification.innerHTML = `
+                <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
+                <strong>Formulaire pré-rempli automatiquement</strong> avec les informations de votre CV
+                <div style="font-size: 0.9rem; margin-top: 4px; opacity: 0.9;">
+                    ${this.prefilledFields.length} champs complétés • Suggestions intelligentes générées
+                </div>
+            `;
+            
+            // Insérer au début du formulaire
+            formContainer.insertBefore(notification, formContainer.firstChild);
+            
+            // Auto-masquer après 8 secondes
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 500);
+            }, 8000);
+        }
+
+        addDebugButton() {
+            // Ajouter seulement en mode développement (paramètre URL ou localStorage)
+            const debugMode = localStorage.getItem('nexten_debug_mode') === 'true' || 
+                             new URLSearchParams(window.location.search).has('debug');
+            
+            if (!debugMode) return;
+
+            const debugBtn = document.createElement('button');
+            debugBtn.className = 'debug-btn';
+            debugBtn.innerHTML = '<i class="fas fa-bug"></i> Test CV API';
+            debugBtn.title = 'Inspecter les données CV (mode debug)';
+            
+            debugBtn.addEventListener('click', () => this.showDebugModal());
+            
+            document.body.appendChild(debugBtn);
+        }
+
+        showDebugModal() {
+            const modal = document.createElement('div');
+            modal.className = 'debug-modal';
+            modal.style.display = 'flex';
+            
+            modal.innerHTML = `
+                <div class="debug-content">
+                    <div class="debug-header">
+                        <h3><i class="fas fa-bug"></i> Données CV - Inspection Debug</h3>
+                        <button class="debug-close">&times;</button>
+                    </div>
+                    <div>
+                        <h4>Données CV originales :</h4>
+                        <div class="debug-data">${JSON.stringify(this.cvData, null, 2)}</div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h4>Mapping questionnaire :</h4>
+                        <div class="debug-data">${JSON.stringify(this.mappedData, null, 2)}</div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h4>Champs pré-remplis :</h4>
+                        <div class="debug-data">${this.prefilledFields.join(', ')}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Fermer le modal
+            modal.querySelector('.debug-close').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+            
+            document.body.appendChild(modal);
+        }
+    }
+
+    // Initialisation automatique pour candidate-questionnaire.html
+    console.log('🔗 Système de pont CV-Questionnaire chargé pour candidate-questionnaire.html');
+
+    // Activer le mode debug si nécessaire
+    if (window.location.href.includes('debug') || window.location.href.includes('localhost')) {
+        localStorage.setItem('nexten_debug_mode', 'true');
+    }
+
+    // Créer l'instance globale
+    window.questionnairePrefiller = new QuestionnairePrefiller();
+
+    </script>
 </body>
 </html>
