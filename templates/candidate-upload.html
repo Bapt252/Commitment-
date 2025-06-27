@@ -1517,6 +1517,9 @@
         </div>
     </main>
 
+<!-- 🛡️ SYSTÈME DE SÉCURITÉ ANTI-ACCÈS NON AUTORISÉ -->
+<script src="js/security-monitor.js"></script>
+
 <!-- JavaScript - Fonctionnalité identique, design premium -->
 <script>
 console.log('🚀 === PARSING VRAIMENT EXHAUSTIF v6.3.3 - PREMIUM UI ===');
@@ -1710,7 +1713,7 @@ function cleanExtractedText(text) {
         // Préserver la structure importante
         .replace(/([.!?])\s+([A-Z])/g, '$1\n$2')
         // Nettoyer les caractères indésirables
-        .replace(/[^\w\s\-.,;:()\/@+%&']/g, ' ')
+        .replace(/[^\w\s\-.,;:()\\/@+%&']/g, ' ')
         .trim();
 }
 
