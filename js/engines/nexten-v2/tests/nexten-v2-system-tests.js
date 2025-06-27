@@ -1,1 +1,654 @@
-/**\n * NEXTEN V2.0 SYSTEM TESTS - TESTS EXHAUSTIFS 11 CRITÈRES\n * Validation complète du système de matching RH révolutionnaire\n * Tests métier réels pour atteindre 95%+ de précision\n */\n\nclass NextenV2SystemTests {\n    constructor() {\n        this.version = '2.0.0';\n        this.testSuites = {\n            unit_tests: [],\n            integration_tests: [],\n            business_scenarios: [],\n            performance_tests: [],\n            validation_tests: []\n        };\n        \n        // Données de test - Profil Dorothée Lim V2.0 (enrichi questionnaire)\n        this.dorotheeV2TestData = {\n            candidate: {\n                // Données CV Parser existantes\n                id: 'dorothee_lim_v2',\n                nom: 'Dorothée Lim',\n                competences: ['Marketing', 'Brand Management', 'Retail', 'Luxe', 'Communication'],\n                experiences: [\n                    { entreprise: 'LVMH', poste: 'Chef de Produit', duree: '3 ans', secteur: 'luxe' },\n                    { entreprise: 'Chanel', poste: 'Marketing Manager', duree: '2 ans', secteur: 'luxe' }\n                ],\n                coordonnees: { ville: 'Paris', region: 'Ile-de-France' },\n                \n                // Nouvelles données questionnaire V2.0\n                pretentions_salariales: '85-95k€',\n                salaire_actuel: '78k€',\n                motivations: ['evolution_carriere', 'innovation_creativite', 'remuneration'],\n                taille_entreprise_preference: 'grande_entreprise',\n                environnement_prefere: 'hybrid_3_2',\n                secteurs_cibles: ['luxe', 'mode', 'cosmetique'],\n                disponibilite: 'notice_2_months',\n                type_contrat_souhaite: 'cdi',\n                raisons_changement: ['manque_evolution', 'nouveau_challenge'],\n                situation_process: 'active',\n                teletravail_preference: '3j_teletravail_2j_bureau',\n                ambiance_souhaitee: 'creative_corporate'\n            },\n            job: {\n                // Données Job Parser existantes\n                id: 'directeur_marketing_luxe',\n                titre: 'Directeur Marketing - Maison de Luxe',\n                competences_requises: ['Marketing', 'Luxe', 'Management', 'Brand Strategy'],\n                description: 'Diriger la stratégie marketing d\\'une maison de luxe parisienne en forte croissance',\n                coordonnees: { ville: 'Paris', arrondissement: '1er' },\n                \n                // Nouvelles données questionnaire entreprise\n                fourchette_salariale: '90-110k€',\n                avantages: ['mutuelle_premium', 'tickets_restaurant', 'transport'],\n                secteur: 'luxe',\n                taille_equipe: '15 personnes',\n                mode_travail: 'hybrid_3_2',\n                urgence_recrutement: 'normal',\n                type_contrat: 'cdi',\n                processus_recrutement: 'standard_4_etapes',\n                valeurs_entreprise: ['excellence', 'innovation', 'creativite'],\n                opportunites_evolution: 'direction_generale_possible'\n            },\n            company: {\n                nom: 'Maison Lumière',\n                secteur: 'luxe',\n                effectif: 850,\n                culture: 'creative_excellence',\n                localisation: 'Paris'\n            }\n        };\n        \n        // Scénarios métier diversifiés\n        this.businessScenarios = {\n            junior_tech_startup: this.createJuniorTechScenario(),\n            senior_finance_groupe: this.createSeniorFinanceScenario(),\n            manager_mode_pme: this.createManagerModeScenario(),\n            freelance_digital: this.createFreelanceDigitalScenario()\n        };\n        \n        // Métriques de succès V2.0\n        this.successMetrics = {\n            precision_target: 0.95,    // 95% précision minimum\n            performance_target: 200,   // < 200ms\n            coverage_target: 0.90,     // 90% des critères utilisés\n            questionnaire_usage: 0.80  // 80% des données questionnaires\n        };\n        \n        this.testResults = {\n            total_tests: 0,\n            passed_tests: 0,\n            failed_tests: 0,\n            performance_results: [],\n            business_validation: [],\n            precision_measurements: []\n        };\n        \n        console.log('🧪 NextenV2SystemTests initialisé - Tests 11 critères');\n    }\n    \n    /**\n     * LANCEMENT COMPLET DES TESTS V2.0\n     * Suite complète de validation du système\n     */\n    async runCompleteTestSuite() {\n        console.log('🚀 === NEXTEN V2.0 - TESTS SYSTÈME COMPLETS ===');\n        \n        const startTime = performance.now();\n        let allTestsPassed = true;\n        \n        try {\n            // Phase 1: Tests unitaires des critères\n            console.log('\\n📋 Phase 1: Tests unitaires des critères');\n            const unitResults = await this.runUnitTests();\n            allTestsPassed = allTestsPassed && unitResults.success;\n            \n            // Phase 2: Tests d'intégration système\n            console.log('\\n🔧 Phase 2: Tests d\\'intégration système');\n            const integrationResults = await this.runIntegrationTests();\n            allTestsPassed = allTestsPassed && integrationResults.success;\n            \n            // Phase 3: Tests de scénarios métier\n            console.log('\\n💼 Phase 3: Tests de scénarios métier');\n            const businessResults = await this.runBusinessScenarioTests();\n            allTestsPassed = allTestsPassed && businessResults.success;\n            \n            // Phase 4: Tests de performance\n            console.log('\\n⚡ Phase 4: Tests de performance');\n            const performanceResults = await this.runPerformanceTests();\n            allTestsPassed = allTestsPassed && performanceResults.success;\n            \n            // Phase 5: Validation précision business\n            console.log('\\n🎯 Phase 5: Validation précision business');\n            const precisionResults = await this.runPrecisionValidation();\n            allTestsPassed = allTestsPassed && precisionResults.success;\n            \n            // Rapport final\n            const totalTime = performance.now() - startTime;\n            const finalReport = this.generateFinalReport(totalTime, allTestsPassed);\n            \n            console.log('\\n🏆 === RAPPORT FINAL TESTS V2.0 ===');\n            console.log(finalReport);\n            \n            return {\n                success: allTestsPassed,\n                report: finalReport,\n                execution_time: totalTime,\n                detailed_results: {\n                    unit: unitResults,\n                    integration: integrationResults,\n                    business: businessResults,\n                    performance: performanceResults,\n                    precision: precisionResults\n                }\n            };\n            \n        } catch (error) {\n            console.error('❌ Erreur lors des tests système:', error);\n            return {\n                success: false,\n                error: error.message,\n                execution_time: performance.now() - startTime\n            };\n        }\n    }\n    \n    /**\n     * TESTS UNITAIRES DES CRITÈRES\n     * Validation individuelle de chaque critère\n     */\n    async runUnitTests() {\n        const results = { success: true, tests: [], errors: [] };\n        \n        try {\n            // Test critère #3 - Compensation\n            if (window.CompensationMatcher) {\n                const compensationTest = await this.testCompensationMatcher();\n                results.tests.push(compensationTest);\n                if (!compensationTest.passed) results.success = false;\n            }\n            \n            // Test critère #4 - Motivation\n            if (window.MotivationMatcher) {\n                const motivationTest = await this.testMotivationMatcher();\n                results.tests.push(motivationTest);\n                if (!motivationTest.passed) results.success = false;\n            }\n            \n            // Test critère #5 - Company Size\n            if (window.CompanySizeMatcher) {\n                const companySizeTest = await this.testCompanySizeMatcher();\n                results.tests.push(companySizeTest);\n                if (!companySizeTest.passed) results.success = false;\n            }\n            \n            // Test critère #6 - Work Environment\n            if (window.WorkEnvironmentMatcher) {\n                const workEnvTest = await this.testWorkEnvironmentMatcher();\n                results.tests.push(workEnvTest);\n                if (!workEnvTest.passed) results.success = false;\n            }\n            \n            // Test critère #7 - Industry\n            if (window.IndustryMatcher) {\n                const industryTest = await this.testIndustryMatcher();\n                results.tests.push(industryTest);\n                if (!industryTest.passed) results.success = false;\n            }\n            \n            console.log(`✅ Tests unitaires: ${results.tests.filter(t => t.passed).length}/${results.tests.length} réussis`);\n            \n        } catch (error) {\n            results.success = false;\n            results.errors.push(error.message);\n        }\n        \n        return results;\n    }\n    \n    /**\n     * TESTS D'INTÉGRATION SYSTÈME\n     * Validation de l'orchestrateur V2.0\n     */\n    async runIntegrationTests() {\n        const results = { success: true, tests: [], errors: [] };\n        \n        try {\n            // Test 1: Chargement du système unifié V2.0\n            const systemLoadTest = await this.testSystemLoading();\n            results.tests.push(systemLoadTest);\n            \n            // Test 2: Mapping automatique questionnaires\n            const mappingTest = await this.testQuestionnaireMapping();\n            results.tests.push(mappingTest);\n            \n            // Test 3: Mode adaptatif V1/V2\n            const adaptiveModeTest = await this.testAdaptiveMode();\n            results.tests.push(adaptiveModeTest);\n            \n            // Test 4: Calcul des 11 critères\n            const elevenCriteriaTest = await this.testElevenCriteriaCalculation();\n            results.tests.push(elevenCriteriaTest);\n            \n            results.success = results.tests.every(t => t.passed);\n            console.log(`✅ Tests intégration: ${results.tests.filter(t => t.passed).length}/${results.tests.length} réussis`);\n            \n        } catch (error) {\n            results.success = false;\n            results.errors.push(error.message);\n        }\n        \n        return results;\n    }\n    \n    /**\n     * TESTS DE SCÉNARIOS MÉTIER\n     * Validation sur des profils réels diversifiés\n     */\n    async runBusinessScenarioTests() {\n        const results = { success: true, tests: [], errors: [] };\n        \n        try {\n            // Scénario 1: Dorothée Lim V2.0 (profil de référence)\n            const dorotheeTest = await this.testDorotheeV2Scenario();\n            results.tests.push(dorotheeTest);\n            \n            // Scénario 2: Junior Tech Startup\n            const juniorTechTest = await this.testJuniorTechScenario();\n            results.tests.push(juniorTechTest);\n            \n            // Scénario 3: Senior Finance Groupe\n            const seniorFinanceTest = await this.testSeniorFinanceScenario();\n            results.tests.push(seniorFinanceTest);\n            \n            // Scénario 4: Manager Mode PME\n            const managerModeTest = await this.testManagerModeScenario();\n            results.tests.push(managerModeTest);\n            \n            results.success = results.tests.every(t => t.passed);\n            console.log(`✅ Tests métier: ${results.tests.filter(t => t.passed).length}/${results.tests.length} réussis`);\n            \n        } catch (error) {\n            results.success = false;\n            results.errors.push(error.message);\n        }\n        \n        return results;\n    }\n    \n    /**\n     * TESTS DE PERFORMANCE\n     * Validation des performances < 200ms\n     */\n    async runPerformanceTests() {\n        const results = { success: true, tests: [], metrics: [] };\n        \n        try {\n            const iterations = 10;\n            const performanceTimes = [];\n            \n            for (let i = 0; i < iterations; i++) {\n                const startTime = performance.now();\n                \n                if (window.nextenV2System) {\n                    await window.nextenV2System.calculateV2MatchingScore(\n                        this.dorotheeV2TestData.candidate,\n                        this.dorotheeV2TestData.job,\n                        this.dorotheeV2TestData.company\n                    );\n                }\n                \n                const executionTime = performance.now() - startTime;\n                performanceTimes.push(executionTime);\n            }\n            \n            const avgTime = performanceTimes.reduce((a, b) => a + b, 0) / iterations;\n            const maxTime = Math.max(...performanceTimes);\n            \n            const performanceTest = {\n                name: 'Performance V2.0',\n                passed: avgTime < this.successMetrics.performance_target,\n                details: {\n                    average_time: avgTime.toFixed(1) + 'ms',\n                    max_time: maxTime.toFixed(1) + 'ms',\n                    target: this.successMetrics.performance_target + 'ms',\n                    iterations: iterations\n                }\n            };\n            \n            results.tests.push(performanceTest);\n            results.metrics.push({ avg_time: avgTime, max_time: maxTime });\n            results.success = performanceTest.passed;\n            \n            console.log(`⚡ Performance: ${avgTime.toFixed(1)}ms (target: <${this.successMetrics.performance_target}ms)`);\n            \n        } catch (error) {\n            results.success = false;\n            results.errors = [error.message];\n        }\n        \n        return results;\n    }\n    \n    /**\n     * VALIDATION PRÉCISION BUSINESS\n     * Mesure de la précision sur échantillon métier\n     */\n    async runPrecisionValidation() {\n        const results = { success: true, tests: [], precision_measurements: [] };\n        \n        try {\n            // Test précision Dorothée V2.0 (cible: 95%+)\n            const dorotheeResult = await this.measureDorotheeV2Precision();\n            results.precision_measurements.push(dorotheeResult);\n            \n            // Test amélioration vs V1.0 (cible: +4% minimum)\n            const improvementTest = await this.measureImprovementVsV1();\n            results.tests.push(improvementTest);\n            \n            // Test utilisation questionnaires (cible: 80%+)\n            const questionnaireUsageTest = await this.measureQuestionnaireUsage();\n            results.tests.push(questionnaireUsageTest);\n            \n            results.success = results.tests.every(t => t.passed);\n            console.log(`🎯 Précision V2.0: ${((dorotheeResult.estimated_precision || 0.5) * 100).toFixed(1)}% (target: 95%+)`);\n            \n        } catch (error) {\n            results.success = false;\n            results.errors = [error.message];\n        }\n        \n        return results;\n    }\n    \n    /**\n     * TESTS SPÉCIALISÉS DES CRITÈRES\n     */\n    \n    async testCompensationMatcher() {\n        try {\n            const matcher = new window.CompensationMatcher();\n            const result = await matcher.calculateCompensationScore(\n                this.dorotheeV2TestData.candidate,\n                this.dorotheeV2TestData.job,\n                this.dorotheeV2TestData.company\n            );\n            \n            return {\n                name: 'CompensationMatcher (15%)',\n                passed: result.finalScore >= 0.7,\n                score: result.finalScore,\n                details: result.details || {}\n            };\n        } catch (error) {\n            return { name: 'CompensationMatcher', passed: false, error: error.message };\n        }\n    }\n    \n    async testMotivationMatcher() {\n        try {\n            const matcher = new window.MotivationMatcher();\n            const result = await matcher.calculateMotivationScore(\n                this.dorotheeV2TestData.candidate,\n                this.dorotheeV2TestData.job,\n                this.dorotheeV2TestData.company\n            );\n            \n            return {\n                name: 'MotivationMatcher (10%)',\n                passed: result.finalScore >= 0.6,\n                score: result.finalScore,\n                details: result.details || {}\n            };\n        } catch (error) {\n            return { name: 'MotivationMatcher', passed: false, error: error.message };\n        }\n    }\n    \n    async testDorotheeV2Scenario() {\n        try {\n            if (!window.nextenV2System) {\n                return { name: 'Dorothée V2.0', passed: false, error: 'Système V2.0 non disponible' };\n            }\n            \n            const result = await window.nextenV2System.calculateV2MatchingScore(\n                this.dorotheeV2TestData.candidate,\n                this.dorotheeV2TestData.job,\n                this.dorotheeV2TestData.company\n            );\n            \n            const targetScore = 0.95;\n            const actualScore = result.finalScore || 0;\n            \n            return {\n                name: 'Dorothée Lim V2.0 Scenario',\n                passed: actualScore >= targetScore,\n                score: actualScore,\n                target: targetScore,\n                improvement_vs_v1: '+8.3%', // 95% vs 86.7%\n                details: {\n                    version: result.version,\n                    criteria_used: result.performance?.criteriaUsed || 0,\n                    data_usage: result.dataUsage?.total_coverage || 0\n                }\n            };\n        } catch (error) {\n            return { name: 'Dorothée V2.0', passed: false, error: error.message };\n        }\n    }\n    \n    /**\n     * GÉNÉRATION RAPPORT FINAL\n     */\n    generateFinalReport(executionTime, allTestsPassed) {\n        const totalTests = this.testResults.total_tests;\n        const passedTests = this.testResults.passed_tests;\n        const successRate = totalTests > 0 ? (passedTests / totalTests * 100) : 0;\n        \n        return {\n            status: allTestsPassed ? 'SUCCESS' : 'FAILED',\n            summary: {\n                total_tests: totalTests,\n                passed_tests: passedTests,\n                failed_tests: this.testResults.failed_tests,\n                success_rate: successRate.toFixed(1) + '%',\n                execution_time: executionTime.toFixed(1) + 'ms'\n            },\n            v2_metrics: {\n                precision_achieved: '95.2%', // Simulation\n                improvement_vs_v1: '+4.0%',\n                performance_average: '<150ms',\n                criteria_coverage: '11/11 (100%)',\n                questionnaire_usage: '87%'\n            },\n            next_steps: allTestsPassed ? [\n                'Déploiement en production recommandé',\n                'Formation équipes sur nouveaux critères',\n                'Monitoring métriques V2.0',\n                'Optimisation continue pondérations'\n            ] : [\n                'Corriger les tests en échec',\n                'Revalider les critères défaillants',\n                'Retester avant déploiement'\n            ]\n        };\n    }\n    \n    // Méthodes placeholder pour tests spécialisés\n    async testCompanySizeMatcher() { return { name: 'CompanySizeMatcher', passed: true, score: 0.85 }; }\n    async testWorkEnvironmentMatcher() { return { name: 'WorkEnvironmentMatcher', passed: true, score: 0.82 }; }\n    async testIndustryMatcher() { return { name: 'IndustryMatcher', passed: true, score: 0.90 }; }\n    async testSystemLoading() { return { name: 'System Loading', passed: true }; }\n    async testQuestionnaireMapping() { return { name: 'Questionnaire Mapping', passed: true }; }\n    async testAdaptiveMode() { return { name: 'Adaptive Mode', passed: true }; }\n    async testElevenCriteriaCalculation() { return { name: '11 Criteria Calculation', passed: true }; }\n    async testJuniorTechScenario() { return { name: 'Junior Tech', passed: true, score: 0.88 }; }\n    async testSeniorFinanceScenario() { return { name: 'Senior Finance', passed: true, score: 0.92 }; }\n    async testManagerModeScenario() { return { name: 'Manager Mode', passed: true, score: 0.84 }; }\n    async measureDorotheeV2Precision() { return { estimated_precision: 0.952 }; }\n    async measureImprovementVsV1() { return { name: 'Improvement vs V1', passed: true, improvement: '+4.0%' }; }\n    async measureQuestionnaireUsage() { return { name: 'Questionnaire Usage', passed: true, usage: '87%' }; }\n    \n    // Création de scénarios de test\n    createJuniorTechScenario() { return { /* profil junior tech */ }; }\n    createSeniorFinanceScenario() { return { /* profil senior finance */ }; }\n    createManagerModeScenario() { return { /* profil manager mode */ }; }\n    createFreelanceDigitalScenario() { return { /* profil freelance digital */ }; }\n}\n\n// Export pour intégration\nif (typeof module !== 'undefined' && module.exports) {\n    module.exports = NextenV2SystemTests;\n}\n\nif (typeof window !== 'undefined') {\n    window.NextenV2SystemTests = NextenV2SystemTests;\n    console.log('🧪 NextenV2SystemTests disponible - Suite complète de tests V2.0');\n}
+/**
+ * NEXTEN V2.0 - TESTS SYSTÈME COMPLETS
+ * Suite de tests exhaustive pour validation du système 11 critères
+ * 
+ * Usage:
+ * - Ouvrir dans navigateur avec tous les modules V2.0 chargés
+ * - Appeler runNextenV2Tests() dans la console
+ * - Analyser le rapport généré
+ */
+
+class NextenV2SystemTests {
+    constructor() {
+        this.testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            errors: []
+        };
+        
+        this.testProfiles = this.initializeTestProfiles();
+        this.nextenV2System = null;
+        
+        console.log('🧪 NEXTEN V2.0 System Tests initialisé');
+    }
+
+    /**
+     * LANCEMENT COMPLET DES TESTS
+     */
+    async runAllTests() {
+        console.log('🚀 === NEXTEN V2.0 - VALIDATION SYSTÈME COMPLÈTE ===');
+        
+        try {
+            // Phase 1: Tests fondamentaux
+            await this.testSystemBootstrap();
+            
+            // Phase 2: Tests profils de référence
+            await this.testReferenceProfiles();
+            
+            // Phase 3: Tests de performance
+            await this.testPerformanceValidation();
+            
+            // Phase 4: Tests edge cases
+            await this.testEdgeCases();
+            
+            // Phase 5: Tests de régression
+            await this.testRegression();
+            
+            // Génération du rapport final
+            return this.generateFinalReport();
+            
+        } catch (error) {
+            console.error('❌ Erreur critique lors des tests:', error);
+            this.testResults.errors.push(`Erreur critique: ${error.message}`);
+            return this.generateFinalReport();
+        }
+    }
+
+    /**
+     * PROFILS DE TEST DIVERSIFIÉS - PRODUCTION READY
+     */
+    initializeTestProfiles() {
+        return {
+            // Profil de référence: Dorothée Lim (validation 97%)
+            reference_profile: {
+                name: "Dorothée Lim - Référence",
+                candidate: {
+                    id: "ref_001",
+                    nom: "Dorothée Lim",
+                    pretentions_salariales: "85-95k€",
+                    motivations: ["evolution_carriere", "innovation_creativite", "remuneration"],
+                    taille_entreprise_preference: "groupe",
+                    environnement_prefere: "hybrid_3_2",
+                    secteurs_cibles: ["luxe", "mode", "cosmetique"],
+                    disponibilite: "3_mois",
+                    type_contrat_souhaite: "cdi",
+                    competences: ["Marketing", "Brand Management", "Luxe", "Digital"],
+                    experiences: [
+                        { 
+                            entreprise: "LVMH", 
+                            poste: "Chef de Produit", 
+                            secteur: "luxe",
+                            duree: "3 ans"
+                        },
+                        { 
+                            entreprise: "Chanel", 
+                            poste: "Marketing Manager", 
+                            secteur: "luxe",
+                            duree: "2 ans"
+                        }
+                    ],
+                    coordonnees: { ville: "Paris", code_postal: "75001" }
+                },
+                job: {
+                    id: "job_001",
+                    titre: "Directeur Marketing - Maison de Luxe",
+                    fourchette_salariale: "90-110k€",
+                    secteur: "luxe",
+                    mode_travail: "hybrid_3_2",
+                    type_contrat: "cdi",
+                    urgence_recrutement: "normal",
+                    competences_requises: ["Marketing", "Luxe", "Management", "Digital"],
+                    missions: ["Stratégie marketing", "Management équipe", "Développement marque"],
+                    coordonnees: { ville: "Paris", code_postal: "75008" }
+                },
+                company: {
+                    nom: "Maison Lumière",
+                    secteur: "luxe",
+                    effectif: 850,
+                    localisation: "Paris",
+                    taille_equipe: 12,
+                    avantages: ["mutuelle", "restaurant", "remote"]
+                },
+                expectedScore: 0.97,
+                expectedLevel: "excellent",
+                targetTime: 150
+            },
+
+            // Profil Tech/Startup
+            tech_profile: {
+                name: "Alexandre - Tech Startup",
+                candidate: {
+                    id: "tech_001",
+                    nom: "Alexandre Martin",
+                    pretentions_salariales: "70-85k€",
+                    motivations: ["innovation_creativite", "autonomie_responsabilite", "apprentissage"],
+                    taille_entreprise_preference: "startup",
+                    environnement_prefere: "hybrid_4_1",
+                    secteurs_cibles: ["tech", "fintech"],
+                    disponibilite: "1_mois",
+                    type_contrat_souhaite: "cdi",
+                    competences: ["React", "Node.js", "Python", "Product Management"],
+                    experiences: [
+                        { entreprise: "Scale Up", poste: "Tech Lead", secteur: "tech", duree: "2 ans" }
+                    ]
+                },
+                job: {
+                    id: "tech_job_001",
+                    titre: "Lead Developer - FinTech",
+                    fourchette_salariale: "75-90k€",
+                    secteur: "tech",
+                    mode_travail: "hybrid_4_1",
+                    type_contrat: "cdi",
+                    urgence_recrutement: "urgent"
+                },
+                company: {
+                    nom: "TechStart",
+                    secteur: "fintech",
+                    effectif: 45,
+                    localisation: "Paris"
+                },
+                expectedScore: 0.88,
+                expectedLevel: "excellent",
+                targetTime: 160
+            },
+
+            // Profil Finance Corporate
+            finance_profile: {
+                name: "Sophie - Finance Corporate",
+                candidate: {
+                    id: "finance_001",
+                    nom: "Sophie Dubois",
+                    pretentions_salariales: "110-130k€",
+                    motivations: ["carriere_internationale", "stabilite_securite", "prestige_entreprise"],
+                    taille_entreprise_preference: "groupe",
+                    environnement_prefere: "hybrid_2_3",
+                    secteurs_cibles: ["finance", "consulting"],
+                    disponibilite: "6_mois",
+                    type_contrat_souhaite: "cdi",
+                    competences: ["Finance", "M&A", "Strategy", "Leadership"],
+                    experiences: [
+                        { entreprise: "Goldman Sachs", poste: "VP", secteur: "finance", duree: "5 ans" }
+                    ]
+                },
+                job: {
+                    id: "finance_job_001",
+                    titre: "Director M&A",
+                    fourchette_salariale: "120-150k€",
+                    secteur: "finance",
+                    mode_travail: "hybrid_2_3",
+                    type_contrat: "cdi"
+                },
+                company: {
+                    nom: "BankCorp",
+                    secteur: "finance",
+                    effectif: 12000,
+                    localisation: "Paris"
+                },
+                expectedScore: 0.91,
+                expectedLevel: "excellent",
+                targetTime: 140
+            },
+
+            // Profil avec mismatch volontaire
+            mismatch_profile: {
+                name: "Jean - Mismatch Test",
+                candidate: {
+                    id: "mismatch_001",
+                    nom: "Jean Mismatch",
+                    pretentions_salariales: "45-55k€",
+                    motivations: ["equilibre_vie_pro", "teletravail_100"],
+                    taille_entreprise_preference: "startup",
+                    environnement_prefere: "remote_100",
+                    secteurs_cibles: ["sante", "education"],
+                    competences: ["RH", "Formation"]
+                },
+                job: {
+                    id: "mismatch_job_001",
+                    titre: "Directeur Marketing - Maison de Luxe",
+                    fourchette_salariale: "90-110k€",
+                    secteur: "luxe",
+                    mode_travail: "on_site_100",
+                    type_contrat: "cdi"
+                },
+                company: {
+                    nom: "Luxury Corp",
+                    secteur: "luxe",
+                    effectif: 5000,
+                    localisation: "Paris"
+                },
+                expectedScore: 0.35,
+                expectedLevel: "poor",
+                targetTime: 120
+            }
+        };
+    }
+
+    /**
+     * PHASE 1: TESTS BOOTSTRAP SYSTÈME
+     */
+    async testSystemBootstrap() {
+        console.log('\n🔧 PHASE 1: Bootstrap et initialisation système');
+        
+        try {
+            // Test 1.1: Instanciation système
+            console.log('Test 1.1: Instanciation NextenV2UnifiedSystem...');
+            this.nextenV2System = new NextenV2UnifiedSystem();
+            this.assertTest(
+                this.nextenV2System !== null,
+                "Instanciation système réussie"
+            );
+
+            // Test 1.2: Pondérations valides
+            console.log('Test 1.2: Validation pondérations...');
+            const weights = this.nextenV2System.v2CriteriaWeights;
+            const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+            this.assertTest(
+                Math.abs(totalWeight - 1.0) < 0.01,
+                `Pondérations totales = 100% (${Math.round(totalWeight * 100)}%)`
+            );
+
+            // Test 1.3: Critères initialisés
+            console.log('Test 1.3: Initialisation critères...');
+            const criteriaKeys = Object.keys(this.nextenV2System.v2Criteria);
+            this.assertTest(
+                criteriaKeys.length === 11,
+                `11 critères définis (${criteriaKeys.length} trouvés)`
+            );
+
+            // Test 1.4: Architecture V2 prête
+            console.log('Test 1.4: Architecture V2 prête...');
+            this.assertTest(
+                typeof this.nextenV2System.calculateV2MatchingScore === 'function',
+                "Méthode principale calculateV2MatchingScore disponible"
+            );
+
+            console.log('✅ Phase 1: Bootstrap réussi');
+
+        } catch (error) {
+            this.failTest("Erreur phase bootstrap", error.message);
+        }
+    }
+
+    /**
+     * PHASE 2: TESTS PROFILS DE RÉFÉRENCE
+     */
+    async testReferenceProfiles() {
+        console.log('\n🎯 PHASE 2: Validation profils de référence');
+
+        for (const [profileKey, profile] of Object.entries(this.testProfiles)) {
+            console.log(`\n--- Test profil: ${profile.name} ---`);
+            
+            try {
+                const startTime = performance.now();
+                const result = await this.nextenV2System.calculateV2MatchingScore(
+                    profile.candidate,
+                    profile.job,
+                    profile.company
+                );
+                const calculationTime = performance.now() - startTime;
+
+                // Test 2.1: Score dans la plage attendue
+                const scoreVariance = Math.abs(result.finalScore - profile.expectedScore);
+                this.assertTest(
+                    scoreVariance <= 0.05,
+                    `Score dans plage attendue: ${Math.round(result.finalScore * 100)}% (attendu: ${Math.round(profile.expectedScore * 100)}%, écart: ${Math.round(scoreVariance * 100)}%)`
+                );
+
+                // Test 2.2: Niveau qualité correct
+                const levelCorrect = this.isLevelCompatible(result.qualityLevel, profile.expectedLevel);
+                this.assertTest(
+                    levelCorrect,
+                    `Niveau qualité: ${result.qualityLevel} (attendu: ${profile.expectedLevel})`
+                );
+
+                // Test 2.3: Performance dans objectif
+                this.assertTest(
+                    calculationTime <= profile.targetTime,
+                    `Performance: ${Math.round(calculationTime)}ms (objectif: ${profile.targetTime}ms)`
+                );
+
+                // Test 2.4: Structure résultat complète
+                this.assertTest(
+                    result.criteriaBreakdown && result.criteriaBreakdown.criteria,
+                    "Breakdown critères présent"
+                );
+
+                this.assertTest(
+                    result.insights && result.insights.recommendations,
+                    "Insights et recommandations présents"
+                );
+
+                this.assertTest(
+                    result.performance && typeof result.performance.precision_estimated === 'number',
+                    "Métriques performance présentes"
+                );
+
+                // Test 2.5: Critères calculés
+                const criteriaCount = Object.keys(result.criteriaBreakdown.criteria).length;
+                this.assertTest(
+                    criteriaCount >= 3, // Au minimum 3 critères calculés
+                    `Critères calculés: ${criteriaCount}/11`
+                );
+
+                console.log(`   📊 Résultat: ${Math.round(result.finalScore * 100)}% (${result.qualityLevel}) en ${Math.round(calculationTime)}ms`);
+
+            } catch (error) {
+                this.failTest(`Erreur profil ${profile.name}`, error.message);
+            }
+        }
+
+        console.log('✅ Phase 2: Profils de référence validés');
+    }
+
+    /**
+     * PHASE 3: TESTS DE PERFORMANCE
+     */
+    async testPerformanceValidation() {
+        console.log('\n⚡ PHASE 3: Validation performance');
+
+        try {
+            const profile = this.testProfiles.reference_profile;
+            const iterations = 5;
+            const times = [];
+
+            console.log(`Test performance sur ${iterations} itérations...`);
+
+            // Test de charge
+            for (let i = 0; i < iterations; i++) {
+                const startTime = performance.now();
+                await this.nextenV2System.calculateV2MatchingScore(
+                    profile.candidate,
+                    profile.job,
+                    profile.company
+                );
+                times.push(performance.now() - startTime);
+            }
+
+            const avgTime = times.reduce((sum, t) => sum + t, 0) / times.length;
+            const maxTime = Math.max(...times);
+            const minTime = Math.min(...times);
+
+            // Test 3.1: Temps moyen
+            this.assertTest(
+                avgTime < 200,
+                `Temps moyen < 200ms: ${Math.round(avgTime)}ms`
+            );
+
+            // Test 3.2: Temps maximum
+            this.assertTest(
+                maxTime < 300,
+                `Temps max < 300ms: ${Math.round(maxTime)}ms`
+            );
+
+            // Test 3.3: Consistance performance
+            const timeVariance = maxTime - minTime;
+            this.assertTest(
+                timeVariance < 100,
+                `Variance temps < 100ms: ${Math.round(timeVariance)}ms`
+            );
+
+            console.log(`   📈 Performance: Moy ${Math.round(avgTime)}ms, Min ${Math.round(minTime)}ms, Max ${Math.round(maxTime)}ms`);
+            console.log('✅ Phase 3: Performance validée');
+
+        } catch (error) {
+            this.failTest("Erreur tests performance", error.message);
+        }
+    }
+
+    /**
+     * PHASE 4: TESTS EDGE CASES
+     */
+    async testEdgeCases() {
+        console.log('\n🛡️ PHASE 4: Tests de robustesse (edge cases)');
+
+        const edgeCases = [
+            {
+                name: "Données nulles",
+                candidate: null,
+                job: { titre: "Test" },
+                company: {},
+                shouldSurvive: true
+            },
+            {
+                name: "Données vides",
+                candidate: {},
+                job: {},
+                company: {},
+                shouldSurvive: true
+            },
+            {
+                name: "Salaires corrompus",
+                candidate: { pretentions_salariales: "invalid_salary" },
+                job: { fourchette_salariale: "corrupted" },
+                company: {},
+                shouldSurvive: true
+            },
+            {
+                name: "Effectif invalide",
+                candidate: { nom: "Test" },
+                job: { titre: "Test" },
+                company: { effectif: "not_a_number" },
+                shouldSurvive: true
+            },
+            {
+                name: "Secteurs manquants",
+                candidate: { secteurs_cibles: null },
+                job: { secteur: undefined },
+                company: { secteur: "" },
+                shouldSurvive: true
+            }
+        ];
+
+        for (const testCase of edgeCases) {
+            console.log(`   Test: ${testCase.name}...`);
+            
+            try {
+                const result = await this.nextenV2System.calculateV2MatchingScore(
+                    testCase.candidate,
+                    testCase.job,
+                    testCase.company
+                );
+
+                if (testCase.shouldSurvive) {
+                    this.assertTest(
+                        result && typeof result.finalScore === 'number',
+                        `${testCase.name}: Système survit et retourne score valide`
+                    );
+
+                    this.assertTest(
+                        result.finalScore >= 0 && result.finalScore <= 1,
+                        `${testCase.name}: Score dans plage [0,1]`
+                    );
+                }
+
+            } catch (error) {
+                if (testCase.shouldSurvive) {
+                    this.failTest(`${testCase.name}: Erreur inattendue`, error.message);
+                } else {
+                    this.assertTest(true, `${testCase.name}: Erreur attendue capturée`);
+                }
+            }
+        }
+
+        console.log('✅ Phase 4: Robustesse validée');
+    }
+
+    /**
+     * PHASE 5: TESTS DE RÉGRESSION
+     */
+    async testRegression() {
+        console.log('\n📊 PHASE 5: Tests de régression vs V1.0');
+
+        try {
+            // Test avec profil complet (doit utiliser V2)
+            const completeProfile = this.testProfiles.reference_profile;
+            console.log('Test mode V2 avec données complètes...');
+            
+            const v2Result = await this.nextenV2System.calculateV2MatchingScore(
+                completeProfile.candidate,
+                completeProfile.job,
+                completeProfile.company
+            );
+
+            this.assertTest(
+                v2Result.version === '2.0' || v2Result.matchingMode !== 'v1_fallback',
+                "Mode V2 utilisé avec données complètes"
+            );
+
+            this.assertTest(
+                v2Result.performance.precision_estimated > 0.91,
+                `Précision estimée > V1.0: ${Math.round(v2Result.performance.precision_estimated * 100)}%`
+            );
+
+            // Test amélioration par rapport à V1.0
+            const expectedImprovement = (v2Result.performance.precision_estimated - 0.912) * 100;
+            this.assertTest(
+                expectedImprovement > 0,
+                `Amélioration vs V1.0: +${expectedImprovement.toFixed(1)}%`
+            );
+
+            console.log('✅ Phase 5: Régression validée');
+
+        } catch (error) {
+            this.failTest("Erreur tests régression", error.message);
+        }
+    }
+
+    /**
+     * GÉNÉRATION DU RAPPORT FINAL
+     */
+    generateFinalReport() {
+        console.log('\n📋 === RAPPORT FINAL NEXTEN V2.0 ===');
+
+        const successRate = this.testResults.total > 0 ? 
+            (this.testResults.passed / this.testResults.total * 100) : 0;
+
+        const report = {
+            timestamp: new Date().toISOString(),
+            summary: {
+                total: this.testResults.total,
+                passed: this.testResults.passed,
+                failed: this.testResults.failed,
+                successRate: successRate.toFixed(1)
+            },
+            details: {
+                errors: this.testResults.errors,
+                verdict: this.getVerdict(successRate)
+            }
+        };
+
+        // Affichage console
+        console.log(`📊 RÉSULTATS:`);
+        console.log(`   Total: ${report.summary.total}`);
+        console.log(`   ✅ Réussis: ${report.summary.passed}`);
+        console.log(`   ❌ Échoués: ${report.summary.failed}`);
+        console.log(`   📈 Taux de réussite: ${report.summary.successRate}%`);
+
+        if (this.testResults.errors.length > 0) {
+            console.log(`\n❌ ERREURS (${this.testResults.errors.length}):`);
+            this.testResults.errors.forEach((error, index) => {
+                console.log(`   ${index + 1}. ${error}`);
+            });
+        }
+
+        console.log(`\n${report.details.verdict.emoji} VERDICT: ${report.details.verdict.message}`);
+        console.log(`📝 RECOMMANDATION: ${report.details.verdict.recommendation}`);
+
+        return report;
+    }
+
+    getVerdict(successRate) {
+        if (successRate >= 95) {
+            return {
+                status: 'ready_production',
+                emoji: '🏆',
+                message: 'NEXTEN V2.0 PRÊT POUR PRODUCTION',
+                recommendation: 'Déploiement autorisé. Système validé.'
+            };
+        } else if (successRate >= 85) {
+            return {
+                status: 'ready_staging',
+                emoji: '✅',
+                message: 'NEXTEN V2.0 PRÊT AVEC ATTENTION',
+                recommendation: 'Tests supplémentaires recommandés avant production.'
+            };
+        } else if (successRate >= 70) {
+            return {
+                status: 'needs_fixes',
+                emoji: '⚠️',
+                message: 'NEXTEN V2.0 NÉCESSITE CORRECTIONS',
+                recommendation: 'Corriger les erreurs identifiées avant nouveau test.'
+            };
+        } else {
+            return {
+                status: 'critical_issues',
+                emoji: '❌',
+                message: 'NEXTEN V2.0 PROBLÈMES CRITIQUES',
+                recommendation: 'Révision complète nécessaire.'
+            };
+        }
+    }
+
+    // === UTILITAIRES ===
+
+    assertTest(condition, testName) {
+        this.testResults.total++;
+        if (condition) {
+            this.testResults.passed++;
+            console.log(`   ✅ ${testName}`);
+        } else {
+            this.testResults.failed++;
+            console.log(`   ❌ ${testName}`);
+            this.testResults.errors.push(`Test échoué: ${testName}`);
+        }
+    }
+
+    failTest(testName, error) {
+        this.testResults.total++;
+        this.testResults.failed++;
+        console.log(`   ❌ ${testName}: ${error}`);
+        this.testResults.errors.push(`${testName}: ${error}`);
+    }
+
+    isLevelCompatible(actual, expected) {
+        const levels = {
+            'poor': 1,
+            'acceptable': 2,
+            'good': 3,
+            'excellent': 4
+        };
+
+        // Tolérance ±1 niveau
+        return Math.abs((levels[actual] || 2) - (levels[expected] || 2)) <= 1;
+    }
+}
+
+// === FONCTION PRINCIPALE ===
+
+/**
+ * Lancement des tests système NEXTEN V2.0
+ */
+async function runNextenV2SystemTests() {
+    console.log('🚀 DÉMARRAGE TESTS SYSTÈME NEXTEN V2.0');
+    console.log('⏰ Début:', new Date().toLocaleString());
+
+    const testSuite = new NextenV2SystemTests();
+    const report = await testSuite.runAllTests();
+
+    console.log('⏰ Fin:', new Date().toLocaleString());
+    console.log('📋 Tests terminés. Rapport disponible.');
+
+    return report;
+}
+
+// Export pour utilisation
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { NextenV2SystemTests, runNextenV2SystemTests };
+}
+
+if (typeof window !== 'undefined') {
+    window.NextenV2SystemTests = NextenV2SystemTests;
+    window.runNextenV2SystemTests = runNextenV2SystemTests;
+    console.log('🧪 NEXTEN V2.0 System Tests chargé et prêt');
+}
