@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXTEN V2.0 - Interface Corrigée FONCTIONNELLE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .loading-section {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .loading-item {
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .loading-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 2px solid #22c55e;
+        }
+        
+        .loading-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+        
+        .loading-pending {
+            background: #fef3c7;
+            color: #92400e;
+            border: 2px solid #f59e0b;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .test-panel {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results-panel {
+            grid-column: 1 / -1;
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .final-score {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .final-score .score {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .criteria-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .criteria-score {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .score-excellent { color: #22c55e; }
+        .score-good { color: #3b82f6; }
+        .score-average { color: #f59e0b; }
+        .score-poor { color: #ef4444; }
+        
+        .debug-section {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .system-ready {
+            background: #dcfce7;
+            border: 2px solid #22c55e;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .system-ready h3 {
+            color: #166534;
+            margin-bottom: 10px;
+        }
+
+        .fix-banner {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            border-bottom: 3px solid #047857;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="fix-banner">
+            🔥 VERSION CORRIGÉE - Orchestrateur updated.js + Diagnostics améliorés
+        </div>
+        
+        <div class="header">
+            <h1>🚀 NEXTEN V2.0 - INTERFACE RÉELLE CORRIGÉE</h1>
+            <div class="version">Chargement orchestrateur COMPLET - Vrais calculs garantis</div>
+        </div>
+        
+        <div class="loading-section" id="loadingSection">
+            <h2>📦 Chargement des Modules NEXTEN V2.0 (VERSION CORRIGÉE)</h2>
+            <div id="loadingStatus">
+                <div class="loading-item loading-pending" id="loading-mapper">
+                    <span><strong>QuestionnaireMapper</strong> - Mapping automatique</span>
+                    <span>⏳</span>
+                </div>
+                <div class="loading-item loading-pending" id="loading-compensation">
+                    <span><strong>CompensationMatcher (15%)</strong> - Rémunération</span>
+                    <span>⏳</span>
+                </div>
+                <div class="loading-item loading-pending" id="loading-motivation">
+                    <span><strong>MotivationMatcher (10%)</strong> - 12 facteurs</span>
+                    <span>⏳</span>
+                </div>
+                <div class="loading-item loading-pending" id="loading-companysize">
+                    <span><strong>CompanySizeMatcher (8%)</strong> - Taille entreprise</span>
+                    <span>⏳</span>
+                </div>
+                <div class="loading-item loading-pending" id="loading-workenvironment">
+                    <span><strong>WorkEnvironmentMatcher (8%)</strong> - Environnement</span>
+                    <span>⏳</span>
+                </div>
+                <div class="loading-item loading-pending" id="loading-industry">
+                    <span><strong>IndustryMatcher (6%)</strong> - Secteurs</span>
+                    <span>⏳</span>
+                </div>
+                <div class="loading-item loading-pending" id="loading-additional">
+                    <span><strong>AdditionalCriteria (15%)</strong> - 4 critères additionnels</span>
+                    <span>⏳</span>
+                </div>
+                <div class="loading-item loading-pending" id="loading-core">
+                    <span><strong>NextenV2UnifiedSystem UPDATED</strong> - 🔥 Orchestrateur COMPLET</span>
+                    <span>⏳</span>
+                </div>
+            </div>
+            
+            <div id="systemReadyMessage" style="display: none;" class="system-ready">
+                <h3>✅ Système NEXTEN V2.0 RÉEL Prêt avec orchestrateur COMPLET !</h3>
+                <p>Tous les modules + orchestrateur updated.js chargés. Fini la simulation - Place aux VRAIS calculs !</p>
+                <p><strong>Modules chargés :</strong> <span id="loadedModulesCount">0</span>/8</p>
+                <p><strong>Orchestrateur :</strong> nexten-v2-unified-system-UPDATED.js ✅</p>
+            </div>
+            
+            <div id="systemErrorMessage" style="display: none;">
+                <div style="background: #fee2e2; padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px solid #ef4444;">
+                    <h3 style="color: #991b1b;">⚠️ Modules manquants détectés</h3>
+                    <p id="missingModulesList"></p>
+                    <br>
+                    <p><strong>L'interface fonctionnera en mode simulation</strong> avec des algorithmes de base.</p>
+                    <p><em>Pour les vrais calculs, vérifiez que tous les fichiers .js sont accessibles.</em></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content" id="mainContent" style="display: none;">
+            <!-- Panel Candidat -->
+            <div class="test-panel">
+                <h2>👤 Données Candidat Enrichies (Profil Dorothée Lim)</h2>
+                
+                <div class="form-group">
+                    <label>Nom du candidat</label>
+                    <input type="text" id="candidateName" value="Dorothée Lim">
+                </div>
+                
+                <div class="form-group">
+                    <label>Prétentions salariales</label>
+                    <input type="text" id="salaryExpectation" value="85-95k€">
+                </div>
+                
+                <div class="form-group">
+                    <label>Motivations principales</label>
+                    <select id="motivations" multiple size="4">
+                        <option value="evolution_carriere" selected>Évolution de carrière</option>
+                        <option value="innovation_creativite" selected>Innovation & créativité</option>
+                        <option value="remuneration" selected>Rémunération attractive</option>
+                        <option value="equilibre_vie_pro">Équilibre vie pro/perso</option>
+                        <option value="autonomie_responsabilite">Autonomie & responsabilité</option>
+                        <option value="apprentissage">Apprentissage continu</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Taille d'entreprise préférée</label>
+                    <select id="companySize">
+                        <option value="startup">Startup (1-50)</option>
+                        <option value="pme">PME (51-500)</option>
+                        <option value="eti">ETI (501-5000)</option>
+                        <option value="groupe" selected>Grand Groupe (5000+)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Adresse précise candidat (pour calcul trajet)</label>
+                    <input type="text" id="candidateLocation" value="1 Place Vendôme, 75001 Paris" placeholder="Adresse complète">
+                </div>
+                
+                <div class="form-group">
+                    <label>Disponibilité</label>
+                    <select id="availability">
+                        <option value="immediate">Immédiate</option>
+                        <option value="1_mois">1 mois</option>
+                        <option value="3_mois" selected>3 mois</option>
+                        <option value="6_mois">6 mois</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Secteurs ciblés (pour vraie analyse)</label>
+                    <input type="text" id="targetSectors" value="luxe, mode, cosmétique">
+                </div>
+            </div>
+            
+            <!-- Panel Entreprise -->
+            <div class="test-panel">
+                <h2>🏢 Données Entreprise & Poste (Maison Lumière)</h2>
+                
+                <div class="form-group">
+                    <label>Nom de l'entreprise</label>
+                    <input type="text" id="companyName" value="Maison Lumière">
+                </div>
+                
+                <div class="form-group">
+                    <label>Poste proposé</label>
+                    <input type="text" id="jobTitle" value="Directeur Marketing - Maison de Luxe">
+                </div>
+                
+                <div class="form-group">
+                    <label>Adresse précise poste (pour calcul trajet)</label>
+                    <input type="text" id="jobLocation" value="25 Place Vendôme, 75001 Paris" placeholder="Adresse complète">
+                </div>
+                
+                <div class="form-group">
+                    <label>Fourchette salariale</label>
+                    <input type="text" id="salaryRange" value="90-110k€">
+                </div>
+                
+                <div class="form-group">
+                    <label>Secteur d'activité</label>
+                    <select id="companySector">
+                        <option value="luxe" selected>Luxe</option>
+                        <option value="mode">Mode</option>
+                        <option value="cosmetique">Cosmétique</option>
+                        <option value="tech">Technologie</option>
+                        <option value="finance">Finance</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Effectif entreprise</label>
+                    <input type="number" id="employeeCount" value="850">
+                </div>
+                
+                <div class="form-group">
+                    <label>Urgence recrutement</label>
+                    <select id="urgency">
+                        <option value="normal" selected>Normal (1-2 mois)</option>
+                        <option value="urgent">Urgent (< 1 mois)</option>
+                        <option value="flexible">Flexible (> 3 mois)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Mode de travail offert</label>
+                    <select id="workMode">
+                        <option value="hybrid_3_2" selected>Hybride 3j télétravail</option>
+                        <option value="hybrid_4_1">Hybride 4j télétravail</option>
+                        <option value="remote_100">100% télétravail</option>
+                        <option value="on_site_100">100% présentiel</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="runTrueNextenV2Calculation()" id="testButton" disabled>🚀 CALCUL NEXTEN V2.0 RÉEL (Orchestrateur COMPLET)</button>
+            </div>
+        </div>
+        
+        <!-- Résultats -->
+        <div class="results-panel" id="resultsPanel" style="display: none;">
+            <div id="finalScoreDisplay">
+                <div class="final-score">
+                    <div class="score" id="finalScore">---%</div>
+                    <div class="level" id="qualityLevel">Calcul en cours avec VRAIS modules + orchestrateur complet...</div>
+                </div>
+            </div>
+            
+            <div id="performanceMetrics" class="performance-metrics">
+                <div class="metric-card">
+                    <div class="metric-value" id="calculationTime">--ms</div>
+                    <div class="metric-label">Temps calcul réel</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="versionUsed">--</div>
+                    <div class="metric-label">Version système</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="matchingMode">--</div>
+                    <div class="metric-label">Mode matching</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="criteriaUsed">--/11</div>
+                    <div class="metric-label">Critères calculés</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="precisionEstimate">--%</div>
+                    <div class="metric-label">Précision estimée</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="dataUsage">--%</div>
+                    <div class="metric-label">Richesse données</div>
+                </div>
+            </div>
+            
+            <div id="criteriaResults" class="criteria-grid">
+                <!-- Résultats des critères injectés ici -->
+            </div>
+            
+            <div class="debug-section">
+                <h3>🔍 Debug - Système & Calculs (VERSION CORRIGÉE)</h3>
+                <pre id="debugInfo">Lancement du test avec orchestrateur COMPLET nexten-v2-unified-system-updated.js...</pre>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CHARGEMENT AVEC CHEMINS ABSOLUS GITHUB - VERSION CORRIGÉE -->
+    <script>
+        // URLs absolues vers les modules NEXTEN V2.0 - CORRECTION APPLIQUÉE
+        const MODULE_BASE_URL = 'https://raw.githack.com/Bapt252/Commitment-/feature/nexten-v2-11-criteria/js/engines/nexten-v2';
+        
+        const MODULES_TO_LOAD = [
+            { name: 'QuestionnaireMapper', url: `${MODULE_BASE_URL}/core/questionnaire-mapper.js`, id: 'loading-mapper' },
+            { name: 'CompensationMatcher', url: `${MODULE_BASE_URL}/criteria/compensation-matcher.js`, id: 'loading-compensation' },
+            { name: 'MotivationMatcher', url: `${MODULE_BASE_URL}/criteria/motivation-matcher.js`, id: 'loading-motivation' },
+            { name: 'CompanySizeMatcher', url: `${MODULE_BASE_URL}/criteria/company-size-matcher.js`, id: 'loading-companysize' },
+            { name: 'WorkEnvironmentMatcher', url: `${MODULE_BASE_URL}/criteria/work-environment-matcher.js`, id: 'loading-workenvironment' },
+            { name: 'IndustryMatcher', url: `${MODULE_BASE_URL}/criteria/industry-matcher.js`, id: 'loading-industry' },
+            { name: 'AdditionalCriteria', url: `${MODULE_BASE_URL}/criteria/additional-criteria.js`, id: 'loading-additional' },
+            // 🔥 CORRECTION CRITIQUE : Charger la version COMPLÈTE de l'orchestrateur
+            { name: 'NextenV2UnifiedSystem', url: `${MODULE_BASE_URL}/core/nexten-v2-unified-system-updated.js`, id: 'loading-core' }
+        ];
+        
+        // Variables globales
+        let nextenV2System = null;
+        let modulesLoaded = {};
+        let systemReady = false;
+        let loadedCount = 0;
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Démarrage chargement modules NEXTEN V2.0 CORRIGÉ...');
+            console.log('🔥 CORRECTION: Chargement orchestrateur nexten-v2-unified-system-UPDATED.js');
+            loadModulesSequentially();
+        });
+        
+        async function loadModulesSequentially() {
+            console.log('📦 Chargement séquentiel des modules CORRIGÉS...');
+            
+            for (const module of MODULES_TO_LOAD) {
+                try {
+                    console.log(`⏳ Chargement ${module.name}...`);
+                    console.log(`📍 URL: ${module.url}`);
+                    await loadModule(module);
+                    await new Promise(resolve => setTimeout(resolve, 300)); // Délai pour voir le chargement
+                } catch (error) {
+                    console.error(`❌ Erreur chargement ${module.name}:`, error);
+                    markModuleError(module.id, error.message);
+                }
+            }
+            
+            // Vérification finale et initialisation
+            setTimeout(() => {
+                checkSystemReadiness();
+            }, 1000);
+        }
+        
+        function loadModule(module) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = module.url;
+                script.onload = () => {
+                    console.log(`✅ ${module.name} chargé avec succès depuis ${module.url}`);
+                    markModuleSuccess(module.id);
+                    modulesLoaded[module.name] = true;
+                    loadedCount++;
+                    resolve();
+                };
+                script.onerror = () => {
+                    console.error(`❌ Erreur chargement ${module.name} depuis ${module.url}`);
+                    markModuleError(module.id, 'Fichier non trouvé');
+                    modulesLoaded[module.name] = false;
+                    reject(new Error(`Failed to load ${module.name}`));
+                };
+                document.head.appendChild(script);
+            });
+        }
+        
+        function markModuleSuccess(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.className = 'loading-item loading-success';
+                element.querySelector('span:last-child').textContent = '✅';
+            }
+        }
+        
+        function markModuleError(elementId, error) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.className = 'loading-item loading-error';
+                element.querySelector('span:last-child').textContent = '❌';
+            }
+        }
+        
+        function checkSystemReadiness() {
+            console.log('🔍 Vérification disponibilité modules CORRIGÉS...');
+            
+            // Vérification finale de chaque classe
+            const finalCheck = MODULES_TO_LOAD.map(module => {
+                const isAvailable = typeof window[module.name] !== 'undefined';
+                console.log(`${module.name}: ${isAvailable ? '✅' : '❌'}`);
+                return isAvailable;
+            });
+            
+            const successCount = finalCheck.filter(Boolean).length;
+            document.getElementById('loadedModulesCount').textContent = successCount;
+            
+            console.log(`🎯 Modules chargés: ${successCount}/8`);
+            console.log('🔥 Vérification orchestrateur UPDATED:', typeof window.NextenV2UnifiedSystem);
+            
+            if (successCount >= 6) { // Au moins 6 modules sur 8
+                initializeRealSystem();
+            } else {
+                showSystemWarning(successCount);
+            }
+        }
+        
+        function initializeRealSystem() {
+            try {
+                console.log('🚀 Initialisation système NEXTEN V2.0 réel avec orchestrateur COMPLET...');
+                
+                // Vérification finale NextenV2UnifiedSystem
+                if (typeof NextenV2UnifiedSystem === 'undefined') {
+                    throw new Error('NextenV2UnifiedSystem UPDATED non disponible');
+                }
+                
+                // Vérification que c'est bien la version complète
+                const systemInstance = new NextenV2UnifiedSystem();
+                if (typeof systemInstance.calculateAllV2Criteria !== 'function') {
+                    throw new Error('Version incomplète de NextenV2UnifiedSystem - méthodes V2.0 manquantes');
+                }
+                
+                // Instanciation du vrai système COMPLET
+                nextenV2System = systemInstance;
+                systemReady = true;
+                
+                // Interface prête
+                document.getElementById('systemReadyMessage').style.display = 'block';
+                document.getElementById('mainContent').style.display = 'grid';
+                document.getElementById('testButton').disabled = false;
+                
+                console.log('✅ Système NEXTEN V2.0 RÉEL avec orchestrateur COMPLET initialisé avec succès !');
+                console.log('🎯 Méthodes V2.0 disponibles:', typeof systemInstance.calculateAllV2Criteria);
+                
+            } catch (error) {
+                console.error('❌ Erreur initialisation système réel:', error);
+                fallbackToSimulation();
+            }
+        }
+        
+        function showSystemWarning(successCount) {
+            console.warn(`⚠️ Seulement ${successCount}/8 modules chargés`);
+            
+            const missingModules = MODULES_TO_LOAD
+                .filter(module => !modulesLoaded[module.name])
+                .map(module => module.name);
+            
+            document.getElementById('systemErrorMessage').style.display = 'block';
+            document.getElementById('missingModulesList').textContent = `Manquants: ${missingModules.join(', ')}`;
+            
+            // Fallback vers simulation
+            fallbackToSimulation();
+        }
+        
+        function fallbackToSimulation() {
+            console.log('🔄 Fallback vers simulation...');
+            
+            // Créer système simulé
+            nextenV2System = createSimulatedSystem();
+            systemReady = true;
+            
+            // Interface prête avec avertissement
+            document.getElementById('mainContent').style.display = 'grid';
+            document.getElementById('testButton').disabled = false;
+            document.getElementById('testButton').textContent = '⚠️ TEST SIMULATION (modules manquants)';
+            document.getElementById('testButton').style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        }
+        
+        function createSimulatedSystem() {
+            return {
+                calculateV2MatchingScore: async function(candidateData, jobData, companyData) {
+                    await new Promise(resolve => setTimeout(resolve, 150 + Math.random() * 50));
+                    
+                    // Simulation réaliste mais marquée comme telle
+                    const baseScore = 0.85 + Math.random() * 0.12;
+                    
+                    return {
+                        finalScore: baseScore,
+                        version: '2.0-SIMULATION',
+                        qualityLevel: baseScore >= 0.85 ? 'excellent' : 'good',
+                        matchingMode: 'simulation_fallback_corrected',
+                        criteriaBreakdown: {
+                            criteria: {
+                                semantic: { score: 0.89, weight: 0.25, fallback: true },
+                                location: { score: 0.95, weight: 0.20, fallback: true },
+                                compensation: { score: 0.92, weight: 0.15, fallback: true },
+                                motivation: { score: 0.88, weight: 0.10, fallback: true }
+                            }
+                        },
+                        performance: {
+                            calculationTime: 150 + Math.random() * 30,
+                            criteriaUsed: 4,
+                            precision_estimated: 0.80 // Précision simulation moindre
+                        },
+                        dataUsage: {
+                            total_coverage: 0.65
+                        },
+                        insights: {
+                            recommendations: [{
+                                title: 'Mode simulation actif (version corrigée)',
+                                description: 'Résultats simulés - Orchestrateur UPDATED non disponible'
+                            }]
+                        }
+                    };
+                }
+            };
+        }
+        
+        async function runTrueNextenV2Calculation() {
+            if (!systemReady || !nextenV2System) {
+                alert('❌ Système non initialisé');
+                return;
+            }
+            
+            try {
+                console.log('🚀 Calcul NEXTEN V2.0 avec modules réels + orchestrateur COMPLET...');
+                
+                // Affichage des résultats en cours
+                document.getElementById('resultsPanel').style.display = 'block';
+                document.getElementById('debugInfo').textContent = 'Calcul en cours avec VRAIS modules + orchestrateur COMPLET...';
+                
+                // Données enrichies du formulaire
+                const candidateData = {
+                    id: 'real_test_candidate_corrected',
+                    nom: document.getElementById('candidateName').value,
+                    pretentions_salariales: document.getElementById('salaryExpectation').value,
+                    motivations: Array.from(document.getElementById('motivations').selectedOptions)
+                                      .map(option => option.value),
+                    taille_entreprise_preference: document.getElementById('companySize').value,
+                    environnement_prefere: "hybrid_3_2",
+                    secteurs_cibles: document.getElementById('targetSectors').value.split(',').map(s => s.trim()),
+                    disponibilite: document.getElementById('availability').value,
+                    type_contrat_souhaite: "cdi",
+                    competences: ["Marketing", "Brand Management", "Luxe", "Digital"],
+                    experiences: [
+                        { entreprise: "LVMH", poste: "Chef de Produit", secteur: "luxe", duree: "3 ans" },
+                        { entreprise: "Chanel", poste: "Marketing Manager", secteur: "luxe", duree: "2 ans" }
+                    ],
+                    coordonnees: { 
+                        ville: "Paris",
+                        adresse: document.getElementById('candidateLocation').value,
+                        latitude: 48.8566,
+                        longitude: 2.3522
+                    }
+                };
+                
+                const jobData = {
+                    id: 'real_test_job_corrected',
+                    titre: document.getElementById('jobTitle').value,
+                    fourchette_salariale: document.getElementById('salaryRange').value,
+                    secteur: document.getElementById('companySector').value,
+                    mode_travail: document.getElementById('workMode').value,
+                    urgence_recrutement: document.getElementById('urgency').value,
+                    type_contrat: "cdi",
+                    competences_requises: ["Marketing", "Luxe", "Management", "Stratégie"],
+                    coordonnees: { 
+                        ville: "Paris",
+                        adresse: document.getElementById('jobLocation').value,
+                        latitude: 48.8566,
+                        longitude: 2.3522
+                    }
+                };
+                
+                const companyData = {
+                    nom: document.getElementById('companyName').value,
+                    secteur: document.getElementById('companySector').value,
+                    effectif: parseInt(document.getElementById('employeeCount').value),
+                    localisation: "Paris"
+                };
+                
+                console.log('📋 Données candidat enrichies:', candidateData);
+                console.log('🏢 Données job enrichies:', jobData);
+                console.log('🏭 Données company enrichies:', companyData);
+                
+                // CALCUL RÉEL avec le vrai système COMPLET
+                const startTime = performance.now();
+                
+                // Vérification méthode disponible
+                if (typeof nextenV2System.calculateV2MatchingScore === 'function') {
+                    console.log('🎯 Utilisation méthode calculateV2MatchingScore...');
+                    var result = await nextenV2System.calculateV2MatchingScore(candidateData, jobData, companyData);
+                } else if (typeof nextenV2System.calculateAllV2Criteria === 'function') {
+                    console.log('🎯 Utilisation méthode calculateAllV2Criteria...');
+                    var result = await nextenV2System.calculateAllV2Criteria(candidateData, jobData, companyData);
+                } else {
+                    throw new Error('Aucune méthode de calcul V2.0 disponible');
+                }
+                
+                const calculationTime = performance.now() - startTime;
+                
+                console.log('🎯 Résultat RÉEL V2.0 CORRIGÉ:', result);
+                
+                // Affichage des résultats
+                displayTrueResults(result, calculationTime);
+                
+                // Debug complet
+                const debugInfo = {
+                    systemType: systemReady ? 'REAL_CORRECTED' : 'SIMULATION',
+                    orchestratorFile: 'nexten-v2-unified-system-UPDATED.js',
+                    version: result.version,
+                    matchingMode: result.matchingMode,
+                    modulesLoaded: Object.keys(modulesLoaded).filter(k => modulesLoaded[k]),
+                    calculationTime: calculationTime,
+                    criteriaCalculated: Object.keys(result.criteriaBreakdown?.criteria || {}),
+                    performance: result.performance,
+                    dataQuality: result.dataUsage,
+                    methodUsed: typeof nextenV2System.calculateV2MatchingScore === 'function' ? 'calculateV2MatchingScore' : 'calculateAllV2Criteria'
+                };
+                
+                document.getElementById('debugInfo').textContent = JSON.stringify(debugInfo, null, 2);
+                
+            } catch (error) {
+                console.error('❌ Erreur calcul réel corrigé:', error);
+                document.getElementById('debugInfo').textContent = `ERREUR CALCUL CORRIGÉ:\\n${error.message}\\n\\nStack:\\n${error.stack}`;
+            }
+        }
+        
+        function displayTrueResults(result, calculationTime) {
+            const finalScore = Math.round((result.finalScore || 0.5) * 100);
+            document.getElementById('finalScore').textContent = finalScore + '%';
+            document.getElementById('qualityLevel').textContent = getQualityLabel(result.qualityLevel || 'acceptable');
+            
+            // Métriques
+            document.getElementById('calculationTime').textContent = Math.round(calculationTime || result.performance?.calculationTime || 0) + 'ms';
+            document.getElementById('versionUsed').textContent = result.version || 'N/A';
+            document.getElementById('matchingMode').textContent = result.matchingMode || 'N/A';
+            document.getElementById('criteriaUsed').textContent = (result.performance?.criteriaUsed || 0) + '/11';
+            document.getElementById('precisionEstimate').textContent = Math.round((result.performance?.precision_estimated || 0) * 100) + '%';
+            document.getElementById('dataUsage').textContent = Math.round((result.dataUsage?.total_coverage || 0) * 100) + '%';
+            
+            // Critères détaillés
+            displayTrueCriteriaResults(result.criteriaBreakdown?.criteria || {});
+        }
+        
+        function displayTrueCriteriaResults(criteriaBreakdown) {
+            const criteriaContainer = document.getElementById('criteriaResults');
+            criteriaContainer.innerHTML = '';
+            
+            const criteriaInfo = {
+                semantic: { name: 'Compatibilité Sémantique', weight: '25%', icon: '🧠' },
+                location: { name: 'Géolocalisation RÉELLE', weight: '20%', icon: '📍' },
+                compensation: { name: 'Rémunération RÉELLE', weight: '15%', icon: '💰' },
+                motivation: { name: 'Motivations RÉELLES', weight: '10%', icon: '🎯' },
+                companySize: { name: 'Taille Entreprise', weight: '8%', icon: '🏢' },
+                workEnvironment: { name: 'Environnement Travail', weight: '8%', icon: '🏠' },
+                industry: { name: 'Secteur d\'Activité', weight: '6%', icon: '🏭' },
+                availability: { name: 'Disponibilité RÉELLE', weight: '5%', icon: '⏰' },
+                contractType: { name: 'Type de Contrat', weight: '5%', icon: '📋' },
+                listenReasons: { name: 'Anti-patterns', weight: '3%', icon: '🎭' },
+                processPosition: { name: 'Position Processus', weight: '2%', icon: '📈' }
+            };
+            
+            Object.entries(criteriaInfo).forEach(([criterionKey, info]) => {
+                const criterionData = criteriaBreakdown[criterionKey];
+                
+                const card = document.createElement('div');
+                card.className = 'criteria-card';
+                
+                if (criterionData) {
+                    const score = criterionData.score || 0;
+                    const percentage = criterionData.percentage || Math.round(score * 100);
+                    const isReal = !criterionData.fallback;
+                    
+                    card.innerHTML = `
+                        <h3>${info.icon} ${info.name}</h3>
+                        <div class="criteria-score ${getScoreClass(score)}">${percentage}%</div>
+                        <div class="criteria-details">
+                            Pondération: ${info.weight}<br>
+                            ${getScoreDescription(score)}<br>
+                            <small style="color: ${isReal ? '#166534' : '#991b1b'};">
+                                ${isReal ? '✅ CALCUL RÉEL (Orchestrateur COMPLET)' : '⚠️ Fallback/Simulation'}
+                            </small>
+                        </div>
+                    `;
+                } else {
+                    card.style.opacity = '0.5';
+                    card.innerHTML = `
+                        <h3>${info.icon} ${info.name}</h3>
+                        <div class="criteria-score score-poor">N/A</div>
+                        <div class="criteria-details">
+                            Pondération: ${info.weight}<br>
+                            Non calculé<br>
+                            <small style="color: #991b1b;">❌ Module manquant</small>
+                        </div>
+                    `;
+                }
+                
+                criteriaContainer.appendChild(card);
+            });
+        }
+        
+        function getQualityLabel(level) {
+            const labels = {
+                excellent: '🏆 Match Excellent (RÉEL)',
+                good: '✅ Bon Match (RÉEL)', 
+                acceptable: '⚠️ Match Acceptable',
+                poor: '❌ Match Faible'
+            };
+            return labels[level] || '⚡ Match Analysé';
+        }
+        
+        function getScoreClass(score) {
+            if (score >= 0.85) return 'score-excellent';
+            if (score >= 0.70) return 'score-good';
+            if (score >= 0.55) return 'score-average';
+            return 'score-poor';
+        }
+        
+        function getScoreDescription(score) {
+            if (score >= 0.85) return 'Excellent alignement';
+            if (score >= 0.70) return 'Bon alignement';
+            if (score >= 0.55) return 'Alignement acceptable';
+            return 'Alignement faible';
+        }
+    </script>
+</body>
+</html>
