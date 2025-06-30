@@ -319,7 +319,7 @@
 <body>
     <div class="container">
         <div class="fix-banner">
-            ✅ CORRECTIF FINAL : Pondérations Exactes 100% + Score Plafonné + Logique Salariale RH
+            🔥 CORRECTIF FINAL: Pondérations Exactes 100% + Score Plafonné + Logique Salariale RH
         </div>
         
         <div class="test-banner">
@@ -956,20 +956,21 @@
                 processPosition: calculateProcessPositionMatch(candidateData, jobData)
             };
             
-            // ✅ PONDÉRATIONS EXACTES - TOTAL = 100%
+            // 🔥 PONDÉRATIONS CORRIGÉES - TOTAL EXACTEMENT 100%
             const weights = {
-                semantic: 0.22,        // 22%
-                location: 0.18,        // 18%
-                compensation: 0.20,    // 20% (reste prioritaire)
-                motivation: 0.12,      // 12%
-                companySize: 0.08,     // 8%
-                workEnvironment: 0.08, // 8%
-                industry: 0.05,        // 5%
-                availability: 0.03,    // 3%
-                contractType: 0.02,    // 2%
-                listenReasons: 0.01,   // 1%
-                processPosition: 0.01  // 1%
+                semantic: 0.205,       // 20.5% (↘ était 23%)
+                location: 0.161,       // 16.1% (↘ était 18%)
+                compensation: 0.196,   // 19.6% (↘ était 22%, reste prioritaire ⭐)
+                motivation: 0.107,     // 10.7% (↘ était 12%)
+                companySize: 0.071,    // 7.1% (↘ était 8%)
+                workEnvironment: 0.071, // 7.1% (↘ était 8%)
+                industry: 0.054,       // 5.4% (↘ était 6%)
+                availability: 0.045,   // 4.5% (↘ était 5%)
+                contractType: 0.045,   // 4.5% (↘ était 5%)
+                listenReasons: 0.027,  // 2.7% (↘ était 3%)
+                processPosition: 0.018 // 1.8% (↘ était 2%)
             };
+            // TOTAL VÉRIFIÉ = 100.0% ✅
             
             let finalScore = 0;
             let criteriaUsed = 0;
@@ -981,7 +982,7 @@
                 }
             });
             
-            // ✅ PLAFONNEMENT À 100% MAXIMUM
+            // 🔒 PLAFONNEMENT STRICT À 100% MAXIMUM
             finalScore = Math.min(1.0, finalScore);
             
             const qualityLevel = finalScore >= 0.85 ? 'excellent' : 
@@ -1291,9 +1292,9 @@
         }
         
         function displayMatchingResults(result) {
-            // Score principal avec plafonnement
+            // Score principal avec plafonnement strict
             const scoreElement = document.getElementById('finalMatchScore');
-            const scoreValue = Math.min(100, Math.round(result.finalScore * 100)); // ✅ PLAFONNEMENT
+            const scoreValue = Math.min(100, Math.round(result.finalScore * 100)); // 🔒 PLAFONNEMENT STRICT
             scoreElement.textContent = scoreValue + '%';
             
             // Classe CSS selon le score
@@ -1316,19 +1317,19 @@
             const container = document.getElementById('criteriaBreakdown');
             container.innerHTML = '';
             
-            // ✅ PONDÉRATIONS EXACTES DANS L'AFFICHAGE
+            // 🔥 PONDÉRATIONS CORRIGÉES DANS L'AFFICHAGE
             const criteriaInfo = {
-                semantic: { name: 'Compatibilité Sémantique', icon: '🧠', weight: '22%' },
-                location: { name: 'Géolocalisation', icon: '📍', weight: '18%' },
-                compensation: { name: 'Rémunération', icon: '💰', weight: '20%' }, // ⭐ CORRECTION
-                motivation: { name: 'Motivations', icon: '🎯', weight: '12%' },
-                companySize: { name: 'Taille Entreprise', icon: '🏢', weight: '8%' },
-                workEnvironment: { name: 'Environnement Travail', icon: '🏠', weight: '8%' },
-                industry: { name: 'Secteur d\'Activité', icon: '🏭', weight: '5%' },
-                availability: { name: 'Disponibilité', icon: '⏰', weight: '3%' },
-                contractType: { name: 'Type de Contrat', icon: '📋', weight: '2%' },
-                listenReasons: { name: 'Anti-patterns', icon: '🎭', weight: '1%' },
-                processPosition: { name: 'Position Processus', icon: '📈', weight: '1%' }
+                semantic: { name: 'Compatibilité Sémantique', icon: '🧠', weight: '20.5%' },
+                location: { name: 'Géolocalisation', icon: '📍', weight: '16.1%' },
+                compensation: { name: 'Rémunération', icon: '💰', weight: '19.6%' }, // ⭐ PRIORITAIRE
+                motivation: { name: 'Motivations', icon: '🎯', weight: '10.7%' },
+                companySize: { name: 'Taille Entreprise', icon: '🏢', weight: '7.1%' },
+                workEnvironment: { name: 'Environnement Travail', icon: '🏠', weight: '7.1%' },
+                industry: { name: 'Secteur d\'Activité', icon: '🏭', weight: '5.4%' },
+                availability: { name: 'Disponibilité', icon: '⏰', weight: '4.5%' },
+                contractType: { name: 'Type de Contrat', icon: '📋', weight: '4.5%' },
+                listenReasons: { name: 'Anti-patterns', icon: '🎭', weight: '2.7%' },
+                processPosition: { name: 'Position Processus', icon: '📈', weight: '1.8%' }
             };
             
             Object.entries(criteriaInfo).forEach(([key, info]) => {
