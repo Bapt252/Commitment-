@@ -61,7 +61,7 @@
       }
     </style>
     
-    <!-- Styles spécifiques au questionnaire -->
+    <!-- Styles spécifiques au questionnaire avec Contract Type Enhancement -->
     <style>
         /* Variables CSS globales */
         :root {
@@ -74,6 +74,10 @@
             --gray-light: #9ca3af;
             --cream: #f9fafb;
             --cream-dark: #e5e7eb;
+            --green: #10b981;
+            --blue: #3b82f6;
+            --orange: #f59e0b;
+            --red: #ef4444;
             --spacing-xs: 0.5rem;
             --spacing-sm: 1rem;
             --spacing-md: 1.5rem;
@@ -382,6 +386,222 @@
             transform: rotate(45deg);
         }
 
+        /* 💼 STYLES POUR LA QUESTION TYPE DE CONTRAT SOPHISTIQUÉE - NEXTEN V2.0 ENHANCED */
+        .contract-type-container {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(168, 85, 247, 0.02));
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .contract-type-container::before {
+            content: '💼';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--white);
+            padding: 0 8px;
+            font-size: 1.5rem;
+        }
+
+        .contract-type-title {
+            color: var(--purple);
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .contract-type-description {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .contract-types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .contract-type-option {
+            position: relative;
+            background: var(--white);
+            border: 2px solid var(--cream-dark);
+            border-radius: 10px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .contract-type-option:hover {
+            border-color: var(--purple);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .contract-type-option.selected {
+            border-color: var(--purple);
+            background: rgba(124, 58, 237, 0.05);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+        }
+
+        .contract-type-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .contract-type-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2rem;
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .contract-type-option[data-type="cdi"] .contract-type-icon {
+            background: linear-gradient(135deg, var(--green), #059669);
+        }
+
+        .contract-type-option[data-type="cdd"] .contract-type-icon {
+            background: linear-gradient(135deg, var(--blue), #2563eb);
+        }
+
+        .contract-type-option[data-type="freelance"] .contract-type-icon {
+            background: linear-gradient(135deg, var(--orange), #d97706);
+        }
+
+        .contract-type-option[data-type="interim"] .contract-type-icon {
+            background: linear-gradient(135deg, #8b5cf6, var(--purple));
+        }
+
+        .contract-type-content {
+            flex: 1;
+        }
+
+        .contract-type-name {
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 4px;
+        }
+
+        .contract-type-desc {
+            font-size: 0.85rem;
+            color: var(--gray);
+            line-height: 1.4;
+        }
+
+        .contract-preference-selector {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(59, 130, 246, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .preference-title {
+            font-weight: 600;
+            color: var(--blue);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preference-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .preference-tag {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid var(--cream-dark);
+            background: var(--white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .preference-tag:hover {
+            border-color: var(--blue);
+            transform: translateY(-1px);
+        }
+
+        .preference-tag.selected {
+            background: var(--blue);
+            color: var(--white);
+            border-color: var(--blue);
+        }
+
+        .preference-tag.exclusive {
+            background: #ef4444;
+            color: var(--white);
+            border-color: #ef4444;
+        }
+
+        .preference-tag.preferred {
+            background: var(--green);
+            color: var(--white);
+            border-color: var(--green);
+        }
+
+        .preference-tag.acceptable {
+            background: var(--orange);
+            color: var(--white);
+            border-color: var(--orange);
+        }
+
+        .preference-tag.flexible {
+            background: var(--blue);
+            color: var(--white);
+            border-color: var(--blue);
+        }
+
+        .contract-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--cream);
+            border-radius: 8px;
+            border-left: 4px solid var(--purple);
+        }
+
+        .summary-title {
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 8px;
+        }
+
+        .summary-content {
+            font-size: 0.9rem;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        /* Styles pour les sous-questions sur le temps de trajet */
+        #transport-time-questions {
+            margin-top: 15px;
+            margin-left: 25px;
+        }
+        
+        #transport-time-questions .form-group {
+            margin-bottom: 15px;
+        }
+
+        /* Actions */
         .form-actions {
             display: flex;
             justify-content: space-between;
@@ -642,264 +862,19 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Styles pour les sous-questions sur le temps de trajet */
-        #transport-time-questions {
-            margin-top: 15px;
-            margin-left: 25px;
-        }
-        
-        #transport-time-questions .form-group {
-            margin-bottom: 15px;
-        }
-
-        /* Animations pour les indicateurs */
-        @keyframes pulseCVIndicator {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        /* Indicateur de CV réel */
-        .real-cv-indicator {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10B981;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 500;
-            border: 2px solid #10B981;
-            animation: pulseCVIndicator 2s infinite;
-        }
-
-        /* 🔗 STYLES SYSTÈME PONT CV-QUESTIONNAIRE */
-        /* Styles pour les champs pré-remplis avec données CV */
-        .cv-prefilled {
-            background-color: rgba(16, 185, 129, 0.08) !important;
-            border-color: #10B981 !important;
-            position: relative;
-        }
-
-        .cv-prefilled::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(to bottom, #10B981, #059669);
-            border-radius: 0 8px 8px 0;
-        }
-
-        /* Badge CV pour les champs pré-remplis */
-        .cv-badge {
-            position: absolute;
-            top: -8px;
-            right: 8px;
-            background: linear-gradient(135deg, #10B981, #059669);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            z-index: 10;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-            animation: cvBadgePulse 2s infinite;
-        }
-
-        @keyframes cvBadgePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        /* Notification globale de pré-remplissage */
-        .cv-notification {
-            background: linear-gradient(135deg, #10B981, #059669);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            text-align: center;
-            font-weight: 600;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
-            animation: slideInFromTop 0.8s ease-out;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cv-notification::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes slideInFromTop {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        /* Suggestions intelligentes */
-        .smart-suggestions {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.05));
-            border: 2px solid #3B82F6;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 12px;
-            position: relative;
-            animation: suggestionsAppear 0.6s ease-out;
-        }
-
-        .smart-suggestions::before {
-            content: '💡';
-            position: absolute;
-            top: -8px;
-            left: 16px;
-            background: white;
-            padding: 0 8px;
-            font-size: 1.2rem;
-        }
-
-        .suggestions-title {
-            color: #3B82F6;
-            font-weight: 700;
-            margin-bottom: 12px;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .suggestion-item {
-            background: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid #E5E7EB;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .suggestion-item:hover {
-            background: #3B82F6;
-            color: white;
-            transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .suggestion-item i {
-            color: #3B82F6;
-            transition: color 0.3s ease;
-        }
-
-        .suggestion-item:hover i {
-            color: white;
-        }
-
-        @keyframes suggestionsAppear {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Bouton debug (mode développement) */
-        .debug-btn {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .debug-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
-        }
-
-        /* Modal de debug */
-        .debug-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-
-        .debug-content {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .debug-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #E5E7EB;
-        }
-
-        .debug-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6B7280;
-        }
-
-        .debug-data {
-            background: #F3F4F6;
-            padding: 16px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            max-height: 300px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        
         @media (max-width: 768px) {
+            .contract-types-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .preference-options {
+                flex-direction: column;
+            }
+            
+            .preference-tag {
+                text-align: center;
+            }
+            
             .stepper {
                 flex-direction: column;
                 gap: var(--spacing-md);
@@ -1031,7 +1006,7 @@
                         </div>
                     </div>
                     
-                    <!-- ÉTAPE 2 : MOBILITÉ ET PRÉFÉRENCES -->
+                    <!-- ÉTAPE 2 : MOBILITÉ ET PRÉFÉRENCES (AVEC CONTRACT TYPE ENHANCEMENT) -->
                     <div class="form-step" id="form-step2">
                         <h2 class="form-section-title">Mobilité et préférences</h2>
                         
@@ -1066,7 +1041,6 @@
                         
                         <div class="form-group">
                             <label for="address" class="form-label required">4) Adresse exacte</label>
-                            <!-- Utilisation d'un input text au lieu d'un textarea -->
                             <input type="text" id="address" name="address" class="form-control" required placeholder="Votre adresse complète (obligatoire pour simuler les temps de trajet)">
                             <div id="address-coords-container" style="display: none;">
                                 <input type="hidden" id="address-lat" name="address-lat">
@@ -1075,9 +1049,109 @@
                             </div>
                             <small class="text-muted">Nous utiliserons cette adresse pour calculer le temps de trajet vers les entreprises</small>
                         </div>
+
+                        <!-- 💼 QUESTION SOPHISTIQUÉE SUR LE TYPE DE CONTRAT - NEXTEN V2.0 ENHANCED -->
+                        <div class="form-group">
+                            <div class="contract-type-container">
+                                <div class="contract-type-title">
+                                    <i class="fas fa-file-contract"></i> 
+                                    5) Quel(s) type(s) de contrat recherchez-vous ?
+                                </div>
+                                <div class="contract-type-description">
+                                    Sélectionnez tous les types de contrats qui vous intéressent, puis précisez votre niveau de préférence pour chacun.
+                                </div>
+
+                                <div class="contract-types-grid">
+                                    <!-- CDI -->
+                                    <div class="contract-type-option" data-type="cdi">
+                                        <input type="checkbox" name="contract-types" value="cdi" class="contract-type-checkbox" id="contract-cdi">
+                                        <div class="contract-type-icon">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div class="contract-type-content">
+                                            <div class="contract-type-name">CDI (Contrat à Durée Indéterminée)</div>
+                                            <div class="contract-type-desc">Stabilité et sécurité d'emploi, évolution de carrière</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- CDD -->
+                                    <div class="contract-type-option" data-type="cdd">
+                                        <input type="checkbox" name="contract-types" value="cdd" class="contract-type-checkbox" id="contract-cdd">
+                                        <div class="contract-type-icon">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <div class="contract-type-content">
+                                            <div class="contract-type-name">CDD (Contrat à Durée Déterminée)</div>
+                                            <div class="contract-type-desc">Missions courtes, projets spécifiques, flexibilité</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Freelance -->
+                                    <div class="contract-type-option" data-type="freelance">
+                                        <input type="checkbox" name="contract-types" value="freelance" class="contract-type-checkbox" id="contract-freelance">
+                                        <div class="contract-type-icon">
+                                            <i class="fas fa-laptop-code"></i>
+                                        </div>
+                                        <div class="contract-type-content">
+                                            <div class="contract-type-name">Freelance / Consulting</div>
+                                            <div class="contract-type-desc">Indépendance totale, choix des missions, tarifs libres</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Interim -->
+                                    <div class="contract-type-option" data-type="interim">
+                                        <input type="checkbox" name="contract-types" value="interim" class="contract-type-checkbox" id="contract-interim">
+                                        <div class="contract-type-icon">
+                                            <i class="fas fa-users-cog"></i>
+                                        </div>
+                                        <div class="contract-type-content">
+                                            <div class="contract-type-name">Intérim</div>
+                                            <div class="contract-type-desc">Missions temporaires, découverte d'entreprises, polyvalence</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sélecteur de préférence -->
+                                <div class="contract-preference-selector" id="contract-preference-selector" style="display: none;">
+                                    <div class="preference-title">
+                                        <i class="fas fa-star"></i>
+                                        Précisez votre niveau de préférence :
+                                    </div>
+                                    <div class="preference-options">
+                                        <div class="preference-tag exclusive" data-level="exclusive">
+                                            <i class="fas fa-lock"></i> Exclusivement ce type
+                                        </div>
+                                        <div class="preference-tag preferred" data-level="preferred">
+                                            <i class="fas fa-heart"></i> Forte préférence
+                                        </div>
+                                        <div class="preference-tag acceptable" data-level="acceptable">
+                                            <i class="fas fa-check"></i> Acceptable
+                                        </div>
+                                        <div class="preference-tag flexible" data-level="flexible">
+                                            <i class="fas fa-arrows-alt"></i> Flexible sur tout
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Résumé dynamique -->
+                                <div class="contract-summary" id="contract-summary" style="display: none;">
+                                    <div class="summary-title">
+                                        <i class="fas fa-clipboard-check"></i> Résumé de vos préférences contractuelles :
+                                    </div>
+                                    <div class="summary-content" id="summary-content">
+                                        <!-- Contenu généré dynamiquement -->
+                                    </div>
+                                </div>
+
+                                <!-- Champs cachés pour le traitement -->
+                                <input type="hidden" id="contract-types-selected" name="contract-types-selected">
+                                <input type="hidden" id="contract-preference-level" name="contract-preference-level">
+                                <input type="hidden" id="contract-primary-choice" name="contract-primary-choice">
+                            </div>
+                        </div>
                         
                         <div class="form-group">
-                            <label for="office-preference" class="form-label required">5) Préférez-vous un environnement :</label>
+                            <label for="office-preference" class="form-label required">6) Préférez-vous un environnement :</label>
                             <div class="radio-group">
                                 <label class="radio-option">
                                     <input type="radio" name="office-preference" value="open-space" required>
@@ -1114,7 +1188,7 @@
                         <h2 class="form-section-title">Motivations et secteurs</h2>
                         
                         <div class="form-group">
-                            <label class="form-label required">6) Quels sont vos leviers de motivation ? (classez par ordre d'importance)</label>
+                            <label class="form-label required">7) Quels sont vos leviers de motivation ? (classez par ordre d'importance)</label>
                             <ul class="motivation-priorities" id="motivation-priorities">
                                 <li class="motivation-item" draggable="true" data-value="remuneration">
                                     <span class="drag-handle"><i class="fas fa-grip-vertical"></i></span>
@@ -1150,7 +1224,7 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="structure-type" class="form-label required">7) Quel type de structure priorisez-vous ? (plusieurs choix possibles)</label>
+                            <label for="structure-type" class="form-label required">8) Quel type de structure priorisez-vous ? (plusieurs choix possibles)</label>
                             <div class="checkbox-group">
                                 <label class="checkbox-option">
                                     <input type="checkbox" name="structure-type" value="startup">
@@ -1176,7 +1250,7 @@
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">8) Avez-vous une préférence pour un secteur d'activité ?</label>
+                            <label class="form-label">9) Avez-vous une préférence pour un secteur d'activité ?</label>
                             <div class="radio-group">
                                 <label class="radio-option">
                                     <input type="radio" name="has-sector-preference" value="yes" onchange="toggleSectorPreference(this)">
@@ -1208,47 +1282,11 @@
                                     <option value="public">Secteur public</option>
                                     <option value="nonprofit">Associations</option>
                                 </select>
-                                
-                                <div id="prohibited-sector-container" style="margin-top: 15px;">
-                                    <label class="form-label">Avez-vous un secteur rédhibitoire ?</label>
-                                    <div class="radio-group">
-                                        <label class="radio-option">
-                                            <input type="radio" name="has-prohibited-sector" value="yes" onchange="toggleProhibitedSector(this)">
-                                            <span class="radio-checkmark"></span>
-                                            Oui
-                                        </label>
-                                        <label class="radio-option">
-                                            <input type="radio" name="has-prohibited-sector" value="no" onchange="toggleProhibitedSector(this)" checked>
-                                            <span class="radio-checkmark"></span>
-                                            Non
-                                        </label>
-                                    </div>
-                                    
-                                    <div id="prohibited-sector-selection" style="display: none; margin-top: 15px;">
-                                        <label for="prohibited-sector">Sélectionnez les secteurs à éviter (plusieurs choix possibles) :</label>
-                                        <select id="prohibited-sector" name="prohibited-sector[]" class="form-control" multiple size="5">
-                                            <option value="tech">Technologie</option>
-                                            <option value="finance">Finance</option>
-                                            <option value="healthcare">Santé</option>
-                                            <option value="education">Éducation</option>
-                                            <option value="retail">Commerce</option>
-                                            <option value="manufacturing">Industrie</option>
-                                            <option value="energy">Énergie</option>
-                                            <option value="transportation">Transport</option>
-                                            <option value="media">Médias</option>
-                                            <option value="hospitality">Hôtellerie</option>
-                                            <option value="construction">Construction</option>
-                                            <option value="agriculture">Agriculture</option>
-                                            <option value="public">Secteur public</option>
-                                            <option value="nonprofit">Associations</option>
-                                        </select>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="salary-range" class="form-label required">9) Quelle est votre fourchette de rémunération ?</label>
+                            <label for="salary-range" class="form-label required">10) Quelle est votre fourchette de rémunération ?</label>
                             <input type="text" id="salary-range" name="salary-range" class="form-control" required placeholder="Ex: 35K€ - 45K€ brut annuel">
                         </div>
                         
@@ -1269,7 +1307,7 @@
                         <h2 class="form-section-title">Disponibilité et situation actuelle</h2>
                         
                         <div class="form-group">
-                            <label for="availability" class="form-label required">10) Quand recherchez-vous à prendre un poste en main ?</label>
+                            <label for="availability" class="form-label required">11) Quand recherchez-vous à prendre un poste en main ?</label>
                             <div class="radio-group">
                                 <label class="radio-option">
                                     <input type="radio" name="availability" value="immediate" required>
@@ -1295,7 +1333,7 @@
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label required">11) Êtes-vous actuellement en poste ?</label>
+                            <label class="form-label required">12) Êtes-vous actuellement en poste ?</label>
                             <div class="radio-group">
                                 <label class="radio-option">
                                     <input type="radio" name="currently-employed" value="yes" onchange="toggleEmploymentStatus(this)" required>
@@ -1306,174 +1344,6 @@
                                     <input type="radio" name="currently-employed" value="no" onchange="toggleEmploymentStatus(this)">
                                     <span class="radio-checkmark"></span>
                                     Non
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- Section pour les candidats actuellement en poste -->
-                        <div id="employed-section" style="display: none;">
-                            <div class="form-group">
-                                <label class="form-label required">Pourquoi êtes-vous de nouveau à l'écoute ?</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="no-fulfillment">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne m'épanouis plus, je souhaite découvrir de nouvelles choses
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="no-evolution">
-                                        <span class="radio-checkmark"></span>
-                                        Manque de perspectives d'évolutions
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="low-salary">
-                                        <span class="radio-checkmark"></span>
-                                        Rémunération trop faible
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="far-location">
-                                        <span class="radio-checkmark"></span>
-                                        Poste trop loin de mon domicile
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="no-flexibility">
-                                        <span class="radio-checkmark"></span>
-                                        Manque de flexibilité (pas de TT, RTT)
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="internal-issues">
-                                        <span class="radio-checkmark"></span>
-                                        Problème en interne (organisation, management)
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="mismatched-position">
-                                        <span class="radio-checkmark"></span>
-                                        Le poste ne coïncide pas avec le poste proposé initialement
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="pse">
-                                        <span class="radio-checkmark"></span>
-                                        PSE
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="no-comment">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne souhaite pas communiquer
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="notice-period" class="form-label required">Combien de temps est votre préavis ?</label>
-                                <select id="notice-period" name="notice-period" class="form-control">
-                                    <option value="">Sélectionnez votre préavis</option>
-                                    <option value="none">Je n'en ai pas</option>
-                                    <option value="trial">Encore en période d'essai</option>
-                                    <option value="1month">1 mois</option>
-                                    <option value="2months">2 mois</option>
-                                    <option value="3months">3 mois</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label required">Le préavis est-il négociable ?</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="notice-negotiable" value="yes">
-                                        <span class="radio-checkmark"></span>
-                                        Oui
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="notice-negotiable" value="no">
-                                        <span class="radio-checkmark"></span>
-                                        Non
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="notice-negotiable" value="unknown">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne sais pas
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Section pour les candidats non en poste -->
-                        <div id="unemployed-section" style="display: none;">
-                            <div class="form-group">
-                                <label class="form-label required">Pourquoi votre dernier contrat s'est arrêté ?</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="no-fulfillment">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne m'épanouissais plus, je souhaite découvrir de nouvelles choses
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="no-evolution">
-                                        <span class="radio-checkmark"></span>
-                                        Manque de perspectives d'évolutions
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="low-salary">
-                                        <span class="radio-checkmark"></span>
-                                        Rémunération trop faible
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="far-location">
-                                        <span class="radio-checkmark"></span>
-                                        Poste trop loin de mon domicile
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="no-flexibility">
-                                        <span class="radio-checkmark"></span>
-                                        Manque de flexibilité (pas de TT, RTT)
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="internal-issues">
-                                        <span class="radio-checkmark"></span>
-                                        Problème en interne (organisation, management)
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="mismatched-position">
-                                        <span class="radio-checkmark"></span>
-                                        Le poste ne coïncide pas avec le poste proposé initialement
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="pse">
-                                        <span class="radio-checkmark"></span>
-                                        PSE
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="no-comment">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne souhaite pas communiquer
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Section commune pour tous les candidats -->
-                        <div class="form-group">
-                            <label class="form-label required">Où en êtes-vous dans vos process de recrutement ?</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="recruitment-status" value="no-leads" required>
-                                    <span class="radio-checkmark"></span>
-                                    Je n'ai pas encore de piste
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="recruitment-status" value="in-progress">
-                                    <span class="radio-checkmark"></span>
-                                    J'avance sur différents entretiens
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="recruitment-status" value="final-process">
-                                    <span class="radio-checkmark"></span>
-                                    Je suis en processus final
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="recruitment-status" value="offers-received">
-                                    <span class="radio-checkmark"></span>
-                                    On m'a fait des propositions
                                 </label>
                             </div>
                         </div>
@@ -1520,12 +1390,6 @@
                 <div>
                     <h4 class="footer-heading">Nexten</h4>
                     <p class="footer-description">Agence de recrutement spécialisée dans les métiers du digital.</p>
-                    <div class="footer-social">
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    </div>
                 </div>
                 
                 <div>
@@ -1573,50 +1437,10 @@
             }
         }
         
-        // Fonction pour afficher/masquer les secteurs prohibés
-        function toggleProhibitedSector(radio) {
-            const container = document.getElementById('prohibited-sector-selection');
-            if (container) {
-                container.style.display = radio.value === 'yes' ? 'block' : 'none';
-            }
-        }
-        
         // Fonction pour afficher/masquer les sections en fonction du statut d'emploi
         function toggleEmploymentStatus(radio) {
-            const employedSection = document.getElementById('employed-section');
-            const unemployedSection = document.getElementById('unemployed-section');
-            
-            if (employedSection && unemployedSection) {
-                employedSection.style.display = radio.value === 'yes' ? 'block' : 'none';
-                unemployedSection.style.display = radio.value === 'yes' ? 'none' : 'block';
-                
-                // Gestion des champs requis
-                if (radio.value === 'yes') {
-                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    document.getElementById('notice-period').setAttribute('required', '');
-                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    
-                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                } else {
-                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    
-                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                    document.getElementById('notice-period').removeAttribute('required');
-                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                }
-            }
+            // Fonction simplifiée pour cette version
+            console.log('Employment status changed:', radio.value);
         }
         
         // Fonction pour rediriger directement vers les matchings en cas d'échec du système d'analyse
@@ -1628,353 +1452,599 @@
         }
         
         document.addEventListener('DOMContentLoaded', function() {
-            // En cas d'erreur d'analyse, ajouter un bouton de secours
-            const submitBtn = document.getElementById('submit-btn');
-            if (submitBtn) {
-                submitBtn.addEventListener('dblclick', function(e) {
-                    e.preventDefault();
-                    console.log("Double-clic détecté - redirection de secours activée");
-                    redirectToMatchingPage();
-                });
-            }
-            
-            // Création des particules pour l'arrière-plan hero
-            const heroParticles = document.querySelector('.hero-particles');
-            
-            if (heroParticles) {
-                for (let i = 0; i < 20; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'particle';
-                    particle.style.width = Math.random() * 10 + 5 + 'px';
-                    particle.style.height = particle.style.width;
-                    particle.style.background = 'rgba(124, 58, 237, ' + (Math.random() * 0.2 + 0.05) + ')';
-                    particle.style.left = Math.random() * 100 + '%';
-                    particle.style.top = Math.random() * 100 + '%';
-                    particle.style.animationDelay = Math.random() * 5 + 's';
-                    particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                    heroParticles.appendChild(particle);
+            // ========================================
+            // NEXTEN V2.0 ENHANCED - GESTION TYPE DE CONTRAT SOPHISTIQUÉE
+            // Intégration complète avec validation et logique métier
+            // ========================================
+
+            // Gestion globale de l'état du questionnaire
+            class NextenQuestionnaireEnhanced {
+                constructor() {
+                    this.contractState = {
+                        selectedTypes: [],
+                        preferenceLevel: null,
+                        primaryChoice: null,
+                        isValid: false
+                    };
+                    
+                    this.init();
                 }
-            }
-            
-            // Gestion des moyens de transport et des questions sur le temps de trajet
-            const transportCheckboxes = document.querySelectorAll('input[name="transport-method"]');
-            const transportTimeQuestionsContainer = document.getElementById('transport-time-questions');
-            
-            // Définir les libellés pour chaque moyen de transport
-            const transportLabels = {
-                'public-transport': 'transports en commun',
-                'vehicle': 'véhicule personnel',
-                'bike': 'vélo',
-                'walking': 'à pied'
-            };
-            
-            // Fonction pour mettre à jour les questions sur le temps de trajet
-            function updateTransportTimeQuestions() {
-                transportTimeQuestionsContainer.innerHTML = ''; // Effacer les sous-questions existantes
-                let hasSelectedTransport = false;
-                
-                // Pour chaque moyen de transport coché, ajouter une sous-question
-                transportCheckboxes.forEach(checkbox => {
+
+                init() {
+                    console.log('🚀 NEXTEN Enhanced Questionnaire initialisé');
+                    
+                    // Configuration des gestionnaires d'événements
+                    this.setupContractTypeHandlers();
+                    this.setupTransportHandlers();
+                    this.setupStepperHandlers();
+                    this.setupValidationHandlers();
+                    this.setupMotivationDragDrop();
+                    
+                    // Initialisation des composants
+                    this.initializeParticles();
+                    this.initializeNotifications();
+                    
+                    console.log('✅ Tous les composants initialisés avec succès');
+                }
+
+                // ========================================
+                // GESTION TYPE DE CONTRAT SOPHISTIQUÉE
+                // ========================================
+
+                setupContractTypeHandlers() {
+                    const contractCheckboxes = document.querySelectorAll('input[name="contract-types"]');
+                    const preferenceSelector = document.getElementById('contract-preference-selector');
+                    const preferenceTags = document.querySelectorAll('.preference-tag');
+                    const contractSummary = document.getElementById('contract-summary');
+
+                    // Gestionnaire pour les types de contrat
+                    contractCheckboxes.forEach(checkbox => {
+                        checkbox.addEventListener('change', (e) => {
+                            this.handleContractTypeChange(e);
+                        });
+                    });
+
+                    // Gestionnaire pour les niveaux de préférence
+                    preferenceTags.forEach(tag => {
+                        tag.addEventListener('click', (e) => {
+                            this.handlePreferenceChange(e);
+                        });
+                    });
+
+                    console.log('📋 Gestionnaires type de contrat configurés');
+                }
+
+                handleContractTypeChange(e) {
+                    const checkbox = e.target;
+                    const contractOption = checkbox.closest('.contract-type-option');
+                    const preferenceSelector = document.getElementById('contract-preference-selector');
+                    
+                    // Mise à jour visuelle
                     if (checkbox.checked) {
-                        hasSelectedTransport = true;
-                        const transportType = checkbox.value;
-                        const transportLabel = transportLabels[transportType];
-                        
-                        const subQuestionDiv = document.createElement('div');
-                        subQuestionDiv.className = 'form-group';
-                        
-                        subQuestionDiv.innerHTML = `
-                            <label for="commute-time-${transportType}" class="form-label required">
-                                Combien de temps de trajet êtes-vous prêt à faire en ${transportLabel} ?
-                            </label>
-                            <select id="commute-time-${transportType}" name="commute-time-${transportType}" class="form-control" required>
-                                <option value="">Sélectionnez une durée</option>
-                                <option value="10">10 minutes</option>
-                                <option value="20">20 minutes</option>
-                                <option value="30">30 minutes</option>
-                                <option value="45">45 minutes</option>
-                                <option value="60">1 heure</option>
-                                <option value="90">1 heure 30</option>
-                                <option value="120">2 heures</option>
-                            </select>
-                        `;
-                        
-                        transportTimeQuestionsContainer.appendChild(subQuestionDiv);
-                    }
-                });
-                
-                // Afficher ou masquer le conteneur en fonction de la présence de sous-questions
-                transportTimeQuestionsContainer.style.display = hasSelectedTransport ? 'block' : 'none';
-            }
-            
-            // Ajouter des écouteurs d'événements pour les cases à cocher
-            transportCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateTransportTimeQuestions);
-            });
-            
-            // Gestion des étapes
-            const stepperProgress = document.getElementById('stepper-progress');
-            const progressValues = ['0%', '33%', '66%', '100%'];
-            
-            // Fonctions pour afficher les notifications
-            window.showNotification = function(message, type = 'success') {
-                const notification = document.getElementById('notification');
-                const notificationMessage = notification.querySelector('.notification-message');
-                
-                notification.className = 'notification ' + type;
-                notificationMessage.innerText = message;
-                
-                const icon = notification.querySelector('i:first-child');
-                if (type === 'success') {
-                    icon.className = 'fas fa-check-circle';
-                } else if (type === 'error') {
-                    icon.className = 'fas fa-exclamation-circle';
-                } else if (type === 'info') {
-                    icon.className = 'fas fa-info-circle';
-                }
-                
-                notification.classList.add('show');
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 5000);
-            }
-            
-            // Fermer la notification
-            const notificationClose = document.querySelector('.notification-close');
-            if (notificationClose) {
-                notificationClose.addEventListener('click', function() {
-                    document.getElementById('notification').classList.remove('show');
-                });
-            }
-            
-            // Navigation entre les étapes
-            function goToStep(currentStep, nextStep) {
-                // Hide current step
-                document.getElementById('form-step' + currentStep).classList.remove('active');
-                document.getElementById('step' + currentStep).classList.remove('active');
-                document.getElementById('step' + currentStep).classList.add('completed');
-                
-                // Show next step
-                document.getElementById('form-step' + nextStep).classList.add('active');
-                document.getElementById('step' + nextStep).classList.add('active');
-                
-                // Update progress bar
-                stepperProgress.style.width = progressValues[nextStep - 1];
-                
-                // Scroll to top of form
-                document.querySelector('.form-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            
-            // Validation des formulaires
-            window.validateStep = function(stepNumber) {
-                const currentStepElement = document.getElementById(`form-step${stepNumber}`);
-                const requiredFields = currentStepElement.querySelectorAll('[required]');
-                let isValid = true;
-                let firstInvalidField = null;
-                
-                requiredFields.forEach(field => {
-                    // Pour les groupes de checkbox, vérifier qu'au moins une est cochée
-                    if (field.type === 'checkbox' && field.name === 'transport-method') {
-                        const checkboxGroup = document.querySelectorAll('input[name="transport-method"]');
-                        const anyChecked = Array.from(checkboxGroup).some(cb => cb.checked);
-                        if (!anyChecked) {
-                            isValid = false;
-                            if (!firstInvalidField) {
-                                firstInvalidField = field;
-                            }
-                        }
-                    }
-                    // Pour les groupes de checkbox de type de structure
-                    else if (field.type === 'checkbox' && field.name === 'structure-type') {
-                        const checkboxGroup = document.querySelectorAll('input[name="structure-type"]');
-                        const anyChecked = Array.from(checkboxGroup).some(cb => cb.checked);
-                        if (!anyChecked) {
-                            isValid = false;
-                            if (!firstInvalidField) {
-                                firstInvalidField = field;
-                            }
-                        }
-                    }
-                    // Validation normale pour les autres champs
-                    else if ((field.type === 'checkbox' && !field.checked) || 
-                             (field.type !== 'checkbox' && !field.value.trim())) {
-                        isValid = false;
-                        field.classList.add('invalid');
-                        
-                        if (!firstInvalidField) {
-                            firstInvalidField = field;
-                        }
+                        contractOption.classList.add('selected');
+                        this.contractState.selectedTypes.push(checkbox.value);
                     } else {
-                        field.classList.remove('invalid');
+                        contractOption.classList.remove('selected');
+                        this.contractState.selectedTypes = this.contractState.selectedTypes.filter(
+                            type => type !== checkbox.value
+                        );
                     }
-                });
-                
-                if (!isValid) {
-                    showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                    if (firstInvalidField) {
-                        firstInvalidField.focus();
+
+                    // Afficher/masquer le sélecteur de préférence
+                    if (this.contractState.selectedTypes.length > 0) {
+                        preferenceSelector.style.display = 'block';
+                        this.resetPreferenceSelection();
+                    } else {
+                        preferenceSelector.style.display = 'none';
+                        this.hideContractSummary();
+                        this.contractState.preferenceLevel = null;
                     }
+
+                    // Mise à jour des champs cachés
+                    this.updateHiddenFields();
+                    
+                    console.log('📝 Types de contrat sélectionnés:', this.contractState.selectedTypes);
                 }
-                
-                return isValid;
-            }
-            
-            // Drag and drop pour le classement des motivations
-            const motivationsList = document.getElementById('motivation-priorities');
-            const motivationItems = motivationsList.querySelectorAll('.motivation-item');
-            const motivationOrderInput = document.getElementById('motivation-order');
-            let draggedItem = null;
 
-            // Fonction pour mettre à jour les numéros après réorganisation
-            function updateMotivationNumbers() {
-                const items = motivationsList.querySelectorAll('.motivation-item');
-                items.forEach((item, index) => {
-                    const numberSpan = item.querySelector('.motivation-number');
-                    numberSpan.textContent = index + 1;
-                });
+                handlePreferenceChange(e) {
+                    const selectedTag = e.currentTarget;
+                    const preferenceLevel = selectedTag.dataset.level;
+                    const preferenceTags = document.querySelectorAll('.preference-tag');
 
-                // Mettre à jour le champ caché avec l'ordre actuel
-                const motivationOrder = Array.from(items).map(item => item.dataset.value);
-                motivationOrderInput.value = motivationOrder.join(',');
-                
-                // Si "Autre" est dans le top 3, afficher le champ de saisie
-                const otherIndex = motivationOrder.indexOf('other');
-                if (otherIndex < 3) {
-                    document.getElementById('other-motivation-container').style.display = 'block';
-                    document.getElementById('other-motivation').setAttribute('required', '');
-                } else {
-                    document.getElementById('other-motivation-container').style.display = 'none';
-                    document.getElementById('other-motivation').removeAttribute('required');
+                    // Réinitialiser toutes les sélections
+                    preferenceTags.forEach(tag => tag.classList.remove('selected'));
+                    
+                    // Marquer le tag sélectionné
+                    selectedTag.classList.add('selected');
+                    
+                    // Mettre à jour l'état
+                    this.contractState.preferenceLevel = preferenceLevel;
+                    
+                    // Logique spéciale pour "Exclusivement ce type"
+                    if (preferenceLevel === 'exclusive') {
+                        this.handleExclusivePreference();
+                    }
+
+                    // Déterminer le choix principal
+                    this.determinePrimaryChoice();
+                    
+                    // Afficher le résumé
+                    this.updateContractSummary();
+                    
+                    // Mise à jour des champs cachés
+                    this.updateHiddenFields();
+                    
+                    console.log('⭐ Niveau de préférence sélectionné:', preferenceLevel);
                 }
-            }
 
-            motivationItems.forEach(item => {
-                // Event listeners pour le drag and drop
-                item.addEventListener('dragstart', function() {
-                    draggedItem = this;
-                    setTimeout(() => this.classList.add('dragging'), 0);
-                });
-
-                item.addEventListener('dragend', function() {
-                    this.classList.remove('dragging');
-                    draggedItem = null;
-                    updateMotivationNumbers();
-                });
-
-                item.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                });
-
-                item.addEventListener('dragenter', function(e) {
-                    e.preventDefault();
-                    if (this !== draggedItem) {
-                        const draggedRect = draggedItem.getBoundingClientRect();
-                        const targetRect = this.getBoundingClientRect();
+                handleExclusivePreference() {
+                    // Si exclusif et plusieurs types sélectionnés, demander de choisir UN seul type
+                    if (this.contractState.selectedTypes.length > 1) {
+                        this.showNotification(
+                            'Pour un choix exclusif, veuillez sélectionner un seul type de contrat',
+                            'warning'
+                        );
                         
-                        if (draggedRect.top < targetRect.top) {
-                            motivationsList.insertBefore(draggedItem, this.nextSibling);
+                        // Désélectionner tous sauf le premier
+                        const contractCheckboxes = document.querySelectorAll('input[name="contract-types"]');
+                        contractCheckboxes.forEach((checkbox, index) => {
+                            if (index > 0 && checkbox.checked) {
+                                checkbox.checked = false;
+                                checkbox.closest('.contract-type-option').classList.remove('selected');
+                            }
+                        });
+                        
+                        // Mettre à jour l'état
+                        this.contractState.selectedTypes = [this.contractState.selectedTypes[0]];
+                    }
+                }
+
+                determinePrimaryChoice() {
+                    // Le choix principal est le premier sélectionné pour simplifier
+                    if (this.contractState.selectedTypes.length > 0) {
+                        this.contractState.primaryChoice = this.contractState.selectedTypes[0];
+                    }
+                }
+
+                updateContractSummary() {
+                    const contractSummary = document.getElementById('contract-summary');
+                    const summaryContent = document.getElementById('summary-content');
+                    
+                    if (!this.contractState.preferenceLevel || this.contractState.selectedTypes.length === 0) {
+                        contractSummary.style.display = 'none';
+                        return;
+                    }
+
+                    // Générer le texte du résumé
+                    let summaryText = this.generateSummaryText();
+                    
+                    summaryContent.innerHTML = summaryText;
+                    contractSummary.style.display = 'block';
+                    
+                    // Validation
+                    this.contractState.isValid = true;
+                }
+
+                generateSummaryText() {
+                    const typeLabels = {
+                        'cdi': 'CDI',
+                        'cdd': 'CDD', 
+                        'freelance': 'Freelance/Consulting',
+                        'interim': 'Intérim'
+                    };
+
+                    const levelLabels = {
+                        'exclusive': 'Recherche EXCLUSIVEMENT',
+                        'preferred': 'Préfère fortement',
+                        'acceptable': 'Accepte',
+                        'flexible': 'Flexible sur'
+                    };
+
+                    const selectedLabels = this.contractState.selectedTypes.map(type => typeLabels[type]);
+                    const levelLabel = levelLabels[this.contractState.preferenceLevel];
+
+                    let text = `<strong>${levelLabel}</strong> : ${selectedLabels.join(', ')}`;
+                    
+                    if (this.contractState.preferenceLevel === 'exclusive') {
+                        text += `<br><span style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i> 
+                        Attention: Vous refuserez automatiquement tous les autres types de contrats.</span>`;
+                    } else if (this.contractState.preferenceLevel === 'preferred' && this.contractState.selectedTypes.length > 1) {
+                        text += `<br><span style="color: #10b981;"><i class="fas fa-info-circle"></i> 
+                        Vous acceptez plusieurs types mais avec une préférence pour ${typeLabels[this.contractState.primaryChoice]}.</span>`;
+                    } else if (this.contractState.preferenceLevel === 'flexible') {
+                        text += `<br><span style="color: #3b82f6;"><i class="fas fa-check-circle"></i> 
+                        Vous êtes ouvert à tous les types de contrats sélectionnés.</span>`;
+                    }
+
+                    return text;
+                }
+
+                hideContractSummary() {
+                    const contractSummary = document.getElementById('contract-summary');
+                    contractSummary.style.display = 'none';
+                }
+
+                resetPreferenceSelection() {
+                    const preferenceTags = document.querySelectorAll('.preference-tag');
+                    preferenceTags.forEach(tag => tag.classList.remove('selected'));
+                    this.contractState.preferenceLevel = null;
+                    this.hideContractSummary();
+                }
+
+                updateHiddenFields() {
+                    // Mise à jour des champs cachés pour le traitement backend
+                    document.getElementById('contract-types-selected').value = this.contractState.selectedTypes.join(',');
+                    document.getElementById('contract-preference-level').value = this.contractState.preferenceLevel || '';
+                    document.getElementById('contract-primary-choice').value = this.contractState.primaryChoice || '';
+                }
+
+                // ========================================
+                // VALIDATION ENHANCED
+                // ========================================
+
+                validateContractType() {
+                    if (this.contractState.selectedTypes.length === 0) {
+                        this.showNotification('Veuillez sélectionner au moins un type de contrat', 'error');
+                        return false;
+                    }
+
+                    if (!this.contractState.preferenceLevel) {
+                        this.showNotification('Veuillez préciser votre niveau de préférence', 'error');
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                validateStep(stepNumber) {
+                    const currentStepElement = document.getElementById(`form-step${stepNumber}`);
+                    const requiredFields = currentStepElement.querySelectorAll('[required]');
+                    let isValid = true;
+                    let firstInvalidField = null;
+
+                    requiredFields.forEach(field => {
+                        // Validation spéciale pour les groupes de checkbox
+                        if (field.type === 'checkbox' && field.name === 'transport-method') {
+                            const checkboxGroup = document.querySelectorAll('input[name="transport-method"]');
+                            const anyChecked = Array.from(checkboxGroup).some(cb => cb.checked);
+                            if (!anyChecked) {
+                                isValid = false;
+                                if (!firstInvalidField) firstInvalidField = field;
+                            }
+                        }
+                        // Validation normale pour les autres champs
+                        else if ((field.type === 'checkbox' && !field.checked) || 
+                                 (field.type !== 'checkbox' && !field.value.trim())) {
+                            isValid = false;
+                            field.classList.add('invalid');
+                            if (!firstInvalidField) firstInvalidField = field;
                         } else {
-                            motivationsList.insertBefore(draggedItem, this);
+                            field.classList.remove('invalid');
+                        }
+                    });
+
+                    // Validation spéciale pour l'étape 2 (type de contrat)
+                    if (stepNumber === 2) {
+                        if (!this.validateContractType()) {
+                            isValid = false;
                         }
                     }
-                });
-            });
 
-            // Initialiser l'ordre des motivations
-            updateMotivationNumbers();
-            
-            // Navigation entre les étapes
-            // Étape 1 -> Étape 2
-            document.getElementById('next-step1').addEventListener('click', function() {
-                if (validateStep(1)) {
-                    goToStep(1, 2);
+                    if (!isValid) {
+                        this.showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+                        if (firstInvalidField) {
+                            firstInvalidField.focus();
+                        }
+                    }
+
+                    return isValid;
                 }
-            });
-            
-            // Étape 2 -> Étape 1
-            document.getElementById('back-step1').addEventListener('click', function() {
-                goToStep(2, 1);
-                document.getElementById('step1').classList.remove('completed');
-            });
-            
-            // Étape 2 -> Étape 3
-            document.getElementById('next-step2').addEventListener('click', function() {
-                if (validateStep(2)) {
-                    goToStep(2, 3);
+
+                // ========================================
+                // GESTION DES TRANSPORTS (existant)
+                // ========================================
+
+                setupTransportHandlers() {
+                    const transportCheckboxes = document.querySelectorAll('input[name="transport-method"]');
+                    const transportTimeQuestionsContainer = document.getElementById('transport-time-questions');
+                    
+                    const transportLabels = {
+                        'public-transport': 'transports en commun',
+                        'vehicle': 'véhicule personnel',
+                        'bike': 'vélo',
+                        'walking': 'à pied'
+                    };
+
+                    const updateTransportTimeQuestions = () => {
+                        transportTimeQuestionsContainer.innerHTML = '';
+                        let hasSelectedTransport = false;
+                        
+                        transportCheckboxes.forEach(checkbox => {
+                            if (checkbox.checked) {
+                                hasSelectedTransport = true;
+                                const transportType = checkbox.value;
+                                const transportLabel = transportLabels[transportType];
+                                
+                                const subQuestionDiv = document.createElement('div');
+                                subQuestionDiv.className = 'form-group';
+                                
+                                subQuestionDiv.innerHTML = `
+                                    <label for="commute-time-${transportType}" class="form-label required">
+                                        Combien de temps de trajet êtes-vous prêt à faire en ${transportLabel} ?
+                                    </label>
+                                    <select id="commute-time-${transportType}" name="commute-time-${transportType}" class="form-control" required>
+                                        <option value="">Sélectionnez une durée</option>
+                                        <option value="10">10 minutes</option>
+                                        <option value="20">20 minutes</option>
+                                        <option value="30">30 minutes</option>
+                                        <option value="45">45 minutes</option>
+                                        <option value="60">1 heure</option>
+                                        <option value="90">1 heure 30</option>
+                                        <option value="120">2 heures</option>
+                                    </select>
+                                `;
+                                
+                                transportTimeQuestionsContainer.appendChild(subQuestionDiv);
+                            }
+                        });
+                        
+                        transportTimeQuestionsContainer.style.display = hasSelectedTransport ? 'block' : 'none';
+                    };
+
+                    transportCheckboxes.forEach(checkbox => {
+                        checkbox.addEventListener('change', updateTransportTimeQuestions);
+                    });
+
+                    console.log('🚗 Gestionnaires transport configurés');
                 }
-            });
-            
-            // Étape 3 -> Étape 2
-            document.getElementById('back-step2').addEventListener('click', function() {
-                goToStep(3, 2);
-                document.getElementById('step2').classList.remove('completed');
-            });
-            
-            // Étape 3 -> Étape 4
-            document.getElementById('next-step3').addEventListener('click', function() {
-                if (validateStep(3)) {
-                    goToStep(3, 4);
+
+                // ========================================
+                // GESTION DES ÉTAPES ET NAVIGATION
+                // ========================================
+
+                setupStepperHandlers() {
+                    const stepperProgress = document.getElementById('stepper-progress');
+                    const progressValues = ['0%', '33%', '66%', '100%'];
+
+                    // Navigation entre les étapes
+                    const goToStep = (currentStep, nextStep) => {
+                        // Masquer l'étape actuelle
+                        document.getElementById('form-step' + currentStep).classList.remove('active');
+                        document.getElementById('step' + currentStep).classList.remove('active');
+                        document.getElementById('step' + currentStep).classList.add('completed');
+                        
+                        // Afficher la nouvelle étape
+                        document.getElementById('form-step' + nextStep).classList.add('active');
+                        document.getElementById('step' + nextStep).classList.add('active');
+                        
+                        // Mettre à jour la barre de progression
+                        stepperProgress.style.width = progressValues[nextStep - 1];
+                        
+                        // Scroll vers le haut du formulaire
+                        document.querySelector('.form-container').scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start' 
+                        });
+                    };
+
+                    // Gestionnaires de navigation
+                    document.getElementById('next-step1').addEventListener('click', () => {
+                        if (this.validateStep(1)) {
+                            goToStep(1, 2);
+                        }
+                    });
+
+                    document.getElementById('back-step1').addEventListener('click', () => {
+                        goToStep(2, 1);
+                        document.getElementById('step1').classList.remove('completed');
+                    });
+
+                    document.getElementById('next-step2').addEventListener('click', () => {
+                        if (this.validateStep(2)) {
+                            goToStep(2, 3);
+                        }
+                    });
+
+                    document.getElementById('back-step2').addEventListener('click', () => {
+                        goToStep(3, 2);
+                        document.getElementById('step2').classList.remove('completed');
+                    });
+
+                    document.getElementById('next-step3').addEventListener('click', () => {
+                        if (this.validateStep(3)) {
+                            goToStep(3, 4);
+                        }
+                    });
+
+                    document.getElementById('back-step3').addEventListener('click', () => {
+                        goToStep(4, 3);
+                        document.getElementById('step3').classList.remove('completed');
+                    });
+
+                    // Soumission
+                    document.getElementById('submit-btn').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (this.validateStep(4)) {
+                            this.submitForm();
+                        }
+                    });
+
+                    console.log('📊 Navigation stepper configurée');
                 }
-            });
-            
-            // Étape 4 -> Étape 3
-            document.getElementById('back-step3').addEventListener('click', function() {
-                goToStep(4, 3);
-                document.getElementById('step3').classList.remove('completed');
-            });
-            
-            // Désactiver la soumission du formulaire par défaut
-            document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                // La soumission est gérée par le bouton submit-btn
-            });
-            
-            // Bouton de soumission
-            document.getElementById('submit-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                if (validateStep(4)) {
+
+                // ========================================
+                // GESTION DRAG & DROP MOTIVATIONS
+                // ========================================
+
+                setupMotivationDragDrop() {
+                    const motivationsList = document.getElementById('motivation-priorities');
+                    const motivationItems = motivationsList.querySelectorAll('.motivation-item');
+                    const motivationOrderInput = document.getElementById('motivation-order');
+                    let draggedItem = null;
+
+                    const updateMotivationNumbers = () => {
+                        const items = motivationsList.querySelectorAll('.motivation-item');
+                        items.forEach((item, index) => {
+                            const numberSpan = item.querySelector('.motivation-number');
+                            numberSpan.textContent = index + 1;
+                        });
+
+                        const motivationOrder = Array.from(items).map(item => item.dataset.value);
+                        motivationOrderInput.value = motivationOrder.join(',');
+                        
+                        const otherIndex = motivationOrder.indexOf('other');
+                        if (otherIndex < 3) {
+                            document.getElementById('other-motivation-container').style.display = 'block';
+                            document.getElementById('other-motivation').setAttribute('required', '');
+                        } else {
+                            document.getElementById('other-motivation-container').style.display = 'none';
+                            document.getElementById('other-motivation').removeAttribute('required');
+                        }
+                    };
+
+                    motivationItems.forEach(item => {
+                        item.addEventListener('dragstart', function() {
+                            draggedItem = this;
+                            setTimeout(() => this.classList.add('dragging'), 0);
+                        });
+
+                        item.addEventListener('dragend', function() {
+                            this.classList.remove('dragging');
+                            draggedItem = null;
+                            updateMotivationNumbers();
+                        });
+
+                        item.addEventListener('dragover', function(e) {
+                            e.preventDefault();
+                        });
+
+                        item.addEventListener('dragenter', function(e) {
+                            e.preventDefault();
+                            if (this !== draggedItem) {
+                                const draggedRect = draggedItem.getBoundingClientRect();
+                                const targetRect = this.getBoundingClientRect();
+                                
+                                if (draggedRect.top < targetRect.top) {
+                                    motivationsList.insertBefore(draggedItem, this.nextSibling);
+                                } else {
+                                    motivationsList.insertBefore(draggedItem, this);
+                                }
+                            }
+                        });
+                    });
+
+                    updateMotivationNumbers();
+                    console.log('🎯 Drag & drop motivations configuré');
+                }
+
+                // ========================================
+                // UTILITAIRES ET HELPERS
+                // ========================================
+
+                setupValidationHandlers() {
+                    // Gestionnaire de validation en temps réel si nécessaire
+                    const form = document.getElementById('questionnaire-form');
+                    form.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                    });
+                }
+
+                submitForm() {
                     // Afficher l'écran de chargement
                     document.getElementById('loading-overlay').classList.add('active');
                     
+                    // Collecter toutes les données du formulaire
+                    const formData = this.collectFormData();
+                    
+                    console.log('📤 Données du formulaire:', formData);
+                    
                     // Simulation d'envoi des données
-                    setTimeout(function() {
+                    setTimeout(() => {
                         // Redirection vers la page de matching
                         window.location.href = 'candidate-matching-improved.html';
                     }, 2000);
                 }
-            });
-            
-            // Bouton de retour en haut
-            const scrollToTopButton = document.getElementById('scroll-to-top');
-            
-            if (scrollToTopButton) {
-                window.addEventListener('scroll', function() {
-                    if (window.pageYOffset > 300) {
-                        scrollToTopButton.classList.add('visible');
-                    } else {
-                        scrollToTopButton.classList.remove('visible');
+
+                collectFormData() {
+                    const formData = new FormData(document.getElementById('questionnaire-form'));
+                    const data = {};
+                    
+                    // Conversion en objet
+                    for (let [key, value] of formData.entries()) {
+                        data[key] = value;
                     }
-                });
-                
-                scrollToTopButton.addEventListener('click', function() {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
-                    });
-                });
+                    
+                    // Ajout des données de contrat
+                    data.contractData = {
+                        selectedTypes: this.contractState.selectedTypes,
+                        preferenceLevel: this.contractState.preferenceLevel,
+                        primaryChoice: this.contractState.primaryChoice,
+                        isValid: this.contractState.isValid
+                    };
+                    
+                    return data;
+                }
+
+                showNotification(message, type = 'success') {
+                    const notification = document.getElementById('notification');
+                    const notificationMessage = notification.querySelector('.notification-message');
+                    
+                    notification.className = 'notification ' + type;
+                    notificationMessage.innerText = message;
+                    
+                    const icon = notification.querySelector('i:first-child');
+                    if (type === 'success') {
+                        icon.className = 'fas fa-check-circle';
+                    } else if (type === 'error') {
+                        icon.className = 'fas fa-exclamation-circle';
+                    } else if (type === 'info' || type === 'warning') {
+                        icon.className = 'fas fa-info-circle';
+                    }
+                    
+                    notification.classList.add('show');
+                    
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                    }, 5000);
+                }
+
+                initializeNotifications() {
+                    const notificationClose = document.querySelector('.notification-close');
+                    if (notificationClose) {
+                        notificationClose.addEventListener('click', () => {
+                            document.getElementById('notification').classList.remove('show');
+                        });
+                    }
+                }
+
+                initializeParticles() {
+                    const heroParticles = document.querySelector('.hero-particles');
+                    
+                    if (heroParticles) {
+                        for (let i = 0; i < 20; i++) {
+                            const particle = document.createElement('div');
+                            particle.className = 'particle';
+                            particle.style.width = Math.random() * 10 + 5 + 'px';
+                            particle.style.height = particle.style.width;
+                            particle.style.background = 'rgba(124, 58, 237, ' + (Math.random() * 0.2 + 0.05) + ')';
+                            particle.style.left = Math.random() * 100 + '%';
+                            particle.style.top = Math.random() * 100 + '%';
+                            particle.style.animationDelay = Math.random() * 5 + 's';
+                            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                            heroParticles.appendChild(particle);
+                        }
+                    }
+                }
             }
-            
-            // Menu mobile
-            const menuToggle = document.querySelector('.menu-toggle');
-            const nav = document.querySelector('nav');
-            
-            if (menuToggle && nav) {
-                menuToggle.addEventListener('click', function() {
-                    nav.classList.toggle('active');
-                    menuToggle.classList.toggle('active');
-                });
-            }
+
+            // Initialisation de l'application
+            const nextenQuestionnaire = new NextenQuestionnaireEnhanced();
+
+            // Exposition globale pour compatibilité
+            window.NextenQuestionnaireEnhanced = NextenQuestionnaireEnhanced;
+            window.nextenQuestionnaire = nextenQuestionnaire;
+
+            console.log('🎉 NEXTEN V2.0 Enhanced Questionnaire chargé avec succès');
         });
     </script>
     
@@ -2024,15 +2094,6 @@
                         // Pré-remplir les champs
                         this.prefillFormFields();
                         
-                        // Générer les suggestions intelligentes
-                        this.generateSmartSuggestions();
-                        
-                        // Afficher la notification globale
-                        this.showGlobalNotification();
-                        
-                        // Ajouter le bouton debug
-                        this.addDebugButton();
-                        
                         console.log('🎯 Pré-remplissage terminé avec succès');
                     }, 500);
                     
@@ -2056,14 +2117,6 @@
                     
                     console.log('📦 Données trouvées dans localStorage');
                     return true;
-                }
-                
-                // Vérifier les paramètres URL
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('from') === 'parsing' && urlParams.get('cv_data') === 'available') {
-                    console.log('🔗 Redirection depuis parsing détectée');
-                    // Essayer de recharger depuis localStorage
-                    return this.detectCVData();
                 }
                 
                 return false;
@@ -2130,266 +2183,10 @@
                 field.parentElement.appendChild(badge);
             }
         }
-
-        generateSmartSuggestions() {
-            // Suggestions pour l'intitulé de poste
-            this.generateJobTitleSuggestions();
-            
-            // Suggestions pour la fourchette salariale
-            this.generateSalarySuggestions();
-        }
-
-        generateJobTitleSuggestions() {
-            const jobTitleField = document.getElementById('job-title');
-            if (!jobTitleField || !this.cvData) return;
-
-            const experiences = this.cvData.experiences_professionnelles || [];
-            const sectors = this.mappedData._sectors || [];
-            
-            let suggestions = [];
-            
-            // Suggestions basées sur les expériences
-            if (experiences.length > 0) {
-                const latestExp = experiences[0];
-                if (latestExp.poste) {
-                    suggestions.push({
-                        icon: 'fas fa-briefcase',
-                        text: latestExp.poste,
-                        reason: 'Votre dernier poste'
-                    });
-                }
-            }
-            
-            // Suggestions basées sur les secteurs
-            if (sectors.includes('Luxe')) {
-                suggestions.push(
-                    {
-                        icon: 'fas fa-gem',
-                        text: 'Assistante Direction Luxe',
-                        reason: 'Basé sur votre expérience dans le luxe'
-                    },
-                    {
-                        icon: 'fas fa-star',
-                        text: 'Coordinatrice Projets Premium',
-                        reason: 'Évolution dans le secteur luxe'
-                    }
-                );
-            }
-            
-            if (sectors.includes('Mode')) {
-                suggestions.push({
-                    icon: 'fas fa-palette',
-                    text: 'Assistante Direction Artistique Mode',
-                    reason: 'Spécialisation mode'
-                });
-            }
-            
-            if (suggestions.length > 0) {
-                this.addSuggestionsToField(jobTitleField, suggestions, 'Suggestions de postes basées sur votre CV');
-            }
-        }
-
-        generateSalarySuggestions() {
-            const salaryField = document.getElementById('salary-range');
-            if (!salaryField || !this.mappedData._years_experience) return;
-
-            const yearsExperience = this.mappedData._years_experience;
-            let suggestions = [];
-            
-            // Calcul basé sur l'expérience
-            if (yearsExperience.includes('15+') || yearsExperience.includes('17+')) {
-                suggestions.push(
-                    {
-                        icon: 'fas fa-euro-sign',
-                        text: '45K€ - 60K€',
-                        reason: 'Profil senior (15+ ans d\'expérience)'
-                    },
-                    {
-                        icon: 'fas fa-chart-line',
-                        text: '50K€ - 65K€',
-                        reason: 'Avec responsabilités managériales'
-                    }
-                );
-            } else if (yearsExperience.includes('10+')) {
-                suggestions.push({
-                    icon: 'fas fa-euro-sign',
-                    text: '38K€ - 50K€',
-                    reason: 'Profil confirmé (10+ ans)'
-                });
-            }
-            
-            // Ajustement secteur luxe
-            if (this.mappedData._sectors && this.mappedData._sectors.includes('Luxe')) {
-                suggestions.push({
-                    icon: 'fas fa-gem',
-                    text: '55K€ - 70K€',
-                    reason: 'Premium secteur luxe'
-                });
-            }
-            
-            if (suggestions.length > 0) {
-                this.addSuggestionsToField(salaryField, suggestions, 'Suggestions salariales basées sur votre expérience');
-            }
-        }
-
-        addSuggestionsToField(field, suggestions, title) {
-            // Créer le conteneur de suggestions
-            const suggestionsContainer = document.createElement('div');
-            suggestionsContainer.className = 'smart-suggestions';
-            
-            // Titre des suggestions
-            const suggestionsTitle = document.createElement('div');
-            suggestionsTitle.className = 'suggestions-title';
-            suggestionsTitle.textContent = title;
-            suggestionsContainer.appendChild(suggestionsTitle);
-            
-            // Ajouter chaque suggestion
-            suggestions.forEach(suggestion => {
-                const suggestionItem = document.createElement('div');
-                suggestionItem.className = 'suggestion-item';
-                suggestionItem.innerHTML = `
-                    <i class="${suggestion.icon}"></i>
-                    <span class="suggestion-text">${suggestion.text}</span>
-                    <small class="suggestion-reason">${suggestion.reason}</small>
-                `;
-                
-                // Événement clic pour appliquer la suggestion
-                suggestionItem.addEventListener('click', () => {
-                    field.value = suggestion.text;
-                    field.dispatchEvent(new Event('change', { bubbles: true }));
-                    
-                    // Animation de confirmation
-                    suggestionItem.style.background = '#10B981';
-                    suggestionItem.style.color = 'white';
-                    setTimeout(() => {
-                        suggestionItem.style.background = '';
-                        suggestionItem.style.color = '';
-                    }, 1000);
-                });
-                
-                suggestionsContainer.appendChild(suggestionItem);
-            });
-            
-            // Insérer après le champ
-            field.parentElement.appendChild(suggestionsContainer);
-        }
-
-        showGlobalNotification() {
-            // Créer la notification globale
-            const notification = document.createElement('div');
-            notification.className = 'cv-notification';
-            notification.innerHTML = `
-                <i class="fas fa-magic"></i>
-                ✨ Formulaire pré-rempli automatiquement avec les informations de votre CV !
-                <small style="display: block; margin-top: 8px; opacity: 0.9;">
-                    ${this.prefilledFields.length} champs remplis • Suggestions intelligentes générées
-                </small>
-            `;
-            
-            // Insérer au début du formulaire
-            const formContainer = document.querySelector('.form-container');
-            if (formContainer) {
-                formContainer.insertBefore(notification, formContainer.firstChild);
-            }
-        }
-
-        addDebugButton() {
-            // Bouton debug pour les développeurs
-            const debugBtn = document.createElement('button');
-            debugBtn.className = 'debug-btn';
-            debugBtn.innerHTML = '<i class="fas fa-bug"></i> Test CV API';
-            debugBtn.title = 'Inspecter les données CV (mode développement)';
-            
-            debugBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showDebugModal();
-            });
-            
-            document.body.appendChild(debugBtn);
-        }
-
-        showDebugModal() {
-            // Créer le modal de debug
-            const modal = document.createElement('div');
-            modal.className = 'debug-modal';
-            modal.style.display = 'flex';
-            
-            modal.innerHTML = `
-                <div class="debug-content">
-                    <div class="debug-header">
-                        <h3><i class="fas fa-code"></i> Debug - Données CV</h3>
-                        <button class="debug-close">&times;</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h4>📊 Statistiques</h4>
-                        <p><strong>Champs pré-remplis:</strong> ${this.prefilledFields.length}</p>
-                        <p><strong>Source:</strong> ${this.cvData ? 'Analyse CV réelle' : 'Aucune'}</p>
-                        <p><strong>Timestamp:</strong> ${this.cvData ? new Date().toLocaleString() : 'N/A'}</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h4>🔗 Données mappées</h4>
-                        <div class="debug-data">${JSON.stringify(this.mappedData, null, 2)}</div>
-                    </div>
-                    
-                    <div>
-                        <h4>📄 Données CV complètes</h4>
-                        <div class="debug-data">${JSON.stringify(this.cvData, null, 2)}</div>
-                    </div>
-                </div>
-            `;
-            
-            // Événement fermeture
-            modal.querySelector('.debug-close').addEventListener('click', () => {
-                modal.remove();
-            });
-            
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.remove();
-                }
-            });
-            
-            document.body.appendChild(modal);
-        }
-
-        // Méthodes utilitaires
-        clearCVData() {
-            localStorage.removeItem(this.storageKey);
-            sessionStorage.removeItem('has_real_cv_data');
-            console.log('🧹 Données CV effacées');
-        }
-
-        refreshPrefilling() {
-            // Recharger le pré-remplissage
-            this.setupPrefilling();
-        }
     }
 
-    // ========================================
-    // INITIALISATION AUTOMATIQUE
-    // ========================================
-
-    // Initialiser le système dès que possible
-    document.addEventListener('DOMContentLoaded', () => {
-        // Créer l'instance globale
-        window.questionnairePrefiller = new QuestionnairePrefiller();
-        
-        console.log('🚀 Système de pré-remplissage CV → Questionnaire activé');
-    });
-
-    // Fonction globale pour test manuel
-    window.testCVAPI = function() {
-        if (window.questionnairePrefiller) {
-            window.questionnairePrefiller.showDebugModal();
-        } else {
-            console.error('❌ QuestionnairePrefiller non initialisé');
-        }
-    };
-
-    console.log('🔗 Script QuestionnairePrefiller complet chargé pour candidate-questionnaire.html');
+    // Auto-initialisation
+    new QuestionnairePrefiller();
     </script>
-
 </body>
 </html>
