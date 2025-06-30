@@ -304,10 +304,24 @@
             color: #92400e;
             margin-bottom: 15px;
         }
+
+        .fix-banner {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            border-bottom: 2px solid #991b1b;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="fix-banner">
+            🔧 CORRECTIF APPLIQUÉ : Matching Salarial RH + Pondération Rémunération 22% (au lieu de 15%)
+        </div>
+        
         <div class="test-banner">
             🧪 PLATEFORME DE TEST RÉEL NEXTEN V2.0 - Repository: Bapt1505/Commitment-
         </div>
@@ -942,19 +956,19 @@
                 processPosition: calculateProcessPositionMatch(candidateData, jobData)
             };
             
-            // Calcul score final pondéré
+            // ✅ PONDÉRATIONS CORRIGÉES - Rémunération augmentée à 22%
             const weights = {
-                semantic: 0.25,
-                location: 0.20,
-                compensation: 0.15,
-                motivation: 0.10,
-                companySize: 0.08,
-                workEnvironment: 0.08,
-                industry: 0.06,
-                availability: 0.05,
-                contractType: 0.05,
-                listenReasons: 0.03,
-                processPosition: 0.02
+                semantic: 0.23,        // 23% (baisse de 25% à 23%)
+                location: 0.18,        // 18% (baisse de 20% à 18%)
+                compensation: 0.22,    // 22% (HAUSSE de 15% à 22%) ⭐
+                motivation: 0.12,      // 12% (hausse de 10% à 12%)
+                companySize: 0.08,     // 8% (inchangé)
+                workEnvironment: 0.08, // 8% (inchangé)
+                industry: 0.06,        // 6% (inchangé)
+                availability: 0.05,    // 5% (inchangé)
+                contractType: 0.05,    // 5% (inchangé)
+                listenReasons: 0.03,   // 3% (inchangé)
+                processPosition: 0.02  // 2% (inchangé)
             };
             
             let finalScore = 0;
@@ -1022,6 +1036,82 @@
             };
         }
         
+        // ✅ FONCTION CORRIGÉE - Matching Salarial avec Logique RH
+        function calculateCorrectSalaryMatch(candidateRange, jobRange) {
+            const candidateMin = candidateRange.min;
+            const candidateMax = candidateRange.max;
+            const jobMin = jobRange.min;
+            const jobMax = jobRange.max;
+            
+            // Cas 1: Candidat complètement sous budget (EXCELLENT pour l'entreprise)
+            if (candidateMax <= jobMin) {
+                const savings = jobMin - candidateMax;
+                const savingsPercent = (savings / jobMin) * 100;
+                return {
+                    score: 0.98,
+                    details: `Sous budget (économie ${savingsPercent.toFixed(0)}%)`
+                };
+            }
+            
+            // Cas 2: Candidat parfaitement dans la fourchette
+            if (candidateMin >= jobMin && candidateMax <= jobMax) {
+                return {
+                    score: 1.0,
+                    details: `Alignement parfait dans fourchette`
+                };
+            }
+            
+            // Cas 3: Chevauchement partiel
+            if (candidateMin <= jobMax && candidateMax >= jobMin) {
+                const overlapStart = Math.max(candidateMin, jobMin);
+                const overlapEnd = Math.min(candidateMax, jobMax);
+                const candidateRange_size = candidateMax - candidateMin;
+                const overlapRatio = (overlapEnd - overlapStart) / candidateRange_size;
+                
+                // Si la majorité de la fourchette candidat est dans budget
+                if (overlapRatio >= 0.7) {
+                    return {
+                        score: 0.90,
+                        details: `Bon chevauchement (${Math.round(overlapRatio * 100)}%)`
+                    };
+                } else {
+                    return {
+                        score: 0.75,
+                        details: `Chevauchement partiel (${Math.round(overlapRatio * 100)}%)`
+                    };
+                }
+            }
+            
+            // Cas 4: Candidat au-dessus du budget (PROBLÉMATIQUE)
+            if (candidateMin > jobMax) {
+                const excess = candidateMin - jobMax;
+                const excessPercent = (excess / jobMax) * 100;
+                
+                if (excessPercent <= 10) {
+                    return {
+                        score: 0.65,
+                        details: `Légèrement au-dessus (+${excessPercent.toFixed(0)}%, négociable)`
+                    };
+                } else if (excessPercent <= 20) {
+                    return {
+                        score: 0.45,
+                        details: `Au-dessus budget (+${excessPercent.toFixed(0)}%, difficile)`
+                    };
+                } else {
+                    return {
+                        score: 0.25,
+                        details: `Très au-dessus budget (+${excessPercent.toFixed(0)}%, problématique)`
+                    };
+                }
+            }
+            
+            // Cas 5: Candidat en dessous mais avec chevauchement faible
+            return {
+                score: 0.80,
+                details: `Fourchettes proches`
+            };
+        }
+        
         function calculateCompensationMatch(candidate, job) {
             const candidateSalary = extractSalaryRange(candidate.pretentions_salariales);
             const jobSalary = extractSalaryRange(job.fourchette_salariale);
@@ -1030,13 +1120,13 @@
                 return { score: 0.70, percentage: 70, details: 'Données incomplètes', fallback: true };
             }
             
-            const overlap = calculateSalaryOverlap(candidateSalary, jobSalary);
-            const score = Math.max(0.30, overlap);
+            // ✅ UTILISATION DE LA NOUVELLE LOGIQUE RH
+            const matchResult = calculateCorrectSalaryMatch(candidateSalary, jobSalary);
             
             return {
-                score: score,
-                percentage: Math.round(score * 100),
-                details: `Chevauchement: ${Math.round(overlap * 100)}%`,
+                score: matchResult.score,
+                percentage: Math.round(matchResult.score * 100),
+                details: matchResult.details,
                 fallback: false
             };
         }
@@ -1223,11 +1313,12 @@
             const container = document.getElementById('criteriaBreakdown');
             container.innerHTML = '';
             
+            // ✅ PONDÉRATIONS MISES À JOUR DANS L'AFFICHAGE
             const criteriaInfo = {
-                semantic: { name: 'Compatibilité Sémantique', icon: '🧠', weight: '25%' },
-                location: { name: 'Géolocalisation', icon: '📍', weight: '20%' },
-                compensation: { name: 'Rémunération', icon: '💰', weight: '15%' },
-                motivation: { name: 'Motivations', icon: '🎯', weight: '10%' },
+                semantic: { name: 'Compatibilité Sémantique', icon: '🧠', weight: '23%' },
+                location: { name: 'Géolocalisation', icon: '📍', weight: '18%' },
+                compensation: { name: 'Rémunération', icon: '💰', weight: '22%' }, // ⭐ MISE À JOUR
+                motivation: { name: 'Motivations', icon: '🎯', weight: '12%' },
                 companySize: { name: 'Taille Entreprise', icon: '🏢', weight: '8%' },
                 workEnvironment: { name: 'Environnement Travail', icon: '🏠', weight: '8%' },
                 industry: { name: 'Secteur d\'Activité', icon: '🏭', weight: '6%' },
