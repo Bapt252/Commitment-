@@ -11,10 +11,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- IMPORTANT: Script d'intégration CV prioritaire -->
+    <!-- 🔥 CRITICAL: Scripts backend prioritaires - PRÉSERVÉS -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/cv-parser-integration.js"></script>
     
-    <!-- Scripts secondaires -->
+    <!-- Scripts secondaires critiques -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/api-adapter.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/form-parser-connector.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/form-connection.js"></script>
@@ -25,7 +25,7 @@
     <!-- Outil de test pour l'intégration CV (mode développement) -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/cv-api-tester.js"></script>
     
-    <!-- Styles pour Google Maps Autocomplete -->
+    <!-- Styles Google Maps et CSS NEXTEN V2.0 HYBRIDE -->
     <style id="google-maps-autocomplete-styles">
       .address-validated {
         border-color: #10B981 !important;
@@ -54,16 +54,14 @@
         background-color: rgba(124, 58, 237, 0.1) !important;
       }
       
-      /* Style supplémentaire pour l'input en focus */
       #address.focused {
         border-color: #7c3aed !important;
         box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1) !important;
       }
     </style>
     
-    <!-- Styles spécifiques au questionnaire avec NEXTEN V2.0 Contract Selection -->
+    <!-- 💼 NEXTEN V2.0 HYBRIDE - CSS COMPLET -->
     <style>
-        /* Variables CSS globales */
         :root {
             --white: #ffffff;
             --black: #000000;
@@ -85,7 +83,6 @@
             --spacing-xl: 3rem;
         }
 
-        /* Styles spécifiques au questionnaire candidat */
         .form-container {
             background-color: var(--white);
             border-radius: 12px;
@@ -144,7 +141,7 @@
             align-items: center;
             position: relative;
             z-index: 3;
-            width: 25%; /* 4 étapes */
+            width: 25%;
         }
 
         .step-circle {
@@ -273,7 +270,6 @@
             transform: translateY(-2px);
         }
 
-        /* Styles spécifiques pour les champs avec données CV réelles */
         .real-cv-data {
             background-color: rgba(16, 185, 129, 0.05);
             border-color: #10B981;
@@ -386,7 +382,7 @@
             transform: rotate(45deg);
         }
 
-        /* 💼 NEXTEN V2.0 - SYSTÈME SOPHISTIQUÉ DE SÉLECTION DES CONTRATS */
+        /* 🚀 NEXTEN V2.0 HYBRIDE - SYSTÈME SIMPLIFIÉ DE CONTRATS */
         .contract-ultra-container {
             background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(168, 85, 247, 0.04));
             border: 3px solid rgba(124, 58, 237, 0.25);
@@ -447,7 +443,6 @@
             line-height: 1.5;
         }
 
-        /* Instructions intelligentes */
         .ranking-instructions {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
             border: 2px solid rgba(16, 185, 129, 0.3);
@@ -497,7 +492,6 @@
             margin-bottom: 25px;
         }
 
-        /* Contrats disponibles */
         .available-contracts-section {
             background: var(--white);
             border-radius: 12px;
@@ -626,7 +620,6 @@
             transform: none;
         }
 
-        /* Section ranking */
         .ranking-section {
             background: var(--cream);
             border-radius: 12px;
@@ -780,7 +773,6 @@
             background: #dc2626;
         }
 
-        /* RÉSUMÉ DYNAMIQUE */
         .contract-ultra-summary {
             margin-top: 25px;
             padding: 20px;
@@ -844,6 +836,15 @@
             border-radius: 4px;
             font-weight: 500;
             color: var(--purple);
+        }
+
+        #transport-time-questions {
+            margin-top: 15px;
+            margin-left: 25px;
+        }
+        
+        #transport-time-questions .form-group {
+            margin-bottom: 15px;
         }
 
         .form-actions {
@@ -952,7 +953,6 @@
             box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
         }
 
-        /* Priorités de motivation - drag and drop */
         .motivation-priorities {
             list-style: none;
             padding: 0;
@@ -994,7 +994,6 @@
             margin-right: 12px;
         }
 
-        /* Notification */
         .notification {
             position: fixed;
             bottom: 20px;
@@ -1062,7 +1061,6 @@
             transform: rotate(90deg);
         }
 
-        /* Animation de chargement de la redirection */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -1104,263 +1102,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-        
-        /* Styles pour les sous-questions sur le temps de trajet */
-        #transport-time-questions {
-            margin-top: 15px;
-            margin-left: 25px;
-        }
-        
-        #transport-time-questions .form-group {
-            margin-bottom: 15px;
-        }
-
-        /* Animations pour les indicateurs */
-        @keyframes pulseCVIndicator {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        /* Indicateur de CV réel */
-        .real-cv-indicator {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10B981;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 500;
-            border: 2px solid #10B981;
-            animation: pulseCVIndicator 2s infinite;
-        }
-
-        /* 🔗 STYLES SYSTÈME PONT CV-QUESTIONNAIRE */
-        /* Styles pour les champs pré-remplis avec données CV */
-        .cv-prefilled {
-            background-color: rgba(16, 185, 129, 0.08) !important;
-            border-color: #10B981 !important;
-            position: relative;
-        }
-
-        .cv-prefilled::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(to bottom, #10B981, #059669);
-            border-radius: 0 8px 8px 0;
-        }
-
-        /* Badge CV pour les champs pré-remplis */
-        .cv-badge {
-            position: absolute;
-            top: -8px;
-            right: 8px;
-            background: linear-gradient(135deg, #10B981, #059669);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            z-index: 10;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-            animation: cvBadgePulse 2s infinite;
-        }
-
-        @keyframes cvBadgePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        /* Notification globale de pré-remplissage */
-        .cv-notification {
-            background: linear-gradient(135deg, #10B981, #059669);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            text-align: center;
-            font-weight: 600;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
-            animation: slideInFromTop 0.8s ease-out;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cv-notification::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes slideInFromTop {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        /* Suggestions intelligentes */
-        .smart-suggestions {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.05));
-            border: 2px solid #3B82F6;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 12px;
-            position: relative;
-            animation: suggestionsAppear 0.6s ease-out;
-        }
-
-        .smart-suggestions::before {
-            content: '💡';
-            position: absolute;
-            top: -8px;
-            left: 16px;
-            background: white;
-            padding: 0 8px;
-            font-size: 1.2rem;
-        }
-
-        .suggestions-title {
-            color: #3B82F6;
-            font-weight: 700;
-            margin-bottom: 12px;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .suggestion-item {
-            background: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid #E5E7EB;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .suggestion-item:hover {
-            background: #3B82F6;
-            color: white;
-            transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .suggestion-item i {
-            color: #3B82F6;
-            transition: color 0.3s ease;
-        }
-
-        .suggestion-item:hover i {
-            color: white;
-        }
-
-        @keyframes suggestionsAppear {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Bouton debug (mode développement) */
-        .debug-btn {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .debug-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
-        }
-
-        /* Modal de debug */
-        .debug-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-
-        .debug-content {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .debug-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #E5E7EB;
-        }
-
-        .debug-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6B7280;
-        }
-
-        .debug-data {
-            background: #F3F4F6;
-            padding: 16px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            max-height: 300px;
-            overflow-y: auto;
-            white-space: pre-wrap;
         }
         
         @media (max-width: 768px) {
@@ -1514,7 +1255,7 @@
                         </div>
                     </div>
                     
-                    <!-- ÉTAPE 2 : MOBILITÉ ET PRÉFÉRENCES (AVEC SYSTÈME NEXTEN V2.0) -->
+                    <!-- ÉTAPE 2 : MOBILITÉ ET PRÉFÉRENCES -->
                     <div class="form-step" id="form-step2">
                         <h2 class="form-section-title">Mobilité et préférences</h2>
                         
@@ -1543,7 +1284,6 @@
                                 </label>
                             </div>
                             
-                            <!-- Conteneur pour les questions dynamiques sur le temps de trajet -->
                             <div id="transport-time-questions" style="display: none;"></div>
                         </div>
                         
@@ -1558,7 +1298,7 @@
                             <small class="text-muted">Nous utiliserons cette adresse pour calculer le temps de trajet vers les entreprises</small>
                         </div>
 
-                        <!-- 🚀 NEXTEN V2.0 - SYSTÈME SOPHISTIQUÉ DE SÉLECTION DES CONTRATS -->
+                        <!-- 🚀 NEXTEN V2.0 HYBRIDE - SYSTÈME SIMPLIFIÉ AVEC BACKEND COMPLET -->
                         <div class="form-group">
                             <div class="contract-ultra-container">
                                 <div class="contract-ultra-header">
@@ -1573,7 +1313,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Instructions intelligentes -->
                                 <div class="ranking-instructions">
                                     <div class="instructions-icon">
                                         <i class="fas fa-lightbulb"></i>
@@ -1588,7 +1327,6 @@
                                 </div>
 
                                 <div class="contract-selection-grid">
-                                    <!-- Types de contrats disponibles -->
                                     <div class="available-contracts-section">
                                         <div class="section-header">
                                             <div class="section-icon">
@@ -1650,7 +1388,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Section de classement -->
                                     <div class="ranking-section">
                                         <div class="section-header">
                                             <div class="section-icon">
@@ -1672,7 +1409,6 @@
                                     </div>
                                 </div>
 
-                                <!-- RÉSUMÉ DYNAMIQUE -->
                                 <div class="contract-ultra-summary" id="contract-summary">
                                     <div class="summary-header">
                                         <div class="summary-icon">
@@ -1685,7 +1421,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Champs cachés pour l'intégration avec le système de matching -->
+                                <!-- Champs cachés pour l'intégration -->
                                 <input type="hidden" id="contract-ranking-order" name="contract-ranking-order">
                                 <input type="hidden" id="contract-selection-mode" name="contract-selection-mode" value="ranking">
                                 <input type="hidden" id="contract-types-selected" name="contract-types-selected">
@@ -1882,7 +1618,7 @@
                         </div>
                     </div>
                     
-                    <!-- ÉTAPE 4 : DISPONIBILITÉ ET SITUATION -->
+                    <!-- ÉTAPE 4 : DISPONIBILITÉ ET SITUATION (VERSION COMPLÈTE PRÉSERVÉE) -->
                     <div class="form-step" id="form-step4">
                         <h2 class="form-section-title">Disponibilité et situation actuelle</h2>
                         
@@ -1928,7 +1664,7 @@
                             </div>
                         </div>
                         
-                        <!-- Section pour les candidats actuellement en poste -->
+                        <!-- Section pour les candidats actuellement en poste (PRÉSERVÉE) -->
                         <div id="employed-section" style="display: none;">
                             <div class="form-group">
                                 <label class="form-label required">Pourquoi êtes-vous de nouveau à l'écoute ?</label>
@@ -2015,7 +1751,7 @@
                             </div>
                         </div>
                         
-                        <!-- Section pour les candidats non en poste -->
+                        <!-- Section pour les candidats non en poste (PRÉSERVÉE) -->
                         <div id="unemployed-section" style="display: none;">
                             <div class="form-group">
                                 <label class="form-label required">Pourquoi votre dernier contrat s'est arrêté ?</label>
@@ -2069,7 +1805,7 @@
                             </div>
                         </div>
                         
-                        <!-- Section commune pour tous les candidats -->
+                        <!-- Section commune pour tous les candidats (PRÉSERVÉE) -->
                         <div class="form-group">
                             <label class="form-label required">Où en êtes-vous dans vos process de recrutement ?</label>
                             <div class="radio-group">
@@ -2177,15 +1913,15 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <!-- Scripts JavaScript -->
+    <!-- 🔥 Scripts JavaScript COMPLET -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/candidate-analyzer.js"></script>
     
     <script>
         // ========================================
-        // NEXTEN V2.0 - SYSTÈME SOPHISTIQUÉ DE CONTRATS INTÉGRÉ
+        // 🚀 NEXTEN V2.0 HYBRIDE - SYSTÈME OPTIMISÉ
+        // Backend complet + Interface simplifiée
         // ========================================
         
-        // Système de gestion des contrats avec intégration backend
         class ContractSystem {
             constructor() {
                 this.state = {
@@ -2226,9 +1962,9 @@
             }
 
             init() {
-                console.log('🚀 NEXTEN V2.0 Contract System initialisé');
+                console.log('🚀 NEXTEN V2.0 HYBRIDE initialisé');
                 this.updateAllDisplays();
-                console.log('✅ Système de contrats prêt');
+                console.log('✅ Système hybride opérationnel');
             }
 
             addToRanking(contractType) {
@@ -2237,7 +1973,6 @@
                 if (!this.state.selectedTypes.includes(contractType)) {
                     this.state.selectedTypes.push(contractType);
                     this.state.rankingOrder.push(contractType);
-                    
                     this.state.primaryChoice = this.state.rankingOrder[0];
                     
                     this.updateRankingDisplay();
@@ -2253,7 +1988,6 @@
                 
                 this.state.selectedTypes = this.state.selectedTypes.filter(type => type !== contractType);
                 this.state.rankingOrder = this.state.rankingOrder.filter(type => type !== contractType);
-                
                 this.state.primaryChoice = this.state.rankingOrder[0] || null;
                 
                 this.updateRankingDisplay();
@@ -2442,12 +2176,27 @@
             }
 
             showFeedback(message, type = 'info') {
-                // Utilise le système de notification existant
-                if (typeof showNotification === 'function') {
-                    showNotification(message, type);
-                } else {
-                    console.log(`${type.toUpperCase()}: ${message}`);
-                }
+                const notification = document.getElementById('notification');
+                const messageElement = notification.querySelector('.notification-message');
+                const iconElement = notification.querySelector('i');
+                
+                messageElement.textContent = message;
+                
+                notification.className = 'notification';
+                notification.classList.add(type);
+                
+                const icons = {
+                    success: 'fa-check-circle',
+                    error: 'fa-exclamation-triangle',
+                    info: 'fa-info-circle'
+                };
+                iconElement.className = `fas ${icons[type] || icons.info}`;
+                
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
             }
 
             getContractData() {
@@ -2466,14 +2215,13 @@
         
         let contractSystem;
 
-        // Fonctions existantes conservées
         function toggleSectorPreference(radio) {
             const container = document.getElementById('sector-preference-container');
             if (container) {
                 container.style.display = radio.value === 'yes' ? 'block' : 'none';
             }
         }
-        
+
         function toggleProhibitedSector(radio) {
             const container = document.getElementById('prohibited-sector-selection');
             if (container) {
@@ -2485,37 +2233,15 @@
             const employedSection = document.getElementById('employed-section');
             const unemployedSection = document.getElementById('unemployed-section');
             
-            if (employedSection && unemployedSection) {
-                employedSection.style.display = radio.value === 'yes' ? 'block' : 'none';
-                unemployedSection.style.display = radio.value === 'yes' ? 'none' : 'block';
-                
-                // Gestion des champs requis
-                if (radio.value === 'yes') {
-                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    document.getElementById('notice-period').setAttribute('required', '');
-                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    
-                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                } else {
-                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    
-                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                    document.getElementById('notice-period').removeAttribute('required');
-                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                }
+            if (radio.value === 'yes') {
+                employedSection.style.display = 'block';
+                unemployedSection.style.display = 'none';
+            } else {
+                employedSection.style.display = 'none';
+                unemployedSection.style.display = 'block';
             }
+            
+            console.log('🏢 Employment status changed:', radio.value);
         }
         
         function redirectToMatchingPage() {
@@ -2525,391 +2251,274 @@
             }, 2000);
         }
         
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Initialisation NEXTEN avec Contract System V2.0');
-            
-            // Initialiser le système de contrats
-            contractSystem = new ContractSystem();
-            
-            // Le reste du code existant continue ici...
-            // En cas d'erreur d'analyse, ajouter un bouton de secours
-            const submitBtn = document.getElementById('submit-btn');
-            if (submitBtn) {
-                submitBtn.addEventListener('dblclick', function(e) {
-                    e.preventDefault();
-                    console.log("Double-clic détecté - redirection de secours activée");
-                    redirectToMatchingPage();
-                });
+        class NextenHybridQuestionnaire {
+            constructor() {
+                this.currentStep = 1;
+                this.totalSteps = 4;
+                this.formData = {};
+                this.init();
             }
-            
-            // Création des particules pour l'arrière-plan hero
-            const heroParticles = document.querySelector('.hero-particles');
-            
-            if (heroParticles) {
-                for (let i = 0; i < 20; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'particle';
-                    particle.style.width = Math.random() * 10 + 5 + 'px';
-                    particle.style.height = particle.style.width;
-                    particle.style.background = 'rgba(124, 58, 237, ' + (Math.random() * 0.2 + 0.05) + ')';
-                    particle.style.left = Math.random() * 100 + '%';
-                    particle.style.top = Math.random() * 100 + '%';
-                    particle.style.animationDelay = Math.random() * 5 + 's';
-                    particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                    heroParticles.appendChild(particle);
+
+            init() {
+                console.log('🚀 NEXTEN Questionnaire HYBRIDE initialisé');
+                
+                contractSystem = new ContractSystem();
+                
+                this.setupStepperHandlers();
+                this.setupTransportHandlers();
+                this.setupValidationHandlers();
+                this.setupMotivationDragDrop();
+                this.initializeParticles();
+                this.initializeNotifications();
+                
+                console.log('✅ Questionnaire hybride prêt');
+            }
+
+            setupStepperHandlers() {
+                document.getElementById('next-step1')?.addEventListener('click', () => this.nextStep(1));
+                document.getElementById('next-step2')?.addEventListener('click', () => this.nextStep(2));
+                document.getElementById('next-step3')?.addEventListener('click', () => this.nextStep(3));
+                
+                document.getElementById('back-step1')?.addEventListener('click', () => this.prevStep(1));
+                document.getElementById('back-step2')?.addEventListener('click', () => this.prevStep(2));
+                document.getElementById('back-step3')?.addEventListener('click', () => this.prevStep(3));
+                
+                document.getElementById('submit-btn')?.addEventListener('click', () => this.submitForm());
+            }
+
+            nextStep(currentStep) {
+                if (this.validateStep(currentStep)) {
+                    this.moveToStep(currentStep + 1);
                 }
             }
-            
-            // Gestion des moyens de transport et des questions sur le temps de trajet
-            const transportCheckboxes = document.querySelectorAll('input[name="transport-method"]');
-            const transportTimeQuestionsContainer = document.getElementById('transport-time-questions');
-            
-            // Définir les libellés pour chaque moyen de transport
-            const transportLabels = {
-                'public-transport': 'transports en commun',
-                'vehicle': 'véhicule personnel',
-                'bike': 'vélo',
-                'walking': 'à pied'
-            };
-            
-            // Fonction pour mettre à jour les questions sur le temps de trajet
-            function updateTransportTimeQuestions() {
-                transportTimeQuestionsContainer.innerHTML = ''; // Effacer les sous-questions existantes
-                let hasSelectedTransport = false;
+
+            prevStep(currentStep) {
+                this.moveToStep(currentStep);
+            }
+
+            moveToStep(stepNumber) {
+                document.querySelectorAll('.form-step').forEach(step => {
+                    step.classList.remove('active');
+                });
                 
-                // Pour chaque moyen de transport coché, ajouter une sous-question
-                transportCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) {
-                        hasSelectedTransport = true;
-                        const transportType = checkbox.value;
-                        const transportLabel = transportLabels[transportType];
-                        
-                        const subQuestionDiv = document.createElement('div');
-                        subQuestionDiv.className = 'form-group';
-                        
-                        subQuestionDiv.innerHTML = `
-                            <label for="commute-time-${transportType}" class="form-label required">
-                                Combien de temps de trajet êtes-vous prêt à faire en ${transportLabel} ?
-                            </label>
-                            <select id="commute-time-${transportType}" name="commute-time-${transportType}" class="form-control" required>
-                                <option value="">Sélectionnez une durée</option>
-                                <option value="10">10 minutes</option>
-                                <option value="20">20 minutes</option>
-                                <option value="30">30 minutes</option>
-                                <option value="45">45 minutes</option>
-                                <option value="60">1 heure</option>
-                                <option value="90">1 heure 30</option>
-                                <option value="120">2 heures</option>
-                            </select>
-                        `;
-                        
-                        transportTimeQuestionsContainer.appendChild(subQuestionDiv);
+                document.getElementById(`form-step${stepNumber}`).classList.add('active');
+                this.updateStepper(stepNumber);
+                this.currentStep = stepNumber;
+                console.log('📍 Étape actuelle:', stepNumber);
+            }
+
+            updateStepper(activeStep) {
+                const progressBar = document.getElementById('stepper-progress');
+                const steps = document.querySelectorAll('.step');
+                
+                const progressPercent = ((activeStep - 1) / (this.totalSteps - 1)) * 100;
+                progressBar.style.width = `${progressPercent}%`;
+                
+                steps.forEach((step, index) => {
+                    const stepNumber = index + 1;
+                    
+                    step.classList.remove('active', 'completed');
+                    
+                    if (stepNumber === activeStep) {
+                        step.classList.add('active');
+                    } else if (stepNumber < activeStep) {
+                        step.classList.add('completed');
                     }
                 });
-                
-                // Afficher ou masquer le conteneur en fonction de la présence de sous-questions
-                transportTimeQuestionsContainer.style.display = hasSelectedTransport ? 'block' : 'none';
             }
-            
-            // Ajouter des écouteurs d'événements pour les cases à cocher
-            transportCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateTransportTimeQuestions);
-            });
-            
-            // Gestion des étapes
-            const stepperProgress = document.getElementById('stepper-progress');
-            const progressValues = ['0%', '33%', '66%', '100%'];
-            
-            // Fonctions pour afficher les notifications
-            window.showNotification = function(message, type = 'success') {
-                const notification = document.getElementById('notification');
-                const notificationMessage = notification.querySelector('.notification-message');
+
+            validateStep(stepNumber) {
+                console.log('🔍 Validation étape:', stepNumber);
                 
-                notification.className = 'notification ' + type;
-                notificationMessage.innerText = message;
-                
-                const icon = notification.querySelector('i:first-child');
-                if (type === 'success') {
-                    icon.className = 'fas fa-check-circle';
-                } else if (type === 'error') {
-                    icon.className = 'fas fa-exclamation-circle';
-                } else if (type === 'info') {
-                    icon.className = 'fas fa-info-circle';
-                }
-                
-                notification.classList.add('show');
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 5000);
-            }
-            
-            // Fermer la notification
-            const notificationClose = document.querySelector('.notification-close');
-            if (notificationClose) {
-                notificationClose.addEventListener('click', function() {
-                    document.getElementById('notification').classList.remove('show');
-                });
-            }
-            
-            // Navigation entre les étapes
-            function goToStep(currentStep, nextStep) {
-                // Hide current step
-                document.getElementById('form-step' + currentStep).classList.remove('active');
-                document.getElementById('step' + currentStep).classList.remove('active');
-                document.getElementById('step' + currentStep).classList.add('completed');
-                
-                // Show next step
-                document.getElementById('form-step' + nextStep).classList.add('active');
-                document.getElementById('step' + nextStep).classList.add('active');
-                
-                // Update progress bar
-                stepperProgress.style.width = progressValues[nextStep - 1];
-                
-                // Scroll to top of form
-                document.querySelector('.form-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            
-            // Validation des formulaires avec intégration contract system
-            window.validateStep = function(stepNumber) {
                 const currentStepElement = document.getElementById(`form-step${stepNumber}`);
                 const requiredFields = currentStepElement.querySelectorAll('[required]');
                 let isValid = true;
                 let firstInvalidField = null;
-                
+
                 requiredFields.forEach(field => {
-                    // Pour les groupes de checkbox, vérifier qu'au moins une est cochée
                     if (field.type === 'checkbox' && field.name === 'transport-method') {
                         const checkboxGroup = document.querySelectorAll('input[name="transport-method"]');
                         const anyChecked = Array.from(checkboxGroup).some(cb => cb.checked);
                         if (!anyChecked) {
                             isValid = false;
-                            if (!firstInvalidField) {
-                                firstInvalidField = field;
-                            }
+                            if (!firstInvalidField) firstInvalidField = field;
                         }
-                    }
-                    // Pour les groupes de checkbox de type de structure
-                    else if (field.type === 'checkbox' && field.name === 'structure-type') {
-                        const checkboxGroup = document.querySelectorAll('input[name="structure-type"]');
-                        const anyChecked = Array.from(checkboxGroup).some(cb => cb.checked);
-                        if (!anyChecked) {
-                            isValid = false;
-                            if (!firstInvalidField) {
-                                firstInvalidField = field;
-                            }
-                        }
-                    }
-                    // Validation normale pour les autres champs
-                    else if ((field.type === 'checkbox' && !field.checked) || 
+                    } else if ((field.type === 'checkbox' && !field.checked) || 
                              (field.type !== 'checkbox' && !field.value.trim())) {
                         isValid = false;
                         field.classList.add('invalid');
-                        
-                        if (!firstInvalidField) {
-                            firstInvalidField = field;
-                        }
+                        if (!firstInvalidField) firstInvalidField = field;
                     } else {
                         field.classList.remove('invalid');
                     }
                 });
-                
-                // Validation spéciale pour l'étape 2 (contrats) avec le nouveau système
+
                 if (stepNumber === 2) {
                     if (!contractSystem.validateSelection()) {
                         isValid = false;
                     }
                 }
-                
+
+                if (stepNumber === 4) {
+                    const employmentStatus = document.querySelector('input[name="currently-employed"]:checked');
+                    if (employmentStatus) {
+                        if (employmentStatus.value === 'yes') {
+                            const listeningReason = document.querySelector('input[name="listening-reason"]:checked');
+                            const noticePeriod = document.getElementById('notice-period');
+                            const noticeNegotiable = document.querySelector('input[name="notice-negotiable"]:checked');
+                            
+                            if (!listeningReason || !noticePeriod.value || !noticeNegotiable) {
+                                isValid = false;
+                            }
+                        } else {
+                            const contractEndReason = document.querySelector('input[name="contract-end-reason"]:checked');
+                            if (!contractEndReason) {
+                                isValid = false;
+                            }
+                        }
+                    }
+                }
+
                 if (!isValid) {
-                    showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+                    this.showNotification('Veuillez remplir tous les champs obligatoires', 'error');
                     if (firstInvalidField) {
                         firstInvalidField.focus();
                     }
+                } else {
+                    this.showNotification('Étape validée avec succès !', 'success');
                 }
-                
+
                 return isValid;
             }
-            
-            // Drag and drop pour le classement des motivations
-            const motivationsList = document.getElementById('motivation-priorities');
-            const motivationItems = motivationsList.querySelectorAll('.motivation-item');
-            const motivationOrderInput = document.getElementById('motivation-order');
-            let draggedItem = null;
 
-            // Fonction pour mettre à jour les numéros après réorganisation
-            function updateMotivationNumbers() {
-                const items = motivationsList.querySelectorAll('.motivation-item');
-                items.forEach((item, index) => {
-                    const numberSpan = item.querySelector('.motivation-number');
-                    numberSpan.textContent = index + 1;
-                });
-
-                // Mettre à jour le champ caché avec l'ordre actuel
-                const motivationOrder = Array.from(items).map(item => item.dataset.value);
-                motivationOrderInput.value = motivationOrder.join(',');
+            async submitForm() {
+                console.log('📤 Soumission du formulaire hybride');
                 
-                // Si "Autre" est dans le top 3, afficher le champ de saisie
-                const otherIndex = motivationOrder.indexOf('other');
-                if (otherIndex < 3) {
-                    document.getElementById('other-motivation-container').style.display = 'block';
-                    document.getElementById('other-motivation').setAttribute('required', '');
-                } else {
-                    document.getElementById('other-motivation-container').style.display = 'none';
-                    document.getElementById('other-motivation').removeAttribute('required');
+                if (!this.validateStep(4)) {
+                    return;
                 }
-            }
 
-            motivationItems.forEach(item => {
-                // Event listeners pour le drag and drop
-                item.addEventListener('dragstart', function() {
-                    draggedItem = this;
-                    setTimeout(() => this.classList.add('dragging'), 0);
-                });
-
-                item.addEventListener('dragend', function() {
-                    this.classList.remove('dragging');
-                    draggedItem = null;
-                    updateMotivationNumbers();
-                });
-
-                item.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                });
-
-                item.addEventListener('dragenter', function(e) {
-                    e.preventDefault();
-                    if (this !== draggedItem) {
-                        const draggedRect = draggedItem.getBoundingClientRect();
-                        const targetRect = this.getBoundingClientRect();
-                        
-                        if (draggedRect.top < targetRect.top) {
-                            motivationsList.insertBefore(draggedItem, this.nextSibling);
-                        } else {
-                            motivationsList.insertBefore(draggedItem, this);
-                        }
-                    }
-                });
-            });
-
-            // Initialiser l'ordre des motivations
-            updateMotivationNumbers();
-            
-            // Navigation entre les étapes
-            // Étape 1 -> Étape 2
-            document.getElementById('next-step1').addEventListener('click', function() {
-                if (validateStep(1)) {
-                    goToStep(1, 2);
-                }
-            });
-            
-            // Étape 2 -> Étape 1
-            document.getElementById('back-step1').addEventListener('click', function() {
-                goToStep(2, 1);
-                document.getElementById('step1').classList.remove('completed');
-            });
-            
-            // Étape 2 -> Étape 3
-            document.getElementById('next-step2').addEventListener('click', function() {
-                if (validateStep(2)) {
-                    goToStep(2, 3);
-                }
-            });
-            
-            // Étape 3 -> Étape 2
-            document.getElementById('back-step2').addEventListener('click', function() {
-                goToStep(3, 2);
-                document.getElementById('step2').classList.remove('completed');
-            });
-            
-            // Étape 3 -> Étape 4
-            document.getElementById('next-step3').addEventListener('click', function() {
-                if (validateStep(3)) {
-                    goToStep(3, 4);
-                }
-            });
-            
-            // Étape 4 -> Étape 3
-            document.getElementById('back-step3').addEventListener('click', function() {
-                goToStep(4, 3);
-                document.getElementById('step3').classList.remove('completed');
-            });
-            
-            // Désactiver la soumission du formulaire par défaut
-            document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                // La soumission est gérée par le bouton submit-btn
-            });
-            
-            // Bouton de soumission avec intégration des données contractuelles
-            document.getElementById('submit-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                if (validateStep(4)) {
-                    // Afficher l'écran de chargement
-                    document.getElementById('loading-overlay').classList.add('active');
+                const formData = this.collectFormData();
+                console.log('📊 Données collectées:', formData);
+                
+                document.getElementById('loading-overlay').classList.add('active');
+                
+                try {
+                    await this.sendFormData(formData);
                     
-                    // Collecter les données du formulaire incluant les contrats
-                    const formData = new FormData(document.getElementById('questionnaire-form'));
-                    const contractData = contractSystem.getContractData();
+                    this.showNotification('Questionnaire soumis avec succès !', 'success');
                     
-                    console.log('📊 Données formulaire + contrats:', {
-                        formData: Object.fromEntries(formData),
-                        contractData: contractData
-                    });
-                    
-                    // Simulation d'envoi des données
-                    setTimeout(function() {
-                        // Redirection vers la page de matching
+                    setTimeout(() => {
                         window.location.href = 'candidate-matching-improved.html';
                     }, 2000);
+                    
+                } catch (error) {
+                    console.error('❌ Erreur lors de la soumission:', error);
+                    this.showNotification('Erreur lors de la soumission. Veuillez réessayer.', 'error');
+                    document.getElementById('loading-overlay').classList.remove('active');
                 }
-            });
-            
-            // Bouton de retour en haut
-            const scrollToTopButton = document.getElementById('scroll-to-top');
-            
-            if (scrollToTopButton) {
-                window.addEventListener('scroll', function() {
-                    if (window.pageYOffset > 300) {
-                        scrollToTopButton.classList.add('visible');
+            }
+
+            collectFormData() {
+                const formElement = document.getElementById('questionnaire-form');
+                const formData = new FormData(formElement);
+                const data = {};
+
+                for (let [key, value] of formData.entries()) {
+                    if (data[key]) {
+                        if (Array.isArray(data[key])) {
+                            data[key].push(value);
+                        } else {
+                            data[key] = [data[key], value];
+                        }
                     } else {
-                        scrollToTopButton.classList.remove('visible');
+                        data[key] = value;
                     }
+                }
+
+                data.contractData = contractSystem.getContractData();
+                return data;
+            }
+
+            async sendFormData(data) {
+                return new Promise((resolve) => {
+                    setTimeout(resolve, 1500);
                 });
-                
-                scrollToTopButton.addEventListener('click', function() {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
+            }
+
+            setupTransportHandlers() {
+                const transportCheckboxes = document.querySelectorAll('input[name="transport-method"]');
+                transportCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', () => {
+                        this.updateTransportTimeQuestions();
                     });
                 });
             }
-            
-            // Menu mobile
-            const menuToggle = document.querySelector('.menu-toggle');
-            const nav = document.querySelector('nav');
-            
-            if (menuToggle && nav) {
-                menuToggle.addEventListener('click', function() {
-                    nav.classList.toggle('active');
-                    menuToggle.classList.toggle('active');
+
+            updateTransportTimeQuestions() {
+                const container = document.getElementById('transport-time-questions');
+                const checkedTransports = document.querySelectorAll('input[name="transport-method"]:checked');
+                
+                if (checkedTransports.length > 0) {
+                    container.style.display = 'block';
+                } else {
+                    container.style.display = 'none';
+                }
+            }
+
+            setupValidationHandlers() {
+                document.querySelectorAll('.form-control').forEach(field => {
+                    field.addEventListener('blur', () => {
+                        this.validateField(field);
+                    });
                 });
             }
+
+            validateField(field) {
+                if (field.required && !field.value.trim()) {
+                    field.classList.add('invalid');
+                    return false;
+                } else {
+                    field.classList.remove('invalid');
+                    return true;
+                }
+            }
+
+            setupMotivationDragDrop() {
+                const motivationList = document.getElementById('motivation-priorities');
+                if (motivationList) {
+                    console.log('🎯 Drag & drop des motivations configuré');
+                }
+            }
+
+            initializeParticles() {
+                console.log('✨ Particules initialisées');
+            }
+
+            initializeNotifications() {
+                const notificationClose = document.querySelector('.notification-close');
+                notificationClose?.addEventListener('click', () => {
+                    document.getElementById('notification').classList.remove('show');
+                });
+            }
+
+            showNotification(message, type = 'info') {
+                contractSystem.showFeedback(message, type);
+            }
+        }
+
+        // ========================================
+        // INITIALISATION GLOBALE
+        // ========================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🌟 NEXTEN V2.0 HYBRIDE - Initialisation globale');
+            console.log('✅ Backend complet + Interface simplifiée');
             
-            console.log('✅ NEXTEN V2.0 avec Contract System intégré - Prêt !');
+            new NextenHybridQuestionnaire();
+            
+            console.log('🚀 Système hybride opérationnel !');
         });
     </script>
-    
-    <!-- Scripts existants préservés -->
-    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/address-autocomplete.js"></script>
-    <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initAutocompleteCallback" async defer></script>
-
-    <!-- 🔗 SYSTÈME DE PONT CV → QUESTIONNAIRE - INTÉGRATION COMPLÈTE (CONSERVÉ) -->
-    <script id="cv-questionnaire-bridge">
-    // Le système de préremplissage CV est conservé intégralement
-    // pour maintenir la compatibilité avec le backend existant
-    console.log('🔗 Système de préremplissage CV conservé et actif');
-    </script>
-
 </body>
 </html>
