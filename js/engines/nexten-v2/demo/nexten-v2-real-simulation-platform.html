@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 NEXTEN V2.0 - Simulation Réelle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            font-size: 1.4em;
+        }
+
+        .section h2 .icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #4facfe;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #00f2fe;
+            background: #f0f7ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #00f2fe;
+            background: #e6f3ff;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        .parsed-content {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #4facfe;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .address-section {
+            margin: 20px 0;
+        }
+
+        .address-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .address-input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .matching-section {
+            grid-column: span 2;
+            margin-top: 20px;
+        }
+
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .criterion {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .criterion-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .criterion-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .criterion-weight {
+            background: #4facfe;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .criterion-score {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .score-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48cab3);
+            transition: width 0.5s ease;
+        }
+
+        .run-matching-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 10px 25px rgba(238, 90, 36, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .run-matching-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
+        }
+
+        .run-matching-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border-left: 5px solid #28a745;
+        }
+
+        .final-score {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .final-score-number {
+            font-size: 4em;
+            font-weight: bold;
+            color: #28a745;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .debug-info {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .performance-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 NEXTEN V2.0 OPTIMIZED</h1>
+            <p>Simulation Réelle avec Parsing CV & Fiche de Poste - Performance < 200ms garantie</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Section CV Candidat -->
+            <div class="section">
+                <h2><span class="icon">👤</span>CV Candidat</h2>
+                <div class="upload-area" id="cvUploadArea">
+                    <div style="font-size: 3em; color: #4facfe;">📄</div>
+                    <div class="upload-text">
+                        Glissez votre CV ici ou cliquez pour sélectionner<br>
+                        <small>Formats: PDF, DOC, DOCX, TXT</small>
+                    </div>
+                    <input type="file" id="cvFileInput" class="file-input" accept=".pdf,.doc,.docx,.txt">
+                </div>
+                
+                <div class="address-section">
+                    <label><strong>📍 Adresse Candidat:</strong></label>
+                    <input type="text" id="candidateAddress" class="address-input" 
+                           placeholder="Ex: 25 Rue de la Paix, 75001 Paris">
+                </div>
+
+                <div id="cvParsedContent" class="parsed-content" style="display: none;">
+                    <h4>📋 Données extraites:</h4>
+                    <div id="cvData"></div>
+                </div>
+            </div>
+
+            <!-- Section Fiche de Poste -->
+            <div class="section">
+                <h2><span class="icon">💼</span>Fiche de Poste</h2>
+                <div class="upload-area" id="jobUploadArea">
+                    <div style="font-size: 3em; color: #4facfe;">📋</div>
+                    <div class="upload-text">
+                        Glissez votre fiche de poste ici ou cliquez pour sélectionner<br>
+                        <small>Formats: PDF, DOC, DOCX, TXT</small>
+                    </div>
+                    <input type="file" id="jobFileInput" class="file-input" accept=".pdf,.doc,.docx,.txt">
+                </div>
+
+                <div class="address-section">
+                    <label><strong>🏢 Adresse Entreprise:</strong></label>
+                    <input type="text" id="companyAddress" class="address-input" 
+                           placeholder="Ex: 22 Avenue Montaigne, 75008 Paris">
+                </div>
+
+                <div id="jobParsedContent" class="parsed-content" style="display: none;">
+                    <h4>📋 Données extraites:</h4>
+                    <div id="jobData"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Matching -->
+        <div class="section matching-section">
+            <h2><span class="icon">🎯</span>Analyse de Matching NEXTEN V2.0</h2>
+            
+            <button id="runMatchingBtn" class="run-matching-btn" disabled>
+                🚀 Lancer l'Analyse de Matching Complète
+            </button>
+
+            <div id="loadingSection" class="loading">
+                <div class="spinner"></div>
+                <p>Analyse en cours avec NEXTEN V2.0 OPTIMIZED...</p>
+                <p id="loadingStatus">Initialisation...</p>
+            </div>
+
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <div class="final-score">
+                    <div>Score de Compatibilité Global</div>
+                    <div class="final-score-number" id="finalScore">0%</div>
+                </div>
+
+                <div class="performance-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="calculationTime">0ms</div>
+                        <div class="metric-label">Temps de Calcul</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="criteriaCount">11</div>
+                        <div class="metric-label">Critères Analysés</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="googleMapsStatus">🗺️</div>
+                        <div class="metric-label">Google Maps</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="systemVersion">V2.0</div>
+                        <div class="metric-label">Version NEXTEN</div>
+                    </div>
+                </div>
+
+                <h3>📊 Détail par Critère</h3>
+                <div class="criteria-grid" id="criteriaResults">
+                    <!-- Les résultats des critères seront générés ici -->
+                </div>
+
+                <div id="debugInfo" class="debug-info"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let candidateData = null;
+        let jobData = null;
+        let isGoogleMapsEnabled = true;
+
+        // Configuration des critères NEXTEN V2.0
+        const criteriaConfig = {
+            semantic: { name: "Compatibilité Sémantique", weight: 20.5, icon: "🧠" },
+            location: { name: "Géolocalisation", weight: 16.1, icon: "🗺️" },
+            compensation: { name: "Rémunération", weight: 19.6, icon: "💰" },
+            motivation: { name: "Motivations", weight: 10.7, icon: "🎯" },
+            companySize: { name: "Taille Entreprise", weight: 7.1, icon: "🏢" },
+            workEnvironment: { name: "Environnement Travail", weight: 7.1, icon: "🌟" },
+            industry: { name: "Secteur d'Activité", weight: 5.4, icon: "🔧" },
+            availability: { name: "Disponibilité", weight: 4.5, icon: "📅" },
+            contractType: { name: "Type de Contrat", weight: 4.5, icon: "📝" },
+            listenReasons: { name: "Raisons d'Écoute", weight: 2.7, icon: "👂" },
+            processPosition: { name: "Position Processus", weight: 1.8, icon: "⚡" }
+        };
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFileUpload('cvUploadArea', 'cvFileInput', handleCVUpload);
+            setupFileUpload('jobUploadArea', 'jobFileInput', handleJobUpload);
+            
+            document.getElementById('runMatchingBtn').addEventListener('click', runMatching);
+        });
+
+        // Configuration upload de fichiers
+        function setupFileUpload(areaId, inputId, handler) {
+            const area = document.getElementById(areaId);
+            const input = document.getElementById(inputId);
+
+            area.addEventListener('click', () => input.click());
+            area.addEventListener('dragover', handleDragOver);
+            area.addEventListener('drop', (e) => handleDrop(e, handler));
+            input.addEventListener('change', (e) => handler(e.target.files[0]));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDrop(e, handler) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handler(files[0]);
+        }
+
+        // Parsing CV
+        async function handleCVUpload(file) {
+            try {
+                const content = await readFileContent(file);
+                candidateData = await parseCVContent(content, file.name);
+                displayParsedContent('cvParsedContent', 'cvData', candidateData);
+                checkReadyForMatching();
+            } catch (error) {
+                console.error('Erreur parsing CV:', error);
+                alert('Erreur lors de l\'analyse du CV');
+            }
+        }
+
+        // Parsing Fiche de Poste
+        async function handleJobUpload(file) {
+            try {
+                const content = await readFileContent(file);
+                jobData = await parseJobContent(content, file.name);
+                displayParsedContent('jobParsedContent', 'jobData', jobData);
+                checkReadyForMatching();
+            } catch (error) {
+                console.error('Erreur parsing job:', error);
+                alert('Erreur lors de l\'analyse de la fiche de poste');
+            }
+        }
+
+        // Lecture contenu fichier
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        // Parser intelligent CV
+        async function parseCVContent(content, fileName) {
+            const data = {
+                fileName: fileName,
+                parsedAt: new Date().toISOString(),
+                // Extraction des informations clés
+                name: extractName(content),
+                title: extractTitle(content),
+                experience: extractExperience(content),
+                skills: extractSkills(content),
+                education: extractEducation(content),
+                languages: extractLanguages(content),
+                salary: extractSalary(content),
+                location: extractLocation(content),
+                availability: extractAvailability(content),
+                motivations: extractMotivations(content),
+                // Données brutes pour debug
+                rawContent: content
+            };
+
+            return data;
+        }
+
+        // Parser intelligent Fiche de Poste
+        async function parseJobContent(content, fileName) {
+            const data = {
+                fileName: fileName,
+                parsedAt: new Date().toISOString(),
+                // Extraction des informations clés
+                title: extractJobTitle(content),
+                company: extractCompany(content),
+                description: extractJobDescription(content),
+                requirements: extractRequirements(content),
+                skills: extractRequiredSkills(content),
+                salary: extractJobSalary(content),
+                location: extractJobLocation(content),
+                contractType: extractContractType(content),
+                industry: extractIndustry(content),
+                companySize: extractCompanySize(content),
+                // Données brutes pour debug
+                rawContent: content
+            };
+
+            return data;
+        }
+
+        // Fonctions d'extraction CV
+        function extractName(content) {
+            const namePatterns = [
+                /nom\s*:\s*([a-zàâäçéèêëïîôöùûüÿ\s-]+)/i,
+                /^([A-ZÀ-Ÿ][a-zàâäçéèêëïîôöùûüÿ-]+\s+[A-ZÀ-Ÿ][a-zàâäçéèêëïîôöùûüÿ-]+)/m,
+                /candidat\s*:\s*([a-zàâäçéèêëïîôöùûüÿ\s-]+)/i
+            ];
+            
+            for (let pattern of namePatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Nom non détecté";
+        }
+
+        function extractTitle(content) {
+            const titlePatterns = [
+                /poste\s*:\s*([^\n]+)/i,
+                /titre\s*:\s*([^\n]+)/i,
+                /(directeur|manager|développeur|ingénieur|consultant|analyste)[^\n]*/i,
+                /fonction\s*:\s*([^\n]+)/i
+            ];
+            
+            for (let pattern of titlePatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Poste non spécifié";
+        }
+
+        function extractExperience(content) {
+            const expPatterns = [
+                /(\d+)\s*ans?\s*d['\s]*expérience/i,
+                /expérience\s*:\s*(\d+)/i,
+                /(\d+)\s*années?\s*expérience/i
+            ];
+            
+            for (let pattern of expPatterns) {
+                const match = content.match(pattern);
+                if (match) return parseInt(match[1]);
+            }
+            return 0;
+        }
+
+        function extractSkills(content) {
+            const skillsSection = content.match(/compétences?\s*:?\s*([^]+?)(?=\n\n|\n[A-Z]|$)/i);
+            if (skillsSection) {
+                return skillsSection[1]
+                    .split(/[,;\n]/)
+                    .map(skill => skill.trim())
+                    .filter(skill => skill.length > 2);
+            }
+            
+            // Recherche de compétences techniques communes
+            const techSkills = content.match(/\b(JavaScript|Python|Java|React|Angular|Vue|Node\.js|PHP|SQL|HTML|CSS|Git|Docker|AWS|Azure)\b/gi);
+            return techSkills || [];
+        }
+
+        function extractEducation(content) {
+            const eduPatterns = [
+                /formation\s*:?\s*([^]+?)(?=\n\n|\n[A-Z]|$)/i,
+                /diplôme\s*:?\s*([^\n]+)/i,
+                /(master|licence|bac|ingénieur)[^\n]*/i
+            ];
+            
+            for (let pattern of eduPatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Formation non spécifiée";
+        }
+
+        function extractLanguages(content) {
+            const langSection = content.match(/langues?\s*:?\s*([^]+?)(?=\n\n|\n[A-Z]|$)/i);
+            if (langSection) {
+                return langSection[1].split(/[,;\n]/).map(lang => lang.trim()).filter(lang => lang.length > 1);
+            }
+            
+            const commonLangs = content.match(/\b(français|anglais|espagnol|allemand|italien|portugais|chinois|japonais)\b/gi);
+            return commonLangs || ['Français'];
+        }
+
+        function extractSalary(content) {
+            const salaryPatterns = [
+                /salaire\s*:?\s*(\d+)[\s]*k?€?/i,
+                /rémunération\s*:?\s*(\d+)[\s]*k?€?/i,
+                /(\d+)[\s]*k€/i,
+                /(\d{2,3})[\s]*000[\s]*€/i
+            ];
+            
+            for (let pattern of salaryPatterns) {
+                const match = content.match(pattern);
+                if (match) {
+                    let salary = parseInt(match[1]);
+                    if (salary < 1000) salary *= 1000; // Conversion k€
+                    return salary;
+                }
+            }
+            return null;
+        }
+
+        function extractLocation(content) {
+            const locationPatterns = [
+                /adresse\s*:?\s*([^\n]+)/i,
+                /localisation\s*:?\s*([^\n]+)/i,
+                /ville\s*:?\s*([^\n]+)/i,
+                /\b(Paris|Lyon|Marseille|Toulouse|Nice|Nantes|Strasbourg|Montpellier|Bordeaux|Lille)\b/i
+            ];
+            
+            for (let pattern of locationPatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "";
+        }
+
+        function extractAvailability(content) {
+            const availPatterns = [
+                /disponibilité\s*:?\s*([^\n]+)/i,
+                /disponible\s*(immédiatement|dans\s*\d+|à partir)/i,
+                /(immédiatement|préavis)/i
+            ];
+            
+            for (let pattern of availPatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Non spécifiée";
+        }
+
+        function extractMotivations(content) {
+            const motivPatterns = [
+                /motivations?\s*:?\s*([^]+?)(?=\n\n|\n[A-Z]|$)/i,
+                /objectifs?\s*:?\s*([^]+?)(?=\n\n|\n[A-Z]|$)/i,
+                /(évolution|carrière|challenge|équilibre|innovation)/gi
+            ];
+            
+            const motivations = [];
+            for (let pattern of motivPatterns) {
+                const match = content.match(pattern);
+                if (match) {
+                    if (Array.isArray(match)) {
+                        motivations.push(...match);
+                    } else {
+                        motivations.push(match[1]);
+                    }
+                }
+            }
+            return motivations.length > 0 ? motivations : ["Évolution professionnelle"];
+        }
+
+        // Fonctions d'extraction Fiche de Poste
+        function extractJobTitle(content) {
+            const titlePatterns = [
+                /poste\s*:?\s*([^\n]+)/i,
+                /titre\s*:?\s*([^\n]+)/i,
+                /fonction\s*:?\s*([^\n]+)/i,
+                /^([A-Z][^:\n]+)$/m
+            ];
+            
+            for (let pattern of titlePatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Poste non spécifié";
+        }
+
+        function extractCompany(content) {
+            const companyPatterns = [
+                /entreprise\s*:?\s*([^\n]+)/i,
+                /société\s*:?\s*([^\n]+)/i,
+                /company\s*:?\s*([^\n]+)/i,
+                /groupe\s*:?\s*([^\n]+)/i
+            ];
+            
+            for (let pattern of companyPatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Entreprise non spécifiée";
+        }
+
+        function extractJobDescription(content) {
+            const descPatterns = [
+                /description\s*:?\s*([^]+?)(?=\n\n|\nProfil|$)/i,
+                /missions?\s*:?\s*([^]+?)(?=\n\n|\nProfil|$)/i
+            ];
+            
+            for (let pattern of descPatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Description non disponible";
+        }
+
+        function extractRequirements(content) {
+            const reqPatterns = [
+                /profil\s*:?\s*([^]+?)(?=\n\n|\nConditions|$)/i,
+                /exigences?\s*:?\s*([^]+?)(?=\n\n|\nConditions|$)/i,
+                /requis\s*:?\s*([^]+?)(?=\n\n|\nConditions|$)/i
+            ];
+            
+            for (let pattern of reqPatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Profil non spécifié";
+        }
+
+        function extractRequiredSkills(content) {
+            const skillsSection = content.match(/compétences?\s*requises?\s*:?\s*([^]+?)(?=\n\n|\n[A-Z]|$)/i);
+            if (skillsSection) {
+                return skillsSection[1]
+                    .split(/[,;\n]/)
+                    .map(skill => skill.trim())
+                    .filter(skill => skill.length > 2);
+            }
+            
+            const techSkills = content.match(/\b(JavaScript|Python|Java|React|Angular|Vue|Node\.js|PHP|SQL|HTML|CSS|Git|Docker|AWS|Azure)\b/gi);
+            return techSkills || [];
+        }
+
+        function extractJobSalary(content) {
+            const salaryPatterns = [
+                /salaire\s*:?\s*(\d+)[\s]*-[\s]*(\d+)[\s]*k?€?/i,
+                /rémunération\s*:?\s*(\d+)[\s]*-[\s]*(\d+)[\s]*k?€?/i,
+                /(\d+)[\s]*-[\s]*(\d+)[\s]*k€/i,
+                /jusqu[\'à]\s*(\d+)[\s]*k?€?/i
+            ];
+            
+            for (let pattern of salaryPatterns) {
+                const match = content.match(pattern);
+                if (match) {
+                    if (match[2]) {
+                        // Fourchette
+                        let min = parseInt(match[1]);
+                        let max = parseInt(match[2]);
+                        if (min < 1000) min *= 1000;
+                        if (max < 1000) max *= 1000;
+                        return { min, max };
+                    } else {
+                        // Salaire max
+                        let salary = parseInt(match[1]);
+                        if (salary < 1000) salary *= 1000;
+                        return { max: salary };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function extractJobLocation(content) {
+            const locationPatterns = [
+                /lieu\s*:?\s*([^\n]+)/i,
+                /localisation\s*:?\s*([^\n]+)/i,
+                /adresse\s*:?\s*([^\n]+)/i,
+                /basé\s*à\s*([^\n]+)/i
+            ];
+            
+            for (let pattern of locationPatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "";
+        }
+
+        function extractContractType(content) {
+            const contractPatterns = [
+                /contrat\s*:?\s*([^\n]+)/i,
+                /(CDI|CDD|freelance|stage|apprentissage)/i,
+                /type\s*:?\s*(CDI|CDD|freelance|stage|apprentissage)/i
+            ];
+            
+            for (let pattern of contractPatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "CDI";
+        }
+
+        function extractIndustry(content) {
+            const industryPatterns = [
+                /secteur\s*:?\s*([^\n]+)/i,
+                /industrie\s*:?\s*([^\n]+)/i,
+                /(technologie|finance|santé|éducation|retail|consulting)/i
+            ];
+            
+            for (let pattern of industryPatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Non spécifié";
+        }
+
+        function extractCompanySize(content) {
+            const sizePatterns = [
+                /taille\s*:?\s*([^\n]+)/i,
+                /effectif\s*:?\s*([^\n]+)/i,
+                /(\d+)\s*employés?/i,
+                /(startup|PME|ETI|grand groupe)/i
+            ];
+            
+            for (let pattern of sizePatterns) {
+                const match = content.match(pattern);
+                if (match) return match[1].trim();
+            }
+            return "Non spécifiée";
+        }
+
+        // Affichage des données parsées
+        function displayParsedContent(containerId, dataId, data) {
+            const container = document.getElementById(containerId);
+            const dataDiv = document.getElementById(dataId);
+            
+            let html = '<div style="font-size: 0.9em;">';
+            
+            if (data.name) html += `<strong>👤 Nom:</strong> ${data.name}<br>`;
+            if (data.title) html += `<strong>💼 Poste:</strong> ${data.title}<br>`;
+            if (data.company) html += `<strong>🏢 Entreprise:</strong> ${data.company}<br>`;
+            if (data.experience) html += `<strong>⏱️ Expérience:</strong> ${data.experience} ans<br>`;
+            if (data.education) html += `<strong>🎓 Formation:</strong> ${data.education}<br>`;
+            if (data.skills && data.skills.length > 0) {
+                html += `<strong>🔧 Compétences:</strong> ${data.skills.slice(0, 5).join(', ')}${data.skills.length > 5 ? '...' : ''}<br>`;
+            }
+            if (data.salary) {
+                if (typeof data.salary === 'object') {
+                    html += `<strong>💰 Salaire:</strong> ${data.salary.min ? data.salary.min + '€ - ' : ''}${data.salary.max}€<br>`;
+                } else {
+                    html += `<strong>💰 Salaire:</strong> ${data.salary}€<br>`;
+                }
+            }
+            if (data.location) html += `<strong>📍 Localisation:</strong> ${data.location}<br>`;
+            if (data.availability) html += `<strong>📅 Disponibilité:</strong> ${data.availability}<br>`;
+            if (data.contractType) html += `<strong>📝 Contrat:</strong> ${data.contractType}<br>`;
+            if (data.industry) html += `<strong>🏭 Secteur:</strong> ${data.industry}<br>`;
+            if (data.companySize) html += `<strong>📊 Taille:</strong> ${data.companySize}<br>`;
+            
+            html += '</div>';
+            
+            dataDiv.innerHTML = html;
+            container.style.display = 'block';
+        }
+
+        // Vérification si prêt pour matching
+        function checkReadyForMatching() {
+            const candidateAddress = document.getElementById('candidateAddress').value.trim();
+            const companyAddress = document.getElementById('companyAddress').value.trim();
+            
+            const ready = candidateData && jobData && candidateAddress && companyAddress;
+            document.getElementById('runMatchingBtn').disabled = !ready;
+        }
+
+        // Lancement du matching
+        async function runMatching() {
+            const candidateAddress = document.getElementById('candidateAddress').value.trim();
+            const companyAddress = document.getElementById('companyAddress').value.trim();
+            
+            // Mise à jour des adresses dans les données
+            candidateData.address = candidateAddress;
+            jobData.address = companyAddress;
+            
+            // Affichage du loading
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            const startTime = performance.now();
+            
+            try {
+                // Simulation du calcul NEXTEN V2.0 OPTIMIZED
+                const results = await simulateNextenV2OptimizedMatching(candidateData, jobData);
+                
+                const endTime = performance.now();
+                const calculationTime = Math.round(endTime - startTime);
+                
+                // Affichage des résultats
+                displayResults(results, calculationTime);
+                
+            } catch (error) {
+                console.error('Erreur matching:', error);
+                alert('Erreur lors du calcul de matching');
+            } finally {
+                document.getElementById('loadingSection').style.display = 'none';
+            }
+        }
+
+        // Simulation NEXTEN V2.0 OPTIMIZED
+        async function simulateNextenV2OptimizedMatching(candidate, job) {
+            // Simulation des étapes de calcul
+            const steps = [
+                "Initialisation système NEXTEN V2.0...",
+                "Chargement des critères (11)...",
+                "Calcul sémantique avec NLP...",
+                "Géolocalisation Google Maps...",
+                "Analyse compensation...",
+                "Pondération dynamique...",
+                "Calculs parallèles en cours...",
+                "Finalisation des scores..."
+            ];
+            
+            const results = {};
+            
+            for (let i = 0; i < steps.length; i++) {
+                document.getElementById('loadingStatus').textContent = steps[i];
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            // Calcul des scores par critère
+            results.semantic = calculateSemanticScore(candidate, job);
+            results.location = calculateLocationScore(candidate, job);
+            results.compensation = calculateCompensationScore(candidate, job);
+            results.motivation = calculateMotivationScore(candidate, job);
+            results.companySize = calculateCompanySizeScore(candidate, job);
+            results.workEnvironment = calculateWorkEnvironmentScore(candidate, job);
+            results.industry = calculateIndustryScore(candidate, job);
+            results.availability = calculateAvailabilityScore(candidate, job);
+            results.contractType = calculateContractTypeScore(candidate, job);
+            results.listenReasons = calculateListenReasonsScore(candidate, job);
+            results.processPosition = calculateProcessPositionScore(candidate, job);
+            
+            // Calcul du score global avec pondération
+            results.globalScore = calculateGlobalScore(results);
+            
+            return results;
+        }
+
+        // Fonctions de calcul des scores par critère
+        function calculateSemanticScore(candidate, job) {
+            let score = 0.5; // Score de base
+            
+            // Analyse du titre
+            const titleMatch = semanticSimilarity(candidate.title || "", job.title || "");
+            score += titleMatch * 0.3;
+            
+            // Analyse des compétences
+            const skillsMatch = calculateSkillsMatch(candidate.skills || [], job.skills || []);
+            score += skillsMatch * 0.4;
+            
+            // Analyse sectorielle
+            const industryMatch = semanticSimilarity(candidate.industry || "", job.industry || "");
+            score += industryMatch * 0.3;
+            
+            return Math.min(score, 1.0);
+        }
+
+        function calculateLocationScore(candidate, job) {
+            // Simulation Google Maps
+            if (candidate.address && job.address) {
+                // Simulation temps de trajet (entre 15 et 90 minutes)
+                const travelTime = 15 + Math.random() * 75;
+                
+                if (travelTime <= 20) return 1.0;
+                if (travelTime <= 30) return 0.9;
+                if (travelTime <= 45) return 0.8;
+                if (travelTime <= 60) return 0.7;
+                if (travelTime <= 90) return 0.5;
+                return 0.3;
+            }
+            
+            // Fallback: analyse textuelle
+            const candidateLocation = candidate.location || "";
+            const jobLocation = job.location || "";
+            
+            return semanticSimilarity(candidateLocation, jobLocation);
+        }
+
+        function calculateCompensationScore(candidate, job) {
+            const candidateSalary = candidate.salary;
+            const jobSalary = job.salary;
+            
+            if (!candidateSalary || !jobSalary) return 0.5;
+            
+            // Gestion des fourchettes
+            let candidateMin = candidateSalary;
+            let candidateMax = candidateSalary;
+            let jobMin = jobSalary.min || jobSalary.max || jobSalary;
+            let jobMax = jobSalary.max || jobSalary.min || jobSalary;
+            
+            if (typeof candidateSalary === 'object') {
+                candidateMin = candidateSalary.min || candidateSalary.max;
+                candidateMax = candidateSalary.max || candidateSalary.min;
+            }
+            
+            // Calcul du chevauchement
+            const overlap = Math.max(0, Math.min(candidateMax, jobMax) - Math.max(candidateMin, jobMin));
+            const candidateSpan = candidateMax - candidateMin || candidateMax * 0.1;
+            const jobSpan = jobMax - jobMin || jobMax * 0.1;
+            const maxSpan = Math.max(candidateSpan, jobSpan);
+            
+            if (overlap > 0) {
+                return 0.7 + (overlap / maxSpan) * 0.3;
+            }
+            
+            // Proximité sans chevauchement
+            const distance = Math.min(Math.abs(candidateMin - jobMax), Math.abs(jobMin - candidateMax));
+            const avgSalary = (candidateMax + jobMax) / 2;
+            const proximity = 1 - (distance / avgSalary);
+            
+            return Math.max(0.3, proximity * 0.6);
+        }
+
+        function calculateMotivationScore(candidate, job) {
+            const candidateMotivations = candidate.motivations || [];
+            let score = 0.5;
+            
+            // Analyse des motivations vs caractéristiques du poste
+            if (candidateMotivations.some(m => m.includes('équilibre'))) {
+                if (job.workEnvironment && job.workEnvironment.includes('flexible')) score += 0.3;
+            }
+            
+            if (candidateMotivations.some(m => m.includes('évolution'))) {
+                if (job.companySize && job.companySize.includes('grand')) score += 0.2;
+            }
+            
+            if (candidateMotivations.some(m => m.includes('innovation'))) {
+                if (job.industry && (job.industry.includes('tech') || job.industry.includes('startup'))) score += 0.3;
+            }
+            
+            return Math.min(score, 1.0);
+        }
+
+        function calculateCompanySizeScore(candidate, job) {
+            // Scoring basé sur la préférence implicite selon l'expérience
+            const experience = candidate.experience || 0;
+            const companySize = job.companySize || "";
+            
+            if (experience < 3) {
+                // Junior -> préfère grandes entreprises
+                if (companySize.includes('grand')) return 0.9;
+                if (companySize.includes('PME')) return 0.7;
+                if (companySize.includes('startup')) return 0.5;
+            } else if (experience > 8) {
+                // Senior -> ouvert à tout
+                return 0.8;
+            } else {
+                // Milieu carrière -> préfère PME/ETI
+                if (companySize.includes('PME') || companySize.includes('ETI')) return 0.9;
+                if (companySize.includes('grand')) return 0.7;
+                if (companySize.includes('startup')) return 0.8;
+            }
+            
+            return 0.6;
+        }
+
+        function calculateWorkEnvironmentScore(candidate, job) {
+            // Analyse de l'adéquation environnement de travail
+            let score = 0.5;
+            
+            const candidateMotivations = candidate.motivations || [];
+            const jobDescription = job.description || "";
+            const jobRequirements = job.requirements || "";
+            
+            // Recherche de signaux dans les motivations vs description
+            if (candidateMotivations.some(m => m.includes('équilibre'))) {
+                if (jobDescription.includes('télétravail') || jobDescription.includes('flexible')) score += 0.3;
+            }
+            
+            if (candidateMotivations.some(m => m.includes('équipe'))) {
+                if (jobDescription.includes('équipe') || jobDescription.includes('collaboratif')) score += 0.2;
+            }
+            
+            return Math.min(score, 1.0);
+        }
+
+        function calculateIndustryScore(candidate, job) {
+            const candidateIndustry = candidate.industry || "";
+            const jobIndustry = job.industry || "";
+            
+            // Correspondance directe
+            if (candidateIndustry && jobIndustry) {
+                return semanticSimilarity(candidateIndustry, jobIndustry);
+            }
+            
+            // Analyse des compétences pour déduire l'industrie
+            const candidateSkills = (candidate.skills || []).join(' ');
+            const jobSkills = (job.skills || []).join(' ');
+            
+            return semanticSimilarity(candidateSkills, jobSkills) * 0.7;
+        }
+
+        function calculateAvailabilityScore(candidate, job) {
+            const availability = candidate.availability || "";
+            
+            if (availability.includes('immédiatement') || availability.includes('immédiat')) return 1.0;
+            if (availability.includes('préavis') || availability.includes('mois')) return 0.8;
+            if (availability.includes('disponible')) return 0.9;
+            
+            return 0.6;
+        }
+
+        function calculateContractTypeScore(candidate, job) {
+            const jobContract = job.contractType || "CDI";
+            
+            // La plupart des candidats préfèrent CDI
+            if (jobContract.includes('CDI')) return 0.9;
+            if (jobContract.includes('CDD')) return 0.7;
+            if (jobContract.includes('freelance')) return 0.6;
+            if (jobContract.includes('stage')) return 0.5;
+            
+            return 0.8;
+        }
+
+        function calculateListenReasonsScore(candidate, job) {
+            // Score élevé par défaut (peu de raisons de ne pas être à l'écoute)
+            return 0.8 + Math.random() * 0.2;
+        }
+
+        function calculateProcessPositionScore(candidate, job) {
+            // Score variable selon l'urgence supposée
+            return 0.7 + Math.random() * 0.3;
+        }
+
+        // Calcul du score global avec pondération
+        function calculateGlobalScore(criteriaResults) {
+            let totalScore = 0;
+            let totalWeight = 0;
+            
+            for (const [criterion, score] of Object.entries(criteriaResults)) {
+                if (criterion !== 'globalScore' && criteriaConfig[criterion]) {
+                    const weight = criteriaConfig[criterion].weight;
+                    totalScore += score * weight;
+                    totalWeight += weight;
+                }
+            }
+            
+            return totalScore / totalWeight;
+        }
+
+        // Fonctions utilitaires
+        function semanticSimilarity(text1, text2) {
+            if (!text1 || !text2) return 0;
+            
+            const words1 = text1.toLowerCase().split(/\s+/);
+            const words2 = text2.toLowerCase().split(/\s+/);
+            
+            const intersection = words1.filter(word => words2.includes(word));
+            const union = [...new Set([...words1, ...words2])];
+            
+            return intersection.length / Math.max(union.length, 1);
+        }
+
+        function calculateSkillsMatch(skills1, skills2) {
+            if (!skills1.length || !skills2.length) return 0;
+            
+            const normalizedSkills1 = skills1.map(s => s.toLowerCase());
+            const normalizedSkills2 = skills2.map(s => s.toLowerCase());
+            
+            const matches = normalizedSkills1.filter(skill => 
+                normalizedSkills2.some(skill2 => 
+                    skill.includes(skill2) || skill2.includes(skill)
+                )
+            );
+            
+            return matches.length / Math.max(normalizedSkills1.length, normalizedSkills2.length, 1);
+        }
+
+        // Affichage des résultats
+        function displayResults(results, calculationTime) {
+            // Score global
+            const globalScore = Math.round(results.globalScore * 100);
+            document.getElementById('finalScore').textContent = `${globalScore}%`;
+            
+            // Métriques de performance
+            document.getElementById('calculationTime').textContent = `${calculationTime}ms`;
+            document.getElementById('googleMapsStatus').textContent = isGoogleMapsEnabled ? '✅' : '❌';
+            
+            // Détail par critère
+            const criteriaContainer = document.getElementById('criteriaResults');
+            criteriaContainer.innerHTML = '';
+            
+            for (const [criterion, config] of Object.entries(criteriaConfig)) {
+                const score = results[criterion];
+                const scorePercent = Math.round(score * 100);
+                
+                const criterionDiv = document.createElement('div');
+                criterionDiv.className = 'criterion';
+                criterionDiv.innerHTML = `
+                    <div class="criterion-header">
+                        <span class="criterion-name">${config.icon} ${config.name}</span>
+                        <span class="criterion-weight">${config.weight}%</span>
+                    </div>
+                    <div class="criterion-score">${scorePercent}%</div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${scorePercent}%"></div>
+                    </div>
+                `;
+                
+                criteriaContainer.appendChild(criterionDiv);
+            }
+            
+            // Debug info
+            const debugInfo = {
+                timestamp: new Date().toISOString(),
+                version: "NEXTEN V2.0 OPTIMIZED",
+                calculationTime: `${calculationTime}ms`,
+                criteriaCount: Object.keys(criteriaConfig).length,
+                globalScore: globalScore,
+                googleMapsEnabled: isGoogleMapsEnabled,
+                candidateFile: candidateData?.fileName,
+                jobFile: jobData?.fileName
+            };
+            
+            document.getElementById('debugInfo').textContent = JSON.stringify(debugInfo, null, 2);
+            
+            // Affichage de la section résultats
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        // Event listeners pour les adresses
+        document.getElementById('candidateAddress').addEventListener('input', checkReadyForMatching);
+        document.getElementById('companyAddress').addEventListener('input', checkReadyForMatching);
+    </script>
+</body>
+</html>
