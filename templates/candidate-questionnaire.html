@@ -25,9 +25,6 @@
     <!-- Outil de test pour l'intégration CV (mode développement) -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/cv-api-tester.js"></script>
     
-    <!-- 🚨 FIX CRITIQUE NAVIGATION - PRIORITÉ ABSOLUE -->
-    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/navigation-fix.js"></script>
-    
     <!-- Chargement automatique de Google Maps API avec clé valide -->
     <script>
         function initGoogleMaps() {
@@ -125,9 +122,6 @@
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-v2-hybrid.css">
 </head>
 <body>
-    <!-- Mode CV Parsing - Bandeaux indicateurs -->
-    <div id="cv-parsing-indicators"></div>
-
     <!-- Notification bar -->
     <div class="notification-bar">
         Votre parcours vers une nouvelle opportunité commence ici : complétez votre questionnaire pour nous permettre de trouver le poste parfait pour vous
@@ -169,6 +163,9 @@
             </div>
         </div>
     </section>
+
+    <!-- Mode CV Parsing - Bandeaux indicateurs -->
+    <div id="cv-parsing-indicators"></div>
 
     <section>
         <div class="container">
@@ -535,6 +532,155 @@
     <!-- Scripts JavaScript -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/candidate-analyzer.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-contract-system.js"></script>
+    
+    <!-- 🚨 NAVIGATION SIMPLIFIÉE ET STABLE -->
+    <script>
+        // Variables globales
+        let currentStep = 1;
+        const totalSteps = 4;
+        
+        // Fonction de navigation simplifiée
+        function goToStep(stepNumber) {
+            console.log(`Navigation vers étape ${stepNumber}`);
+            
+            // Validation simple
+            if (stepNumber > currentStep) {
+                if (!validateCurrentStep()) {
+                    return false;
+                }
+            }
+            
+            // Masquer toutes les étapes
+            document.querySelectorAll('.form-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Masquer tous les indicateurs
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active', 'completed');
+            });
+            
+            // Afficher la nouvelle étape
+            const targetStep = document.getElementById(`form-step${stepNumber}`);
+            const targetIndicator = document.getElementById(`step${stepNumber}`);
+            
+            if (targetStep && targetIndicator) {
+                targetStep.classList.add('active');
+                targetIndicator.classList.add('active');
+                
+                // Marquer les étapes précédentes comme complétées
+                for (let i = 1; i < stepNumber; i++) {
+                    const prevStep = document.getElementById(`step${i}`);
+                    if (prevStep) {
+                        prevStep.classList.add('completed');
+                    }
+                }
+                
+                // Mettre à jour la barre de progression
+                updateProgressBar(stepNumber);
+                
+                currentStep = stepNumber;
+                window.scrollTo(0, 0);
+                
+                return true;
+            }
+            
+            return false;
+        }
+        
+        function validateCurrentStep() {
+            if (currentStep === 1) {
+                const fullName = document.getElementById('full-name').value.trim();
+                const jobTitle = document.getElementById('job-title').value.trim();
+                
+                if (!fullName || !jobTitle) {
+                    alert('Veuillez remplir tous les champs obligatoires');
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        function updateProgressBar(stepNumber) {
+            const progressBar = document.getElementById('stepper-progress');
+            if (progressBar) {
+                const progressPercent = ((stepNumber - 1) / (totalSteps - 1)) * 100;
+                progressBar.style.width = `${progressPercent}%`;
+            }
+        }
+        
+        // Initialisation des événements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation
+            document.getElementById('next-step1')?.addEventListener('click', () => goToStep(2));
+            document.getElementById('next-step2')?.addEventListener('click', () => goToStep(3));
+            document.getElementById('next-step3')?.addEventListener('click', () => goToStep(4));
+            
+            document.getElementById('back-step1')?.addEventListener('click', () => goToStep(1));
+            document.getElementById('back-step2')?.addEventListener('click', () => goToStep(2));
+            document.getElementById('back-step3')?.addEventListener('click', () => goToStep(3));
+            
+            // Indicateurs CV Parsing
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('from') === 'parsing' && urlParams.get('cv_data') === 'available') {
+                createCVIndicators();
+                prefillCVData();
+            }
+            
+            console.log('✅ NEXTEN V2.0 initialisé avec succès');
+        });
+        
+        function createCVIndicators() {
+            const container = document.getElementById('cv-parsing-indicators');
+            if (container) {
+                container.innerHTML = `
+                    <div class="cv-test-indicator">
+                        🔵 MODE TEST CV - Données simulées pour démonstration du parsing CV
+                    </div>
+                    <div class="real-cv-indicator">
+                        🟢 CV PARSÉ AVEC SUCCÈS - Formulaire pré-rempli avec vos données
+                    </div>
+                `;
+            }
+        }
+        
+        function prefillCVData() {
+            const fullNameField = document.getElementById('full-name');
+            const jobTitleField = document.getElementById('job-title');
+            const addressField = document.getElementById('address');
+            
+            if (fullNameField) {
+                fullNameField.value = 'Marie Dubois';
+                addDemoBadge(fullNameField);
+            }
+            
+            if (jobTitleField) {
+                jobTitleField.value = 'Développeuse Full-Stack Senior';
+                addDemoBadge(jobTitleField);
+            }
+            
+            if (addressField) {
+                addressField.value = '15 Rue de la République, 75011 Paris';
+                addDemoBadge(addressField);
+            }
+            
+            // Pré-sélectionner les transports en commun
+            const transportCheckbox = document.querySelector('input[value="public-transport"]');
+            if (transportCheckbox) {
+                transportCheckbox.checked = true;
+            }
+        }
+        
+        function addDemoBadge(field) {
+            const parent = field.parentElement;
+            if (parent && !parent.querySelector('.simulated-data-badge')) {
+                const badge = document.createElement('span');
+                badge.className = 'simulated-data-badge';
+                badge.textContent = 'Demo';
+                parent.appendChild(badge);
+            }
+        }
+    </script>
     
 </body>
 </html>
