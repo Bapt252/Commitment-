@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXTEN V2.0 - Démonstration Pondération Dynamique</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .panel h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .motivation-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .motivation-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .motivation-item:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .motivation-item.selected {
+            border-color: #667eea;
+            background: #ebf4ff;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .score-excellent { background: linear-gradient(135deg, #48bb78, #38a169); }
+        .score-good { background: linear-gradient(135deg, #4299e1, #3182ce); }
+        .score-average { background: linear-gradient(135deg, #ed8936, #dd6b20); }
+        .score-poor { background: linear-gradient(135deg, #f56565, #e53e3e); }
+
+        .comparison-table {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .table-header {
+            font-weight: 600;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .table-cell {
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+
+        .weight-increase { background: #f0fff4; color: #22543d; }
+        .weight-decrease { background: #fff5f5; color: #742a2a; }
+        .weight-unchanged { background: #f7fafc; color: #4a5568; }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .insight-card {
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .insight-strengths {
+            background: #f0fff4;
+            border-color: #48bb78;
+        }
+
+        .insight-improvements {
+            background: #fffaf0;
+            border-color: #ed8936;
+        }
+
+        .insight-recommendations {
+            background: #ebf4ff;
+            border-color: #4299e1;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e2e8f0;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            border: none;
+            background: #f7fafc;
+            color: #4a5568;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-table {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 NEXTEN V2.0</h1>
+            <p>Démonstration du Système de Pondération Dynamique basé sur les Motivations</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Panneau Candidat -->
+            <div class="panel">
+                <h2>👤 Profil Candidat</h2>
+                
+                <div class="form-group">
+                    <label for="candidateName">Nom du candidat</label>
+                    <input type="text" id="candidateName" value="Sophie Martin" placeholder="Nom du candidat">
+                </div>
+
+                <div class="form-group">
+                    <label for="candidateCity">Ville</label>
+                    <input type="text" id="candidateCity" value="Paris" placeholder="Ville de résidence">
+                </div>
+
+                <div class="form-group">
+                    <label for="candidateSalary">Prétentions salariales</label>
+                    <input type="text" id="candidateSalary" value="45000-55000" placeholder="ex: 45000-55000">
+                </div>
+
+                <div class="form-group">
+                    <label>Motivations (classées par ordre de priorité)</label>
+                    <div class="motivation-selector" id="motivationSelector">
+                        <div class="motivation-item" data-motivation="remuneration">
+                            <span class="priority-number">1</span>
+                            <span>💰 Rémunération</span>
+                        </div>
+                        <div class="motivation-item" data-motivation="localisation">
+                            <span class="priority-number">2</span>
+                            <span>📍 Localisation</span>
+                        </div>
+                        <div class="motivation-item" data-motivation="flexibilite">
+                            <span class="priority-number">3</span>
+                            <span>🏠 Flexibilité</span>
+                        </div>
+                        <div class="motivation-item" data-motivation="perspectives_evolution">
+                            <span class="priority-number"></span>
+                            <span>📈 Perspectives d'évolution</span>
+                        </div>
+                        <div class="motivation-item" data-motivation="autre">
+                            <span class="priority-number"></span>
+                            <span>🎯 Autre</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panneau Offre -->
+            <div class="panel">
+                <h2>💼 Offre d'Emploi</h2>
+                
+                <div class="form-group">
+                    <label for="jobTitle">Titre du poste</label>
+                    <input type="text" id="jobTitle" value="Développeur Frontend Senior" placeholder="Titre du poste">
+                </div>
+
+                <div class="form-group">
+                    <label for="jobCity">Localisation</label>
+                    <input type="text" id="jobCity" value="Paris" placeholder="Ville du poste">
+                </div>
+
+                <div class="form-group">
+                    <label for="jobSalary">Fourchette salariale</label>
+                    <input type="text" id="jobSalary" value="50000-60000" placeholder="ex: 50000-60000">
+                </div>
+
+                <div class="form-group">
+                    <label for="jobWorkMode">Mode de travail</label>
+                    <select id="jobWorkMode">
+                        <option value="Hybride">Hybride</option>
+                        <option value="Présentiel">Présentiel</option>
+                        <option value="Remote">Remote</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="companySize">Taille de l'entreprise</label>
+                    <select id="companySize">
+                        <option value="Start-up">Start-up (&lt;50)</option>
+                        <option value="PME" selected>PME (50-250)</option>
+                        <option value="ETI">ETI (250-5000)</option>
+                        <option value="Grand groupe">Grand groupe (&gt;5000)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div style="text-align: center; margin-bottom: 30px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="calculateMatching()">
+                🎯 Calculer le Matching avec Pondération Dynamique
+            </button>
+            <button class="btn btn-secondary" onclick="runTests()">
+                🧪 Exécuter les Tests
+            </button>
+            <button class="btn btn-secondary" onclick="showDiagnostic()">
+                🔧 Diagnostic Système
+            </button>
+        </div>
+
+        <!-- Section Résultats -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('results')">📊 Résultats</button>
+                <button class="tab" onclick="showTab('weighting')">⚖️ Pondération</button>
+                <button class="tab" onclick="showTab('analysis')">🔍 Analyse</button>
+            </div>
+
+            <!-- Onglet Résultats -->
+            <div class="tab-content active" id="results-tab">
+                <div class="score-display">
+                    <div class="score-circle" id="scoreCircle">0%</div>
+                    <h3 id="scoreLabel">Score de Matching</h3>
+                    <p id="scoreDescription">Calcul en cours...</p>
+                </div>
+
+                <div class="insights-grid">
+                    <div class="insight-card insight-strengths">
+                        <h4>💪 Forces détectées</h4>
+                        <div id="strengthsList">-</div>
+                    </div>
+                    <div class="insight-card insight-improvements">
+                        <h4>🔍 Points d'amélioration</h4>
+                        <div id="improvementsList">-</div>
+                    </div>
+                    <div class="insight-card insight-recommendations">
+                        <h4>🎯 Recommandations</h4>
+                        <div id="recommendationsList">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Pondération -->
+            <div class="tab-content" id="weighting-tab">
+                <h3>⚖️ Comparaison des Pondérations</h3>
+                <div id="weightingComparison">
+                    <div class="comparison-table" id="weightingTable">
+                        <!-- Contenu généré dynamiquement -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Analyse -->
+            <div class="tab-content" id="analysis-tab">
+                <h3>🔍 Analyse Détaillée</h3>
+                <div id="detailedAnalysis">
+                    <!-- Contenu généré dynamiquement -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Tests -->
+        <div class="results-section" id="testsSection" style="display: none;">
+            <h2>🧪 Résultats des Tests</h2>
+            <div id="testsResults">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>Exécution des tests en cours...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Diagnostic -->
+        <div class="results-section" id="diagnosticSection" style="display: none;">
+            <h2>🔧 Diagnostic Système</h2>
+            <div id="diagnosticResults">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>Diagnostic en cours...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chargement des scripts -->
+    <script src="../nexten-v2-unified-system-updated.js"></script>
+    <script src="../dynamic-weighting-system.js"></script>
+    <script src="../nexten-v2-with-dynamic-weighting.js"></script>
+    <script src="../../tests/dynamic-weighting-tests.js"></script>
+
+    <script>
+        // État global
+        let currentMotivations = ['remuneration', 'localisation', 'flexibilite'];
+        let nextenV2System = null;
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Initialisation de la démonstration NEXTEN V2.0...');
+            
+            try {
+                // Initialisation du système
+                nextenV2System = new NextenV2WithDynamicWeighting();
+                console.log('✅ Système NEXTEN V2.0 avec pondération dynamique initialisé');
+                
+                // Configuration des motivations
+                setupMotivationSelector();
+                
+            } catch (error) {
+                console.error('❌ Erreur d\'initialisation:', error);
+                alert('Erreur d\'initialisation du système. Vérifiez que tous les fichiers sont chargés.');
+            }
+        });
+
+        // Configuration du sélecteur de motivations
+        function setupMotivationSelector() {
+            const motivationItems = document.querySelectorAll('.motivation-item');
+            
+            motivationItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const motivation = this.dataset.motivation;
+                    toggleMotivation(motivation, this);
+                });
+            });
+            
+            // Sélection initiale
+            updateMotivationDisplay();
+        }
+
+        // Toggle motivation
+        function toggleMotivation(motivation, element) {
+            const index = currentMotivations.indexOf(motivation);
+            
+            if (index === -1 && currentMotivations.length < 3) {
+                // Ajouter la motivation
+                currentMotivations.push(motivation);
+            } else if (index !== -1) {
+                // Retirer la motivation
+                currentMotivations.splice(index, 1);
+            }
+            
+            updateMotivationDisplay();
+        }
+
+        // Mise à jour de l'affichage des motivations
+        function updateMotivationDisplay() {
+            const motivationItems = document.querySelectorAll('.motivation-item');
+            
+            motivationItems.forEach(item => {
+                const motivation = item.dataset.motivation;
+                const priorityElement = item.querySelector('.priority-number');
+                const index = currentMotivations.indexOf(motivation);
+                
+                if (index !== -1) {
+                    item.classList.add('selected');
+                    priorityElement.textContent = index + 1;
+                } else {
+                    item.classList.remove('selected');
+                    priorityElement.textContent = '';
+                }
+            });
+        }
+
+        // Calcul du matching principal
+        async function calculateMatching() {
+            console.log('🎯 Calcul du matching avec pondération dynamique...');
+            
+            try {
+                // Affichage de la section résultats
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('testsSection').style.display = 'none';
+                document.getElementById('diagnosticSection').style.display = 'none';
+                
+                // Préparation des données
+                const candidateData = {
+                    id: 'demo_candidate',
+                    nom: document.getElementById('candidateName').value,
+                    ville: document.getElementById('candidateCity').value,
+                    pretentions_salariales: document.getElementById('candidateSalary').value,
+                    motivations: [...currentMotivations]
+                };
+
+                const jobData = {
+                    id: 'demo_job',
+                    title: document.getElementById('jobTitle').value,
+                    ville: document.getElementById('jobCity').value,
+                    fourchette_salariale: document.getElementById('jobSalary').value,
+                    mode_travail: document.getElementById('jobWorkMode').value
+                };
+
+                const companyData = {
+                    taille: document.getElementById('companySize').value
+                };
+
+                console.log('📊 Données candidat:', candidateData);
+                console.log('💼 Données poste:', jobData);
+
+                // Simulation du calcul (car les modules de critères ne sont pas tous disponibles)
+                const result = await simulateMatchingCalculation(candidateData, jobData, companyData);
+                
+                // Affichage des résultats
+                displayResults(result);
+                
+            } catch (error) {
+                console.error('❌ Erreur calcul matching:', error);
+                alert('Erreur lors du calcul. Vérifiez les données saisies.');
+            }
+        }
+
+        // Simulation du calcul (remplace le calcul réel)
+        async function simulateMatchingCalculation(candidateData, jobData, companyData) {
+            console.log('🎭 Mode simulation - calcul matching...');
+            
+            // Simulation de la pondération dynamique
+            const dynamicWeighting = nextenV2System.dynamicWeightingSystem.calculateDynamicWeights(candidateData.motivations);
+            
+            // Simulation des scores par critères
+            const baseScore = 0.78; // Score de base simulé
+            let adjustedScore = baseScore;
+            
+            // Ajustement du score selon la pondération dynamique
+            if (dynamicWeighting.isAdjusted) {
+                // Simulation d'amélioration du score grâce aux motivations alignées
+                const motivationBonus = dynamicWeighting.adjustments.length * 0.02; // +2% par ajustement
+                adjustedScore = Math.min(baseScore + motivationBonus, 0.95);
+            }
+
+            // Construction du résultat simulé
+            const result = {
+                finalScore: adjustedScore,
+                version: '2.0',
+                qualityLevel: adjustedScore >= 0.85 ? 'excellent' : adjustedScore >= 0.70 ? 'good' : 'average',
+                dynamicWeighting: {
+                    applied: dynamicWeighting.isAdjusted,
+                    candidateMotivations: candidateData.motivations,
+                    adjustmentsSummary: dynamicWeighting.summary,
+                    adjustmentsDetail: dynamicWeighting.adjustments,
+                    weightComparison: generateWeightComparison(dynamicWeighting)
+                },
+                insights: generateSimulatedInsights(adjustedScore, dynamicWeighting),
+                criteriaBreakdown: generateSimulatedBreakdown(dynamicWeighting.weights)
+            };
+
+            console.log('✅ Résultat simulé généré:', result);
+            return result;
+        }
+
+        // Génération de la comparaison des poids
+        function generateWeightComparison(dynamicWeighting) {
+            const comparison = { changes: {} };
+            const baseWeights = nextenV2System.dynamicWeightingSystem.baseWeights;
+            
+            Object.keys(baseWeights).forEach(criterion => {
+                const originalWeight = baseWeights[criterion];
+                const adjustedWeight = dynamicWeighting.weights[criterion];
+                const change = adjustedWeight - originalWeight;
+                
+                comparison.changes[criterion] = {
+                    original: Math.round(originalWeight * 100) + '%',
+                    adjusted: Math.round(adjustedWeight * 100) + '%',
+                    change: (change >= 0 ? '+' : '') + Math.round(change * 100) + '%',
+                    direction: change > 0.005 ? 'increased' : (change < -0.005 ? 'decreased' : 'unchanged')
+                };
+            });
+            
+            return comparison;
+        }
+
+        // Génération des insights simulés
+        function generateSimulatedInsights(score, dynamicWeighting) {
+            const insights = {
+                strengths: [],
+                improvements: [],
+                recommendations: []
+            };
+
+            // Forces
+            if (dynamicWeighting.isAdjusted) {
+                insights.strengths.push('Motivations candidat bien alignées avec l\'opportunité');
+                insights.strengths.push('Profil adaptatif grâce à la pondération dynamique');
+            }
+            
+            if (score >= 0.80) {
+                insights.strengths.push('Excellent alignement global du profil');
+            }
+
+            // Améliorations
+            if (score < 0.85) {
+                insights.improvements.push('Approfondir certains critères lors de l\'entretien');
+            }
+            
+            if (!dynamicWeighting.isAdjusted) {
+                insights.improvements.push('Préciser les motivations prioritaires du candidat');
+            }
+
+            // Recommandations
+            if (score >= 0.85) {
+                insights.recommendations.push('Programmer un entretien rapidement');
+                insights.recommendations.push('Préparer une proposition attractive');
+            } else if (score >= 0.70) {
+                insights.recommendations.push('Entretien approfondi recommandé');
+                insights.recommendations.push('Explorer les points d\'amélioration');
+            } else {
+                insights.recommendations.push('Évaluation complémentaire nécessaire');
+            }
+
+            return insights;
+        }
+
+        // Génération du breakdown simulé
+        function generateSimulatedBreakdown(weights) {
+            const breakdown = { criteria: {} };
+            
+            Object.entries(weights).forEach(([criterion, weight]) => {
+                // Simulation de scores variables selon les critères
+                let simulatedScore = 0.75; // Score de base
+                
+                // Ajustement selon le critère
+                if (criterion === 'compensation') simulatedScore = 0.82;
+                if (criterion === 'location') simulatedScore = 0.88;
+                if (criterion === 'workEnvironment') simulatedScore = 0.79;
+                if (criterion === 'semantic') simulatedScore = 0.73;
+                
+                breakdown.criteria[criterion] = {
+                    score: simulatedScore,
+                    weight: weight,
+                    percentage: Math.round(simulatedScore * 100),
+                    level: simulatedScore >= 0.85 ? 'excellent' : simulatedScore >= 0.70 ? 'good' : 'average'
+                };
+            });
+            
+            return breakdown;
+        }
+
+        // Affichage des résultats
+        function displayResults(result) {
+            console.log('📊 Affichage des résultats...');
+            
+            // Score principal
+            const scoreCircle = document.getElementById('scoreCircle');
+            const scoreLabel = document.getElementById('scoreLabel');
+            const scoreDescription = document.getElementById('scoreDescription');
+            
+            const scorePercentage = Math.round(result.finalScore * 100);
+            scoreCircle.textContent = scorePercentage + '%';
+            scoreCircle.className = 'score-circle score-' + result.qualityLevel;
+            
+            scoreLabel.textContent = `Score de Matching ${result.dynamicWeighting.applied ? '(Pondération Dynamique)' : ''}`;
+            scoreDescription.textContent = getScoreDescription(result.qualityLevel, result.dynamicWeighting.applied);
+
+            // Insights
+            displayInsights(result.insights);
+            
+            // Pondération
+            displayWeightingComparison(result.dynamicWeighting.weightComparison);
+            
+            // Analyse détaillée
+            displayDetailedAnalysis(result);
+        }
+
+        // Description du score
+        function getScoreDescription(quality, dynamicApplied) {
+            const descriptions = {
+                excellent: 'Excellent match candidat-poste',
+                good: 'Bon match avec quelques points d\'attention',
+                average: 'Match moyen nécessitant approfondissement',
+                poor: 'Match faible - évaluation complémentaire requise'
+            };
+            
+            let desc = descriptions[quality] || 'Match à évaluer';
+            if (dynamicApplied) {
+                desc += ' • Pondération personnalisée appliquée';
+            }
+            
+            return desc;
+        }
+
+        // Affichage des insights
+        function displayInsights(insights) {
+            // Forces
+            const strengthsList = document.getElementById('strengthsList');
+            strengthsList.innerHTML = insights.strengths.length > 0 ? 
+                insights.strengths.map(s => `• ${s}`).join('<br>') : 
+                'Aucune force particulière détectée';
+
+            // Améliorations
+            const improvementsList = document.getElementById('improvementsList');
+            improvementsList.innerHTML = insights.improvements.length > 0 ? 
+                insights.improvements.map(i => `• ${i}`).join('<br>') : 
+                'Aucun point d\'amélioration identifié';
+
+            // Recommandations
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = insights.recommendations.length > 0 ? 
+                insights.recommendations.map(r => `• ${r}`).join('<br>') : 
+                'Aucune recommandation spécifique';
+        }
+
+        // Affichage de la comparaison des pondérations
+        function displayWeightingComparison(weightComparison) {
+            const weightingTable = document.getElementById('weightingTable');
+            
+            let html = `
+                <div class="table-header">Critère</div>
+                <div class="table-header">Original</div>
+                <div class="table-header">Ajusté</div>
+                <div class="table-header">Changement</div>
+            `;
+            
+            Object.entries(weightComparison.changes).forEach(([criterion, change]) => {
+                const criterionName = getCriterionDisplayName(criterion);
+                const directionClass = 'weight-' + change.direction;
+                
+                html += `
+                    <div class="table-cell">${criterionName}</div>
+                    <div class="table-cell">${change.original}</div>
+                    <div class="table-cell ${directionClass}">${change.adjusted}</div>
+                    <div class="table-cell ${directionClass}">${change.change}</div>
+                `;
+            });
+            
+            weightingTable.innerHTML = html;
+        }
+
+        // Noms d'affichage des critères
+        function getCriterionDisplayName(criterion) {
+            const names = {
+                semantic: 'Sémantique',
+                compensation: 'Rémunération',
+                location: 'Géolocalisation', 
+                motivation: 'Motivations',
+                companySize: 'Taille Entreprise',
+                workEnvironment: 'Environnement',
+                industry: 'Secteur',
+                availability: 'Disponibilité',
+                contractType: 'Type Contrat',
+                listenReasons: 'Anti-patterns',
+                processPosition: 'Processus'
+            };
+            return names[criterion] || criterion;
+        }
+
+        // Affichage de l'analyse détaillée
+        function displayDetailedAnalysis(result) {
+            const detailedAnalysis = document.getElementById('detailedAnalysis');
+            
+            let html = '<div class="insights-grid">';
+            
+            // Analyse pondération dynamique
+            if (result.dynamicWeighting.applied) {
+                html += `
+                    <div class="insight-card insight-strengths">
+                        <h4>🎯 Pondération Dynamique</h4>
+                        <p><strong>Motivations prises en compte:</strong></p>
+                        <ul>
+                            ${result.dynamicWeighting.candidateMotivations.map((m, i) => 
+                                `<li>#${i+1}: ${getMotivationDisplayName(m)}</li>`
+                            ).join('')}
+                        </ul>
+                        <p><strong>Ajustements appliqués:</strong> ${result.dynamicWeighting.adjustmentsDetail.length}</p>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="insight-card insight-improvements">
+                        <h4>⚖️ Pondération Standard</h4>
+                        <p>Aucune motivation détectée ou aucun ajustement nécessaire.</p>
+                        <p>Utilisation des pondérations standard de NEXTEN V2.0.</p>
+                    </div>
+                `;
+            }
+            
+            // Breakdown des critères (top 5)
+            if (result.criteriaBreakdown && result.criteriaBreakdown.criteria) {
+                const topCriteria = Object.entries(result.criteriaBreakdown.criteria)
+                    .sort(([,a], [,b]) => b.score - a.score)
+                    .slice(0, 5);
+                
+                html += `
+                    <div class="insight-card insight-recommendations">
+                        <h4>🏆 Top 5 Critères</h4>
+                        ${topCriteria.map(([criterion, data]) => `
+                            <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                <span>${getCriterionDisplayName(criterion)}</span>
+                                <strong>${data.percentage}%</strong>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            detailedAnalysis.innerHTML = html;
+        }
+
+        // Noms d'affichage des motivations
+        function getMotivationDisplayName(motivation) {
+            const names = {
+                remuneration: 'Rémunération',
+                localisation: 'Localisation',
+                flexibilite: 'Flexibilité',
+                perspectives_evolution: 'Perspectives d\'évolution',
+                autre: 'Autre'
+            };
+            return names[motivation] || motivation;
+        }
+
+        // Gestion des onglets
+        function showTab(tabName) {
+            // Cacher tous les onglets
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Afficher l'onglet sélectionné
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Exécution des tests
+        async function runTests() {
+            console.log('🧪 Lancement des tests...');
+            
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('testsSection').style.display = 'block';
+            document.getElementById('diagnosticSection').style.display = 'none';
+            
+            try {
+                const testResults = await runDynamicWeightingTests();
+                displayTestResults(testResults);
+            } catch (error) {
+                console.error('❌ Erreur tests:', error);
+                document.getElementById('testsResults').innerHTML = `
+                    <div style="color: red;">
+                        <h3>❌ Erreur lors des tests</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Affichage des résultats de tests
+        function displayTestResults(results) {
+            const testsResults = document.getElementById('testsResults');
+            
+            const statusIcon = results.status === 'READY' ? '✅' : 
+                             results.status === 'WARNING' ? '⚠️' : '❌';
+            
+            testsResults.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 3em; margin-bottom: 10px;">${statusIcon}</div>
+                    <h3>Résultats des Tests</h3>
+                    <p>${results.successRate}% de réussite (${results.passedTests}/${results.totalTests})</p>
+                </div>
+                
+                <div class="insights-grid">
+                    <div class="insight-card insight-strengths">
+                        <h4>📊 Statistiques</h4>
+                        <p><strong>Tests réussis:</strong> ${results.passedTests}</p>
+                        <p><strong>Tests échoués:</strong> ${results.failedTests}</p>
+                        <p><strong>Temps total:</strong> ${results.totalTime}ms</p>
+                    </div>
+                    
+                    <div class="insight-card insight-recommendations">
+                        <h4>⚡ Performance</h4>
+                        ${Object.entries(results.performanceMetrics || {}).map(([metric, value]) => 
+                            `<p><strong>${metric}:</strong> ${value.toFixed(2)}ms</p>`
+                        ).join('')}
+                    </div>
+                    
+                    <div class="insight-card ${results.status === 'READY' ? 'insight-strengths' : 'insight-improvements'}">
+                        <h4>🎯 Statut</h4>
+                        <p><strong>${results.status === 'READY' ? 'Système opérationnel' : 
+                                     results.status === 'WARNING' ? 'Points d\'attention' : 
+                                     'Corrections nécessaires'}</strong></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Affichage du diagnostic
+        async function showDiagnostic() {
+            console.log('🔧 Diagnostic système...');
+            
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('testsSection').style.display = 'none';
+            document.getElementById('diagnosticSection').style.display = 'block';
+            
+            try {
+                const diagnostic = nextenV2System.diagnosticDynamicWeighting();
+                displayDiagnostic(diagnostic);
+            } catch (error) {
+                console.error('❌ Erreur diagnostic:', error);
+                document.getElementById('diagnosticResults').innerHTML = `
+                    <div style="color: red;">
+                        <h3>❌ Erreur diagnostic</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Affichage du diagnostic
+        function displayDiagnostic(diagnostic) {
+            const diagnosticResults = document.getElementById('diagnosticResults');
+            
+            const statusColor = diagnostic.systemStatus === 'operational' ? 'green' : 'orange';
+            
+            diagnosticResults.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 3em; margin-bottom: 10px;">🔧</div>
+                    <h3>Diagnostic Système</h3>
+                    <p style="color: ${statusColor}; font-weight: bold;">
+                        Statut: ${diagnostic.systemStatus.toUpperCase()}
+                    </p>
+                </div>
+                
+                <div class="insights-grid">
+                    <div class="insight-card ${diagnostic.baseWeightsValid ? 'insight-strengths' : 'insight-improvements'}">
+                        <h4>⚖️ Poids de Base</h4>
+                        <p><strong>Statut:</strong> ${diagnostic.baseWeightsValid ? 'Valides' : 'Problème détecté'}</p>
+                        ${diagnostic.baseWeightsValid ? 
+                            '<p>Pondérations normalisées à 100%</p>' : 
+                            '<p>Vérifier la normalisation des poids</p>'}
+                    </div>
+                    
+                    <div class="insight-card ${diagnostic.mappingComplete ? 'insight-strengths' : 'insight-improvements'}">
+                        <h4>🗺️ Mapping Motivations</h4>
+                        <p><strong>Statut:</strong> ${diagnostic.mappingComplete ? 'Complet' : 'Incomplet'}</p>
+                        ${diagnostic.mappingComplete ? 
+                            '<p>Tous les critères sont mappés</p>' : 
+                            '<p>Certains critères non mappés</p>'}
+                    </div>
+                    
+                    <div class="insight-card insight-recommendations">
+                        <h4>📋 Recommandations</h4>
+                        ${diagnostic.recommendations.map(rec => `<p>• ${rec}</p>`).join('')}
+                        ${diagnostic.issues.length > 0 ? 
+                            '<hr><h5>Problèmes détectés:</h5>' + diagnostic.issues.map(issue => `<p style="color: orange;">⚠️ ${issue}</p>`).join('') : 
+                            ''}
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
