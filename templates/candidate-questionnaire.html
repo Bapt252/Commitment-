@@ -61,7 +61,7 @@
       }
     </style>
     
-    <!-- Styles spécifiques au questionnaire avec Contract Type Enhancement -->
+    <!-- Styles spécifiques au questionnaire avec Contract Type Ranking Enhancement -->
     <style>
         /* Variables CSS globales */
         :root {
@@ -386,7 +386,7 @@
             transform: rotate(45deg);
         }
 
-        /* 💼 STYLES POUR LA QUESTION TYPE DE CONTRAT SOPHISTIQUÉE - NEXTEN V2.0 ENHANCED */
+        /* 💼 STYLES POUR LE SYSTÈME DE RANKING DES TYPES DE CONTRATS - NEXTEN V2.0 ENHANCED */
         .contract-type-container {
             background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(168, 85, 247, 0.02));
             border: 2px solid rgba(124, 58, 237, 0.2);
@@ -420,6 +420,260 @@
             line-height: 1.5;
         }
 
+        /* MODE SELECTOR */
+        .selection-mode-toggle {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(59, 130, 246, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .mode-toggle-header {
+            font-weight: 600;
+            color: var(--blue);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--cream-dark);
+            background: var(--white);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--blue);
+            transform: translateY(-1px);
+        }
+
+        .toggle-btn.active {
+            background: var(--blue);
+            color: var(--white);
+            border-color: var(--blue);
+        }
+
+        /* MODE RANKING */
+        .ranking-description {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            color: var(--green);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contract-types-ranking {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .available-contracts h4,
+        .ranking-list-container h4 {
+            color: var(--purple);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .available-contract-item {
+            display: flex;
+            align-items: center;
+            background: var(--white);
+            border: 2px solid var(--cream-dark);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .available-contract-item:hover {
+            border-color: var(--purple);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+        }
+
+        .available-contract-item.selected {
+            opacity: 0.5;
+            border-color: var(--gray-light);
+        }
+
+        .contract-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2rem;
+            color: var(--white);
+        }
+
+        .cdi-icon { background: linear-gradient(135deg, var(--green), #059669); }
+        .cdd-icon { background: linear-gradient(135deg, var(--blue), #2563eb); }
+        .freelance-icon { background: linear-gradient(135deg, var(--orange), #d97706); }
+        .interim-icon { background: linear-gradient(135deg, #8b5cf6, var(--purple)); }
+
+        .contract-info {
+            flex: 1;
+        }
+
+        .contract-name {
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 4px;
+        }
+
+        .contract-desc {
+            font-size: 0.85rem;
+            color: var(--gray);
+            line-height: 1.4;
+        }
+
+        .add-contract-btn {
+            background: var(--purple);
+            color: var(--white);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .add-contract-btn:hover {
+            background: var(--purple-dark);
+            transform: translateY(-1px);
+        }
+
+        .add-contract-btn:disabled {
+            background: var(--gray-light);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* LISTE DE RANKING */
+        .ranking-list {
+            min-height: 200px;
+            background: var(--cream);
+            border: 2px dashed var(--cream-dark);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .ranking-placeholder {
+            text-align: center;
+            color: var(--gray);
+            font-style: italic;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            background: var(--white);
+            border: 2px solid var(--purple);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+            position: relative;
+        }
+
+        .ranking-position {
+            background: var(--purple);
+            color: var(--white);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 15px;
+            font-size: 0.9rem;
+        }
+
+        .ranking-item .contract-info {
+            flex: 1;
+        }
+
+        .ranking-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-left: 10px;
+        }
+
+        .ranking-btn {
+            background: var(--cream-dark);
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        .ranking-btn:hover {
+            background: var(--purple);
+            color: var(--white);
+        }
+
+        .ranking-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .remove-btn {
+            background: var(--red);
+            color: var(--white);
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+
+        /* LEGACY MODE STYLES */
         .contract-types-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -455,19 +709,6 @@
             position: absolute;
             opacity: 0;
             cursor: pointer;
-        }
-
-        .contract-type-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-size: 1.2rem;
-            color: var(--white);
-            transition: all 0.3s ease;
         }
 
         .contract-type-option[data-type="cdi"] .contract-type-icon {
@@ -863,6 +1104,10 @@
         }
         
         @media (max-width: 768px) {
+            .contract-types-ranking {
+                grid-template-columns: 1fr;
+            }
+
             .contract-types-grid {
                 grid-template-columns: 1fr;
             }
@@ -873,6 +1118,10 @@
             
             .preference-tag {
                 text-align: center;
+            }
+
+            .toggle-buttons {
+                flex-direction: column;
             }
             
             .stepper {
@@ -1006,7 +1255,7 @@
                         </div>
                     </div>
                     
-                    <!-- ÉTAPE 2 : MOBILITÉ ET PRÉFÉRENCES (AVEC CONTRACT TYPE ENHANCEMENT) -->
+                    <!-- ÉTAPE 2 : MOBILITÉ ET PRÉFÉRENCES (AVEC CONTRACT TYPE RANKING ENHANCEMENT) -->
                     <div class="form-step" id="form-step2">
                         <h2 class="form-section-title">Mobilité et préférences</h2>
                         
@@ -1050,7 +1299,7 @@
                             <small class="text-muted">Nous utiliserons cette adresse pour calculer le temps de trajet vers les entreprises</small>
                         </div>
 
-                        <!-- 💼 QUESTION SOPHISTIQUÉE SUR LE TYPE DE CONTRAT - NEXTEN V2.0 ENHANCED -->
+                        <!-- 💼 QUESTION SOPHISTIQUÉE SUR LE TYPE DE CONTRAT AVEC RANKING - NEXTEN V2.0 ENHANCED -->
                         <div class="form-group">
                             <div class="contract-type-container">
                                 <div class="contract-type-title">
@@ -1058,77 +1307,172 @@
                                     5) Quel(s) type(s) de contrat recherchez-vous ?
                                 </div>
                                 <div class="contract-type-description">
-                                    Sélectionnez tous les types de contrats qui vous intéressent, puis précisez votre niveau de préférence pour chacun.
+                                    Sélectionnez et <strong>classez par ordre de préférence</strong> les types de contrats qui vous intéressent.
                                 </div>
 
-                                <div class="contract-types-grid">
-                                    <!-- CDI -->
-                                    <div class="contract-type-option" data-type="cdi">
-                                        <input type="checkbox" name="contract-types" value="cdi" class="contract-type-checkbox" id="contract-cdi">
-                                        <div class="contract-type-icon">
-                                            <i class="fas fa-shield-alt"></i>
-                                        </div>
-                                        <div class="contract-type-content">
-                                            <div class="contract-type-name">CDI (Contrat à Durée Indéterminée)</div>
-                                            <div class="contract-type-desc">Stabilité et sécurité d'emploi, évolution de carrière</div>
-                                        </div>
+                                <!-- MODE DE SÉLECTION -->
+                                <div class="selection-mode-toggle">
+                                    <div class="mode-toggle-header">
+                                        <i class="fas fa-cog"></i> Mode de sélection :
                                     </div>
-
-                                    <!-- CDD -->
-                                    <div class="contract-type-option" data-type="cdd">
-                                        <input type="checkbox" name="contract-types" value="cdd" class="contract-type-checkbox" id="contract-cdd">
-                                        <div class="contract-type-icon">
-                                            <i class="fas fa-calendar-alt"></i>
-                                        </div>
-                                        <div class="contract-type-content">
-                                            <div class="contract-type-name">CDD (Contrat à Durée Déterminée)</div>
-                                            <div class="contract-type-desc">Missions courtes, projets spécifiques, flexibilité</div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Freelance -->
-                                    <div class="contract-type-option" data-type="freelance">
-                                        <input type="checkbox" name="contract-types" value="freelance" class="contract-type-checkbox" id="contract-freelance">
-                                        <div class="contract-type-icon">
-                                            <i class="fas fa-laptop-code"></i>
-                                        </div>
-                                        <div class="contract-type-content">
-                                            <div class="contract-type-name">Freelance / Consulting</div>
-                                            <div class="contract-type-desc">Indépendance totale, choix des missions, tarifs libres</div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Interim -->
-                                    <div class="contract-type-option" data-type="interim">
-                                        <input type="checkbox" name="contract-types" value="interim" class="contract-type-checkbox" id="contract-interim">
-                                        <div class="contract-type-icon">
-                                            <i class="fas fa-users-cog"></i>
-                                        </div>
-                                        <div class="contract-type-content">
-                                            <div class="contract-type-name">Intérim</div>
-                                            <div class="contract-type-desc">Missions temporaires, découverte d'entreprises, polyvalence</div>
-                                        </div>
+                                    <div class="toggle-buttons">
+                                        <button type="button" class="toggle-btn active" data-mode="ranking" id="ranking-mode">
+                                            <i class="fas fa-sort-numeric-down"></i> Classement par préférence
+                                        </button>
+                                        <button type="button" class="toggle-btn" data-mode="level" id="level-mode">
+                                            <i class="fas fa-star"></i> Niveau de préférence global
+                                        </button>
                                     </div>
                                 </div>
 
-                                <!-- Sélecteur de préférence -->
-                                <div class="contract-preference-selector" id="contract-preference-selector" style="display: none;">
-                                    <div class="preference-title">
-                                        <i class="fas fa-star"></i>
-                                        Précisez votre niveau de préférence :
+                                <!-- MODE RANKING (par défaut) -->
+                                <div class="ranking-mode-container" id="ranking-container">
+                                    <div class="ranking-description">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Instructions :</strong> Cliquez sur les types de contrats qui vous intéressent, puis utilisez les flèches pour les classer par ordre de préférence.
                                     </div>
-                                    <div class="preference-options">
-                                        <div class="preference-tag exclusive" data-level="exclusive">
-                                            <i class="fas fa-lock"></i> Exclusivement ce type
+
+                                    <div class="contract-types-ranking">
+                                        <!-- Types disponibles -->
+                                        <div class="available-contracts">
+                                            <h4><i class="fas fa-list"></i> Types de contrats disponibles :</h4>
+                                            <div class="available-contract-item" data-type="cdi" data-name="CDI">
+                                                <div class="contract-icon cdi-icon">
+                                                    <i class="fas fa-shield-alt"></i>
+                                                </div>
+                                                <div class="contract-info">
+                                                    <div class="contract-name">CDI (Contrat à Durée Indéterminée)</div>
+                                                    <div class="contract-desc">Stabilité et sécurité d'emploi, évolution de carrière</div>
+                                                </div>
+                                                <button type="button" class="add-contract-btn" onclick="addToRanking('cdi')">
+                                                    <i class="fas fa-plus"></i> Ajouter
+                                                </button>
+                                            </div>
+
+                                            <div class="available-contract-item" data-type="cdd" data-name="CDD">
+                                                <div class="contract-icon cdd-icon">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="contract-info">
+                                                    <div class="contract-name">CDD (Contrat à Durée Déterminée)</div>
+                                                    <div class="contract-desc">Missions courtes, projets spécifiques, flexibilité</div>
+                                                </div>
+                                                <button type="button" class="add-contract-btn" onclick="addToRanking('cdd')">
+                                                    <i class="fas fa-plus"></i> Ajouter
+                                                </button>
+                                            </div>
+
+                                            <div class="available-contract-item" data-type="freelance" data-name="Freelance">
+                                                <div class="contract-icon freelance-icon">
+                                                    <i class="fas fa-laptop-code"></i>
+                                                </div>
+                                                <div class="contract-info">
+                                                    <div class="contract-name">Freelance / Consulting</div>
+                                                    <div class="contract-desc">Indépendance totale, choix des missions, tarifs libres</div>
+                                                </div>
+                                                <button type="button" class="add-contract-btn" onclick="addToRanking('freelance')">
+                                                    <i class="fas fa-plus"></i> Ajouter
+                                                </button>
+                                            </div>
+
+                                            <div class="available-contract-item" data-type="interim" data-name="Intérim">
+                                                <div class="contract-icon interim-icon">
+                                                    <i class="fas fa-users-cog"></i>
+                                                </div>
+                                                <div class="contract-info">
+                                                    <div class="contract-name">Intérim</div>
+                                                    <div class="contract-desc">Missions temporaires, découverte d'entreprises, polyvalence</div>
+                                                </div>
+                                                <button type="button" class="add-contract-btn" onclick="addToRanking('interim')">
+                                                    <i class="fas fa-plus"></i> Ajouter
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="preference-tag preferred" data-level="preferred">
-                                            <i class="fas fa-heart"></i> Forte préférence
+
+                                        <!-- Liste de classement -->
+                                        <div class="ranking-list-container">
+                                            <h4><i class="fas fa-trophy"></i> Votre classement par préférence :</h4>
+                                            <div class="ranking-list" id="ranking-list">
+                                                <div class="ranking-placeholder">
+                                                    <i class="fas fa-mouse-pointer"></i>
+                                                    Sélectionnez les types de contrats qui vous intéressent pour commencer votre classement
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="preference-tag acceptable" data-level="acceptable">
-                                            <i class="fas fa-check"></i> Acceptable
+                                    </div>
+                                </div>
+
+                                <!-- MODE NIVEAU GLOBAL (ancien système) -->
+                                <div class="level-mode-container" id="level-container" style="display: none;">
+                                    <div class="contract-types-grid">
+                                        <!-- CDI -->
+                                        <div class="contract-type-option" data-type="cdi">
+                                            <input type="checkbox" name="contract-types" value="cdi" class="contract-type-checkbox" id="contract-cdi">
+                                            <div class="contract-type-icon">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </div>
+                                            <div class="contract-type-content">
+                                                <div class="contract-type-name">CDI (Contrat à Durée Indéterminée)</div>
+                                                <div class="contract-type-desc">Stabilité et sécurité d'emploi, évolution de carrière</div>
+                                            </div>
                                         </div>
-                                        <div class="preference-tag flexible" data-level="flexible">
-                                            <i class="fas fa-arrows-alt"></i> Flexible sur tout
+
+                                        <!-- CDD -->
+                                        <div class="contract-type-option" data-type="cdd">
+                                            <input type="checkbox" name="contract-types" value="cdd" class="contract-type-checkbox" id="contract-cdd">
+                                            <div class="contract-type-icon">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </div>
+                                            <div class="contract-type-content">
+                                                <div class="contract-type-name">CDD (Contrat à Durée Déterminée)</div>
+                                                <div class="contract-type-desc">Missions courtes, projets spécifiques, flexibilité</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Freelance -->
+                                        <div class="contract-type-option" data-type="freelance">
+                                            <input type="checkbox" name="contract-types" value="freelance" class="contract-type-checkbox" id="contract-freelance">
+                                            <div class="contract-type-icon">
+                                                <i class="fas fa-laptop-code"></i>
+                                            </div>
+                                            <div class="contract-type-content">
+                                                <div class="contract-type-name">Freelance / Consulting</div>
+                                                <div class="contract-type-desc">Indépendance totale, choix des missions, tarifs libres</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Interim -->
+                                        <div class="contract-type-option" data-type="interim">
+                                            <input type="checkbox" name="contract-types" value="interim" class="contract-type-checkbox" id="contract-interim">
+                                            <div class="contract-type-icon">
+                                                <i class="fas fa-users-cog"></i>
+                                            </div>
+                                            <div class="contract-type-content">
+                                                <div class="contract-type-name">Intérim</div>
+                                                <div class="contract-type-desc">Missions temporaires, découverte d'entreprises, polyvalence</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sélecteur de préférence -->
+                                    <div class="contract-preference-selector" id="contract-preference-selector" style="display: none;">
+                                        <div class="preference-title">
+                                            <i class="fas fa-star"></i>
+                                            Précisez votre niveau de préférence :
+                                        </div>
+                                        <div class="preference-options">
+                                            <div class="preference-tag exclusive" data-level="exclusive">
+                                                <i class="fas fa-lock"></i> Exclusivement ce type
+                                            </div>
+                                            <div class="preference-tag preferred" data-level="preferred">
+                                                <i class="fas fa-heart"></i> Forte préférence
+                                            </div>
+                                            <div class="preference-tag acceptable" data-level="acceptable">
+                                                <i class="fas fa-check"></i> Acceptable
+                                            </div>
+                                            <div class="preference-tag flexible" data-level="flexible">
+                                                <i class="fas fa-arrows-alt"></i> Flexible sur tout
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1144,6 +1488,8 @@
                                 </div>
 
                                 <!-- Champs cachés pour le traitement -->
+                                <input type="hidden" id="contract-ranking-order" name="contract-ranking-order">
+                                <input type="hidden" id="contract-selection-mode" name="contract-selection-mode" value="ranking">
                                 <input type="hidden" id="contract-types-selected" name="contract-types-selected">
                                 <input type="hidden" id="contract-preference-level" name="contract-preference-level">
                                 <input type="hidden" id="contract-primary-choice" name="contract-primary-choice">
@@ -1453,28 +1799,38 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             // ========================================
-            // NEXTEN V2.0 ENHANCED - GESTION TYPE DE CONTRAT SOPHISTIQUÉE
-            // Intégration complète avec validation et logique métier
+            // NEXTEN V2.0 ENHANCED - GESTION TYPE DE CONTRAT AVEC RANKING
+            // Système sophistiqué de classement par préférence
             // ========================================
 
-            // Gestion globale de l'état du questionnaire
-            class NextenQuestionnaireEnhanced {
+            // Gestion globale de l'état du questionnaire avec ranking
+            class NextenQuestionnaireRanking {
                 constructor() {
                     this.contractState = {
                         selectedTypes: [],
+                        rankingOrder: [],
+                        selectionMode: 'ranking',
                         preferenceLevel: null,
                         primaryChoice: null,
                         isValid: false
+                    };
+
+                    this.contractNames = {
+                        'cdi': 'CDI',
+                        'cdd': 'CDD',
+                        'freelance': 'Freelance',
+                        'interim': 'Intérim'
                     };
                     
                     this.init();
                 }
 
                 init() {
-                    console.log('🚀 NEXTEN Enhanced Questionnaire initialisé');
+                    console.log('🚀 NEXTEN Enhanced Questionnaire avec Ranking initialisé');
                     
                     // Configuration des gestionnaires d'événements
-                    this.setupContractTypeHandlers();
+                    this.setupContractRankingHandlers();
+                    this.setupLegacyContractHandlers();
                     this.setupTransportHandlers();
                     this.setupStepperHandlers();
                     this.setupValidationHandlers();
@@ -1484,37 +1840,247 @@
                     this.initializeParticles();
                     this.initializeNotifications();
                     
-                    console.log('✅ Tous les composants initialisés avec succès');
+                    console.log('✅ Tous les composants avec ranking initialisés avec succès');
                 }
 
                 // ========================================
-                // GESTION TYPE DE CONTRAT SOPHISTIQUÉE
+                // GESTION DU SYSTÈME DE RANKING
                 // ========================================
 
-                setupContractTypeHandlers() {
-                    const contractCheckboxes = document.querySelectorAll('input[name="contract-types"]');
-                    const preferenceSelector = document.getElementById('contract-preference-selector');
-                    const preferenceTags = document.querySelectorAll('.preference-tag');
-                    const contractSummary = document.getElementById('contract-summary');
+                setupContractRankingHandlers() {
+                    // Mode toggle
+                    const rankingBtn = document.getElementById('ranking-mode');
+                    const levelBtn = document.getElementById('level-mode');
+                    
+                    rankingBtn?.addEventListener('click', () => this.switchMode('ranking'));
+                    levelBtn?.addEventListener('click', () => this.switchMode('level'));
 
-                    // Gestionnaire pour les types de contrat
+                    // Initialiser le ranking
+                    this.updateRankingDisplay();
+                    console.log('📊 Gestionnaires ranking configurés');
+                }
+
+                switchMode(mode) {
+                    this.contractState.selectionMode = mode;
+                    
+                    // Mettre à jour les boutons
+                    document.querySelectorAll('.toggle-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    document.getElementById(mode + '-mode').classList.add('active');
+                    
+                    // Mettre à jour les conteneurs
+                    document.getElementById('ranking-container').style.display = 
+                        mode === 'ranking' ? 'block' : 'none';
+                    document.getElementById('level-container').style.display = 
+                        mode === 'level' ? 'block' : 'none';
+                        
+                    // Mettre à jour le champ caché
+                    document.getElementById('contract-selection-mode').value = mode;
+                    
+                    console.log('🔄 Mode changé vers:', mode);
+                    this.updateAllDisplays();
+                }
+
+                addToRanking(contractType) {
+                    if (!this.contractState.selectedTypes.includes(contractType)) {
+                        this.contractState.selectedTypes.push(contractType);
+                        this.contractState.rankingOrder.push(contractType);
+                        this.updateRankingDisplay();
+                        this.updateHiddenFields();
+                        console.log('➕ Ajouté au ranking:', contractType);
+                    }
+                }
+
+                removeFromRanking(contractType) {
+                    this.contractState.selectedTypes = this.contractState.selectedTypes.filter(type => type !== contractType);
+                    this.contractState.rankingOrder = this.contractState.rankingOrder.filter(type => type !== contractType);
+                    this.updateRankingDisplay();
+                    this.updateHiddenFields();
+                    console.log('➖ Retiré du ranking:', contractType);
+                }
+
+                moveUp(contractType) {
+                    const index = this.contractState.rankingOrder.indexOf(contractType);
+                    if (index > 0) {
+                        [this.contractState.rankingOrder[index], this.contractState.rankingOrder[index - 1]] = 
+                        [this.contractState.rankingOrder[index - 1], this.contractState.rankingOrder[index]];
+                        this.updateRankingDisplay();
+                        this.updateHiddenFields();
+                        console.log('⬆️ Monté:', contractType);
+                    }
+                }
+
+                moveDown(contractType) {
+                    const index = this.contractState.rankingOrder.indexOf(contractType);
+                    if (index < this.contractState.rankingOrder.length - 1) {
+                        [this.contractState.rankingOrder[index], this.contractState.rankingOrder[index + 1]] = 
+                        [this.contractState.rankingOrder[index + 1], this.contractState.rankingOrder[index]];
+                        this.updateRankingDisplay();
+                        this.updateHiddenFields();
+                        console.log('⬇️ Descendu:', contractType);
+                    }
+                }
+
+                updateRankingDisplay() {
+                    this.updateAvailableContracts();
+                    this.updateRankingList();
+                    this.updateRankingSummary();
+                }
+
+                updateAvailableContracts() {
+                    document.querySelectorAll('.available-contract-item').forEach(item => {
+                        const contractType = item.dataset.type;
+                        const btn = item.querySelector('.add-contract-btn');
+                        
+                        if (this.contractState.selectedTypes.includes(contractType)) {
+                            item.classList.add('selected');
+                            btn.disabled = true;
+                            btn.innerHTML = '<i class="fas fa-check"></i> Ajouté';
+                        } else {
+                            item.classList.remove('selected');
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-plus"></i> Ajouter';
+                        }
+                    });
+                }
+
+                updateRankingList() {
+                    const rankingList = document.getElementById('ranking-list');
+                    
+                    if (this.contractState.rankingOrder.length === 0) {
+                        rankingList.innerHTML = `
+                            <div class="ranking-placeholder">
+                                <i class="fas fa-mouse-pointer"></i>
+                                Sélectionnez les types de contrats qui vous intéressent pour commencer votre classement
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    let html = '';
+                    this.contractState.rankingOrder.forEach((contractType, index) => {
+                        const contractName = this.contractNames[contractType];
+                        const isFirst = index === 0;
+                        const isLast = index === this.contractState.rankingOrder.length - 1;
+                        
+                        html += `
+                            <div class="ranking-item" data-type="${contractType}">
+                                <div class="ranking-position">${index + 1}</div>
+                                <div class="contract-icon ${contractType}-icon">
+                                    <i class="fas ${this.getContractIcon(contractType)}"></i>
+                                </div>
+                                <div class="contract-info">
+                                    <div class="contract-name">${contractName}</div>
+                                    <div class="ranking-status">
+                                        ${index === 0 ? '<strong>⭐ Préférence absolue</strong>' : 
+                                          index === 1 ? '🥈 Deuxième choix' : 
+                                          index === 2 ? '🥉 Troisième choix' :
+                                          `${index + 1}ème choix`}
+                                    </div>
+                                </div>
+                                <div class="ranking-controls">
+                                    <button type="button" class="ranking-btn" onclick="contractRanking.moveUp('${contractType}')" 
+                                            ${isFirst ? 'disabled' : ''}>
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                    <button type="button" class="ranking-btn" onclick="contractRanking.moveDown('${contractType}')"
+                                            ${isLast ? 'disabled' : ''}>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                                <button type="button" class="remove-btn" onclick="contractRanking.removeFromRanking('${contractType}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        `;
+                    });
+                    
+                    rankingList.innerHTML = html;
+                }
+
+                updateRankingSummary() {
+                    const summary = document.getElementById('contract-summary');
+                    const summaryContent = document.getElementById('summary-content');
+                    
+                    if (this.contractState.rankingOrder.length === 0) {
+                        summary.style.display = 'none';
+                        return;
+                    }
+                    
+                    let summaryHTML = '<strong>📊 Classement par préférence :</strong><br>';
+                    this.contractState.rankingOrder.forEach((contractType, index) => {
+                        const contractName = this.contractNames[contractType];
+                        const icon = index === 0 ? '⭐' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                        summaryHTML += `${icon} <strong>${contractName}</strong><br>`;
+                    });
+                    
+                    if (this.contractState.rankingOrder.length === 1) {
+                        summaryHTML += '<br><span style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i> Vous recherchez exclusivement des ' + this.contractNames[this.contractState.rankingOrder[0]] + '</span>';
+                    } else {
+                        summaryHTML += '<br><span style="color: #10b981;"><i class="fas fa-info-circle"></i> Vous acceptez plusieurs types avec un classement de préférence claire</span>';
+                    }
+                    
+                    summaryContent.innerHTML = summaryHTML;
+                    summary.style.display = 'block';
+                }
+
+                getContractIcon(contractType) {
+                    const icons = {
+                        'cdi': 'fa-shield-alt',
+                        'cdd': 'fa-calendar-alt',
+                        'freelance': 'fa-laptop-code',
+                        'interim': 'fa-users-cog'
+                    };
+                    return icons[contractType] || 'fa-file-contract';
+                }
+
+                updateHiddenFields() {
+                    document.getElementById('contract-ranking-order').value = this.contractState.rankingOrder.join(',');
+                    document.getElementById('contract-types-selected').value = this.contractState.selectedTypes.join(',');
+                    document.getElementById('contract-primary-choice').value = this.contractState.rankingOrder[0] || '';
+                    
+                    // Pour compatibilité avec le système existant
+                    if (this.contractState.rankingOrder.length === 1) {
+                        document.getElementById('contract-preference-level').value = 'exclusive';
+                    } else if (this.contractState.rankingOrder.length > 1) {
+                        document.getElementById('contract-preference-level').value = 'preferred';
+                    }
+
+                    // Validation
+                    this.contractState.isValid = this.contractState.rankingOrder.length > 0;
+                }
+
+                updateAllDisplays() {
+                    if (this.contractState.selectionMode === 'ranking') {
+                        this.updateRankingDisplay();
+                    } else {
+                        this.updateLegacyDisplay();
+                    }
+                }
+
+                // ========================================
+                // GESTION LEGACY (mode niveau)
+                // ========================================
+
+                setupLegacyContractHandlers() {
+                    const contractCheckboxes = document.querySelectorAll('input[name="contract-types"]');
+                    const preferenceTags = document.querySelectorAll('.preference-tag');
+
                     contractCheckboxes.forEach(checkbox => {
                         checkbox.addEventListener('change', (e) => {
-                            this.handleContractTypeChange(e);
+                            this.handleLegacyContractTypeChange(e);
                         });
                     });
 
-                    // Gestionnaire pour les niveaux de préférence
                     preferenceTags.forEach(tag => {
                         tag.addEventListener('click', (e) => {
-                            this.handlePreferenceChange(e);
+                            this.handleLegacyPreferenceChange(e);
                         });
                     });
-
-                    console.log('📋 Gestionnaires type de contrat configurés');
                 }
 
-                handleContractTypeChange(e) {
+                handleLegacyContractTypeChange(e) {
                     const checkbox = e.target;
                     const contractOption = checkbox.closest('.contract-type-option');
                     const preferenceSelector = document.getElementById('contract-preference-selector');
@@ -1522,7 +2088,9 @@
                     // Mise à jour visuelle
                     if (checkbox.checked) {
                         contractOption.classList.add('selected');
-                        this.contractState.selectedTypes.push(checkbox.value);
+                        if (!this.contractState.selectedTypes.includes(checkbox.value)) {
+                            this.contractState.selectedTypes.push(checkbox.value);
+                        }
                     } else {
                         contractOption.classList.remove('selected');
                         this.contractState.selectedTypes = this.contractState.selectedTypes.filter(
@@ -1533,20 +2101,15 @@
                     // Afficher/masquer le sélecteur de préférence
                     if (this.contractState.selectedTypes.length > 0) {
                         preferenceSelector.style.display = 'block';
-                        this.resetPreferenceSelection();
                     } else {
                         preferenceSelector.style.display = 'none';
-                        this.hideContractSummary();
                         this.contractState.preferenceLevel = null;
                     }
 
-                    // Mise à jour des champs cachés
                     this.updateHiddenFields();
-                    
-                    console.log('📝 Types de contrat sélectionnés:', this.contractState.selectedTypes);
                 }
 
-                handlePreferenceChange(e) {
+                handleLegacyPreferenceChange(e) {
                     const selectedTag = e.currentTarget;
                     const preferenceLevel = selectedTag.dataset.level;
                     const preferenceTags = document.querySelectorAll('.preference-tag');
@@ -1559,140 +2122,59 @@
                     
                     // Mettre à jour l'état
                     this.contractState.preferenceLevel = preferenceLevel;
+                    this.contractState.primaryChoice = this.contractState.selectedTypes[0];
                     
-                    // Logique spéciale pour "Exclusivement ce type"
-                    if (preferenceLevel === 'exclusive') {
-                        this.handleExclusivePreference();
-                    }
-
-                    // Déterminer le choix principal
-                    this.determinePrimaryChoice();
-                    
-                    // Afficher le résumé
-                    this.updateContractSummary();
-                    
-                    // Mise à jour des champs cachés
+                    this.updateLegacySummary();
                     this.updateHiddenFields();
-                    
-                    console.log('⭐ Niveau de préférence sélectionné:', preferenceLevel);
                 }
 
-                handleExclusivePreference() {
-                    // Si exclusif et plusieurs types sélectionnés, demander de choisir UN seul type
-                    if (this.contractState.selectedTypes.length > 1) {
-                        this.showNotification(
-                            'Pour un choix exclusif, veuillez sélectionner un seul type de contrat',
-                            'warning'
-                        );
+                updateLegacyDisplay() {
+                    // Mise à jour de l'affichage legacy si nécessaire
+                    this.updateLegacySummary();
+                }
+
+                updateLegacySummary() {
+                    // Logique de résumé pour le mode legacy
+                    if (this.contractState.selectedTypes.length > 0 && this.contractState.preferenceLevel) {
+                        const summary = document.getElementById('contract-summary');
+                        const summaryContent = document.getElementById('summary-content');
                         
-                        // Désélectionner tous sauf le premier
-                        const contractCheckboxes = document.querySelectorAll('input[name="contract-types"]');
-                        contractCheckboxes.forEach((checkbox, index) => {
-                            if (index > 0 && checkbox.checked) {
-                                checkbox.checked = false;
-                                checkbox.closest('.contract-type-option').classList.remove('selected');
-                            }
-                        });
+                        const selectedLabels = this.contractState.selectedTypes.map(type => this.contractNames[type]);
+                        const levelLabels = {
+                            'exclusive': 'Recherche EXCLUSIVEMENT',
+                            'preferred': 'Préfère fortement',
+                            'acceptable': 'Accepte',
+                            'flexible': 'Flexible sur'
+                        };
+
+                        const levelLabel = levelLabels[this.contractState.preferenceLevel];
+                        let text = `<strong>${levelLabel}</strong> : ${selectedLabels.join(', ')}`;
                         
-                        // Mettre à jour l'état
-                        this.contractState.selectedTypes = [this.contractState.selectedTypes[0]];
+                        summaryContent.innerHTML = text;
+                        summary.style.display = 'block';
                     }
-                }
-
-                determinePrimaryChoice() {
-                    // Le choix principal est le premier sélectionné pour simplifier
-                    if (this.contractState.selectedTypes.length > 0) {
-                        this.contractState.primaryChoice = this.contractState.selectedTypes[0];
-                    }
-                }
-
-                updateContractSummary() {
-                    const contractSummary = document.getElementById('contract-summary');
-                    const summaryContent = document.getElementById('summary-content');
-                    
-                    if (!this.contractState.preferenceLevel || this.contractState.selectedTypes.length === 0) {
-                        contractSummary.style.display = 'none';
-                        return;
-                    }
-
-                    // Générer le texte du résumé
-                    let summaryText = this.generateSummaryText();
-                    
-                    summaryContent.innerHTML = summaryText;
-                    contractSummary.style.display = 'block';
-                    
-                    // Validation
-                    this.contractState.isValid = true;
-                }
-
-                generateSummaryText() {
-                    const typeLabels = {
-                        'cdi': 'CDI',
-                        'cdd': 'CDD', 
-                        'freelance': 'Freelance/Consulting',
-                        'interim': 'Intérim'
-                    };
-
-                    const levelLabels = {
-                        'exclusive': 'Recherche EXCLUSIVEMENT',
-                        'preferred': 'Préfère fortement',
-                        'acceptable': 'Accepte',
-                        'flexible': 'Flexible sur'
-                    };
-
-                    const selectedLabels = this.contractState.selectedTypes.map(type => typeLabels[type]);
-                    const levelLabel = levelLabels[this.contractState.preferenceLevel];
-
-                    let text = `<strong>${levelLabel}</strong> : ${selectedLabels.join(', ')}`;
-                    
-                    if (this.contractState.preferenceLevel === 'exclusive') {
-                        text += `<br><span style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i> 
-                        Attention: Vous refuserez automatiquement tous les autres types de contrats.</span>`;
-                    } else if (this.contractState.preferenceLevel === 'preferred' && this.contractState.selectedTypes.length > 1) {
-                        text += `<br><span style="color: #10b981;"><i class="fas fa-info-circle"></i> 
-                        Vous acceptez plusieurs types mais avec une préférence pour ${typeLabels[this.contractState.primaryChoice]}.</span>`;
-                    } else if (this.contractState.preferenceLevel === 'flexible') {
-                        text += `<br><span style="color: #3b82f6;"><i class="fas fa-check-circle"></i> 
-                        Vous êtes ouvert à tous les types de contrats sélectionnés.</span>`;
-                    }
-
-                    return text;
-                }
-
-                hideContractSummary() {
-                    const contractSummary = document.getElementById('contract-summary');
-                    contractSummary.style.display = 'none';
-                }
-
-                resetPreferenceSelection() {
-                    const preferenceTags = document.querySelectorAll('.preference-tag');
-                    preferenceTags.forEach(tag => tag.classList.remove('selected'));
-                    this.contractState.preferenceLevel = null;
-                    this.hideContractSummary();
-                }
-
-                updateHiddenFields() {
-                    // Mise à jour des champs cachés pour le traitement backend
-                    document.getElementById('contract-types-selected').value = this.contractState.selectedTypes.join(',');
-                    document.getElementById('contract-preference-level').value = this.contractState.preferenceLevel || '';
-                    document.getElementById('contract-primary-choice').value = this.contractState.primaryChoice || '';
                 }
 
                 // ========================================
-                // VALIDATION ENHANCED
+                // VALIDATION ENHANCED AVEC RANKING
                 // ========================================
 
                 validateContractType() {
-                    if (this.contractState.selectedTypes.length === 0) {
-                        this.showNotification('Veuillez sélectionner au moins un type de contrat', 'error');
-                        return false;
+                    if (this.contractState.selectionMode === 'ranking') {
+                        if (this.contractState.rankingOrder.length === 0) {
+                            this.showNotification('Veuillez sélectionner et classer au moins un type de contrat', 'error');
+                            return false;
+                        }
+                    } else {
+                        if (this.contractState.selectedTypes.length === 0) {
+                            this.showNotification('Veuillez sélectionner au moins un type de contrat', 'error');
+                            return false;
+                        }
+                        if (!this.contractState.preferenceLevel) {
+                            this.showNotification('Veuillez préciser votre niveau de préférence', 'error');
+                            return false;
+                        }
                     }
-
-                    if (!this.contractState.preferenceLevel) {
-                        this.showNotification('Veuillez préciser votre niveau de préférence', 'error');
-                        return false;
-                    }
-
                     return true;
                 }
 
@@ -1703,7 +2185,6 @@
                     let firstInvalidField = null;
 
                     requiredFields.forEach(field => {
-                        // Validation spéciale pour les groupes de checkbox
                         if (field.type === 'checkbox' && field.name === 'transport-method') {
                             const checkboxGroup = document.querySelectorAll('input[name="transport-method"]');
                             const anyChecked = Array.from(checkboxGroup).some(cb => cb.checked);
@@ -1711,9 +2192,7 @@
                                 isValid = false;
                                 if (!firstInvalidField) firstInvalidField = field;
                             }
-                        }
-                        // Validation normale pour les autres champs
-                        else if ((field.type === 'checkbox' && !field.checked) || 
+                        } else if ((field.type === 'checkbox' && !field.checked) || 
                                  (field.type !== 'checkbox' && !field.value.trim())) {
                             isValid = false;
                             field.classList.add('invalid');
@@ -1741,7 +2220,7 @@
                 }
 
                 // ========================================
-                // GESTION DES TRANSPORTS (existant)
+                // AUTRES MÉTHODES (Transport, Stepper, etc.)
                 // ========================================
 
                 setupTransportHandlers() {
@@ -1797,10 +2276,6 @@
 
                     console.log('🚗 Gestionnaires transport configurés');
                 }
-
-                // ========================================
-                // GESTION DES ÉTAPES ET NAVIGATION
-                // ========================================
 
                 setupStepperHandlers() {
                     const stepperProgress = document.getElementById('stepper-progress');
@@ -1872,10 +2347,6 @@
                     console.log('📊 Navigation stepper configurée');
                 }
 
-                // ========================================
-                // GESTION DRAG & DROP MOTIVATIONS
-                // ========================================
-
                 setupMotivationDragDrop() {
                     const motivationsList = document.getElementById('motivation-priorities');
                     const motivationItems = motivationsList.querySelectorAll('.motivation-item');
@@ -1937,12 +2408,7 @@
                     console.log('🎯 Drag & drop motivations configuré');
                 }
 
-                // ========================================
-                // UTILITAIRES ET HELPERS
-                // ========================================
-
                 setupValidationHandlers() {
-                    // Gestionnaire de validation en temps réel si nécessaire
                     const form = document.getElementById('questionnaire-form');
                     form.addEventListener('submit', (e) => {
                         e.preventDefault();
@@ -1956,7 +2422,7 @@
                     // Collecter toutes les données du formulaire
                     const formData = this.collectFormData();
                     
-                    console.log('📤 Données du formulaire:', formData);
+                    console.log('📤 Données du formulaire avec ranking:', formData);
                     
                     // Simulation d'envoi des données
                     setTimeout(() => {
@@ -1974,11 +2440,13 @@
                         data[key] = value;
                     }
                     
-                    // Ajout des données de contrat
+                    // Ajout des données de contrat avec ranking
                     data.contractData = {
                         selectedTypes: this.contractState.selectedTypes,
+                        rankingOrder: this.contractState.rankingOrder,
+                        selectionMode: this.contractState.selectionMode,
                         preferenceLevel: this.contractState.preferenceLevel,
-                        primaryChoice: this.contractState.primaryChoice,
+                        primaryChoice: this.contractState.rankingOrder[0] || this.contractState.primaryChoice,
                         isValid: this.contractState.isValid
                     };
                     
@@ -2037,15 +2505,23 @@
                 }
             }
 
-            // Initialisation de l'application
-            const nextenQuestionnaire = new NextenQuestionnaireEnhanced();
+            // Initialisation de l'application avec ranking
+            const nextenQuestionnaire = new NextenQuestionnaireRanking();
 
             // Exposition globale pour compatibilité
-            window.NextenQuestionnaireEnhanced = NextenQuestionnaireEnhanced;
+            window.NextenQuestionnaireRanking = NextenQuestionnaireRanking;
             window.nextenQuestionnaire = nextenQuestionnaire;
+            window.contractRanking = nextenQuestionnaire;
 
-            console.log('🎉 NEXTEN V2.0 Enhanced Questionnaire chargé avec succès');
+            console.log('🎉 NEXTEN V2.0 Enhanced Questionnaire avec Ranking chargé avec succès');
         });
+
+        // Fonctions globales pour les boutons de ranking
+        function addToRanking(contractType) {
+            if (window.contractRanking) {
+                window.contractRanking.addToRanking(contractType);
+            }
+        }
     </script>
     
     <!-- Script d'autocomplétion d'adresse avec Google Maps -->
