@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXTEN V2.0 - Test Rapide Pondération Dynamique</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .section { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #667eea; }
+        .btn { background: #667eea; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #5a6fd8; }
+        .btn-success { background: #22c55e; }
+        .btn-warning { background: #f59e0b; }
+        .result { background: white; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #e5e7eb; }
+        .motivation-item { display: inline-block; margin: 5px; padding: 8px 12px; background: #e5e7eb; border-radius: 15px; cursor: pointer; }
+        .motivation-item.selected { background: #667eea; color: white; }
+        .score-display { text-align: center; font-size: 2em; font-weight: bold; margin: 20px; padding: 20px; background: white; border-radius: 10px; }
+        .criteria-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .criteria-item { background: white; padding: 10px; border-radius: 8px; border-left: 4px solid #667eea; }
+        pre { background: #f1f5f9; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+        .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 NEXTEN V2.0 - Test Rapide Pondération Dynamique</h1>
+        <p>Version allégée pour test immédiat du système révolutionnaire</p>
+    </div>
+
+    <div class="section">
+        <h2>👤 Configuration Candidat</h2>
+        <p>Sélectionnez les motivations par ordre de priorité (3 max) :</p>
+        <div id="motivationSelector">
+            <div class="motivation-item" data-motivation="remuneration">💰 Rémunération</div>
+            <div class="motivation-item" data-motivation="localisation">📍 Localisation</div>
+            <div class="motivation-item" data-motivation="flexibilite">🏠 Flexibilité</div>
+            <div class="motivation-item" data-motivation="perspectives_evolution">📈 Perspectives évolution</div>
+            <div class="motivation-item" data-motivation="autre">🎯 Autre</div>
+        </div>
+        <p><strong>Motivations sélectionnées :</strong> <span id="selectedMotivations">Aucune</span></p>
+    </div>
+
+    <div class="section">
+        <h2>⚖️ Test Pondération Dynamique</h2>
+        <button class="btn btn-success" onclick="testDynamicWeighting()">🧪 Tester Pondération Dynamique</button>
+        <button class="btn btn-warning" onclick="runAllTests()">🔬 Lancer Tests Complets</button>
+        <button class="btn" onclick="showComparison()">📊 Comparer Avant/Après</button>
+    </div>
+
+    <div id="results" class="section hidden">
+        <h2>📊 Résultats</h2>
+        <div id="resultsContent"></div>
+    </div>
+
+    <div id="comparison" class="section hidden">
+        <h2>📈 Comparaison Avant/Après Pondération</h2>
+        <div class="comparison" id="comparisonContent"></div>
+    </div>
+
+    <script>
+        // === SYSTÈME DE PONDÉRATION DYNAMIQUE ALLÉGÉ ===
+        
+        const baseWeights = {
+            semantic: 0.205,           // 20.5%
+            compensation: 0.196,       // 19.6%
+            location: 0.161,           // 16.1%
+            motivation: 0.107,         // 10.7%
+            companySize: 0.071,        // 7.1%
+            workEnvironment: 0.071,    // 7.1%
+            industry: 0.054,           // 5.4%
+            availability: 0.045,       // 4.5%
+            contractType: 0.045,       // 4.5%
+            listenReasons: 0.027,      // 2.7%
+            processPosition: 0.018     // 1.8%
+        };
+
+        const motivationToCriteria = {
+            'remuneration': ['compensation'],
+            'perspectives_evolution': ['semantic', 'companySize', 'industry'],
+            'flexibilite': ['workEnvironment', 'contractType'],
+            'localisation': ['location'],
+            'autre': ['motivation']
+        };
+
+        let selectedMotivations = [];
+
+        // === GESTION DES MOTIVATIONS ===
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            setupMotivationSelector();
+        });
+
+        function setupMotivationSelector() {
+            const items = document.querySelectorAll('.motivation-item');
+            items.forEach(item => {
+                item.addEventListener('click', function() {
+                    const motivation = this.dataset.motivation;
+                    toggleMotivation(motivation, this);
+                });
+            });
+        }
+
+        function toggleMotivation(motivation, element) {
+            const index = selectedMotivations.indexOf(motivation);
+            
+            if (index === -1 && selectedMotivations.length < 3) {
+                selectedMotivations.push(motivation);
+                element.classList.add('selected');
+            } else if (index !== -1) {
+                selectedMotivations.splice(index, 1);
+                element.classList.remove('selected');
+            }
+            
+            updateMotivationDisplay();
+        }
+
+        function updateMotivationDisplay() {
+            const display = document.getElementById('selectedMotivations');
+            if (selectedMotivations.length === 0) {
+                display.textContent = 'Aucune';
+            } else {
+                display.textContent = selectedMotivations.map((m, i) => `${i + 1}. ${getMotivationLabel(m)}`).join(', ');
+            }
+        }
+
+        function getMotivationLabel(motivation) {
+            const labels = {
+                'remuneration': 'Rémunération',
+                'localisation': 'Localisation', 
+                'flexibilite': 'Flexibilité',
+                'perspectives_evolution': 'Perspectives évolution',
+                'autre': 'Autre'
+            };
+            return labels[motivation] || motivation;
+        }
+
+        // === CALCUL PONDÉRATION DYNAMIQUE ===
+        
+        function calculateDynamicWeights(motivations) {
+            const adjustedWeights = { ...baseWeights };
+            const appliedAdjustments = [];
+            let totalBoostApplied = 0;
+
+            // Application des boosts
+            motivations.slice(0, 3).forEach((motivation, index) => {
+                const boost = [0.08, 0.05, 0.03][index]; // +8%, +5%, +3%
+                const affectedCriteria = motivationToCriteria[motivation] || [];
+
+                if (affectedCriteria.length === 0) return;
+
+                const boostPerCriterion = boost / affectedCriteria.length;
+
+                affectedCriteria.forEach(criterion => {
+                    if (adjustedWeights[criterion] !== undefined) {
+                        const oldWeight = adjustedWeights[criterion];
+                        adjustedWeights[criterion] += boostPerCriterion;
+                        
+                        adjustedWeights[criterion] = Math.min(adjustedWeights[criterion], 0.35);
+
+                        const actualBoost = adjustedWeights[criterion] - oldWeight;
+                        totalBoostApplied += actualBoost;
+
+                        appliedAdjustments.push({
+                            motivation,
+                            criterion,
+                            rank: index + 1,
+                            boost: actualBoost,
+                            oldWeight: oldWeight,
+                            newWeight: adjustedWeights[criterion],
+                            percentage_change: Math.round((actualBoost / oldWeight) * 100)
+                        });
+                    }
+                });
+            });
+
+            // Redistribution pour normaliser à 100%
+            const normalizedWeights = redistributeWeights(adjustedWeights, totalBoostApplied);
+
+            return {
+                weights: normalizedWeights,
+                adjustments: appliedAdjustments,
+                totalAdjustment: totalBoostApplied,
+                isAdjusted: appliedAdjustments.length > 0
+            };
+        }
+
+        function redistributeWeights(adjustedWeights, totalBoostApplied) {
+            if (totalBoostApplied === 0) return adjustedWeights;
+
+            const totalCurrentWeight = Object.values(adjustedWeights).reduce((sum, weight) => sum + weight, 0);
+            const excessWeight = totalCurrentWeight - 1.0;
+
+            if (Math.abs(excessWeight) < 0.001) return adjustedWeights;
+
+            // Critères boostés
+            const boostedCriteria = new Set();
+            Object.keys(motivationToCriteria).forEach(motivation => {
+                motivationToCriteria[motivation].forEach(criterion => {
+                    boostedCriteria.add(criterion);
+                });
+            });
+
+            // Réduction sur critères non boostés
+            const nonBoostedCriteria = Object.keys(adjustedWeights).filter(criterion => 
+                !boostedCriteria.has(criterion)
+            );
+
+            if (nonBoostedCriteria.length === 0) {
+                const reductionFactor = 1.0 / totalCurrentWeight;
+                Object.keys(adjustedWeights).forEach(criterion => {
+                    adjustedWeights[criterion] *= reductionFactor;
+                });
+            } else {
+                const totalNonBoostedWeight = nonBoostedCriteria.reduce(
+                    (sum, criterion) => sum + adjustedWeights[criterion], 0
+                );
+
+                const targetReduction = excessWeight;
+                const reductionFactor = Math.max(0, (totalNonBoostedWeight - targetReduction) / totalNonBoostedWeight);
+
+                nonBoostedCriteria.forEach(criterion => {
+                    adjustedWeights[criterion] = Math.max(
+                        adjustedWeights[criterion] * reductionFactor,
+                        0.01
+                    );
+                });
+            }
+
+            // Ajustement fin
+            const finalTotal = Object.values(adjustedWeights).reduce((sum, weight) => sum + weight, 0);
+            if (Math.abs(finalTotal - 1.0) > 0.001) {
+                const maxWeightCriterion = Object.keys(adjustedWeights).reduce((max, criterion) => 
+                    adjustedWeights[criterion] > adjustedWeights[max] ? criterion : max
+                );
+                adjustedWeights[maxWeightCriterion] += (1.0 - finalTotal);
+            }
+
+            return adjustedWeights;
+        }
+
+        // === TESTS ET AFFICHAGE ===
+        
+        function testDynamicWeighting() {
+            if (selectedMotivations.length === 0) {
+                alert('Veuillez sélectionner au moins une motivation');
+                return;
+            }
+
+            console.log('🧪 Test pondération dynamique avec:', selectedMotivations);
+
+            const result = calculateDynamicWeights(selectedMotivations);
+            displayResults(result);
+        }
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultsContent');
+            
+            let html = '<div class="score-display">';
+            html += `<div style="color: ${result.isAdjusted ? '#22c55e' : '#f59e0b'};">`;
+            html += `${result.isAdjusted ? '✅ PONDÉRATION APPLIQUÉE' : '⚠️ AUCUN AJUSTEMENT'}`;
+            html += '</div>';
+            html += `<div style="font-size: 0.6em; margin-top: 10px;">`;
+            html += `${result.adjustments.length} ajustements • ${Math.round(result.totalAdjustment * 100)}% boost total`;
+            html += '</div>';
+            html += '</div>';
+
+            if (result.adjustments.length > 0) {
+                html += '<h3>📈 Ajustements Appliqués</h3>';
+                html += '<div class="criteria-grid">';
+                
+                result.adjustments.forEach(adj => {
+                    html += `<div class="criteria-item">`;
+                    html += `<strong>${getCriterionName(adj.criterion)}</strong><br>`;
+                    html += `Motivation: ${getMotivationLabel(adj.motivation)} (#${adj.rank})<br>`;
+                    html += `${Math.round(adj.oldWeight * 100)}% → ${Math.round(adj.newWeight * 100)}% `;
+                    html += `<span style="color: #22c55e;">(+${adj.percentage_change}%)</span>`;
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+            }
+
+            // Vérification normalisation
+            const total = Object.values(result.weights).reduce((sum, w) => sum + w, 0);
+            const normalizedPercent = Math.round(total * 100);
+            
+            html += `<div class="result">`;
+            html += `<strong>🎯 Validation Normalisation :</strong> `;
+            html += `<span style="color: ${Math.abs(total - 1.0) < 0.001 ? '#22c55e' : '#ef4444'};">`;
+            html += `${normalizedPercent}% (${Math.abs(total - 1.0) < 0.001 ? 'Parfait' : 'Erreur'})`;
+            html += '</span>';
+            html += '</div>';
+
+            contentDiv.innerHTML = html;
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function showComparison() {
+            if (selectedMotivations.length === 0) {
+                alert('Veuillez d\'abord sélectionner des motivations');
+                return;
+            }
+
+            const result = calculateDynamicWeights(selectedMotivations);
+            
+            let html = '<div><h3>⚖️ Poids Originaux</h3>';
+            html += generateWeightsTable(baseWeights);
+            html += '</div>';
+            
+            html += '<div><h3>🎯 Poids Ajustés</h3>';
+            html += generateWeightsTable(result.weights, result.adjustments);
+            html += '</div>';
+
+            document.getElementById('comparisonContent').innerHTML = html;
+            document.getElementById('comparison').classList.remove('hidden');
+        }
+
+        function generateWeightsTable(weights, adjustments = []) {
+            const adjustedCriteria = new Set(adjustments.map(adj => adj.criterion));
+            
+            let html = '<div class="criteria-grid">';
+            
+            Object.entries(weights).forEach(([criterion, weight]) => {
+                const isAdjusted = adjustedCriteria.has(criterion);
+                const color = isAdjusted ? '#22c55e' : '#6b7280';
+                
+                html += `<div class="criteria-item" style="border-left-color: ${color};">`;
+                html += `<strong style="color: ${color};">${getCriterionName(criterion)}</strong><br>`;
+                html += `<span style="font-size: 1.2em; color: ${color};">${Math.round(weight * 100)}%</span>`;
+                if (isAdjusted) {
+                    html += ` <span style="color: #22c55e;">📈</span>`;
+                }
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        function getCriterionName(criterion) {
+            const names = {
+                semantic: 'Sémantique',
+                compensation: 'Rémunération',
+                location: 'Géolocalisation',
+                motivation: 'Motivations',
+                companySize: 'Taille Entreprise',
+                workEnvironment: 'Environnement',
+                industry: 'Secteur',
+                availability: 'Disponibilité',
+                contractType: 'Type Contrat',
+                listenReasons: 'Anti-patterns',
+                processPosition: 'Processus'
+            };
+            return names[criterion] || criterion;
+        }
+
+        function runAllTests() {
+            console.log('🔬 Lancement tests complets...');
+            
+            const testCases = [
+                { name: 'Rémunération seule', motivations: ['remuneration'] },
+                { name: 'Localisation seule', motivations: ['localisation'] },
+                { name: 'Flexibilité seule', motivations: ['flexibilite'] },
+                { name: 'Évolution seule', motivations: ['perspectives_evolution'] },
+                { name: 'Mix complet', motivations: ['remuneration', 'flexibilite', 'localisation'] },
+                { name: 'Aucune motivation', motivations: [] }
+            ];
+
+            let html = '<h3>🧪 Résultats Tests Complets</h3>';
+            
+            testCases.forEach(testCase => {
+                const result = calculateDynamicWeights(testCase.motivations);
+                const total = Object.values(result.weights).reduce((sum, w) => sum + w, 0);
+                const isValid = Math.abs(total - 1.0) < 0.001;
+                
+                html += `<div class="result">`;
+                html += `<strong>${testCase.name}</strong><br>`;
+                html += `Ajustements: ${result.adjustments.length} • `;
+                html += `Total: ${Math.round(total * 100)}% `;
+                html += `<span style="color: ${isValid ? '#22c55e' : '#ef4444'};">${isValid ? '✅' : '❌'}</span>`;
+                html += '</div>';
+            });
+
+            document.getElementById('resultsContent').innerHTML = html;
+            document.getElementById('results').classList.remove('hidden');
+        }
+
+        // Affichage état initial
+        console.log('🎯 NEXTEN V2.0 - Version allégée pondération dynamique chargée');
+        console.log('📊 Poids de base:', baseWeights);
+        console.log('🗺️ Mapping motivations:', motivationToCriteria);
+    </script>
+</body>
+</html>
