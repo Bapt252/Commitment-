@@ -292,6 +292,252 @@
         .travel-time-header i {
             color: #7c3aed;
         }
+
+        /* ===== NOUVEAU SYSTÈME DE CLASSEMENT DES MOTIVATIONS ===== */
+        .motivation-ranking-container {
+            background: var(--surface-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-lg) 0;
+            border: 2px solid var(--border-color);
+        }
+
+        .ranking-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .ranking-counter {
+            background: var(--nexten-gradient);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-base);
+            font-weight: 600;
+            font-size: 0.875rem;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .ranking-instructions {
+            background: rgba(124, 58, 237, 0.05);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: var(--radius-base);
+            padding: var(--spacing-base);
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+        }
+
+        .ranking-instructions i {
+            color: var(--nexten-primary);
+            margin-top: 2px;
+        }
+
+        .motivation-card {
+            background: var(--surface-elevated);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--spacing-base);
+        }
+
+        .motivation-card:hover {
+            border-color: var(--nexten-primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .motivation-card.selected {
+            border-color: var(--nexten-primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .motivation-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--surface-tertiary);
+        }
+
+        .motivation-card.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .card-content {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-base);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            background: var(--nexten-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .card-text {
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 0.875rem;
+        }
+
+        .ranking-badge {
+            position: absolute;
+            top: var(--spacing-sm);
+            right: var(--spacing-sm);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--nexten-gradient);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            box-shadow: var(--shadow-base);
+            z-index: 2;
+        }
+
+        .motivation-card.selected .ranking-badge {
+            display: flex;
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .ranking-badge.rank-1 {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+
+        .ranking-badge.rank-2 {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+        }
+
+        .ranking-badge.rank-3 {
+            background: linear-gradient(135deg, #cd7f32, #b45309);
+        }
+
+        /* Champ "Autre" */
+        .autre-motivation-field {
+            margin-top: var(--spacing-base);
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all var(--transition-base);
+        }
+
+        .autre-motivation-field.active {
+            opacity: 1;
+            max-height: 120px;
+        }
+
+        .autre-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: var(--spacing-sm);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-base);
+            font-family: inherit;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            resize: vertical;
+            transition: all var(--transition-base);
+        }
+
+        .autre-textarea:focus {
+            outline: none;
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .autre-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Résumé des choix */
+        .motivation-summary {
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-base);
+            padding: var(--spacing-base);
+            margin-top: var(--spacing-lg);
+            display: none;
+        }
+
+        .motivation-summary.active {
+            display: block;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            color: var(--nexten-accent);
+            margin-bottom: var(--spacing-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .summary-list {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .summary-rank {
+            background: var(--nexten-primary);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
     </style>
     
     <!-- Styles du système NEXTEN V2.0 -->
@@ -653,92 +899,126 @@
                         </div>
                     </div>
                     
-                    <!-- ✨ ÉTAPE 3 : MOTIVATIONS ET SECTEURS (VERSION MODERNE NEXTEN V3.0) -->
+                    <!-- ✨ ÉTAPE 3 : MOTIVATIONS PROFESSIONNELLES AVEC SYSTÈME DE CLASSEMENT -->
                     <div class="form-step nexten-v3-modern" id="form-step3">
                         <h2 class="form-section-title">🎯 Vos Motivations Professionnelles</h2>
                         <p class="step-description">
-                            Dites-nous ce qui vous anime et explorez les secteurs qui correspondent à vos aspirations pour des recommandations sur-mesure
+                            Sélectionnez et classez par ordre de priorité vos 3 principales motivations professionnelles pour des recommandations sur-mesure
                         </p>
 
-                        <!-- Section Motivations avec Cards Interactives -->
+                        <!-- Section Motivations avec Système de Classement -->
                         <div class="form-group">
-                            <label class="modern-label">
-                                <span class="label-icon">
-                                    <i class="fas fa-heart"></i>
-                                    Quelles sont vos principales motivations professionnelles ?
-                                </span>
-                            </label>
-                            
-                            <div class="modern-card-grid">
-                                <div class="interactive-card" data-card-group="motivations" data-value="evolution" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-chart-line"></i>
-                                    </div>
-                                    <div class="card-title">Évolution de carrière</div>
-                                    <div class="card-description">Progresser vers des postes à responsabilités et développer votre leadership</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
+                            <div class="motivation-ranking-container">
+                                <div class="ranking-header">
+                                    <label class="modern-label">
+                                        <span class="label-icon">
+                                            <i class="fas fa-heart"></i>
+                                            Classez vos 3 principales motivations professionnelles
+                                        </span>
+                                    </label>
+                                    <div class="ranking-counter" id="motivation-counter">
+                                        0 / 3 sélectionnées
                                     </div>
                                 </div>
                                 
-                                <div class="interactive-card" data-card-group="motivations" data-value="salaire" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-coins"></i>
-                                    </div>
-                                    <div class="card-title">Augmentation salariale</div>
-                                    <div class="card-description">Améliorer significativement votre rémunération et vos avantages</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
+                                <div class="ranking-instructions">
+                                    <i class="fas fa-info-circle"></i>
+                                    <div>
+                                        <strong>Instructions :</strong> Cliquez pour sélectionner jusqu'à 3 motivations. 
+                                        L'ordre de sélection détermine votre classement : 1er choix = priorité maximale.
                                     </div>
                                 </div>
-                                
-                                <div class="interactive-card" data-card-group="motivations" data-value="equilibre" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-balance-scale"></i>
+
+                                <!-- Nouvelles Options de Motivations -->
+                                <div class="motivation-card" data-motivation="evolution" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Perspectives d'évolution</div>
+                                            <div class="card-description">
+                                                Progresser vers des postes à responsabilités, développer votre leadership et accéder à de nouvelles opportunités de carrière
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="card-title">Équilibre vie pro/perso</div>
-                                    <div class="card-description">Télétravail, horaires flexibles et respect de votre temps personnel</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
-                                    </div>
+                                    <div class="ranking-badge" data-rank="1">1</div>
                                 </div>
-                                
-                                <div class="interactive-card" data-card-group="motivations" data-value="defis" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-mountain"></i>
+
+                                <div class="motivation-card" data-motivation="salaire" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-euro-sign"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Augmentation salariale</div>
+                                            <div class="card-description">
+                                                Améliorer significativement votre rémunération, obtenir de meilleurs avantages et reconnaissance financière de vos compétences
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="card-title">Nouveaux défis</div>
-                                    <div class="card-description">Projets stimulants, innovations et challenges intellectuels</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
-                                    </div>
+                                    <div class="ranking-badge" data-rank="2">2</div>
                                 </div>
-                                
-                                <div class="interactive-card" data-card-group="motivations" data-value="formation" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-graduation-cap"></i>
+
+                                <div class="motivation-card" data-motivation="flexibilite" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-balance-scale"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Flexibilité</div>
+                                            <div class="card-description">
+                                                Télétravail, horaires flexibles, équilibre vie pro/perso et liberté d'organisation de votre temps de travail
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="card-title">Formation continue</div>
-                                    <div class="card-description">Développer de nouvelles compétences et rester à la pointe</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
-                                    </div>
+                                    <div class="ranking-badge" data-rank="3">3</div>
                                 </div>
-                                
-                                <div class="interactive-card" data-card-group="motivations" data-value="autonomie" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-user-astronaut"></i>
+
+                                <div class="motivation-card" data-motivation="autre" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-plus-circle"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Autre</div>
+                                            <div class="card-description">
+                                                Une motivation spécifique qui vous anime et que vous souhaitez préciser
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="card-title">Autonomie</div>
-                                    <div class="card-description">Indépendance dans les décisions et liberté d'organisation</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
+                                    <div class="ranking-badge" data-rank="4">4</div>
+                                </div>
+
+                                <!-- Champ libre pour "Autre" -->
+                                <div class="autre-motivation-field" id="autre-field">
+                                    <label for="autre-motivation-text" style="font-weight: 500; color: #374151; margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-edit"></i> Précisez votre autre motivation :
+                                    </label>
+                                    <textarea 
+                                        id="autre-motivation-text" 
+                                        name="autre-motivation-text"
+                                        class="autre-textarea"
+                                        placeholder="Décrivez ce qui vous motive professionnellement (ex: innovation, impact social, créativité, reconnaissance, défis techniques...)"
+                                        maxlength="200"
+                                    ></textarea>
+                                    <small style="color: #6b7280; font-size: 0.75rem;">Maximum 200 caractères</small>
+                                </div>
+
+                                <!-- Résumé des choix -->
+                                <div class="motivation-summary" id="motivation-summary">
+                                    <div class="summary-title">
+                                        <i class="fas fa-clipboard-check"></i>
+                                        Votre classement de motivations
+                                    </div>
+                                    <div class="summary-list" id="summary-list">
+                                        <!-- Contenu généré dynamiquement -->
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Section Secteurs avec Cards Interactives -->
+                        <!-- Section Secteurs (inchangée) -->
                         <div class="form-group">
                             <label class="modern-label">
                                 <span class="label-icon">
@@ -816,7 +1096,7 @@
                             </div>
                         </div>
 
-                        <!-- Slider Salaire Moderne -->
+                        <!-- Slider Salaire (inchangé) -->
                         <div class="form-group">
                             <div class="modern-slider-container">
                                 <div class="slider-header">
@@ -838,7 +1118,7 @@
                             </div>
                         </div>
 
-                        <!-- Textarea Moderne pour Aspirations -->
+                        <!-- Textarea Aspirations (inchangée) -->
                         <div class="form-group">
                             <label class="modern-label" for="aspirations">
                                 <span class="label-icon">
@@ -854,7 +1134,7 @@
                             ></textarea>
                         </div>
 
-                        <!-- Boutons d'Action Modernes -->
+                        <!-- Boutons d'Action -->
                         <div class="modern-form-actions">
                             <button type="button" class="modern-btn btn-secondary" id="back-step2">
                                 <i class="fas fa-arrow-left"></i>
@@ -868,6 +1148,7 @@
 
                         <!-- Champs cachés pour intégration -->
                         <input type="hidden" id="hidden-motivations" name="motivations">
+                        <input type="hidden" id="hidden-motivations-ranking" name="motivations-ranking">
                         <input type="hidden" id="hidden-secteurs" name="secteurs">
                         <input type="hidden" id="hidden-salaire" name="salaire">
                     </div>
