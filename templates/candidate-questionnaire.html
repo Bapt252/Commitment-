@@ -441,7 +441,7 @@
                                     </div>
                                     <div class="travel-time-label">Temps de trajet en transports en commun :</div>
                                     <input type="number" class="travel-time-input" name="travel-time-public-transport" 
-                                           min="5" max="180" step="5" placeholder="30">
+                                           min="1" max="180" step="1" placeholder="30">
                                     <span class="travel-time-unit">minutes</span>
                                 </div>
                                 
@@ -451,7 +451,7 @@
                                     </div>
                                     <div class="travel-time-label">Temps de trajet en véhicule personnel :</div>
                                     <input type="number" class="travel-time-input" name="travel-time-vehicle" 
-                                           min="5" max="120" step="5" placeholder="25">
+                                           min="1" max="120" step="1" placeholder="25">
                                     <span class="travel-time-unit">minutes</span>
                                 </div>
                                 
@@ -461,7 +461,7 @@
                                     </div>
                                     <div class="travel-time-label">Temps de trajet à vélo :</div>
                                     <input type="number" class="travel-time-input" name="travel-time-bike" 
-                                           min="5" max="90" step="5" placeholder="20">
+                                           min="1" max="90" step="1" placeholder="20">
                                     <span class="travel-time-unit">minutes</span>
                                 </div>
                                 
@@ -471,7 +471,7 @@
                                     </div>
                                     <div class="travel-time-label">Temps de trajet à pied :</div>
                                     <input type="number" class="travel-time-input" name="travel-time-walking" 
-                                           min="5" max="60" step="5" placeholder="15">
+                                           min="1" max="60" step="1" placeholder="15">
                                     <span class="travel-time-unit">minutes</span>
                                 </div>
                             </div>
@@ -1174,13 +1174,13 @@
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/candidate-analyzer.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-contract-system.js"></script>
     
-    <!-- ✨ NOUVEAU: Script pour la gestion des temps de trajet dans l'étape 2 -->
+    <!-- ✨ NOUVEAU: Script OPTIMISÉ pour la gestion des temps de trajet dans l'étape 2 -->
     <script>
         /**
-         * NEXTEN V3.0 - Gestion des temps de trajet dans l'étape 2
-         * Affichage dynamique des champs de saisie selon les moyens de transport sélectionnés
+         * NEXTEN V3.0 - Gestion optimisée des temps de trajet dans l'étape 2
+         * FIX: Résolution des problèmes de saisie clavier et validation
          */
-        class TravelTimeManager {
+        class TravelTimeManagerOptimized {
             constructor() {
                 this.transportMethods = {
                     'public-transport': { 
@@ -1209,11 +1209,12 @@
                     }
                 };
                 this.selectedTransports = new Set();
+                this.debounceTimer = null;
                 this.init();
             }
 
             init() {
-                console.log('🚚 Initialisation TravelTimeManager NEXTEN V3.0');
+                console.log('🚚 Initialisation TravelTimeManagerOptimized NEXTEN V3.0');
                 this.setupEventListeners();
                 this.loadSavedData();
             }
@@ -1227,10 +1228,17 @@
                     });
                 });
 
-                // Gestion de la saisie des temps de trajet
+                // 🔧 FIX: Gestion optimisée des événements de saisie
                 document.addEventListener('input', (e) => {
                     if (e.target.classList.contains('travel-time-input')) {
-                        this.handleTimeInput(e.target);
+                        this.handleTimeInputOptimized(e.target);
+                    }
+                });
+
+                // Gestion des événements clavier spécifiques
+                document.addEventListener('keydown', (e) => {
+                    if (e.target.classList.contains('travel-time-input')) {
+                        this.handleKeyboardInput(e);
                     }
                 });
             }
@@ -1248,7 +1256,7 @@
                 }
                 
                 this.updateContainerVisibility();
-                this.saveFormData();
+                this.debouncedSave();
                 
                 console.log('🚲 Transports sélectionnés:', Array.from(this.selectedTransports));
             }
@@ -1264,11 +1272,14 @@
                         field.style.transform = 'translateX(0)';
                     }, 10);
                     
-                    // Focus sur le champ de saisie
+                    // Focus sur le champ de saisie avec délai
                     const input = field.querySelector('.travel-time-input');
                     if (input && !input.value) {
                         setTimeout(() => {
                             input.focus();
+                            // Définir une valeur par défaut suggérée
+                            const placeholder = this.transportMethods[transportType]?.placeholder || '30';
+                            input.placeholder = placeholder;
                         }, 300);
                     }
                 }
@@ -1303,28 +1314,70 @@
                 }
             }
 
-            handleTimeInput(input) {
-                const value = parseInt(input.value);
-                const max = parseInt(input.max);
+            // 🔧 FIX: Gestion optimisée de la saisie avec validation douce
+            handleTimeInputOptimized(input) {
+                // Éviter les boucles infinies en arrêtant les événements en cascade
+                if (input.dataset.processing) return;
+                input.dataset.processing = 'true';
                 
-                // Validation de la valeur
+                const value = parseInt(input.value);
+                const max = parseInt(input.max) || 180;
+                let newValue = value;
+                
+                // Validation douce - on permet la saisie libre, on corrige seulement à la fin
                 if (value > max) {
-                    input.value = max;
+                    newValue = max;
                     this.showTimeValidationMessage(input, `Maximum ${max} minutes`);
-                } else if (value < 5) {
-                    input.value = 5;
-                    this.showTimeValidationMessage(input, 'Minimum 5 minutes');
+                } else if (value < 1 && input.value !== '') {
+                    newValue = 1;
+                    this.showTimeValidationMessage(input, 'Minimum 1 minute');
+                }
+                
+                // Ne changer la valeur que si nécessaire
+                if (newValue !== value && !isNaN(newValue)) {
+                    input.value = newValue;
                 }
                 
                 // Animation de validation
                 this.animateTimeInput(input);
                 
-                // Sauvegarde
-                this.saveFormData();
+                // Sauvegarde avec debounce
+                this.debouncedSave();
+                
+                // Retirer le flag de traitement
+                setTimeout(() => {
+                    delete input.dataset.processing;
+                }, 100);
+            }
+
+            // 🔧 FIX: Gestion spéciale des événements clavier
+            handleKeyboardInput(event) {
+                const input = event.target;
+                
+                // Permettre les touches de navigation et modification
+                const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+                
+                if (allowedKeys.includes(event.key)) {
+                    return; // Laisser passer
+                }
+                
+                // Permettre les chiffres
+                if (event.key >= '0' && event.key <= '9') {
+                    return; // Laisser passer
+                }
+                
+                // Bloquer tout le reste
+                event.preventDefault();
             }
 
             showTimeValidationMessage(input, message) {
-                // Créer un tooltip temporaire
+                // Supprimer les anciens tooltips
+                const existingTooltip = input.parentElement.querySelector('.travel-time-tooltip');
+                if (existingTooltip) {
+                    existingTooltip.remove();
+                }
+                
+                // Créer un nouveau tooltip
                 const tooltip = document.createElement('div');
                 tooltip.className = 'travel-time-tooltip';
                 tooltip.textContent = message;
@@ -1362,11 +1415,19 @@
                 }, 150);
             }
 
+            // 🔧 FIX: Sauvegarde avec debounce pour éviter les appels trop fréquents
+            debouncedSave() {
+                clearTimeout(this.debounceTimer);
+                this.debounceTimer = setTimeout(() => {
+                    this.saveFormData();
+                }, 500);
+            }
+
             saveFormData() {
                 try {
                     const formData = this.getFormData();
-                    localStorage.setItem('nexten_travel_times_v3', JSON.stringify(formData));
-                    console.log('💾 Temps de trajet sauvegardés:', formData);
+                    localStorage.setItem('nexten_travel_times_v3_optimized', JSON.stringify(formData));
+                    console.log('💾 Temps de trajet sauvegardés (optimisé):', formData);
                 } catch (error) {
                     console.error('❌ Erreur sauvegarde temps de trajet:', error);
                 }
@@ -1374,7 +1435,7 @@
 
             loadSavedData() {
                 try {
-                    const saved = localStorage.getItem('nexten_travel_times_v3');
+                    const saved = localStorage.getItem('nexten_travel_times_v3_optimized');
                     if (saved) {
                         const savedData = JSON.parse(saved);
                         console.log('📂 Restauration des temps de trajet:', savedData);
@@ -1391,15 +1452,17 @@
                             });
                         }
                         
-                        // Restaurer les valeurs de temps
-                        if (savedData.travelTimes) {
-                            Object.entries(savedData.travelTimes).forEach(([transport, time]) => {
-                                const input = document.querySelector(`input[name="travel-time-${transport}"]`);
-                                if (input && time) {
-                                    input.value = time;
-                                }
-                            });
-                        }
+                        // Restaurer les valeurs de temps avec délai
+                        setTimeout(() => {
+                            if (savedData.travelTimes) {
+                                Object.entries(savedData.travelTimes).forEach(([transport, time]) => {
+                                    const input = document.querySelector(`input[name="travel-time-${transport}"]`);
+                                    if (input && time) {
+                                        input.value = time;
+                                    }
+                                });
+                            }
+                        }, 500);
                         
                         this.updateContainerVisibility();
                     }
@@ -1421,7 +1484,8 @@
                 return {
                     selectedTransports: Array.from(this.selectedTransports),
                     travelTimes: travelTimes,
-                    lastSaved: new Date().toISOString()
+                    lastSaved: new Date().toISOString(),
+                    version: '3.0-optimized'
                 };
             }
 
@@ -1441,11 +1505,13 @@
                     isValid = false;
                 }
                 
-                // Vérifier que tous les transports sélectionnés ont un temps de trajet
+                // Vérifier que tous les transports sélectionnés ont un temps de trajet valide
                 this.selectedTransports.forEach(transport => {
                     const input = document.querySelector(`input[name="travel-time-${transport}"]`);
-                    if (!input || !input.value || parseInt(input.value) < 5) {
-                        errors.push(`Veuillez indiquer un temps de trajet valide pour ${this.transportMethods[transport]?.label || transport}`);
+                    const value = input ? parseInt(input.value) : 0;
+                    if (!input || !input.value || value < 1) {
+                        const transportName = this.transportMethods[transport]?.label || transport;
+                        errors.push(`Veuillez indiquer un temps de trajet valide pour ${transportName}`);
                         isValid = false;
                     }
                 });
@@ -1460,6 +1526,7 @@
             // Reset complet
             reset() {
                 this.selectedTransports.clear();
+                clearTimeout(this.debounceTimer);
                 
                 // Décocher toutes les checkboxes
                 document.querySelectorAll('input[name="transport-method"]').forEach(cb => {
@@ -1472,14 +1539,14 @@
                 });
                 
                 this.updateContainerVisibility();
-                localStorage.removeItem('nexten_travel_times_v3');
+                localStorage.removeItem('nexten_travel_times_v3_optimized');
                 
-                console.log('🔄 Reset des temps de trajet effectué');
+                console.log('🔄 Reset des temps de trajet effectué (optimisé)');
             }
         }
 
         // CSS pour les animations supplémentaires
-        const travelTimeStyles = `
+        const travelTimeOptimizedStyles = `
             @keyframes fadeInOut {
                 0%, 100% { opacity: 0; transform: translateX(-50%) translateY(5px); }
                 20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -1490,27 +1557,43 @@
                 transform: translateX(-20px);
                 transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             }
+            
+            .travel-time-input {
+                transition: all 0.2s ease;
+            }
+            
+            .travel-time-input:focus {
+                transform: scale(1.02);
+            }
         `;
         
         // Injecter les styles
-        const travelTimeStyleEl = document.createElement('style');
-        travelTimeStyleEl.textContent = travelTimeStyles;
-        document.head.appendChild(travelTimeStyleEl);
+        const travelTimeOptimizedStyleEl = document.createElement('style');
+        travelTimeOptimizedStyleEl.textContent = travelTimeOptimizedStyles;
+        document.head.appendChild(travelTimeOptimizedStyleEl);
 
-        // Initialiser le gestionnaire de temps de trajet quand le DOM est prêt
+        // Initialiser le gestionnaire optimisé quand le DOM est prêt
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
-                window.travelTimeManager = new TravelTimeManager();
+                // Vérifier si l'ancien manager existe et le nettoyer
+                if (window.travelTimeManager) {
+                    console.log('🔄 Remplacement de l\'ancien TravelTimeManager');
+                    if (typeof window.travelTimeManager.reset === 'function') {
+                        window.travelTimeManager.reset();
+                    }
+                }
+                
+                window.travelTimeManager = new TravelTimeManagerOptimized();
                 
                 // Exposer pour debugging
-                window.TravelTimeManager = TravelTimeManager;
+                window.TravelTimeManagerOptimized = TravelTimeManagerOptimized;
                 
-                console.log('✅ TravelTimeManager NEXTEN V3.0 initialisé');
+                console.log('✅ TravelTimeManagerOptimized NEXTEN V3.0 initialisé');
                 console.log('🛠️ Commandes debug disponibles:');
                 console.log('   - travelTimeManager.getTravelTimeData() - Voir les données');
                 console.log('   - travelTimeManager.validateStep2() - Valider l\'étape');
                 console.log('   - travelTimeManager.reset() - Reset complet');
-            }, 500);
+            }, 1000);
         });
     </script>
     
