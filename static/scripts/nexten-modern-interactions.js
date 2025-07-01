@@ -63,6 +63,8 @@ class NextenQuestionnaire {
     init() {
         console.log('🚀 Initialisation NEXTEN V3.0 - Version Complète avec Étape 4');
         this.initializeStepNavigation();
+        this.initializeTransportAndTravelTime(); // 🔧 AJOUTÉ : Gestion temps de trajet
+        this.initializeContractSystem(); // 🔧 AJOUTÉ : Système de contrats
         this.initializeMotivationRanking();
         this.initializeSecteurSelectors();
         this.initializeSalaryControls();
@@ -73,6 +75,276 @@ class NextenQuestionnaire {
         
         // 🔧 Force l'affichage de l'étape 3 si nécessaire
         this.ensureStep3Visibility();
+    }
+
+    // 🔧 NOUVEAU : Système de transport et temps de trajet
+    initializeTransportAndTravelTime() {
+        console.log('🚗 Initialisation système de transport et temps de trajet...');
+        
+        const transportCheckboxes = document.querySelectorAll('input[name="transport-method"]');
+        const travelTimeContainer = document.getElementById('travel-time-container');
+        
+        if (!transportCheckboxes.length || !travelTimeContainer) {
+            console.warn('⚠️ Éléments de transport non trouvés');
+            return;
+        }
+
+        // Event listeners pour chaque checkbox de transport
+        transportCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                this.updateTravelTimeDisplay();
+            });
+        });
+
+        // Initialisation de l'affichage
+        this.updateTravelTimeDisplay();
+    }
+
+    updateTravelTimeDisplay() {
+        const selectedTransports = document.querySelectorAll('input[name="transport-method"]:checked');
+        const travelTimeContainer = document.getElementById('travel-time-container');
+        
+        if (!travelTimeContainer) return;
+
+        // Mapping des transports vers leurs champs correspondants
+        const transportFieldMap = {
+            'public-transport': 'travel-time-public-transport',
+            'vehicle': 'travel-time-vehicle',
+            'bike': 'travel-time-bike',
+            'walking': 'travel-time-walking'
+        };
+
+        // Masquer tous les champs de temps de trajet
+        Object.values(transportFieldMap).forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.style.display = 'none';
+                field.style.opacity = '0';
+                field.style.transform = 'translateX(-20px)';
+            }
+        });
+
+        // Afficher les champs correspondants aux transports sélectionnés
+        if (selectedTransports.length > 0) {
+            travelTimeContainer.classList.add('active');
+            
+            selectedTransports.forEach((transport, index) => {
+                const fieldId = transportFieldMap[transport.value];
+                const field = document.getElementById(fieldId);
+                
+                if (field) {
+                    setTimeout(() => {
+                        field.style.display = 'flex';
+                        field.style.opacity = '1';
+                        field.style.transform = 'translateX(0)';
+                    }, index * 100); // Animation en cascade
+                }
+            });
+            
+            console.log(`✅ Champs de temps de trajet affichés pour: ${Array.from(selectedTransports).map(t => t.value).join(', ')}`);
+        } else {
+            travelTimeContainer.classList.remove('active');
+            console.log('📝 Aucun transport sélectionné - champs masqués');
+        }
+    }
+
+    // 🔧 NOUVEAU : Système de contrats complet
+    initializeContractSystem() {
+        console.log('📋 Initialisation système de contrats...');
+        
+        // Créer l'objet contractSystem global
+        window.contractSystem = {
+            addToRanking: (contractType) => this.addContractToRanking(contractType),
+            removeFromRanking: (contractType) => this.removeContractFromRanking(contractType),
+            moveContract: (contractType, direction) => this.moveContract(contractType, direction),
+            updateRankingDisplay: () => this.updateContractRankingDisplay()
+        };
+
+        // Initialiser l'affichage
+        this.updateContractRankingDisplay();
+        
+        console.log('✅ Système de contrats initialisé - contractSystem disponible globalement');
+    }
+
+    addContractToRanking(contractType) {
+        // Vérifier si le contrat n'est pas déjà dans le ranking
+        if (this.contractRanking.find(c => c.type === contractType)) {
+            this.showNotification('Ce type de contrat est déjà dans votre sélection', 'warning');
+            return;
+        }
+
+        // Trouver les informations du contrat
+        const contractCard = document.querySelector(`[data-type="${contractType}"]`);
+        if (!contractCard) {
+            console.error(`❌ Carte de contrat ${contractType} non trouvée`);
+            return;
+        }
+
+        const contractName = contractCard.dataset.name;
+        const contractData = {
+            type: contractType,
+            name: contractName,
+            rank: this.contractRanking.length + 1
+        };
+
+        // Ajouter au ranking
+        this.contractRanking.push(contractData);
+        
+        // Désactiver le bouton "Ajouter"
+        const addButton = contractCard.querySelector('.add-contract-button');
+        if (addButton) {
+            addButton.disabled = true;
+            addButton.innerHTML = '<i class="fas fa-check"></i> Ajouté';
+            addButton.classList.add('added');
+        }
+
+        // Mettre à jour l'affichage
+        this.updateContractRankingDisplay();
+        
+        console.log(`✅ Contrat ${contractName} ajouté au rang ${contractData.rank}`);
+        this.showNotification(`${contractName} ajouté à votre sélection`, 'success');
+    }
+
+    removeContractFromRanking(contractType) {
+        // Retirer du ranking
+        this.contractRanking = this.contractRanking.filter(c => c.type !== contractType);
+        
+        // Réorganiser les rangs
+        this.contractRanking.forEach((contract, index) => {
+            contract.rank = index + 1;
+        });
+
+        // Réactiver le bouton "Ajouter"
+        const contractCard = document.querySelector(`[data-type="${contractType}"]`);
+        if (contractCard) {
+            const addButton = contractCard.querySelector('.add-contract-button');
+            if (addButton) {
+                addButton.disabled = false;
+                addButton.innerHTML = '<i class="fas fa-plus"></i> Ajouter';
+                addButton.classList.remove('added');
+            }
+        }
+
+        // Mettre à jour l'affichage
+        this.updateContractRankingDisplay();
+        
+        console.log(`🗑️ Contrat ${contractType} retiré du ranking`);
+    }
+
+    moveContract(contractType, direction) {
+        const contractIndex = this.contractRanking.findIndex(c => c.type === contractType);
+        if (contractIndex === -1) return;
+
+        let newIndex;
+        if (direction === 'up' && contractIndex > 0) {
+            newIndex = contractIndex - 1;
+        } else if (direction === 'down' && contractIndex < this.contractRanking.length - 1) {
+            newIndex = contractIndex + 1;
+        } else {
+            return; // Pas de mouvement possible
+        }
+
+        // Échanger les positions
+        [this.contractRanking[contractIndex], this.contractRanking[newIndex]] = 
+        [this.contractRanking[newIndex], this.contractRanking[contractIndex]];
+
+        // Réorganiser les rangs
+        this.contractRanking.forEach((contract, index) => {
+            contract.rank = index + 1;
+        });
+
+        // Mettre à jour l'affichage
+        this.updateContractRankingDisplay();
+    }
+
+    updateContractRankingDisplay() {
+        const rankingList = document.getElementById('ranking-list');
+        const contractSummary = document.getElementById('contract-summary');
+        const summaryContent = document.getElementById('summary-content');
+        
+        if (!rankingList) return;
+
+        if (this.contractRanking.length === 0) {
+            // Afficher le message vide
+            rankingList.innerHTML = `
+                <div class="ranking-empty">
+                    <div class="ranking-empty-icon">
+                        <i class="fas fa-hand-pointer"></i>
+                    </div>
+                    <h5 class="ranking-empty-title">Commencez votre sélection</h5>
+                    <p class="ranking-empty-text">
+                        Ajoutez les types de contrats qui vous intéressent pour créer votre classement personnalisé
+                    </p>
+                </div>
+            `;
+            
+            if (contractSummary) contractSummary.style.display = 'none';
+        } else {
+            // Afficher les contrats classés
+            rankingList.innerHTML = this.contractRanking.map(contract => `
+                <div class="ranking-item" data-type="${contract.type}">
+                    <div class="ranking-position">
+                        <div class="rank-number">${contract.rank}</div>
+                        <div class="rank-controls">
+                            <button class="rank-btn rank-up" onclick="contractSystem.moveContract('${contract.type}', 'up')" 
+                                    ${contract.rank === 1 ? 'disabled' : ''}>
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                            <button class="rank-btn rank-down" onclick="contractSystem.moveContract('${contract.type}', 'down')"
+                                    ${contract.rank === this.contractRanking.length ? 'disabled' : ''}>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ranking-content">
+                        <h6 class="ranking-title">${contract.name}</h6>
+                        <p class="ranking-description">Position ${contract.rank} dans votre classement</p>
+                    </div>
+                    <button class="ranking-remove" onclick="contractSystem.removeFromRanking('${contract.type}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            // Afficher le résumé
+            if (contractSummary && summaryContent) {
+                contractSummary.style.display = 'block';
+                summaryContent.innerHTML = `
+                    <div class="summary-stats">
+                        <div class="summary-stat">
+                            <span class="stat-number">${this.contractRanking.length}</span>
+                            <span class="stat-label">type(s) sélectionné(s)</span>
+                        </div>
+                    </div>
+                    <div class="summary-ranking">
+                        ${this.contractRanking.map(contract => `
+                            <div class="summary-rank-item">
+                                <span class="summary-rank">${contract.rank}</span>
+                                <span class="summary-name">${contract.name}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        // Mettre à jour les champs cachés
+        this.updateContractHiddenFields();
+    }
+
+    updateContractHiddenFields() {
+        // Mettre à jour tous les champs cachés pour l'intégration
+        const fields = {
+            'contract-ranking-order': this.contractRanking.map(c => c.type).join(','),
+            'contract-types-selected': this.contractRanking.map(c => c.name).join(','),
+            'contract-preference-level': this.contractRanking.length > 0 ? 'high' : 'none',
+            'contract-primary-choice': this.contractRanking.length > 0 ? this.contractRanking[0].type : ''
+        };
+
+        Object.entries(fields).forEach(([fieldId, value]) => {
+            const field = document.getElementById(fieldId);
+            if (field) field.value = value;
+        });
     }
 
     // 🔧 CORRECTION CRITIQUE: Navigation entre étapes
@@ -842,6 +1114,7 @@ class NextenQuestionnaire {
             transportMethods: Array.from(document.querySelectorAll('input[name="transport-method"]:checked')).map(el => el.value),
             address: document.getElementById('address')?.value,
             officePreference: document.querySelector('input[name="office-preference"]:checked')?.value,
+            contractRanking: this.contractRanking,
             
             // Étape 3
             motivations: this.selectedMotivations,
