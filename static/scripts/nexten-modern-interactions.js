@@ -1,7 +1,7 @@
 /**
- * NEXTEN V3.0 - Modern JavaScript Interactions avec Système de Classement des Motivations
+ * NEXTEN V3.0 - Modern JavaScript Interactions avec Système de Classement des Motivations + Fourchette Salariale
  * Système d'interactions modernes pour les étapes 3 & 4
- * Focus: Ranking System, Animations fluides, UX premium, accessibilité
+ * Focus: Ranking System, Salary Range, Animations fluides, UX premium, accessibilité
  */
 
 class NextenModernUI {
@@ -11,7 +11,8 @@ class NextenModernUI {
             motivations: [], // Array des motivations avec leur ranking
             motivationsRanking: [], // Array ordonné pour le classement
             secteurs: [],
-            salaire: 45000,
+            salaryMin: 40,
+            salaryMax: 45,
             aspirations: '',
             autreMotivation: '',
             situation: '',
@@ -26,10 +27,10 @@ class NextenModernUI {
     }
 
     init() {
-        console.log('🚀 Initialisation NEXTEN V3.0 Modern UI avec Système de Classement');
+        console.log('🚀 Initialisation NEXTEN V3.0 Modern UI avec Système de Classement + Fourchette Salariale');
         this.setupEventListeners();
         this.initializeAnimations();
-        this.setupSalarySlider();
+        this.setupSalaryRange(); // Nouvelle méthode pour la fourchette
         this.setupFormValidation();
         this.setupAccessibility();
         this.loadSavedData();
@@ -62,6 +63,227 @@ class NextenModernUI {
         
         // Auto-save
         this.setupAutoSave();
+    }
+
+    /**
+     * ✨ NOUVEAU: Système de fourchette salariale moderne
+     */
+    setupSalaryRange() {
+        const salaryMinInput = document.getElementById('salary-min');
+        const salaryMaxInput = document.getElementById('salary-max');
+        const salarySliderMin = document.getElementById('salary-slider-min');
+        const salarySliderMax = document.getElementById('salary-slider-max');
+        const salaryDisplay = document.getElementById('salary-display');
+        const salaryValidation = document.getElementById('salary-validation');
+        
+        if (!salaryMinInput || !salaryMaxInput) {
+            console.warn('⚠️ Champs de fourchette salariale non trouvés');
+            return;
+        }
+
+        // Gestion des inputs numériques
+        [salaryMinInput, salaryMaxInput].forEach(input => {
+            input.addEventListener('input', (e) => {
+                this.handleSalaryInputChange(e.target);
+            });
+            
+            input.addEventListener('focus', (e) => {
+                e.target.parentElement.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', (e) => {
+                e.target.parentElement.parentElement.classList.remove('focused');
+            });
+        });
+
+        // Gestion des sliders
+        if (salarySliderMin) {
+            salarySliderMin.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                salaryMinInput.value = value;
+                this.formData.salaryMin = value;
+                this.updateSalaryDisplay();
+                this.validateSalaryRange();
+                this.saveFormData();
+            });
+        }
+
+        if (salarySliderMax) {
+            salarySliderMax.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                salaryMaxInput.value = value;
+                this.formData.salaryMax = value;
+                this.updateSalaryDisplay();
+                this.validateSalaryRange();
+                this.saveFormData();
+            });
+        }
+
+        // Gestion des suggestions de fourchettes
+        this.setupSalarySuggestions();
+
+        // Initialiser l'affichage
+        this.updateSalaryDisplay();
+        this.validateSalaryRange();
+
+        console.log('✅ Système de fourchette salariale initialisé');
+    }
+
+    handleSalaryInputChange(input) {
+        let value = parseInt(input.value);
+        const isMin = input.id === 'salary-min';
+        
+        // Validation des limites
+        if (value < 20) value = 20;
+        if (value > 200) value = 200;
+        
+        // Mettre à jour la valeur
+        input.value = value;
+        
+        // Synchroniser avec les sliders
+        const slider = document.getElementById(isMin ? 'salary-slider-min' : 'salary-slider-max');
+        if (slider) {
+            slider.value = value;
+        }
+        
+        // Mettre à jour les données
+        if (isMin) {
+            this.formData.salaryMin = value;
+        } else {
+            this.formData.salaryMax = value;
+        }
+        
+        // Mettre à jour l'affichage et valider
+        this.updateSalaryDisplay();
+        this.validateSalaryRange();
+        this.saveFormData();
+        
+        // Animation du changement
+        this.animateSalaryChange(input);
+    }
+
+    updateSalaryDisplay() {
+        const display = document.getElementById('salary-display');
+        if (!display) return;
+        
+        const min = this.formData.salaryMin;
+        const max = this.formData.salaryMax;
+        
+        // Format d'affichage
+        const displayText = `Entre ${min}K et ${max}K €`;
+        display.textContent = displayText;
+        
+        // Animation du changement
+        display.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+            display.style.transform = 'scale(1)';
+        }, 200);
+        
+        // Mettre à jour les champs cachés
+        this.updateSalaryHiddenFields();
+    }
+
+    validateSalaryRange() {
+        const min = this.formData.salaryMin;
+        const max = this.formData.salaryMax;
+        const validation = document.getElementById('salary-validation');
+        const minGroup = document.getElementById('salary-min-group');
+        const maxGroup = document.getElementById('salary-max-group');
+        
+        const isValid = max > min;
+        
+        if (validation) {
+            if (isValid) {
+                validation.classList.remove('active');
+            } else {
+                validation.classList.add('active');
+            }
+        }
+        
+        // Styling des groupes
+        [minGroup, maxGroup].forEach(group => {
+            if (group) {
+                if (isValid) {
+                    group.classList.remove('error');
+                } else {
+                    group.classList.add('error');
+                }
+            }
+        });
+        
+        return isValid;
+    }
+
+    setupSalarySuggestions() {
+        const suggestions = document.querySelectorAll('.salary-suggestion');
+        
+        suggestions.forEach(suggestion => {
+            suggestion.addEventListener('click', () => {
+                const min = parseInt(suggestion.dataset.min);
+                const max = parseInt(suggestion.dataset.max);
+                
+                this.applySalarySuggestion(min, max);
+            });
+        });
+    }
+
+    applySalarySuggestion(min, max) {
+        // Mettre à jour les inputs
+        const salaryMinInput = document.getElementById('salary-min');
+        const salaryMaxInput = document.getElementById('salary-max');
+        const salarySliderMin = document.getElementById('salary-slider-min');
+        const salarySliderMax = document.getElementById('salary-slider-max');
+        
+        if (salaryMinInput) salaryMinInput.value = min;
+        if (salaryMaxInput) salaryMaxInput.value = max;
+        if (salarySliderMin) salarySliderMin.value = min;
+        if (salarySliderMax) salarySliderMax.value = max;
+        
+        // Mettre à jour les données
+        this.formData.salaryMin = min;
+        this.formData.salaryMax = max;
+        
+        // Mettre à jour l'affichage
+        this.updateSalaryDisplay();
+        this.validateSalaryRange();
+        this.saveFormData();
+        
+        // Animation de feedback
+        this.animateSuggestionApplied();
+        
+        console.log(`💰 Suggestion appliquée: ${min}K - ${max}K €`);
+    }
+
+    animateSuggestionApplied() {
+        const container = document.querySelector('.salary-range-container');
+        if (container) {
+            container.style.transform = 'scale(1.02)';
+            container.style.boxShadow = '0 0 0 4px rgba(124, 58, 237, 0.2)';
+            
+            setTimeout(() => {
+                container.style.transform = 'scale(1)';
+                container.style.boxShadow = '';
+            }, 300);
+        }
+    }
+
+    animateSalaryChange(input) {
+        input.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+            input.style.transform = 'scale(1)';
+        }, 150);
+    }
+
+    updateSalaryHiddenFields() {
+        const hiddenMin = document.getElementById('hidden-salary-min');
+        const hiddenMax = document.getElementById('hidden-salary-max');
+        const hiddenRange = document.getElementById('hidden-salary-range');
+        
+        if (hiddenMin) hiddenMin.value = this.formData.salaryMin;
+        if (hiddenMax) hiddenMax.value = this.formData.salaryMax;
+        if (hiddenRange) {
+            hiddenRange.value = `${this.formData.salaryMin}K-${this.formData.salaryMax}K`;
+        }
     }
 
     /**
@@ -730,56 +952,6 @@ class NextenModernUI {
         }, 600);
     }
 
-    setupSalarySlider() {
-        const slider = document.getElementById('salary-range');
-        const display = document.getElementById('salary-display');
-        
-        if (slider && display) {
-            // Mise à jour en temps réel
-            slider.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value);
-                this.updateSalaryDisplay(value, display);
-                this.formData.salaire = value;
-                this.saveFormData();
-            });
-            
-            // Animation au survol
-            slider.addEventListener('mouseenter', () => {
-                slider.style.transform = 'scaleY(1.2)';
-            });
-            
-            slider.addEventListener('mouseleave', () => {
-                slider.style.transform = 'scaleY(1)';
-            });
-            
-            // Initialiser l'affichage
-            this.updateSalaryDisplay(slider.value, display);
-        }
-    }
-
-    updateSalaryDisplay(value, display) {
-        const formatted = this.formatSalary(value);
-        display.textContent = formatted;
-        
-        // Animation du changement de valeur
-        display.style.transform = 'scale(1.1)';
-        setTimeout(() => {
-            display.style.transform = 'scale(1)';
-        }, 150);
-        
-        // Mise à jour de la couleur selon la valeur
-        const percentage = (value - 25000) / (120000 - 25000);
-        const hue = percentage * 120; // De rouge (0) à vert (120)
-        display.style.background = `hsl(${hue}, 70%, 50%)`;
-    }
-
-    formatSalary(value) {
-        if (value >= 120000) {
-            return '120K €+';
-        }
-        return `${(value / 1000).toFixed(0)}K €`;
-    }
-
     setupModernTextareas() {
         const textareas = document.querySelectorAll('.modern-textarea, .autre-textarea');
         
@@ -946,6 +1118,12 @@ class NextenModernUI {
             isValid = false;
         }
         
+        // Vérifier la fourchette salariale
+        if (!this.validateSalaryRange()) {
+            this.showValidationError('Le salaire maximum doit être supérieur au salaire minimum');
+            isValid = false;
+        }
+        
         return isValid;
     }
 
@@ -1023,10 +1201,10 @@ class NextenModernUI {
                 ...this.formData,
                 motivationRankingMap: Object.fromEntries(this.motivationRanking),
                 lastSaved: new Date().toISOString(),
-                version: '3.0-ranking'
+                version: '3.0-salary-range'
             };
-            localStorage.setItem('nexten_form_step3_4_v3_ranking', JSON.stringify(dataToSave));
-            console.log('💾 Données sauvegardées NEXTEN V3.0 Ranking:', dataToSave);
+            localStorage.setItem('nexten_form_step3_4_v3_salary_range', JSON.stringify(dataToSave));
+            console.log('💾 Données sauvegardées NEXTEN V3.0 Salary Range:', dataToSave);
         } catch (error) {
             console.error('❌ Erreur sauvegarde:', error);
         }
@@ -1034,7 +1212,7 @@ class NextenModernUI {
 
     loadSavedData() {
         try {
-            const saved = localStorage.getItem('nexten_form_step3_4_v3_ranking');
+            const saved = localStorage.getItem('nexten_form_step3_4_v3_salary_range');
             if (saved) {
                 const savedData = JSON.parse(saved);
                 this.formData = { ...this.formData, ...savedData };
@@ -1049,7 +1227,7 @@ class NextenModernUI {
                     this.restoreFormState();
                 }, 500);
                 
-                console.log('📂 Données restaurées NEXTEN V3.0 Ranking:', this.formData);
+                console.log('📂 Données restaurées NEXTEN V3.0 Salary Range:', this.formData);
             }
         } catch (error) {
             console.error('❌ Erreur restauration:', error);
@@ -1092,15 +1270,28 @@ class NextenModernUI {
             }
         });
         
-        // Restaurer le slider de salaire
-        const slider = document.getElementById('salary-range');
-        const display = document.getElementById('salary-display');
-        if (slider && this.formData.salaire) {
-            slider.value = this.formData.salaire;
-            if (display) {
-                this.updateSalaryDisplay(this.formData.salaire, display);
-            }
+        // Restaurer la fourchette salariale
+        const salaryMinInput = document.getElementById('salary-min');
+        const salaryMaxInput = document.getElementById('salary-max');
+        const salarySliderMin = document.getElementById('salary-slider-min');
+        const salarySliderMax = document.getElementById('salary-slider-max');
+        
+        if (salaryMinInput && this.formData.salaryMin) {
+            salaryMinInput.value = this.formData.salaryMin;
         }
+        if (salaryMaxInput && this.formData.salaryMax) {
+            salaryMaxInput.value = this.formData.salaryMax;
+        }
+        if (salarySliderMin && this.formData.salaryMin) {
+            salarySliderMin.value = this.formData.salaryMin;
+        }
+        if (salarySliderMax && this.formData.salaryMax) {
+            salarySliderMax.value = this.formData.salaryMax;
+        }
+        
+        // Mettre à jour l'affichage de la fourchette
+        this.updateSalaryDisplay();
+        this.validateSalaryRange();
         
         // Restaurer les textareas
         const aspirations = document.getElementById('aspirations');
@@ -1163,7 +1354,7 @@ class NextenModernUI {
     }
 
     submitForm() {
-        console.log('📤 Soumission du formulaire NEXTEN V3.0 Ranking:', this.formData);
+        console.log('📤 Soumission du formulaire NEXTEN V3.0 Salary Range:', this.formData);
         
         // Animation de soumission
         const submitBtn = document.getElementById('submit-btn');
@@ -1178,7 +1369,7 @@ class NextenModernUI {
         // Simuler l'envoi (remplacer par votre logique backend)
         setTimeout(() => {
             this.showSuccessMessage();
-            localStorage.removeItem('nexten_form_step3_4_v3_ranking');
+            localStorage.removeItem('nexten_form_step3_4_v3_salary_range');
         }, 2000);
     }
 
@@ -1278,7 +1469,7 @@ class NextenModernUI {
         
         // Observer tous les éléments animables
         setTimeout(() => {
-            document.querySelectorAll('.interactive-card, .modern-option, .modern-slider-container, .motivation-card').forEach(el => {
+            document.querySelectorAll('.interactive-card, .modern-option, .salary-range-container, .motivation-card').forEach(el => {
                 observer.observe(el);
             });
         }, 100);
@@ -1332,7 +1523,7 @@ class NextenModernUI {
         const motivationCount = this.motivationRanking.size;
         const secteurCount = this.formData.secteurs.length;
         
-        console.log(`📊 Sélections actuelles: ${motivationCount} motivations, ${secteurCount} secteurs`);
+        console.log(`📊 Sélections actuelles: ${motivationCount} motivations, ${secteurCount} secteurs, fourchette: ${this.formData.salaryMin}K-${this.formData.salaryMax}K`);
     }
 
     // Méthode pour exposer les données (debugging)
@@ -1349,7 +1540,8 @@ class NextenModernUI {
             motivations: [],
             motivationsRanking: [],
             secteurs: [],
-            salaire: 45000,
+            salaryMin: 40,
+            salaryMax: 45,
             aspirations: '',
             autreMotivation: '',
             situation: '',
@@ -1360,7 +1552,7 @@ class NextenModernUI {
         };
         
         this.motivationRanking = new Map();
-        localStorage.removeItem('nexten_form_step3_4_v3_ranking');
+        localStorage.removeItem('nexten_form_step3_4_v3_salary_range');
         location.reload();
     }
 }
@@ -1450,12 +1642,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Exposer pour debugging
         window.NextenModernUI = NextenModernUI;
         
-        console.log('✅ NEXTEN V3.0 Modern UI avec Système de Classement initialisé avec succès');
+        console.log('✅ NEXTEN V3.0 Modern UI avec Fourchette Salariale initialisé avec succès');
         console.log('🎛️ Commandes debug disponibles:');
         console.log('   - nextenModernUI.getFormData() - Voir les données');
         console.log('   - nextenModernUI.navigateToStep(4) - Aller à l\'étape 4');
         console.log('   - nextenModernUI.resetForm() - Reset complet');
         console.log('   - nextenModernUI.motivationRanking - Voir le classement actuel');
+        console.log('   - nextenModernUI.formData.salaryMin/Max - Voir la fourchette salariale');
     }, 1000);
 });
 
@@ -1464,4 +1657,4 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = NextenModernUI;
 }
 
-console.log('🚀 NEXTEN V3.0 - Script d\'interactions modernes avec Système de Classement chargé');
+console.log('🚀 NEXTEN V3.0 - Script d\'interactions modernes avec Fourchette Salariale chargé');
