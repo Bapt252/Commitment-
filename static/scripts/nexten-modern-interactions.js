@@ -1,28 +1,32 @@
 /**
- * NEXTEN V3.0 - Modern JavaScript Interactions
+ * NEXTEN V3.0 - Modern JavaScript Interactions avec Système de Classement des Motivations
  * Système d'interactions modernes pour les étapes 3 & 4
- * Focus: Animations fluides, UX premium, accessibilité
+ * Focus: Ranking System, Animations fluides, UX premium, accessibilité
  */
 
 class NextenModernUI {
     constructor() {
         this.currentStep = 3;
         this.formData = {
-            motivations: [],
+            motivations: [], // Array des motivations avec leur ranking
+            motivationsRanking: [], // Array ordonné pour le classement
             secteurs: [],
             salaire: 45000,
             aspirations: '',
+            autreMotivation: '',
             situation: '',
             disponibilite: '',
             modesTravail: [],
             typesEntreprise: [],
             contraintes: ''
         };
+        this.motivationRanking = new Map(); // Pour gérer l'ordre de sélection
+        this.maxMotivations = 3; // Limite de 3 motivations
         this.init();
     }
 
     init() {
-        console.log('🚀 Initialisation NEXTEN V3.0 Modern UI');
+        console.log('🚀 Initialisation NEXTEN V3.0 Modern UI avec Système de Classement');
         this.setupEventListeners();
         this.initializeAnimations();
         this.setupSalarySlider();
@@ -32,10 +36,10 @@ class NextenModernUI {
     }
 
     setupEventListeners() {
-        // Cards interactives pour motivations
-        this.setupInteractiveCards('motivations', this.formData.motivations);
+        // ✨ NOUVEAU: Système de classement des motivations
+        this.setupMotivationRanking();
         
-        // Cards interactives pour secteurs
+        // Cards interactives pour secteurs (inchangé)
         this.setupInteractiveCards('secteurs', this.formData.secteurs);
         
         // Options modernes pour situation
@@ -59,6 +63,422 @@ class NextenModernUI {
         // Auto-save
         this.setupAutoSave();
     }
+
+    /**
+     * ✨ NOUVEAU: Système de classement des motivations professionnelles
+     */
+    setupMotivationRanking() {
+        const motivationCards = document.querySelectorAll('.motivation-card');
+        
+        motivationCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleMotivationSelection(card);
+            });
+            
+            // Animation au hover pour les cartes non sélectionnées
+            card.addEventListener('mouseenter', () => {
+                if (!card.classList.contains('selected') && !card.classList.contains('disabled')) {
+                    card.style.transform = 'translateY(-3px) scale(1.02)';
+                }
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                if (!card.classList.contains('selected')) {
+                    card.style.transform = 'translateY(0) scale(1)';
+                }
+            });
+            
+            // Support clavier
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.handleMotivationSelection(card);
+                }
+            });
+        });
+
+        // Gestion du champ "Autre"
+        const autreTextarea = document.getElementById('autre-motivation-text');
+        if (autreTextarea) {
+            autreTextarea.addEventListener('input', (e) => {
+                this.formData.autreMotivation = e.target.value;
+                this.saveFormData();
+                
+                // Auto-resize
+                this.autoResizeTextarea(autreTextarea);
+            });
+        }
+    }
+
+    handleMotivationSelection(card) {
+        const motivation = card.dataset.motivation;
+        const isSelected = card.classList.contains('selected');
+        
+        if (isSelected) {
+            // Déselectionner
+            this.deselectMotivation(card, motivation);
+        } else {
+            // Vérifier si on peut encore sélectionner
+            if (this.motivationRanking.size >= this.maxMotivations) {
+                this.showMaxSelectionWarning();
+                this.animateCardReject(card);
+                return;
+            }
+            
+            // Sélectionner
+            this.selectMotivation(card, motivation);
+        }
+        
+        this.updateMotivationUI();
+        this.saveFormData();
+    }
+
+    selectMotivation(card, motivation) {
+        const nextRank = this.motivationRanking.size + 1;
+        
+        // Ajouter au classement
+        this.motivationRanking.set(motivation, nextRank);
+        
+        // Mettre à jour l'interface
+        card.classList.add('selected');
+        const badge = card.querySelector('.ranking-badge');
+        if (badge) {
+            badge.textContent = nextRank;
+            badge.className = `ranking-badge rank-${nextRank}`;
+        }
+        
+        // Animation de sélection
+        this.animateMotivationSelection(card, nextRank);
+        
+        // Afficher le champ "Autre" si nécessaire
+        if (motivation === 'autre') {
+            this.showAutreField();
+        }
+        
+        // Mettre à jour les cartes restantes
+        this.updateRemainingCards();
+        
+        console.log('✅ Motivation sélectionnée:', motivation, 'Rang:', nextRank);
+    }
+
+    deselectMotivation(card, motivation) {
+        const oldRank = this.motivationRanking.get(motivation);
+        
+        // Retirer du classement
+        this.motivationRanking.delete(motivation);
+        
+        // Réorganiser les rangs
+        this.reorderRanking(oldRank);
+        
+        // Mettre à jour l'interface
+        card.classList.remove('selected');
+        const badge = card.querySelector('.ranking-badge');
+        if (badge) {
+            badge.textContent = '';
+            badge.className = 'ranking-badge';
+        }
+        
+        // Animation de déselection
+        this.animateMotivationDeselection(card);
+        
+        // Masquer le champ "Autre" si nécessaire
+        if (motivation === 'autre') {
+            this.hideAutreField();
+            this.formData.autreMotivation = '';
+            const textarea = document.getElementById('autre-motivation-text');
+            if (textarea) textarea.value = '';
+        }
+        
+        // Mettre à jour les cartes restantes
+        this.updateRemainingCards();
+        
+        console.log('❌ Motivation désélectionnée:', motivation);
+    }
+
+    reorderRanking(removedRank) {
+        // Réorganiser les rangs après suppression
+        const newRanking = new Map();
+        let newRank = 1;
+        
+        // Trier par ancien rang et réassigner
+        const sortedEntries = Array.from(this.motivationRanking.entries())
+            .sort((a, b) => a[1] - b[1]);
+        
+        sortedEntries.forEach(([motivation, oldRank]) => {
+            if (oldRank > removedRank) {
+                newRanking.set(motivation, newRank);
+                
+                // Mettre à jour l'UI de cette carte
+                const card = document.querySelector(`[data-motivation="${motivation}"]`);
+                if (card) {
+                    const badge = card.querySelector('.ranking-badge');
+                    if (badge) {
+                        badge.textContent = newRank;
+                        badge.className = `ranking-badge rank-${newRank}`;
+                    }
+                }
+                newRank++;
+            } else if (oldRank < removedRank) {
+                newRanking.set(motivation, oldRank);
+                newRank++;
+            }
+        });
+        
+        this.motivationRanking = newRanking;
+    }
+
+    updateRemainingCards() {
+        const allCards = document.querySelectorAll('.motivation-card');
+        
+        allCards.forEach(card => {
+            const motivation = card.dataset.motivation;
+            const isSelected = this.motivationRanking.has(motivation);
+            
+            if (!isSelected && this.motivationRanking.size >= this.maxMotivations) {
+                // Désactiver les cartes non sélectionnées si limite atteinte
+                card.classList.add('disabled');
+            } else if (!isSelected) {
+                // Réactiver les cartes si limite non atteinte
+                card.classList.remove('disabled');
+            }
+        });
+    }
+
+    showAutreField() {
+        const autreField = document.getElementById('autre-field');
+        if (autreField) {
+            autreField.classList.add('active');
+            
+            // Focus sur le textarea avec délai
+            setTimeout(() => {
+                const textarea = document.getElementById('autre-motivation-text');
+                if (textarea) {
+                    textarea.focus();
+                }
+            }, 300);
+        }
+    }
+
+    hideAutreField() {
+        const autreField = document.getElementById('autre-field');
+        if (autreField) {
+            autreField.classList.remove('active');
+        }
+    }
+
+    updateMotivationUI() {
+        // Mettre à jour le compteur
+        this.updateMotivationCounter();
+        
+        // Mettre à jour le résumé
+        this.updateMotivationSummary();
+        
+        // Mettre à jour les données du formulaire
+        this.updateMotivationFormData();
+    }
+
+    updateMotivationCounter() {
+        const counter = document.getElementById('motivation-counter');
+        if (counter) {
+            const count = this.motivationRanking.size;
+            counter.textContent = `${count} / ${this.maxMotivations} sélectionnées`;
+            
+            // Animation du compteur
+            counter.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                counter.style.transform = 'scale(1)';
+            }, 150);
+            
+            // Couleur selon le statut
+            if (count === 0) {
+                counter.style.background = 'var(--nexten-gradient)';
+            } else if (count === this.maxMotivations) {
+                counter.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            } else {
+                counter.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            }
+        }
+    }
+
+    updateMotivationSummary() {
+        const summary = document.getElementById('motivation-summary');
+        const summaryList = document.getElementById('summary-list');
+        
+        if (this.motivationRanking.size > 0 && summary && summaryList) {
+            // Afficher le résumé
+            summary.classList.add('active');
+            
+            // Créer la liste ordonnée
+            const sortedMotivations = Array.from(this.motivationRanking.entries())
+                .sort((a, b) => a[1] - b[1]);
+            
+            const motivationLabels = {
+                'evolution': 'Perspectives d\'évolution',
+                'salaire': 'Augmentation salariale',
+                'flexibilite': 'Flexibilité',
+                'autre': 'Autre motivation'
+            };
+            
+            summaryList.innerHTML = sortedMotivations.map(([motivation, rank]) => `
+                <div class="summary-item">
+                    <div class="summary-rank">${rank}</div>
+                    <span>${motivationLabels[motivation] || motivation}</span>
+                    ${motivation === 'autre' && this.formData.autreMotivation ? 
+                        `<span style="color: #6b7280; font-style: italic;"> - "${this.formData.autreMotivation}"</span>` : ''}
+                </div>
+            `).join('');
+        } else if (summary) {
+            // Masquer le résumé
+            summary.classList.remove('active');
+        }
+    }
+
+    updateMotivationFormData() {
+        // Créer les arrays pour l'intégration backend
+        const sortedMotivations = Array.from(this.motivationRanking.entries())
+            .sort((a, b) => a[1] - b[1]);
+        
+        this.formData.motivations = sortedMotivations.map(([motivation, rank]) => motivation);
+        this.formData.motivationsRanking = sortedMotivations.map(([motivation, rank]) => ({
+            motivation,
+            rank,
+            label: this.getMotivationLabel(motivation)
+        }));
+        
+        // Mettre à jour les champs cachés
+        const hiddenMotivations = document.getElementById('hidden-motivations');
+        const hiddenRanking = document.getElementById('hidden-motivations-ranking');
+        
+        if (hiddenMotivations) {
+            hiddenMotivations.value = this.formData.motivations.join(',');
+        }
+        
+        if (hiddenRanking) {
+            hiddenRanking.value = JSON.stringify(this.formData.motivationsRanking);
+        }
+    }
+
+    getMotivationLabel(motivation) {
+        const labels = {
+            'evolution': 'Perspectives d\'évolution',
+            'salaire': 'Augmentation salariale',
+            'flexibilite': 'Flexibilité',
+            'autre': 'Autre motivation'
+        };
+        return labels[motivation] || motivation;
+    }
+
+    animateMotivationSelection(card, rank) {
+        // Animation de sélection avec effet spring
+        card.style.transition = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        card.style.transform = 'translateY(-6px) scale(1.03)';
+        
+        // Effet de particules pour la sélection
+        this.createMotivationParticles(card, rank);
+        
+        // Retour à la normale après animation
+        setTimeout(() => {
+            card.style.transform = 'translateY(-2px) scale(1.01)';
+        }, 400);
+    }
+
+    animateMotivationDeselection(card) {
+        card.style.transition = 'all 0.3s ease-out';
+        card.style.transform = 'translateY(0) scale(1)';
+    }
+
+    animateCardReject(card) {
+        // Animation de rejet quand limite atteinte
+        card.style.animation = 'shake 0.5s ease-in-out';
+        setTimeout(() => {
+            card.style.animation = '';
+        }, 500);
+    }
+
+    createMotivationParticles(card, rank) {
+        const rect = card.getBoundingClientRect();
+        const colors = {
+            1: '#fbbf24', // Or pour le 1er
+            2: '#9ca3af', // Argent pour le 2ème  
+            3: '#cd7f32'  // Bronze pour le 3ème
+        };
+        
+        for (let i = 0; i < 8; i++) {
+            const particle = document.createElement('div');
+            particle.style.position = 'fixed';
+            particle.style.width = '6px';
+            particle.style.height = '6px';
+            particle.style.background = colors[rank] || '#7c3aed';
+            particle.style.borderRadius = '50%';
+            particle.style.pointerEvents = 'none';
+            particle.style.zIndex = '9999';
+            particle.style.left = (rect.left + rect.width/2) + 'px';
+            particle.style.top = (rect.top + rect.height/2) + 'px';
+            
+            document.body.appendChild(particle);
+            
+            // Animation des particules
+            const angle = (i / 8) * Math.PI * 2;
+            const distance = 40 + Math.random() * 30;
+            const duration = 600 + Math.random() * 400;
+            
+            particle.animate([
+                { 
+                    transform: 'translate(0, 0) scale(1)',
+                    opacity: 1
+                },
+                { 
+                    transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`,
+                    opacity: 0
+                }
+            ], {
+                duration: duration,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            }).onfinish = () => {
+                particle.remove();
+            };
+        }
+    }
+
+    showMaxSelectionWarning() {
+        // Notification que la limite est atteinte
+        this.showNotification(
+            `Vous avez atteint la limite de ${this.maxMotivations} motivations. Désélectionnez une motivation pour en choisir une autre.`,
+            'warning'
+        );
+    }
+
+    showNotification(message, type = 'info') {
+        // Créer une notification moderne
+        const notification = document.createElement('div');
+        notification.className = `nexten-v3-notification ${type}`;
+        
+        const icons = {
+            success: 'fas fa-check-circle',
+            warning: 'fas fa-exclamation-triangle',
+            error: 'fas fa-times-circle',
+            info: 'fas fa-info-circle'
+        };
+        
+        notification.innerHTML = `
+            <i class="${icons[type] || icons.info}"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-suppression après 4 secondes
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 4000);
+    }
+
+    // ===== MÉTHODES EXISTANTES CONSERVÉES =====
 
     setupInteractiveCards(name, dataArray) {
         const cards = document.querySelectorAll(`[data-card-group="${name}"]`);
@@ -361,7 +781,7 @@ class NextenModernUI {
     }
 
     setupModernTextareas() {
-        const textareas = document.querySelectorAll('.modern-textarea');
+        const textareas = document.querySelectorAll('.modern-textarea, .autre-textarea');
         
         textareas.forEach(textarea => {
             // Auto-resize
@@ -373,6 +793,8 @@ class NextenModernUI {
                     this.formData.aspirations = textarea.value;
                 } else if (textarea.id === 'contraintes') {
                     this.formData.contraintes = textarea.value;
+                } else if (textarea.id === 'autre-motivation-text') {
+                    this.formData.autreMotivation = textarea.value;
                 }
                 
                 this.saveFormData();
@@ -394,7 +816,8 @@ class NextenModernUI {
 
     autoResizeTextarea(textarea) {
         textarea.style.height = 'auto';
-        textarea.style.height = Math.max(120, textarea.scrollHeight) + 'px';
+        const minHeight = textarea.classList.contains('autre-textarea') ? 80 : 120;
+        textarea.style.height = Math.max(minHeight, textarea.scrollHeight) + 'px';
     }
 
     setupStepNavigation() {
@@ -503,9 +926,18 @@ class NextenModernUI {
         let isValid = true;
         
         // Vérifier qu'au moins une motivation est sélectionnée
-        if (this.formData.motivations.length === 0) {
+        if (this.motivationRanking.size === 0) {
             this.showValidationError('Veuillez sélectionner au moins une motivation professionnelle');
             isValid = false;
+        }
+        
+        // Vérifier le champ "Autre" si sélectionné
+        if (this.motivationRanking.has('autre')) {
+            const autreText = this.formData.autreMotivation;
+            if (!autreText || autreText.trim().length < 3) {
+                this.showValidationError('Veuillez préciser votre autre motivation (minimum 3 caractères)');
+                isValid = false;
+            }
         }
         
         // Vérifier qu'au moins un secteur est sélectionné
@@ -589,11 +1021,12 @@ class NextenModernUI {
         try {
             const dataToSave = {
                 ...this.formData,
+                motivationRankingMap: Object.fromEntries(this.motivationRanking),
                 lastSaved: new Date().toISOString(),
-                version: '3.0'
+                version: '3.0-ranking'
             };
-            localStorage.setItem('nexten_form_step3_4_v3', JSON.stringify(dataToSave));
-            console.log('💾 Données sauvegardées NEXTEN V3.0:', dataToSave);
+            localStorage.setItem('nexten_form_step3_4_v3_ranking', JSON.stringify(dataToSave));
+            console.log('💾 Données sauvegardées NEXTEN V3.0 Ranking:', dataToSave);
         } catch (error) {
             console.error('❌ Erreur sauvegarde:', error);
         }
@@ -601,17 +1034,22 @@ class NextenModernUI {
 
     loadSavedData() {
         try {
-            const saved = localStorage.getItem('nexten_form_step3_4_v3');
+            const saved = localStorage.getItem('nexten_form_step3_4_v3_ranking');
             if (saved) {
                 const savedData = JSON.parse(saved);
                 this.formData = { ...this.formData, ...savedData };
+                
+                // Restaurer le Map des motivations
+                if (savedData.motivationRankingMap) {
+                    this.motivationRanking = new Map(Object.entries(savedData.motivationRankingMap));
+                }
                 
                 // Attendre que le DOM soit prêt avant de restaurer
                 setTimeout(() => {
                     this.restoreFormState();
                 }, 500);
                 
-                console.log('📂 Données restaurées NEXTEN V3.0:', this.formData);
+                console.log('📂 Données restaurées NEXTEN V3.0 Ranking:', this.formData);
             }
         } catch (error) {
             console.error('❌ Erreur restauration:', error);
@@ -619,13 +1057,32 @@ class NextenModernUI {
     }
 
     restoreFormState() {
-        // Restaurer les sélections de motivations
-        this.formData.motivations.forEach(value => {
-            const card = document.querySelector(`[data-card-group="motivations"][data-value="${value}"]`);
+        // Restaurer les sélections de motivations avec ranking
+        this.motivationRanking.forEach((rank, motivation) => {
+            const card = document.querySelector(`[data-motivation="${motivation}"]`);
             if (card) {
                 card.classList.add('selected');
+                const badge = card.querySelector('.ranking-badge');
+                if (badge) {
+                    badge.textContent = rank;
+                    badge.className = `ranking-badge rank-${rank}`;
+                }
             }
         });
+        
+        // Restaurer le champ "Autre" si nécessaire
+        if (this.motivationRanking.has('autre')) {
+            this.showAutreField();
+            const textarea = document.getElementById('autre-motivation-text');
+            if (textarea && this.formData.autreMotivation) {
+                textarea.value = this.formData.autreMotivation;
+                this.autoResizeTextarea(textarea);
+            }
+        }
+        
+        // Mettre à jour l'UI des motivations
+        this.updateMotivationUI();
+        this.updateRemainingCards();
         
         // Restaurer les sélections de secteurs
         this.formData.secteurs.forEach(value => {
@@ -706,7 +1163,7 @@ class NextenModernUI {
     }
 
     submitForm() {
-        console.log('📤 Soumission du formulaire NEXTEN V3.0:', this.formData);
+        console.log('📤 Soumission du formulaire NEXTEN V3.0 Ranking:', this.formData);
         
         // Animation de soumission
         const submitBtn = document.getElementById('submit-btn');
@@ -721,7 +1178,7 @@ class NextenModernUI {
         // Simuler l'envoi (remplacer par votre logique backend)
         setTimeout(() => {
             this.showSuccessMessage();
-            localStorage.removeItem('nexten_form_step3_4_v3');
+            localStorage.removeItem('nexten_form_step3_4_v3_ranking');
         }, 2000);
     }
 
@@ -821,7 +1278,7 @@ class NextenModernUI {
         
         // Observer tous les éléments animables
         setTimeout(() => {
-            document.querySelectorAll('.interactive-card, .modern-option, .modern-slider-container').forEach(el => {
+            document.querySelectorAll('.interactive-card, .modern-option, .modern-slider-container, .motivation-card').forEach(el => {
                 observer.observe(el);
             });
         }, 100);
@@ -872,7 +1329,7 @@ class NextenModernUI {
 
     updateSelectionCounters() {
         // Afficher des compteurs de sélection si nécessaire
-        const motivationCount = this.formData.motivations.length;
+        const motivationCount = this.motivationRanking.size;
         const secteurCount = this.formData.secteurs.length;
         
         console.log(`📊 Sélections actuelles: ${motivationCount} motivations, ${secteurCount} secteurs`);
@@ -880,16 +1337,21 @@ class NextenModernUI {
 
     // Méthode pour exposer les données (debugging)
     getFormData() {
-        return { ...this.formData };
+        return { 
+            ...this.formData,
+            motivationRankingMap: Object.fromEntries(this.motivationRanking)
+        };
     }
 
     // Méthode pour reset complet
     resetForm() {
         this.formData = {
             motivations: [],
+            motivationsRanking: [],
             secteurs: [],
             salaire: 45000,
             aspirations: '',
+            autreMotivation: '',
             situation: '',
             disponibilite: '',
             modesTravail: [],
@@ -897,7 +1359,8 @@ class NextenModernUI {
             contraintes: ''
         };
         
-        localStorage.removeItem('nexten_form_step3_4_v3');
+        this.motivationRanking = new Map();
+        localStorage.removeItem('nexten_form_step3_4_v3_ranking');
         location.reload();
     }
 }
@@ -926,6 +1389,51 @@ const modernAnimationStyles = `
     outline: 2px solid #7c3aed !important;
     outline-offset: 2px !important;
 }
+
+/* Styles pour les notifications modernes */
+.nexten-v3-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    z-index: 10000;
+    animation: slideInRight 0.5s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 400px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.nexten-v3-notification.success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.nexten-v3-notification.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.nexten-v3-notification.error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.nexten-v3-notification.info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
 `;
 
 // Injecter les styles d'animation
@@ -942,11 +1450,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Exposer pour debugging
         window.NextenModernUI = NextenModernUI;
         
-        console.log('✅ NEXTEN V3.0 Modern UI initialisé avec succès');
+        console.log('✅ NEXTEN V3.0 Modern UI avec Système de Classement initialisé avec succès');
         console.log('🎛️ Commandes debug disponibles:');
         console.log('   - nextenModernUI.getFormData() - Voir les données');
         console.log('   - nextenModernUI.navigateToStep(4) - Aller à l\'étape 4');
         console.log('   - nextenModernUI.resetForm() - Reset complet');
+        console.log('   - nextenModernUI.motivationRanking - Voir le classement actuel');
     }, 1000);
 });
 
@@ -955,4 +1464,4 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = NextenModernUI;
 }
 
-console.log('🚀 NEXTEN V3.0 - Script d\'interactions modernes chargé');
+console.log('🚀 NEXTEN V3.0 - Script d\'interactions modernes avec Système de Classement chargé');
