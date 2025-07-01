@@ -28,6 +28,9 @@
     <!-- 🚨 FIX CRITIQUE: Navigation fixée (remplace le script inline en conflit) -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/navigation-fix.js"></script>
     
+    <!-- ✨ NOUVEAU: Script pour étapes 3 & 4 -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-steps34.js"></script>
+    
     <!-- 🗺️ Google Maps API avec autocomplete fonctionnel -->
     <script>
         // Fonction setupAddressAutocomplete manquante - AJOUTÉE
@@ -506,10 +509,110 @@
                         </div>
                     </div>
                     
-                    <!-- Autres étapes du formulaire -->
+                    <!-- ✨ ÉTAPE 3 : MOTIVATIONS ET SECTEURS (NOUVEAU CONTENU) -->
                     <div class="form-step" id="form-step3">
-                        <h2 class="form-section-title">Motivations et secteurs</h2>
-                        <p>Étape 3 en cours de développement...</p>
+                        <h2 class="form-section-title">Vos Motivations Professionnelles</h2>
+                        <p class="step-description">
+                            Dites-nous ce qui vous motive et les secteurs qui vous intéressent pour affiner nos recommandations
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">Quelles sont vos principales motivations professionnelles ?</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="motiv-evolution" name="motivations" value="evolution">
+                                    <label class="checkbox-label" for="motiv-evolution">Évolution de carrière</label>
+                                    <div class="checkbox-description">Progresser vers des postes à responsabilités</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="motiv-salaire" name="motivations" value="salaire">
+                                    <label class="checkbox-label" for="motiv-salaire">Augmentation salariale</label>
+                                    <div class="checkbox-description">Améliorer votre rémunération</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="motiv-equilibre" name="motivations" value="equilibre">
+                                    <label class="checkbox-label" for="motiv-equilibre">Équilibre vie pro/perso</label>
+                                    <div class="checkbox-description">Télétravail, horaires flexibles</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="motiv-defis" name="motivations" value="defis">
+                                    <label class="checkbox-label" for="motiv-defis">Nouveaux défis</label>
+                                    <div class="checkbox-description">Projets stimulants et innovants</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="motiv-formation" name="motivations" value="formation">
+                                    <label class="checkbox-label" for="motiv-formation">Formation continue</label>
+                                    <div class="checkbox-description">Développer de nouvelles compétences</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="motiv-autonomie" name="motivations" value="autonomie">
+                                    <label class="checkbox-label" for="motiv-autonomie">Autonomie</label>
+                                    <div class="checkbox-description">Indépendance dans le travail</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Secteurs d'activité qui vous intéressent</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="secteur-tech" name="secteurs" value="tech">
+                                    <label class="checkbox-label" for="secteur-tech">Technologie & IT</label>
+                                    <div class="checkbox-description">Informatique, digital, innovations</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="secteur-finance" name="secteurs" value="finance">
+                                    <label class="checkbox-label" for="secteur-finance">Finance & Banque</label>
+                                    <div class="checkbox-description">Services financiers, assurance</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="secteur-sante" name="secteurs" value="sante">
+                                    <label class="checkbox-label" for="secteur-sante">Santé & Médical</label>
+                                    <div class="checkbox-description">Soins, pharmaceutique, recherche</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="secteur-education" name="secteurs" value="education">
+                                    <label class="checkbox-label" for="secteur-education">Éducation & Formation</label>
+                                    <div class="checkbox-description">Enseignement, formation professionnelle</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="secteur-industrie" name="secteurs" value="industrie">
+                                    <label class="checkbox-label" for="secteur-industrie">Industrie & Manufacturing</label>
+                                    <div class="checkbox-description">Production, logistique, ingénierie</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="secteur-commerce" name="secteurs" value="commerce">
+                                    <label class="checkbox-label" for="secteur-commerce">Commerce & Retail</label>
+                                    <div class="checkbox-description">Vente, marketing, distribution</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Fourchette salariale souhaitée (brut annuel)</label>
+                            <div class="salary-slider">
+                                <div class="slider-container">
+                                    <input type="range" class="slider" id="salary-range" min="25000" max="120000" value="45000" step="1000">
+                                    <div class="slider-value">
+                                        <span id="salary-display">45 000 €</span>
+                                    </div>
+                                    <div class="slider-labels">
+                                        <span>25K €</span>
+                                        <span>120K €+</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="aspirations">Décrivez vos aspirations professionnelles (optionnel)</label>
+                            <textarea 
+                                class="form-input form-textarea" 
+                                id="aspirations" 
+                                name="aspirations" 
+                                placeholder="Parlez-nous de vos objectifs de carrière, vos projets, ce qui vous anime dans votre métier..."
+                            ></textarea>
+                        </div>
                         
                         <div class="form-actions">
                             <button type="button" class="btn-action btn-back" id="back-step2">
@@ -523,9 +626,121 @@
                         </div>
                     </div>
                     
+                    <!-- ✨ ÉTAPE 4 : DISPONIBILITÉ ET SITUATION (NOUVEAU CONTENU) -->
                     <div class="form-step" id="form-step4">
-                        <h2 class="form-section-title">Disponibilité et situation</h2>
-                        <p>Étape 4 en cours de développement...</p>
+                        <h2 class="form-section-title">Disponibilité & Situation</h2>
+                        <p class="step-description">
+                            Informations sur votre situation actuelle et vos contraintes de timing
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">Quelle est votre situation professionnelle actuelle ?</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" id="situation-emploi" name="situation" value="emploi">
+                                    <label class="radio-label" for="situation-emploi">En poste actuellement</label>
+                                    <div class="radio-description">Je travaille et cherche de nouvelles opportunités</div>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="situation-recherche" name="situation" value="recherche">
+                                    <label class="radio-label" for="situation-recherche">En recherche active</label>
+                                    <div class="radio-description">Je suis disponible immédiatement</div>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="situation-preavis" name="situation" value="preavis">
+                                    <label class="radio-label" for="situation-preavis">Préavis en cours</label>
+                                    <div class="radio-description">Mon contrat se termine bientôt</div>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="situation-etudiant" name="situation" value="etudiant">
+                                    <label class="radio-label" for="situation-etudiant">Étudiant/Diplômé</label>
+                                    <div class="radio-description">Je termine mes études ou viens de diplômer</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Dans combien de temps pourriez-vous commencer ?</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" id="dispo-immediat" name="disponibilite" value="immediat">
+                                    <label class="radio-label" for="dispo-immediat">Immédiatement</label>
+                                    <div class="radio-description">Je peux commencer dès maintenant</div>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="dispo-1mois" name="disponibilite" value="1mois">
+                                    <label class="radio-label" for="dispo-1mois">Dans 1 mois</label>
+                                    <div class="radio-description">Délai standard pour finir mes missions</div>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="dispo-2mois" name="disponibilite" value="2mois">
+                                    <label class="radio-label" for="dispo-2mois">Dans 2-3 mois</label>
+                                    <div class="radio-description">Préavis ou fin de contrat prévue</div>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="dispo-flexible" name="disponibilite" value="flexible">
+                                    <label class="radio-label" for="dispo-flexible">À négocier</label>
+                                    <div class="radio-description">Selon l'opportunité proposée</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Préférences de mode de travail</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="mode-presentiel" name="modes-travail" value="presentiel">
+                                    <label class="checkbox-label" for="mode-presentiel">100% Présentiel</label>
+                                    <div class="checkbox-description">Travail exclusivement sur site</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="mode-hybride" name="modes-travail" value="hybride">
+                                    <label class="checkbox-label" for="mode-hybride">Hybride</label>
+                                    <div class="checkbox-description">Mix bureau/télétravail (2-3j/semaine)</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="mode-remote" name="modes-travail" value="remote">
+                                    <label class="checkbox-label" for="mode-remote">100% Télétravail</label>
+                                    <div class="checkbox-description">Travail entièrement à distance</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Type d'entreprise privilégié</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="entreprise-startup" name="types-entreprise" value="startup">
+                                    <label class="checkbox-label" for="entreprise-startup">Startup/Scale-up</label>
+                                    <div class="checkbox-description">Environnement dynamique et innovant</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="entreprise-pme" name="types-entreprise" value="pme">
+                                    <label class="checkbox-label" for="entreprise-pme">PME/ETI</label>
+                                    <div class="checkbox-description">Entreprise à taille humaine</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="entreprise-grand-groupe" name="types-entreprise" value="grand-groupe">
+                                    <label class="checkbox-label" for="entreprise-grand-groupe">Grand Groupe</label>
+                                    <div class="checkbox-description">Structure établie avec de nombreuses opportunités</div>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="entreprise-conseil" name="types-entreprise" value="conseil">
+                                    <label class="checkbox-label" for="entreprise-conseil">Cabinet de Conseil</label>
+                                    <div class="checkbox-description">Missions variées chez différents clients</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="contraintes">Contraintes particulières ou informations complémentaires</label>
+                            <textarea 
+                                class="form-input form-textarea" 
+                                id="contraintes" 
+                                name="contraintes" 
+                                placeholder="Contraintes géographiques, horaires, préférences particulières, questions à poser aux recruteurs..."
+                            ></textarea>
+                        </div>
                         
                         <div class="form-actions">
                             <button type="button" class="btn-action btn-back" id="back-step3">
