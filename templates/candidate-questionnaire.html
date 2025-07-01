@@ -865,6 +865,256 @@
                 min-width: auto;
             }
         }
+
+        /* ===== 🆕 STYLES FOURCHETTE SALARIALE MODERNE ===== */
+        .salary-range-container {
+            background: var(--surface-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-lg) 0;
+            border: 2px solid var(--border-color);
+            transition: all var(--transition-base);
+        }
+
+        .salary-range-container:hover {
+            border-color: var(--nexten-primary-light);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+        }
+
+        .salary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+            gap: var(--spacing-base);
+        }
+
+        .salary-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .salary-title i {
+            color: var(--nexten-primary);
+        }
+
+        .salary-display {
+            background: var(--nexten-gradient);
+            color: white;
+            padding: var(--spacing-sm) var(--spacing-base);
+            border-radius: var(--radius-base);
+            font-weight: 700;
+            font-size: 1.125rem;
+            min-width: 160px;
+            text-align: center;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-base);
+        }
+
+        .salary-inputs-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .salary-input-group {
+            background: var(--surface-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-base);
+            transition: all var(--transition-base);
+        }
+
+        .salary-input-group:hover {
+            border-color: var(--nexten-primary-light);
+        }
+
+        .salary-input-group.focused {
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .salary-input-group.error {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .salary-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .salary-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .salary-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: transparent;
+            text-align: center;
+        }
+
+        .salary-input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .salary-unit {
+            font-weight: 600;
+            color: var(--nexten-primary);
+            font-size: 1rem;
+        }
+
+        .salary-sliders {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-base);
+        }
+
+        .salary-slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .salary-slider-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .salary-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: var(--radius-base);
+            background: var(--border-color);
+            outline: none;
+            -webkit-appearance: none;
+            transition: all var(--transition-base);
+        }
+
+        .salary-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--nexten-gradient);
+            cursor: pointer;
+            box-shadow: var(--shadow-base);
+            transition: all var(--transition-base);
+        }
+
+        .salary-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 6px rgba(124, 58, 237, 0.2);
+        }
+
+        .salary-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--nexten-gradient);
+            cursor: pointer;
+            border: none;
+            box-shadow: var(--shadow-base);
+        }
+
+        .salary-range-track {
+            position: relative;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: var(--radius-base);
+            margin: var(--spacing-base) 0;
+        }
+
+        .salary-range-fill {
+            position: absolute;
+            height: 100%;
+            background: var(--nexten-gradient);
+            border-radius: var(--radius-base);
+            transition: all var(--transition-base);
+        }
+
+        .salary-validation-message {
+            display: none;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: var(--spacing-sm) var(--spacing-base);
+            border-radius: var(--radius-base);
+            margin-top: var(--spacing-base);
+            font-size: 0.875rem;
+            font-weight: 500;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .salary-validation-message.active {
+            display: flex;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .salary-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-base);
+        }
+
+        .salary-suggestion {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--nexten-primary);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-base);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+        }
+
+        .salary-suggestion:hover {
+            background: var(--nexten-primary);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* === RESPONSIVE POUR FOURCHETTE SALARIALE === */
+        @media (max-width: 768px) {
+            .salary-inputs-container,
+            .salary-sliders {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-base);
+            }
+
+            .salary-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .salary-display {
+                align-self: center;
+                min-width: auto;
+            }
+        }
     </style>
     
     <!-- Styles du système NEXTEN V2.0 -->
@@ -1425,24 +1675,92 @@
                             </div>
                         </div>
 
-                        <!-- Slider Salaire (inchangé) -->
+                        <!-- ✨🆕 NOUVELLE SECTION FOURCHETTE SALARIALE MODERNE -->
                         <div class="form-group">
-                            <div class="modern-slider-container">
-                                <div class="slider-header">
-                                    <label class="slider-title">
+                            <div class="salary-range-container">
+                                <div class="salary-header">
+                                    <div class="salary-title">
                                         <i class="fas fa-euro-sign"></i>
                                         Fourchette salariale souhaitée (brut annuel)
-                                    </label>
-                                    <div class="slider-value-display" id="salary-display">45K €</div>
+                                    </div>
+                                    <div class="salary-display" id="salary-display">
+                                        Entre 40K et 45K €
+                                    </div>
                                 </div>
                                 
-                                <div class="slider-track">
-                                    <input type="range" class="modern-slider" id="salary-range" 
-                                           min="25000" max="120000" value="45000" step="1000">
-                                    <div class="slider-labels">
-                                        <span>25K €</span>
-                                        <span>120K €+</span>
+                                <div class="salary-inputs-container">
+                                    <div class="salary-input-group" id="salary-min-group">
+                                        <label class="salary-label" for="salary-min">
+                                            <i class="fas fa-arrow-down"></i> Salaire minimum souhaité
+                                        </label>
+                                        <div class="salary-input-wrapper">
+                                            <input type="number" 
+                                                   class="salary-input" 
+                                                   id="salary-min" 
+                                                   name="salary-min"
+                                                   min="20" 
+                                                   max="200" 
+                                                   step="1" 
+                                                   value="40"
+                                                   placeholder="40">
+                                            <span class="salary-unit">K €</span>
+                                        </div>
                                     </div>
+                                    
+                                    <div class="salary-input-group" id="salary-max-group">
+                                        <label class="salary-label" for="salary-max">
+                                            <i class="fas fa-arrow-up"></i> Salaire maximum souhaité
+                                        </label>
+                                        <div class="salary-input-wrapper">
+                                            <input type="number" 
+                                                   class="salary-input" 
+                                                   id="salary-max" 
+                                                   name="salary-max"
+                                                   min="20" 
+                                                   max="200" 
+                                                   step="1" 
+                                                   value="45"
+                                                   placeholder="45">
+                                            <span class="salary-unit">K €</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="salary-sliders">
+                                    <div class="salary-slider-group">
+                                        <div class="salary-slider-label">Minimum</div>
+                                        <input type="range" 
+                                               class="salary-slider" 
+                                               id="salary-slider-min"
+                                               min="20" 
+                                               max="200" 
+                                               step="1" 
+                                               value="40">
+                                    </div>
+                                    <div class="salary-slider-group">
+                                        <div class="salary-slider-label">Maximum</div>
+                                        <input type="range" 
+                                               class="salary-slider" 
+                                               id="salary-slider-max"
+                                               min="20" 
+                                               max="200" 
+                                               step="1" 
+                                               value="45">
+                                    </div>
+                                </div>
+
+                                <div class="salary-validation-message" id="salary-validation">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>Le salaire maximum doit être supérieur au salaire minimum</span>
+                                </div>
+
+                                <div class="salary-suggestions">
+                                    <div class="salary-suggestion" data-min="25" data-max="35">25-35K</div>
+                                    <div class="salary-suggestion" data-min="35" data-max="45">35-45K</div>
+                                    <div class="salary-suggestion" data-min="45" data-max="55">45-55K</div>
+                                    <div class="salary-suggestion" data-min="55" data-max="70">55-70K</div>
+                                    <div class="salary-suggestion" data-min="70" data-max="90">70-90K</div>
+                                    <div class="salary-suggestion" data-min="90" data-max="120">90-120K</div>
                                 </div>
                             </div>
                         </div>
@@ -1480,7 +1798,9 @@
                         <input type="hidden" id="hidden-motivations-ranking" name="motivations-ranking">
                         <input type="hidden" id="hidden-secteurs" name="secteurs">
                         <input type="hidden" id="hidden-secteurs-redhibitoires" name="secteurs-redhibitoires">
-                        <input type="hidden" id="hidden-salaire" name="salaire">
+                        <input type="hidden" id="hidden-salary-min" name="salary-min-hidden">
+                        <input type="hidden" id="hidden-salary-max" name="salary-max-hidden">
+                        <input type="hidden" id="hidden-salary-range" name="salary-range">
                     </div>
                     
                     <!-- ✨ ÉTAPE 4 : DISPONIBILITÉ ET SITUATION (VERSION MODERNE NEXTEN V3.0) -->
@@ -2045,447 +2365,106 @@
             }
 
             handleTransportChange(checkbox) {
-                const transportType = checkbox.value;
+                if (this.isProcessing) return;
+                
+                this.isProcessing = true;
+                
+                const transport = checkbox.dataset.transport;
                 const isChecked = checkbox.checked;
+                const container = document.getElementById('travel-time-container');
+                const field = document.getElementById(`travel-time-${transport}`);
+                
+                console.log(`🚌 Transport ${transport}: ${isChecked ? 'sélectionné' : 'désélectionné'}`);
                 
                 if (isChecked) {
-                    this.selectedTransports.add(transportType);
-                    this.showTravelTimeField(transportType);
+                    this.selectedTransports.add(transport);
+                    if (field) {
+                        field.style.display = 'flex';
+                        this.animateFieldEntry(field);
+                    }
                 } else {
-                    this.selectedTransports.delete(transportType);
-                    this.hideTravelTimeField(transportType);
+                    this.selectedTransports.delete(transport);
+                    if (field) {
+                        this.animateFieldExit(field);
+                    }
                 }
                 
-                this.updateContainerVisibility();
+                this.updateContainerVisibility(container);
+                
+                setTimeout(() => {
+                    this.isProcessing = false;
+                }, 300);
+            }
+
+            animateFieldEntry(field) {
+                field.style.opacity = '0';
+                field.style.transform = 'translateX(-20px)';
+                
+                setTimeout(() => {
+                    field.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    field.style.opacity = '1';
+                    field.style.transform = 'translateX(0)';
+                }, 50);
+            }
+
+            animateFieldExit(field) {
+                field.style.transition = 'all 0.2s ease-out';
+                field.style.opacity = '0';
+                field.style.transform = 'translateX(-20px)';
+                
+                setTimeout(() => {
+                    field.style.display = 'none';
+                }, 200);
+            }
+
+            updateContainerVisibility(container) {
+                if (this.selectedTransports.size > 0) {
+                    container.classList.add('active');
+                } else {
+                    container.classList.remove('active');
+                }
             }
 
             handleTimeInputSafe(input) {
-                // 🔧 FIX: Protection contre les boucles infinies
-                if (this.isProcessing) return;
-                this.isProcessing = true;
-
-                try {
+                // Validation simple avec debounce pour éviter les conflits
+                if (this.timeoutId) clearTimeout(this.timeoutId);
+                
+                this.timeoutId = setTimeout(() => {
                     const value = parseInt(input.value);
-                    const max = parseInt(input.max) || 180;
+                    const min = parseInt(input.min);
+                    const max = parseInt(input.max);
                     
-                    // Validation simple sans modifier la valeur (évite les boucles)
-                    if (value > max) {
-                        this.showTimeValidationMessage(input, `Maximum ${max} minutes`);
-                        // Ne pas changer input.value ici pour éviter les boucles!
-                        setTimeout(() => {
-                            if (input.value && parseInt(input.value) > max) {
-                                input.value = max;
-                            }
-                        }, 1000);
+                    if (value < min) {
+                        input.value = min;
+                    } else if (value > max) {
+                        input.value = max;
                     }
                     
-                    if (value < 1 && input.value !== '') {
-                        this.showTimeValidationMessage(input, 'Minimum 1 minute');
-                        setTimeout(() => {
-                            if (input.value && parseInt(input.value) < 1) {
-                                input.value = 1;
-                            }
-                        }, 1000);
-                    }
-                } catch (error) {
-                    console.error('Erreur validation temps de trajet:', error);
-                } finally {
-                    // Libérer le verrou après un délai
-                    setTimeout(() => {
-                        this.isProcessing = false;
-                    }, 100);
-                }
-            }
-
-            showTravelTimeField(transportType) {
-                const field = document.getElementById(`travel-time-${transportType}`);
-                if (field) {
-                    field.style.display = 'flex';
-                    setTimeout(() => {
-                        field.style.opacity = '1';
-                        field.style.transform = 'translateX(0)';
-                    }, 50);
-                }
-            }
-
-            hideTravelTimeField(transportType) {
-                const field = document.getElementById(`travel-time-${transportType}`);
-                if (field) {
-                    field.style.opacity = '0';
-                    field.style.transform = 'translateX(-20px)';
-                    setTimeout(() => {
-                        field.style.display = 'none';
-                        const input = field.querySelector('.travel-time-input');
-                        if (input) input.value = '';
-                    }, 200);
-                }
-            }
-
-            updateContainerVisibility() {
-                const container = document.getElementById('travel-time-container');
-                if (container) {
-                    container.classList.toggle('active', this.selectedTransports.size > 0);
-                }
-            }
-
-            showTimeValidationMessage(input, message) {
-                // Tooltip simple et sécurisé
-                const existingTooltip = input.parentElement.querySelector('.travel-time-tooltip');
-                if (existingTooltip) existingTooltip.remove();
-                
-                const tooltip = document.createElement('div');
-                tooltip.className = 'travel-time-tooltip';
-                tooltip.textContent = message;
-                tooltip.style.cssText = `
-                    position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
-                    background: #dc2626; color: white; padding: 6px 12px; border-radius: 6px;
-                    font-size: 12px; font-weight: 500; white-space: nowrap; z-index: 1000;
-                    animation: fadeInOut 2s ease-in-out;
-                `;
-                
-                input.parentElement.style.position = 'relative';
-                input.parentElement.appendChild(tooltip);
-                
-                setTimeout(() => tooltip.remove(), 2000);
+                    console.log(`⏱️ Temps ${input.name}: ${input.value} minutes`);
+                }, 500);
             }
         }
 
-        /**
-         * 🆕 NEXTEN SECTORS MANAGER - Gestion Moderne des Secteurs + Rédhibitoires
-         */
-        const SECTEURS_DATA = [
-            { id: 'tech', name: 'Technologie & IT', description: 'Informatique, digital, IA, cybersécurité', icon: 'fas fa-laptop-code' },
-            { id: 'finance', name: 'Finance & Banque', description: 'Services financiers, assurance, investissement', icon: 'fas fa-university' },
-            { id: 'sante', name: 'Santé & Médical', description: 'Soins, pharmaceutique, biotechnologies', icon: 'fas fa-heartbeat' },
-            { id: 'education', name: 'Éducation & Formation', description: 'Enseignement, e-learning, formation pro', icon: 'fas fa-chalkboard-teacher' },
-            { id: 'industrie', name: 'Industrie & Manufacturing', description: 'Production, logistique, ingénierie', icon: 'fas fa-cogs' },
-            { id: 'commerce', name: 'Commerce & Retail', description: 'Vente, marketing, e-commerce', icon: 'fas fa-shopping-cart' },
-            { id: 'automobile', name: 'Automobile', description: 'Constructeurs, équipementiers, mobilité', icon: 'fas fa-car' },
-            { id: 'energie', name: 'Énergie & Environnement', description: 'Énergies renouvelables, développement durable', icon: 'fas fa-leaf' },
-            { id: 'medias', name: 'Médias & Communication', description: 'Presse, audiovisuel, publicité', icon: 'fas fa-broadcast-tower' },
-            { id: 'telecoms', name: 'Télécommunications', description: 'Réseaux, téléphonie, infrastructure IT', icon: 'fas fa-satellite-dish' },
-            { id: 'immobilier', name: 'Immobilier', description: 'Promotion, gestion, conseil immobilier', icon: 'fas fa-building' },
-            { id: 'tourisme', name: 'Tourisme & Hôtellerie', description: 'Voyages, hébergement, restauration', icon: 'fas fa-plane' },
-            { id: 'agriculture', name: 'Agriculture & Agroalimentaire', description: 'Production agricole, transformation alimentaire', icon: 'fas fa-seedling' },
-            { id: 'btp', name: 'BTP & Construction', description: 'Bâtiment, travaux publics, architecture', icon: 'fas fa-hard-hat' },
-            { id: 'logistique', name: 'Transport & Logistique', description: 'Fret, supply chain, entreposage', icon: 'fas fa-truck' },
-            { id: 'consulting', name: 'Conseil & Audit', description: 'Conseil en management, audit, stratégie', icon: 'fas fa-chess' },
-            { id: 'luxe', name: 'Luxe & Mode', description: 'Maroquinerie, parfums, joaillerie', icon: 'fas fa-gem' },
-            { id: 'sport', name: 'Sport & Loisirs', description: 'Équipements sportifs, événementiel', icon: 'fas fa-running' },
-            { id: 'culture', name: 'Culture & Arts', description: 'Musées, spectacles, édition', icon: 'fas fa-palette' },
-            { id: 'juridique', name: 'Juridique & Droit', description: 'Cabinets d\'avocats, notaires, contentieux', icon: 'fas fa-gavel' },
-            { id: 'rh', name: 'Ressources Humaines', description: 'Recrutement, formation, conseil RH', icon: 'fas fa-users' },
-            { id: 'recherche', name: 'Recherche & Innovation', description: 'R&D, laboratoires, innovation', icon: 'fas fa-flask' },
-            { id: 'securite', name: 'Sécurité & Défense', description: 'Sécurité privée, cybersécurité, défense', icon: 'fas fa-shield-alt' },
-            { id: 'ong', name: 'ONG & Associations', description: 'Humanitaire, associatif, solidarité', icon: 'fas fa-heart' },
-            { id: 'public', name: 'Secteur Public', description: 'Administration, collectivités, services publics', icon: 'fas fa-landmark' },
-            { id: 'startup', name: 'Startup & Innovation', description: 'Écosystème startup, incubateurs', icon: 'fas fa-rocket' }
-        ];
-
-        class NextenSectorsManager {
-            constructor() {
-                this.selectedSecteurs = new Set();
-                this.selectedRedhibitoires = new Set();
-                this.init();
-            }
-
-            init() {
-                console.log('🚀 Initialisation NextenSectorsManager V3.0');
-                this.renderDropdownOptions();
-                this.setupEventListeners();
-                this.updateCounters();
-            }
-
-            renderDropdownOptions() {
-                this.renderSecteurs();
-                this.renderRedhibitoires();
-            }
-
-            renderSecteurs() {
-                const container = document.getElementById('secteurs-options');
-                if (!container) return;
-                
-                container.innerHTML = SECTEURS_DATA.map(secteur => `
-                    <div class="dropdown-option" data-secteur="${secteur.id}">
-                        <div class="option-checkbox">
-                            <i class="fas fa-check" style="display: none;"></i>
-                        </div>
-                        <div class="option-icon">
-                            <i class="${secteur.icon}"></i>
-                        </div>
-                        <div class="option-content">
-                            <div class="option-name">${secteur.name}</div>
-                            <div class="option-description">${secteur.description}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            renderRedhibitoires() {
-                const container = document.getElementById('redhibitoires-options');
-                if (!container) return;
-                
-                container.innerHTML = SECTEURS_DATA.map(secteur => `
-                    <div class="dropdown-option" data-redhibitoire="${secteur.id}">
-                        <div class="option-checkbox">
-                            <i class="fas fa-check" style="display: none;"></i>
-                        </div>
-                        <div class="option-icon">
-                            <i class="${secteur.icon}"></i>
-                        </div>
-                        <div class="option-content">
-                            <div class="option-name">${secteur.name}</div>
-                            <div class="option-description">${secteur.description}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            setupEventListeners() {
-                // Secteurs passionnants
-                const secteursContainer = document.getElementById('secteurs-options');
-                if (secteursContainer) {
-                    secteursContainer.addEventListener('click', (e) => {
-                        const option = e.target.closest('.dropdown-option');
-                        if (option) {
-                            const secteurId = option.dataset.secteur;
-                            this.toggleSecteur(secteurId, option);
-                        }
-                    });
-                }
-
-                // Secteurs rédhibitoires
-                const redhibitoiresContainer = document.getElementById('redhibitoires-options');
-                if (redhibitoiresContainer) {
-                    redhibitoiresContainer.addEventListener('click', (e) => {
-                        const option = e.target.closest('.dropdown-option');
-                        if (option) {
-                            const secteurId = option.dataset.redhibitoire;
-                            this.toggleRedhibitoire(secteurId, option);
-                        }
-                    });
-                }
-
-                // Recherche secteurs
-                const secteursSearch = document.getElementById('secteurs-search');
-                if (secteursSearch) {
-                    secteursSearch.addEventListener('input', (e) => {
-                        this.filterOptions('secteurs-options', e.target.value, 'secteur');
-                    });
-                }
-
-                // Recherche rédhibitoires
-                const redhibitoiresSearch = document.getElementById('redhibitoires-search');
-                if (redhibitoiresSearch) {
-                    redhibitoiresSearch.addEventListener('input', (e) => {
-                        this.filterOptions('redhibitoires-options', e.target.value, 'redhibitoire');
-                    });
-                }
-            }
-
-            toggleSecteur(secteurId, optionElement) {
-                if (this.selectedSecteurs.has(secteurId)) {
-                    this.selectedSecteurs.delete(secteurId);
-                    optionElement.classList.remove('selected');
-                    optionElement.querySelector('.option-checkbox i').style.display = 'none';
-                } else {
-                    this.selectedSecteurs.add(secteurId);
-                    optionElement.classList.add('selected');
-                    optionElement.querySelector('.option-checkbox i').style.display = 'block';
-                }
-                
-                this.updateTags('secteurs');
-                this.updateCounters();
-                this.checkConflicts();
-                this.updateHiddenFields();
-            }
-
-            toggleRedhibitoire(secteurId, optionElement) {
-                if (this.selectedRedhibitoires.has(secteurId)) {
-                    this.selectedRedhibitoires.delete(secteurId);
-                    optionElement.classList.remove('selected');
-                    optionElement.querySelector('.option-checkbox i').style.display = 'none';
-                } else {
-                    this.selectedRedhibitoires.add(secteurId);
-                    optionElement.classList.add('selected');
-                    optionElement.querySelector('.option-checkbox i').style.display = 'block';
-                }
-                
-                this.updateTags('redhibitoires');
-                this.updateCounters();
-                this.checkConflicts();
-                this.updateHiddenFields();
-            }
-
-            updateTags(type) {
-                const container = document.getElementById(`${type}-tags`);
-                const selectedContainer = document.getElementById(`${type}-selected`);
-                const selectedSet = type === 'secteurs' ? this.selectedSecteurs : this.selectedRedhibitoires;
-                
-                if (!container || !selectedContainer) return;
-                
-                if (selectedSet.size === 0) {
-                    selectedContainer.classList.remove('active');
-                    return;
-                }
-
-                selectedContainer.classList.add('active');
-                
-                container.innerHTML = Array.from(selectedSet).map(secteurId => {
-                    const secteur = SECTEURS_DATA.find(s => s.id === secteurId);
-                    const bgClass = type === 'redhibitoires' ? 'background: linear-gradient(135deg, #dc2626, #ef4444);' : '';
-                    
-                    return `
-                        <div class="sector-tag" style="${bgClass}">
-                            <i class="${secteur.icon}"></i>
-                            ${secteur.name}
-                            <i class="fas fa-times remove-tag" onclick="window.sectorsManager.removeSector('${secteurId}', '${type}')"></i>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            removeSector(secteurId, type) {
-                if (type === 'secteurs') {
-                    this.selectedSecteurs.delete(secteurId);
-                    const option = document.querySelector(`[data-secteur="${secteurId}"]`);
-                    if (option) {
-                        option.classList.remove('selected');
-                        option.querySelector('.option-checkbox i').style.display = 'none';
-                    }
-                } else {
-                    this.selectedRedhibitoires.delete(secteurId);
-                    const option = document.querySelector(`[data-redhibitoire="${secteurId}"]`);
-                    if (option) {
-                        option.classList.remove('selected');
-                        option.querySelector('.option-checkbox i').style.display = 'none';
-                    }
-                }
-                
-                this.updateTags(type);
-                this.updateCounters();
-                this.checkConflicts();
-                this.updateHiddenFields();
-            }
-
-            updateCounters() {
-                const secteursCounter = document.getElementById('secteurs-counter');
-                const redhibitoiresCounter = document.getElementById('redhibitoires-counter');
-                
-                if (secteursCounter) {
-                    secteursCounter.textContent = 
-                        `${this.selectedSecteurs.size} sélectionné${this.selectedSecteurs.size > 1 ? 's' : ''}`;
-                }
-                
-                if (redhibitoiresCounter) {
-                    redhibitoiresCounter.textContent = 
-                        `${this.selectedRedhibitoires.size} exclu${this.selectedRedhibitoires.size > 1 ? 's' : ''}`;
-                }
-            }
-
-            checkConflicts() {
-                const conflicts = [...this.selectedSecteurs].filter(id => this.selectedRedhibitoires.has(id));
-                const warningElement = document.getElementById('conflict-warning');
-                
-                if (warningElement) {
-                    if (conflicts.length > 0) {
-                        warningElement.classList.add('active');
-                        console.warn('⚠️ Conflits détectés:', conflicts);
-                    } else {
-                        warningElement.classList.remove('active');
-                    }
-                }
-            }
-
-            filterOptions(containerId, searchTerm, dataAttribute) {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                
-                const options = container.querySelectorAll('.dropdown-option');
-                
-                options.forEach(option => {
-                    const secteurId = option.dataset[dataAttribute];
-                    const secteur = SECTEURS_DATA.find(s => s.id === secteurId);
-                    const searchText = `${secteur.name} ${secteur.description}`.toLowerCase();
-                    
-                    if (searchText.includes(searchTerm.toLowerCase())) {
-                        option.style.display = 'flex';
-                    } else {
-                        option.style.display = 'none';
-                    }
-                });
-            }
-
-            updateHiddenFields() {
-                const secteursField = document.getElementById('hidden-secteurs');
-                const redhibitoiresField = document.getElementById('hidden-secteurs-redhibitoires');
-                
-                if (secteursField) {
-                    secteursField.value = JSON.stringify(Array.from(this.selectedSecteurs));
-                }
-                
-                if (redhibitoiresField) {
-                    redhibitoiresField.value = JSON.stringify(Array.from(this.selectedRedhibitoires));
-                }
-            }
-
-            // === MÉTHODES PUBLIQUES POUR INTÉGRATION === 
-            getSelectedSecteurs() {
-                return Array.from(this.selectedSecteurs);
-            }
-
-            getSelectedRedhibitoires() {
-                return Array.from(this.selectedRedhibitoires);
-            }
-
-            hasConflicts() {
-                return [...this.selectedSecteurs].some(id => this.selectedRedhibitoires.has(id));
-            }
-
-            getFormData() {
-                return {
-                    secteurs: this.getSelectedSecteurs(),
-                    redhibitoires: this.getSelectedRedhibitoires(),
-                    hasConflicts: this.hasConflicts(),
-                    secteurNames: this.getSelectedSecteurs().map(id => 
-                        SECTEURS_DATA.find(s => s.id === id)?.name
-                    ),
-                    redhibitoireNames: this.getSelectedRedhibitoires().map(id => 
-                        SECTEURS_DATA.find(s => s.id === id)?.name
-                    )
-                };
-            }
-        }
-
-        // 🚀 Initialisation sécurisée au chargement du DOM
+        // Initialisation sécurisée au chargement
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('🌟 Initialisation NEXTEN V3.0 - Version FINALISÉE avec Secteurs Modernes');
+            // Protection contre les initialisations multiples
+            if (window.nextenNavigationInitialized) {
+                console.log('🛡️ Navigation déjà initialisée, évitement des doublons');
+                return;
+            }
             
-            // Attendre que tous les scripts externes soient chargés
             setTimeout(() => {
                 try {
-                    // Initialiser la navigation sécurisée
                     window.nextenNavigation = new NextenNavigation();
-                    
-                    // Initialiser le gestionnaire de temps de trajet corrigé
                     window.travelTimeManager = new TravelTimeManagerFixed();
+                    window.nextenNavigationInitialized = true;
                     
-                    // 🆕 Initialiser le gestionnaire des secteurs
-                    window.sectorsManager = new NextenSectorsManager();
-                    
-                    console.log('✅ Initialisation NEXTEN V3.0 terminée avec succès');
-                    console.log('🛠️ Commandes debug disponibles:');
-                    console.log('   - nextenNavigation.goToStep(n) - Aller à l\'étape n');
-                    console.log('   - nextenNavigation.getCurrentStep() - Étape actuelle');
-                    console.log('   - sectorsManager.getFormData() - Données secteurs');
-                    console.log('   - nextenNavigation.reset() - Retour étape 1');
-                    
+                    console.log('✅ NEXTEN V3.0 Navigation + TravelTime initialisés avec succès');
                 } catch (error) {
-                    console.error('❌ Erreur initialisation NEXTEN:', error);
+                    console.error('❌ Erreur initialisation navigation:', error);
                 }
             }, 500);
         });
     </script>
-    
 </body>
 </html>
