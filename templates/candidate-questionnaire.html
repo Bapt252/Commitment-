@@ -1115,6 +1115,296 @@
                 min-width: auto;
             }
         }
+
+        /* ===== 🚀 NOUVEAUX STYLES ÉTAPE 4 - DISPONIBILITÉ & SITUATION ===== */
+        .step4-container {
+            background: var(--surface-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-lg) 0;
+            border: 2px solid var(--border-color);
+            transition: all var(--transition-base);
+        }
+
+        .step4-container:hover {
+            border-color: var(--nexten-primary-light);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+        }
+
+        .step4-question {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .step4-question-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .step4-question-title i {
+            color: var(--nexten-primary);
+        }
+
+        .step4-options {
+            display: grid;
+            gap: var(--spacing-base);
+        }
+
+        .step4-option {
+            background: var(--surface-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+        }
+
+        .step4-option:hover {
+            border-color: var(--nexten-primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .step4-option.selected {
+            border-color: var(--nexten-primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .step4-option-content {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-base);
+        }
+
+        .step4-option-radio {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-base);
+            flex-shrink: 0;
+        }
+
+        .step4-option.selected .step4-option-radio {
+            border-color: var(--nexten-primary);
+            background: var(--nexten-primary);
+        }
+
+        .step4-option.selected .step4-option-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .step4-option-text {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Questions conditionnelles */
+        .conditional-section {
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-lg);
+            background: rgba(124, 58, 237, 0.05);
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            border-radius: var(--radius-lg);
+            display: none;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .conditional-section.active {
+            display: block;
+        }
+
+        .conditional-section-title {
+            font-weight: 600;
+            color: var(--nexten-primary);
+            margin-bottom: var(--spacing-base);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .step4-input-group {
+            margin-bottom: var(--spacing-base);
+        }
+
+        .step4-input-label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .step4-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: var(--surface-primary);
+            transition: all var(--transition-base);
+        }
+
+        .step4-input:focus {
+            outline: none;
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .step4-checkbox-group {
+            display: grid;
+            gap: var(--spacing-sm);
+        }
+
+        .step4-checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background: var(--surface-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .step4-checkbox-option:hover {
+            border-color: var(--nexten-primary-light);
+            background: rgba(124, 58, 237, 0.02);
+        }
+
+        .step4-checkbox-option.selected {
+            border-color: var(--nexten-primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .step4-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-base);
+            flex-shrink: 0;
+        }
+
+        .step4-checkbox-option.selected .step4-checkbox {
+            border-color: var(--nexten-primary);
+            background: var(--nexten-primary);
+            color: white;
+        }
+
+        .step4-checkbox i {
+            font-size: 0.75rem;
+            display: none;
+        }
+
+        .step4-checkbox-option.selected .step4-checkbox i {
+            display: block;
+        }
+
+        .step4-checkbox-text {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Salary range input */
+        .salary-range-input {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            background: var(--surface-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-base);
+            padding: var(--spacing-sm);
+            transition: all var(--transition-base);
+        }
+
+        .salary-range-input:focus-within {
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .salary-input-small {
+            width: 60px;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: transparent;
+        }
+
+        .salary-separator {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .salary-unit-small {
+            color: var(--nexten-primary);
+            font-weight: 600;
+        }
+
+        /* Animation styles */
+        @keyframes slideInFromLeft {
+            0% { 
+                opacity: 0; 
+                transform: translateX(-20px); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+
+        .step4-option {
+            animation: slideInFromLeft 0.3s ease-out;
+        }
+
+        .step4-option:nth-child(1) { animation-delay: 0.1s; }
+        .step4-option:nth-child(2) { animation-delay: 0.2s; }
+        .step4-option:nth-child(3) { animation-delay: 0.3s; }
+        .step4-option:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .step4-container {
+                padding: var(--spacing-lg);
+                margin: var(--spacing-base) 0;
+            }
+
+            .step4-question-title {
+                font-size: 1.125rem;
+            }
+
+            .step4-option {
+                padding: var(--spacing-base);
+            }
+
+            .conditional-section {
+                padding: var(--spacing-base);
+            }
+
+            .salary-range-input {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
     </style>
     
     <!-- Styles du système NEXTEN V2.0 -->
@@ -1803,219 +2093,335 @@
                         <input type="hidden" id="hidden-salary-range" name="salary-range">
                     </div>
                     
-                    <!-- ✨ ÉTAPE 4 : DISPONIBILITÉ ET SITUATION (VERSION MODERNE NEXTEN V3.0) -->
-                    <div class="form-step nexten-v3-modern" id="form-step4" style="display: none;">
+                    <!-- ===== 🚀 ÉTAPE 4 COMPLÈTEMENT RECONSTRUITE : DISPONIBILITÉ & SITUATION ===== -->
+                    <div class="form-step nexten-v3-modern" id="form-step4">
                         <h2 class="form-section-title">🚀 Disponibilité & Situation</h2>
                         <p class="step-description">
-                            Dernière étape ! Précisez votre situation actuelle et vos préférences pour finaliser votre profil candidat
+                            Dernière étape ! Précisez votre situation actuelle et vos attentes pour finaliser votre profil candidat
                         </p>
 
-                        <!-- Situation Professionnelle avec Options Modernes -->
-                        <div class="form-group">
-                            <label class="modern-label">
-                                <span class="label-icon">
-                                    <i class="fas fa-briefcase"></i>
-                                    Quelle est votre situation professionnelle actuelle ?
-                                </span>
-                            </label>
-                            
-                            <div class="modern-option-group">
-                                <div class="modern-option" data-option-group="situation" data-value="emploi" tabindex="0">
-                                    <div class="option-input radio"></div>
-                                    <div class="option-content">
-                                        <div class="option-title">En poste actuellement</div>
-                                        <div class="option-description">Je travaille et cherche de nouvelles opportunités en parallèle</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="modern-option" data-option-group="situation" data-value="recherche" tabindex="0">
-                                    <div class="option-input radio"></div>
-                                    <div class="option-content">
-                                        <div class="option-title">En recherche active</div>
-                                        <div class="option-description">Je suis disponible immédiatement pour un nouveau poste</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="modern-option" data-option-group="situation" data-value="preavis" tabindex="0">
-                                    <div class="option-input radio"></div>
-                                    <div class="option-content">
-                                        <div class="option-title">Préavis en cours</div>
-                                        <div class="option-description">Mon contrat actuel se termine bientôt</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="modern-option" data-option-group="situation" data-value="etudiant" tabindex="0">
-                                    <div class="option-input radio"></div>
-                                    <div class="option-content">
-                                        <div class="option-title">Étudiant/Diplômé</div>
-                                        <div class="option-description">Je termine mes études ou viens d'obtenir mon diplôme</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Disponibilité avec Options Modernes -->
-                        <div class="form-group">
-                            <label class="modern-label">
-                                <span class="label-icon">
+                        <!-- Question 1: Quand cherchez-vous à prendre un poste ? -->
+                        <div class="step4-container">
+                            <div class="step4-question">
+                                <h3 class="step4-question-title">
                                     <i class="fas fa-calendar-check"></i>
-                                    Dans combien de temps pourriez-vous commencer ?
-                                </span>
-                            </label>
-                            
-                            <div class="modern-option-group">
-                                <div class="modern-option" data-option-group="disponibilite" data-value="immediat" tabindex="0">
-                                    <div class="option-input radio"></div>
-                                    <div class="option-content">
-                                        <div class="option-title">Immédiatement</div>
-                                        <div class="option-description">Je peux commencer dès maintenant ou dans les jours qui suivent</div>
-                                    </div>
-                                </div>
+                                    1) Quand cherchez-vous à prendre un poste ?
+                                </h3>
                                 
-                                <div class="modern-option" data-option-group="disponibilite" data-value="1mois" tabindex="0">
-                                    <div class="option-input radio"></div>
-                                    <div class="option-content">
-                                        <div class="option-title">Dans 1 mois</div>
-                                        <div class="option-description">Délai standard pour finaliser mes missions actuelles</div>
+                                <div class="step4-options" id="timing-options">
+                                    <div class="step4-option" data-value="immediat" data-question="timing">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Immédiatement</div>
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <div class="modern-option" data-option-group="disponibilite" data-value="2mois" tabindex="0">
-                                    <div class="option-input radio"></div>
-                                    <div class="option-content">
-                                        <div class="option-title">Dans 2-3 mois</div>
-                                        <div class="option-description">Préavis en cours ou fin de contrat prévue</div>
+                                    
+                                    <div class="step4-option" data-value="1mois" data-question="timing">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Dans 1 mois</div>
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <div class="modern-option" data-option-group="disponibilite" data-value="flexible" tabindex="0">
-                                    <div class="option-input radio"></div>
-                                    <div class="option-content">
-                                        <div class="option-title">À négocier</div>
-                                        <div class="option-description">Selon l'opportunité et les conditions proposées</div>
+                                    
+                                    <div class="step4-option" data-value="2mois" data-question="timing">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Dans 2 mois</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="step4-option" data-value="3mois" data-question="timing">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Dans 3 mois</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Modes de Travail avec Cards Sélectionnables -->
-                        <div class="form-group">
-                            <label class="modern-label">
-                                <span class="label-icon">
-                                    <i class="fas fa-home"></i>
-                                    Préférences de mode de travail
-                                </span>
-                            </label>
-                            
-                            <div class="modern-card-grid">
-                                <div class="interactive-card" data-card-group="modes-travail" data-value="presentiel" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-building"></i>
+                        <!-- Question 2: Êtes-vous actuellement en poste ? -->
+                        <div class="step4-container">
+                            <div class="step4-question">
+                                <h3 class="step4-question-title">
+                                    <i class="fas fa-briefcase"></i>
+                                    2) Êtes-vous actuellement en poste ?
+                                </h3>
+                                
+                                <div class="step4-options" id="employment-status-options">
+                                    <div class="step4-option" data-value="oui" data-question="employment-status">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">OUI</div>
+                                        </div>
                                     </div>
-                                    <div class="card-title">100% Présentiel</div>
-                                    <div class="card-description">Travail exclusivement sur site, en équipe et dans l'entreprise</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
+                                    
+                                    <div class="step4-option" data-value="non" data-question="employment-status">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">NON</div>
+                                        </div>
                                     </div>
                                 </div>
-                                
-                                <div class="interactive-card" data-card-group="modes-travail" data-value="hybride" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-sync-alt"></i>
+
+                                <!-- Section conditionnelle pour "OUI" -->
+                                <div class="conditional-section" id="employment-yes-section">
+                                    <div class="conditional-section-title">
+                                        <i class="fas fa-arrow-right"></i>
+                                        Questions complémentaires pour les personnes en poste
                                     </div>
-                                    <div class="card-title">Hybride</div>
-                                    <div class="card-description">Mix optimal bureau/télétravail (2-3 jours par semaine)</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
+                                    
+                                    <!-- Salaire actuel -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label" for="current-salary">
+                                            Votre salaire actuel (fourchette) :
+                                        </label>
+                                        <div class="salary-range-input">
+                                            <input type="number" class="salary-input-small" id="current-salary-min" name="current-salary-min" placeholder="40" min="20" max="200">
+                                            <span class="salary-separator">K -</span>
+                                            <input type="number" class="salary-input-small" id="current-salary-max" name="current-salary-max" placeholder="45" min="20" max="200">
+                                            <span class="salary-unit-small">K €</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Pourquoi à l'écoute -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label">
+                                            Pourquoi êtes-vous de nouveau à l'écoute ? (plusieurs choix possibles)
+                                        </label>
+                                        <div class="step4-checkbox-group" id="listening-reasons">
+                                            <div class="step4-checkbox-option" data-value="evolution">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Manque de perspectives d'évolution</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="remuneration">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Rémunération trop faible</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="distance">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Poste trop loin de mon domicile</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="flexibilite">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Manque de flexibilité (pas de TT, RTT)</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="organisation">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Problème en interne (organisation, management)</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="confidential">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Je ne souhaite pas communiquer</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="mismatch">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Le poste ne coïncide pas avec le poste proposé initialement</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="epanouissement">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Je ne m'épanouis plus, je souhaite découvrir de nouvelles choses</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="pse">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">PSE</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Préavis -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label">
+                                            De combien de temps est votre préavis ?
+                                        </label>
+                                        <div class="step4-options" id="notice-period-options">
+                                            <div class="step4-option" data-value="aucun" data-question="notice-period">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">Je n'en ai pas, encore en période d'essai</div>
+                                                </div>
+                                            </div>
+                                            <div class="step4-option" data-value="1mois" data-question="notice-period">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">1 mois</div>
+                                                </div>
+                                            </div>
+                                            <div class="step4-option" data-value="2mois" data-question="notice-period">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">2 mois</div>
+                                                </div>
+                                            </div>
+                                            <div class="step4-option" data-value="3mois" data-question="notice-period">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">3 mois</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Préavis négociable -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label">
+                                            Est-il négociable ?
+                                        </label>
+                                        <div class="step4-options" id="notice-negotiable-options">
+                                            <div class="step4-option" data-value="oui" data-question="notice-negotiable">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">OUI</div>
+                                                </div>
+                                            </div>
+                                            <div class="step4-option" data-value="non" data-question="notice-negotiable">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">NON</div>
+                                                </div>
+                                            </div>
+                                            <div class="step4-option" data-value="ne-sais-pas" data-question="notice-negotiable">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">Je ne sais pas</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                
-                                <div class="interactive-card" data-card-group="modes-travail" data-value="remote" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-wifi"></i>
+
+                                <!-- Section conditionnelle pour "NON" -->
+                                <div class="conditional-section" id="employment-no-section">
+                                    <div class="conditional-section-title">
+                                        <i class="fas fa-arrow-right"></i>
+                                        Question pour les personnes sans emploi actuel
                                     </div>
-                                    <div class="card-title">100% Télétravail</div>
-                                    <div class="card-description">Travail entièrement à distance, flexibilité maximale</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
+                                    
+                                    <!-- Pourquoi dernier contrat s'est arrêté -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label">
+                                            Pourquoi votre dernier contrat s'est-il arrêté ? (plusieurs choix possibles)
+                                        </label>
+                                        <div class="step4-checkbox-group" id="contract-end-reasons">
+                                            <div class="step4-checkbox-option" data-value="evolution">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Manque de perspectives d'évolution</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="remuneration">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Rémunération trop faible</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="distance">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Poste trop loin de mon domicile</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="flexibilite">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Manque de flexibilité (pas de TT, RTT)</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="organisation">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Problème en interne (organisation, management)</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="confidential">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Je ne souhaite pas communiquer</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="mismatch">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Le poste ne coïncide pas avec le poste proposé initialement</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="epanouissement">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Je ne m'épanouis plus, je souhaite découvrir de nouvelles choses</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="pse">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">PSE</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Types d'Entreprise avec Cards Sélectionnables -->
-                        <div class="form-group">
-                            <label class="modern-label">
-                                <span class="label-icon">
-                                    <i class="fas fa-rocket"></i>
-                                    Type d'entreprise privilégié
-                                </span>
-                            </label>
-                            
-                            <div class="modern-card-grid">
-                                <div class="interactive-card" data-card-group="types-entreprise" data-value="startup" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-lightbulb"></i>
-                                    </div>
-                                    <div class="card-title">Startup/Scale-up</div>
-                                    <div class="card-description">Environnement dynamique, innovation et croissance rapide</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                </div>
+                        <!-- Question 3: Où en êtes-vous dans vos process de recrutement ? -->
+                        <div class="step4-container">
+                            <div class="step4-question">
+                                <h3 class="step4-question-title">
+                                    <i class="fas fa-tasks"></i>
+                                    3) Où en êtes-vous dans vos process de recrutement ?
+                                </h3>
                                 
-                                <div class="interactive-card" data-card-group="types-entreprise" data-value="pme" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-users"></i>
+                                <div class="step4-options" id="recruitment-status-options">
+                                    <div class="step4-option" data-value="aucune-piste" data-question="recruitment-status">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Je n'ai pas encore de piste</div>
+                                        </div>
                                     </div>
-                                    <div class="card-title">PME/ETI</div>
-                                    <div class="card-description">Entreprise à taille humaine, proximité et polyvalence</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
+                                    
+                                    <div class="step4-option" data-value="entretiens" data-question="recruitment-status">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">J'avance sur différents entretiens</div>
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <div class="interactive-card" data-card-group="types-entreprise" data-value="grand-groupe" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-city"></i>
+                                    
+                                    <div class="step4-option" data-value="processus-final" data-question="recruitment-status">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Je suis en processus final</div>
+                                        </div>
                                     </div>
-                                    <div class="card-title">Grand Groupe</div>
-                                    <div class="card-description">Structure établie, stabilité et nombreuses opportunités</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                </div>
-                                
-                                <div class="interactive-card" data-card-group="types-entreprise" data-value="conseil" tabindex="0">
-                                    <div class="card-icon">
-                                        <i class="fas fa-chess"></i>
-                                    </div>
-                                    <div class="card-title">Cabinet de Conseil</div>
-                                    <div class="card-description">Missions variées chez différents clients, expertise</div>
-                                    <div class="card-check">
-                                        <i class="fas fa-check"></i>
+                                    
+                                    <div class="step4-option" data-value="propositions" data-question="recruitment-status">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">On m'a fait des propositions</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Textarea Moderne pour Contraintes -->
-                        <div class="form-group">
-                            <label class="modern-label" for="contraintes">
-                                <span class="label-icon">
-                                    <i class="fas fa-info-circle"></i>
-                                    Contraintes particulières ou informations complémentaires
-                                </span>
-                            </label>
-                            <textarea 
-                                class="modern-textarea" 
-                                id="contraintes" 
-                                name="contraintes" 
-                                placeholder="Contraintes géographiques, horaires spécifiques, préférences particulières, questions à poser aux recruteurs, informations importantes à nous communiquer..."
-                            ></textarea>
-                        </div>
-
-                        <!-- Boutons d'Action Modernes -->
+                        <!-- Boutons d'Action -->
                         <div class="modern-form-actions">
                             <button type="button" class="modern-btn btn-secondary" id="back-step3">
                                 <i class="fas fa-arrow-left"></i>
@@ -2028,10 +2434,15 @@
                         </div>
 
                         <!-- Champs cachés pour intégration -->
-                        <input type="hidden" id="hidden-situation" name="situation">
-                        <input type="hidden" id="hidden-disponibilite" name="disponibilite">
-                        <input type="hidden" id="hidden-modes-travail" name="modes-travail">
-                        <input type="hidden" id="hidden-types-entreprise" name="types-entreprise">
+                        <input type="hidden" id="hidden-timing" name="timing">
+                        <input type="hidden" id="hidden-employment-status" name="employment-status">
+                        <input type="hidden" id="hidden-current-salary-min" name="current-salary-min-hidden">
+                        <input type="hidden" id="hidden-current-salary-max" name="current-salary-max-hidden">
+                        <input type="hidden" id="hidden-listening-reasons" name="listening-reasons">
+                        <input type="hidden" id="hidden-notice-period" name="notice-period">
+                        <input type="hidden" id="hidden-notice-negotiable" name="notice-negotiable">
+                        <input type="hidden" id="hidden-contract-end-reasons" name="contract-end-reasons">
+                        <input type="hidden" id="hidden-recruitment-status" name="recruitment-status">
                     </div>
                 </form>
             </div>
@@ -2073,398 +2484,37 @@
                 <div>
                     <h4 class="footer-heading">Navigation</h4>
                     <ul class="footer-links">
-                        <li><a href="https://bapt252.github.io/Commitment-/templates/index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
-                        <li><a href="https://bapt252.github.io/Commitment-/#services"><i class="fas fa-chevron-right"></i> Services</a></li>
-                        <li><a href="https://bapt252.github.io/Commitment-/#about"><i class="fas fa-chevron-right"></i> À propos</a></li>
-                        <li><a href="https://bapt252.github.io/Commitment-/contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                        <li><a href="#accueil">Accueil</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#about">À propos</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Services</h4>
+                    <ul class="footer-links">
+                        <li><a href="#recrutement">Recrutement</a></li>
+                        <li><a href="#conseil">Conseil RH</a></li>
+                        <li><a href="#formation">Formation</a></li>
+                        <li><a href="#accompagnement">Accompagnement</a></li>
                     </ul>
                 </div>
                 
                 <div>
                     <h4 class="footer-heading">Contact</h4>
                     <div class="footer-contact">
-                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue du Recrutement, 75001 Paris</p>
-                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
                         <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
+                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+                        <p><i class="fas fa-map-marker-alt"></i> Paris, France</p>
                     </div>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="https://bapt252.github.io/Commitment-/privacy.html">Politique de confidentialité</a> | <a href="https://bapt252.github.io/Commitment-/terms.html">Conditions d'utilisation</a></p>
+                <p>&copy; 2024 Nexten. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
-    
-    <!-- Bouton de retour en haut -->
-    <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
-        <i class="fas fa-arrow-up"></i>
-    </button>
-
-    <!-- Scripts JavaScript additionnels -->
-    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/candidate-analyzer.js"></script>
-    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-contract-system.js"></script>
-    
-    <!-- 🔧 NOUVEAU: Script de navigation SÉCURISÉ pour éviter les boucles infinies -->
-    <script>
-        /**
-         * 🚀 NEXTEN V3.0 - Système de navigation sécurisé (FIX BOUCLE INFINIE)
-         * Gestion robuste de la navigation entre étapes sans conflits JavaScript
-         */
-        class NextenNavigation {
-            constructor() {
-                this.currentStep = 1;
-                this.maxSteps = 4;
-                this.isTransitioning = false;
-                this.eventListeners = new Map();
-                this.init();
-            }
-
-            init() {
-                console.log('🧭 Initialisation NextenNavigation V3.0 SÉCURISÉ');
-                this.setupEventListeners();
-                this.updateStepperProgress();
-            }
-
-            setupEventListeners() {
-                // Navigation sécurisée avec protection contre les boucles
-                this.safeAddEventListener('next-step1', 'click', () => this.goToStep(2));
-                this.safeAddEventListener('next-step2', 'click', () => this.goToStep(3));
-                this.safeAddEventListener('next-step3', 'click', () => this.goToStep(4));
-                
-                this.safeAddEventListener('back-step1', 'click', () => this.goToStep(1));
-                this.safeAddEventListener('back-step2', 'click', () => this.goToStep(1));
-                this.safeAddEventListener('back-step3', 'click', () => this.goToStep(2));
-
-                // Clic sur les numéros d'étapes (avec protection)
-                for (let i = 1; i <= this.maxSteps; i++) {
-                    this.safeAddEventListener(`step${i}`, 'click', () => this.goToStep(i));
-                }
-
-                console.log('✅ Event listeners sécurisés configurés');
-            }
-
-            safeAddEventListener(elementId, event, handler) {
-                const element = document.getElementById(elementId);
-                if (element) {
-                    // Supprimer l'ancien listener s'il existe
-                    if (this.eventListeners.has(elementId)) {
-                        const oldHandler = this.eventListeners.get(elementId);
-                        element.removeEventListener(event, oldHandler);
-                    }
-                    
-                    // Wrapper sécurisé avec protection contre les appels multiples
-                    const safeHandler = (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        if (this.isTransitioning) {
-                            console.warn('⚠️ Transition en cours, action ignorée');
-                            return;
-                        }
-                        
-                        this.isTransitioning = true;
-                        try {
-                            handler();
-                        } catch (error) {
-                            console.error('❌ Erreur dans le handler:', error);
-                        } finally {
-                            setTimeout(() => {
-                                this.isTransitioning = false;
-                            }, 300);
-                        }
-                    };
-                    
-                    element.addEventListener(event, safeHandler);
-                    this.eventListeners.set(elementId, safeHandler);
-                }
-            }
-
-            goToStep(targetStep) {
-                if (targetStep < 1 || targetStep > this.maxSteps || targetStep === this.currentStep) {
-                    return;
-                }
-
-                console.log(`🎯 Navigation de l'étape ${this.currentStep} vers ${targetStep}`);
-
-                // Validation avant navigation
-                if (targetStep > this.currentStep && !this.validateCurrentStep()) {
-                    console.warn('⚠️ Validation échouée, navigation bloquée');
-                    return;
-                }
-
-                // Masquer l'étape actuelle
-                this.hideStep(this.currentStep);
-                
-                // Afficher la nouvelle étape
-                this.showStep(targetStep);
-                
-                // Mettre à jour l'état
-                this.currentStep = targetStep;
-                this.updateStepperProgress();
-                this.updateStepperIndicators();
-
-                console.log(`✅ Navigation terminée: étape ${targetStep}`);
-            }
-
-            hideStep(stepNumber) {
-                const step = document.getElementById(`form-step${stepNumber}`);
-                const stepIndicator = document.getElementById(`step${stepNumber}`);
-                
-                if (step) {
-                    step.classList.remove('active');
-                    step.style.display = 'none';
-                }
-                
-                if (stepIndicator) {
-                    stepIndicator.classList.remove('active');
-                }
-            }
-
-            showStep(stepNumber) {
-                const step = document.getElementById(`form-step${stepNumber}`);
-                const stepIndicator = document.getElementById(`step${stepNumber}`);
-                
-                if (step) {
-                    step.style.display = 'block';
-                    // Délai pour l'animation
-                    setTimeout(() => {
-                        step.classList.add('active');
-                    }, 50);
-                }
-                
-                if (stepIndicator) {
-                    stepIndicator.classList.add('active');
-                }
-            }
-
-            updateStepperProgress() {
-                const progress = document.getElementById('stepper-progress');
-                if (progress) {
-                    const percentage = ((this.currentStep - 1) / (this.maxSteps - 1)) * 100;
-                    progress.style.width = `${percentage}%`;
-                }
-            }
-
-            updateStepperIndicators() {
-                for (let i = 1; i <= this.maxSteps; i++) {
-                    const indicator = document.getElementById(`step${i}`);
-                    if (indicator) {
-                        indicator.classList.toggle('active', i === this.currentStep);
-                        indicator.classList.toggle('completed', i < this.currentStep);
-                    }
-                }
-            }
-
-            validateCurrentStep() {
-                switch (this.currentStep) {
-                    case 1:
-                        return this.validateStep1();
-                    case 2:
-                        return this.validateStep2();
-                    case 3:
-                        return this.validateStep3();
-                    default:
-                        return true;
-                }
-            }
-
-            validateStep1() {
-                const fullName = document.getElementById('full-name');
-                const jobTitle = document.getElementById('job-title');
-                
-                if (!fullName?.value.trim()) {
-                    this.showValidationMessage('Veuillez renseigner votre nom et prénom');
-                    return false;
-                }
-                
-                if (!jobTitle?.value.trim()) {
-                    this.showValidationMessage('Veuillez renseigner l\'intitulé de poste souhaité');
-                    return false;
-                }
-                
-                return true;
-            }
-
-            validateStep2() {
-                const transportMethods = document.querySelectorAll('input[name="transport-method"]:checked');
-                const address = document.getElementById('address');
-                const officePreference = document.querySelector('input[name="office-preference"]:checked');
-                
-                if (transportMethods.length === 0) {
-                    this.showValidationMessage('Veuillez sélectionner au moins un moyen de transport');
-                    return false;
-                }
-                
-                if (!address?.value.trim()) {
-                    this.showValidationMessage('Veuillez renseigner votre adresse');
-                    return false;
-                }
-                
-                if (!officePreference) {
-                    this.showValidationMessage('Veuillez sélectionner votre préférence d\'environnement de travail');
-                    return false;
-                }
-                
-                return true;
-            }
-
-            validateStep3() {
-                // Validation basique pour l'étape 3
-                return true;
-            }
-
-            showValidationMessage(message) {
-                if (typeof window.showNotification === 'function') {
-                    window.showNotification(message, 'error');
-                } else {
-                    alert(message);
-                }
-            }
-
-            // Méthodes publiques pour debugging
-            getCurrentStep() {
-                return this.currentStep;
-            }
-
-            reset() {
-                this.goToStep(1);
-            }
-        }
-
-        /**
-         * 🔧 FIX: Gestionnaire des temps de trajet SÉCURISÉ (ÉVITE LES BOUCLES INFINIES)
-         */
-        class TravelTimeManagerFixed {
-            constructor() {
-                this.isProcessing = false;
-                this.updateQueue = [];
-                this.selectedTransports = new Set();
-                this.init();
-            }
-
-            init() {
-                console.log('🚚 TravelTimeManagerFixed initialisé');
-                this.setupEventListeners();
-            }
-
-            setupEventListeners() {
-                // Utiliser la délégation d'événements pour éviter les conflits
-                document.addEventListener('change', (e) => {
-                    if (e.target.name === 'transport-method') {
-                        this.handleTransportChange(e.target);
-                    }
-                });
-
-                // 🔧 FIX CRITIQUE: Utiliser 'change' au lieu de 'input' pour éviter les boucles
-                document.addEventListener('change', (e) => {
-                    if (e.target.classList.contains('travel-time-input')) {
-                        this.handleTimeInputSafe(e.target);
-                    }
-                });
-            }
-
-            handleTransportChange(checkbox) {
-                if (this.isProcessing) return;
-                
-                this.isProcessing = true;
-                
-                const transport = checkbox.dataset.transport;
-                const isChecked = checkbox.checked;
-                const container = document.getElementById('travel-time-container');
-                const field = document.getElementById(`travel-time-${transport}`);
-                
-                console.log(`🚌 Transport ${transport}: ${isChecked ? 'sélectionné' : 'désélectionné'}`);
-                
-                if (isChecked) {
-                    this.selectedTransports.add(transport);
-                    if (field) {
-                        field.style.display = 'flex';
-                        this.animateFieldEntry(field);
-                    }
-                } else {
-                    this.selectedTransports.delete(transport);
-                    if (field) {
-                        this.animateFieldExit(field);
-                    }
-                }
-                
-                this.updateContainerVisibility(container);
-                
-                setTimeout(() => {
-                    this.isProcessing = false;
-                }, 300);
-            }
-
-            animateFieldEntry(field) {
-                field.style.opacity = '0';
-                field.style.transform = 'translateX(-20px)';
-                
-                setTimeout(() => {
-                    field.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                    field.style.opacity = '1';
-                    field.style.transform = 'translateX(0)';
-                }, 50);
-            }
-
-            animateFieldExit(field) {
-                field.style.transition = 'all 0.2s ease-out';
-                field.style.opacity = '0';
-                field.style.transform = 'translateX(-20px)';
-                
-                setTimeout(() => {
-                    field.style.display = 'none';
-                }, 200);
-            }
-
-            updateContainerVisibility(container) {
-                if (this.selectedTransports.size > 0) {
-                    container.classList.add('active');
-                } else {
-                    container.classList.remove('active');
-                }
-            }
-
-            handleTimeInputSafe(input) {
-                // Validation simple avec debounce pour éviter les conflits
-                if (this.timeoutId) clearTimeout(this.timeoutId);
-                
-                this.timeoutId = setTimeout(() => {
-                    const value = parseInt(input.value);
-                    const min = parseInt(input.min);
-                    const max = parseInt(input.max);
-                    
-                    if (value < min) {
-                        input.value = min;
-                    } else if (value > max) {
-                        input.value = max;
-                    }
-                    
-                    console.log(`⏱️ Temps ${input.name}: ${input.value} minutes`);
-                }, 500);
-            }
-        }
-
-        // Initialisation sécurisée au chargement
-        document.addEventListener('DOMContentLoaded', () => {
-            // Protection contre les initialisations multiples
-            if (window.nextenNavigationInitialized) {
-                console.log('🛡️ Navigation déjà initialisée, évitement des doublons');
-                return;
-            }
-            
-            setTimeout(() => {
-                try {
-                    window.nextenNavigation = new NextenNavigation();
-                    window.travelTimeManager = new TravelTimeManagerFixed();
-                    window.nextenNavigationInitialized = true;
-                    
-                    console.log('✅ NEXTEN V3.0 Navigation + TravelTime initialisés avec succès');
-                } catch (error) {
-                    console.error('❌ Erreur initialisation navigation:', error);
-                }
-            }, 500);
-        });
-    </script>
 </body>
 </html>
