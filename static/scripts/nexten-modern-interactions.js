@@ -1,6 +1,6 @@
 /**
- * NEXTEN V3.0 - JavaScript Interactions CORRIGÉ
- * 🔧 Corrige la navigation bloquée + implémente 25+ secteurs
+ * NEXTEN V3.0 - JavaScript Interactions COMPLET
+ * 🔧 Système complet avec gestion de l'étape 4 "Disponibilité & Situation"
  */
 
 class NextenQuestionnaire {
@@ -11,6 +11,19 @@ class NextenQuestionnaire {
         this.selectedSecteurs = [];
         this.selectedRedhibitoires = [];
         this.selectedMotivations = [];
+        
+        // 🆕 Données étape 4
+        this.step4Data = {
+            timing: '',
+            employmentStatus: '',
+            currentSalaryMin: '',
+            currentSalaryMax: '',
+            listeningReasons: [],
+            noticePeriod: '',
+            noticeNegotiable: '',
+            contractEndReasons: [],
+            recruitmentStatus: ''
+        };
         
         // 🆕 Liste étendue des secteurs (25+ secteurs)
         this.secteursList = [
@@ -48,12 +61,13 @@ class NextenQuestionnaire {
     }
 
     init() {
-        console.log('🚀 Initialisation NEXTEN V3.0 - Version Corrigée');
+        console.log('🚀 Initialisation NEXTEN V3.0 - Version Complète avec Étape 4');
         this.initializeStepNavigation();
         this.initializeMotivationRanking();
         this.initializeSecteurSelectors();
         this.initializeSalaryControls();
         this.initializeModernOptions();
+        this.initializeStep4Logic(); // 🆕 Logique étape 4
         this.updateStepIndicator();
         this.handleDemoMode();
         
@@ -104,6 +118,16 @@ class NextenQuestionnaire {
                 });
             }
         });
+
+        // Bouton Submit final
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🚀 Soumission finale du questionnaire');
+                this.submitQuestionnaire();
+            });
+        }
 
         // Navigation directe via indicateurs d'étapes
         document.querySelectorAll('.step').forEach((step, index) => {
@@ -220,6 +244,20 @@ class NextenQuestionnaire {
                 
                 if (!transport || !office) {
                     this.showNotification('Veuillez sélectionner vos préférences', 'warning');
+                    return false;
+                }
+                return true;
+                
+            case 3:
+                if (this.selectedMotivations.length === 0) {
+                    this.showNotification('Veuillez sélectionner au moins une motivation', 'warning');
+                    return false;
+                }
+                return true;
+                
+            case 4:
+                if (!this.step4Data.timing || !this.step4Data.employmentStatus || !this.step4Data.recruitmentStatus) {
+                    this.showNotification('Veuillez répondre à toutes les questions obligatoires de l\'étape 4', 'warning');
                     return false;
                 }
                 return true;
@@ -637,6 +675,203 @@ class NextenQuestionnaire {
         });
     }
 
+    // 🆕 LOGIQUE ÉTAPE 4: Disponibilité & Situation
+    initializeStep4Logic() {
+        console.log('🚀 Initialisation logique étape 4...');
+        
+        this.initializeStep4RadioOptions();
+        this.initializeStep4CheckboxOptions();
+        this.initializeStep4ConditionalLogic();
+        this.initializeStep4SalaryInputs();
+    }
+
+    initializeStep4RadioOptions() {
+        // Gestion des options radio pour chaque question
+        document.querySelectorAll('.step4-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const question = option.dataset.question;
+                const value = option.dataset.value;
+                
+                if (question) {
+                    // Désélectionner toutes les options du même groupe
+                    document.querySelectorAll(`[data-question="${question}"]`).forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // Sélectionner l'option cliquée
+                    option.classList.add('selected');
+                    
+                    // Sauvegarder la valeur
+                    this.step4Data[this.convertQuestionToProperty(question)] = value;
+                    
+                    // Mettre à jour le champ caché
+                    const hiddenField = document.getElementById(`hidden-${question.replace('-', '-')}`);
+                    if (hiddenField) {
+                        hiddenField.value = value;
+                    }
+                    
+                    // Logique conditionnelle
+                    this.handleStep4ConditionalDisplay(question, value);
+                    
+                    console.log(`📝 Question ${question}: ${value}`);
+                }
+            });
+        });
+    }
+
+    initializeStep4CheckboxOptions() {
+        // Gestion des options checkbox pour les raisons multiples
+        document.querySelectorAll('.step4-checkbox-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const value = option.dataset.value;
+                const isListeningReasons = option.closest('#listening-reasons');
+                const isContractEndReasons = option.closest('#contract-end-reasons');
+                
+                // Toggle de la sélection
+                option.classList.toggle('selected');
+                
+                if (isListeningReasons) {
+                    this.updateStep4CheckboxArray('listeningReasons', value, option.classList.contains('selected'));
+                    document.getElementById('hidden-listening-reasons').value = this.step4Data.listeningReasons.join(',');
+                } else if (isContractEndReasons) {
+                    this.updateStep4CheckboxArray('contractEndReasons', value, option.classList.contains('selected'));
+                    document.getElementById('hidden-contract-end-reasons').value = this.step4Data.contractEndReasons.join(',');
+                }
+                
+                console.log(`☑️ Checkbox ${value}:`, option.classList.contains('selected'));
+            });
+        });
+    }
+
+    initializeStep4ConditionalLogic() {
+        // Logique d'affichage/masquage des sections conditionnelles
+        console.log('🔀 Initialisation logique conditionnelle étape 4');
+    }
+
+    initializeStep4SalaryInputs() {
+        // Gestion des champs de salaire actuel
+        const currentSalaryMin = document.getElementById('current-salary-min');
+        const currentSalaryMax = document.getElementById('current-salary-max');
+        
+        if (currentSalaryMin && currentSalaryMax) {
+            [currentSalaryMin, currentSalaryMax].forEach(input => {
+                input.addEventListener('input', () => {
+                    this.step4Data.currentSalaryMin = currentSalaryMin.value;
+                    this.step4Data.currentSalaryMax = currentSalaryMax.value;
+                    
+                    // Mise à jour des champs cachés
+                    document.getElementById('hidden-current-salary-min').value = currentSalaryMin.value;
+                    document.getElementById('hidden-current-salary-max').value = currentSalaryMax.value;
+                    
+                    console.log(`💰 Salaire actuel: ${currentSalaryMin.value}K - ${currentSalaryMax.value}K`);
+                });
+            });
+        }
+    }
+
+    convertQuestionToProperty(question) {
+        const mapping = {
+            'timing': 'timing',
+            'employment-status': 'employmentStatus',
+            'notice-period': 'noticePeriod',
+            'notice-negotiable': 'noticeNegotiable',
+            'recruitment-status': 'recruitmentStatus'
+        };
+        return mapping[question] || question;
+    }
+
+    updateStep4CheckboxArray(property, value, isSelected) {
+        if (isSelected) {
+            if (!this.step4Data[property].includes(value)) {
+                this.step4Data[property].push(value);
+            }
+        } else {
+            this.step4Data[property] = this.step4Data[property].filter(item => item !== value);
+        }
+    }
+
+    handleStep4ConditionalDisplay(question, value) {
+        // Logique d'affichage conditionnel selon les réponses
+        
+        if (question === 'employment-status') {
+            const yesSection = document.getElementById('employment-yes-section');
+            const noSection = document.getElementById('employment-no-section');
+            
+            if (value === 'oui') {
+                yesSection?.classList.add('active');
+                noSection?.classList.remove('active');
+                console.log('✅ Affichage section "En poste"');
+            } else if (value === 'non') {
+                noSection?.classList.add('active');
+                yesSection?.classList.remove('active');
+                console.log('✅ Affichage section "Sans emploi"');
+            }
+        }
+    }
+
+    // Soumission finale du questionnaire
+    submitQuestionnaire() {
+        console.log('🚀 Soumission du questionnaire NEXTEN');
+        
+        // Validation finale
+        if (!this.validateStep(4)) {
+            return;
+        }
+        
+        // Collecter toutes les données
+        const formData = this.collectAllFormData();
+        
+        // Afficher l'écran de chargement
+        this.showLoadingOverlay();
+        
+        // Simuler l'envoi (remplacer par votre API)
+        setTimeout(() => {
+            this.hideLoadingOverlay();
+            this.showNotification('Questionnaire soumis avec succès ! Nous vous recontacterons bientôt.', 'success');
+            console.log('📤 Données envoyées:', formData);
+        }, 2000);
+    }
+
+    collectAllFormData() {
+        const formData = {
+            // Étape 1
+            fullName: document.getElementById('full-name')?.value,
+            jobTitle: document.getElementById('job-title')?.value,
+            
+            // Étape 2
+            transportMethods: Array.from(document.querySelectorAll('input[name="transport-method"]:checked')).map(el => el.value),
+            address: document.getElementById('address')?.value,
+            officePreference: document.querySelector('input[name="office-preference"]:checked')?.value,
+            
+            // Étape 3
+            motivations: this.selectedMotivations,
+            secteurs: this.selectedSecteurs.map(s => s.name),
+            secteursRedhibitoires: this.selectedRedhibitoires.map(s => s.name),
+            salaryMin: document.getElementById('salary-min')?.value,
+            salaryMax: document.getElementById('salary-max')?.value,
+            aspirations: document.getElementById('aspirations')?.value,
+            
+            // Étape 4
+            ...this.step4Data
+        };
+        
+        return formData;
+    }
+
+    showLoadingOverlay() {
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+        }
+    }
+
+    hideLoadingOverlay() {
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+
     // Mode démo
     handleDemoMode() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -668,17 +903,52 @@ class NextenQuestionnaire {
         
         const notification = document.createElement('div');
         notification.className = `nexten-v3-notification ${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${this.getNotificationColor(type)};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-weight: 500;
+            font-size: 14px;
+            max-width: 400px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        `;
         notification.innerHTML = `
-            <i class="fas fa-${this.getNotificationIcon(type)}"></i>
+            <i class="fas fa-${this.getNotificationIcon(type)}" style="margin-right: 8px;"></i>
             <span>${message}</span>
         `;
         
         document.body.appendChild(notification);
         
+        // Animation d'entrée
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Animation de sortie
         setTimeout(() => {
             notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
             setTimeout(() => notification.remove(), 300);
-        }, 3000);
+        }, 4000);
+    }
+
+    getNotificationColor(type) {
+        const colors = {
+            'success': 'linear-gradient(135deg, #10b981, #059669)',
+            'warning': 'linear-gradient(135deg, #f59e0b, #d97706)',
+            'error': 'linear-gradient(135deg, #ef4444, #dc2626)',
+            'info': 'linear-gradient(135deg, #3b82f6, #2563eb)'
+        };
+        return colors[type] || colors.info;
     }
 
     getNotificationIcon(type) {
@@ -694,7 +964,7 @@ class NextenQuestionnaire {
 
 // 🚀 Initialisation globale
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Démarrage NEXTEN V3.0 - Version Corrigée');
+    console.log('🚀 Démarrage NEXTEN V3.0 - Version Complète avec Étape 4');
     
     // Attendre que tous les scripts soient chargés
     setTimeout(() => {
