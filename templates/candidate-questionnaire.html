@@ -28,13 +28,87 @@
     <!-- 🚨 FIX CRITIQUE: Navigation fixée (remplace le script inline en conflit) -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/navigation-fix.js"></script>
     
-    <!-- Chargement automatique de Google Maps API avec clé valide -->
+    <!-- 🗺️ Google Maps API avec autocomplete fonctionnel -->
     <script>
+        // Fonction setupAddressAutocomplete manquante - AJOUTÉE
+        function setupAddressAutocomplete() {
+            console.log('🚀 Initialisation autocomplete Google Maps...');
+            
+            const addressField = document.getElementById('address');
+            if (!addressField) {
+                console.warn('Champ adresse non trouvé');
+                return;
+            }
+
+            try {
+                // Créer l'autocomplete
+                const autocomplete = new google.maps.places.Autocomplete(addressField, {
+                    types: ['address'],
+                    componentRestrictions: { country: 'fr' },
+                    fields: ['formatted_address', 'geometry', 'place_id', 'address_components']
+                });
+
+                // Stocker la référence pour tests
+                addressField._autocomplete = autocomplete;
+
+                // Gérer la sélection d'une adresse
+                autocomplete.addListener('place_changed', function() {
+                    const place = autocomplete.getPlace();
+                    console.log('📍 Adresse sélectionnée:', place);
+
+                    if (place.geometry) {
+                        // Mettre à jour les champs cachés
+                        const latField = document.getElementById('address-lat');
+                        const lngField = document.getElementById('address-lng');
+                        const placeIdField = document.getElementById('address-place-id');
+
+                        if (latField) latField.value = place.geometry.location.lat();
+                        if (lngField) lngField.value = place.geometry.location.lng();
+                        if (placeIdField) placeIdField.value = place.place_id;
+
+                        // Ajouter classe de validation
+                        addressField.classList.add('address-validated');
+                        
+                        // Notification de succès
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Adresse validée avec succès', 'success');
+                        }
+
+                        console.log('✅ Coordonnées sauvegardées:', {
+                            lat: place.geometry.location.lat(),
+                            lng: place.geometry.location.lng(),
+                            placeId: place.place_id
+                        });
+                    }
+                });
+
+                // Gérer le focus
+                addressField.addEventListener('focus', function() {
+                    this.classList.add('focused');
+                });
+
+                addressField.addEventListener('blur', function() {
+                    this.classList.remove('focused');
+                });
+
+                console.log('✅ Autocomplete Google Maps configuré avec succès');
+
+            } catch (error) {
+                console.error('❌ Erreur configuration autocomplete:', error);
+            }
+        }
+
         function initGoogleMaps() {
             console.log('🗺️ Google Maps API initialisée');
-            if (typeof window.setupAddressAutocomplete === 'function') {
-                window.setupAddressAutocomplete();
-            }
+            
+            // Délai pour s'assurer que le DOM est prêt
+            setTimeout(() => {
+                if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+                    setupAddressAutocomplete();
+                } else {
+                    console.error('❌ Google Maps Places API non disponible');
+                }
+            }, 100);
         }
         
         // Chargement automatique Google Maps
@@ -535,8 +609,6 @@
     <!-- Scripts JavaScript additionnels -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/candidate-analyzer.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-contract-system.js"></script>
-    
-    <!-- 🟢 SCRIPT INLINE SUPPRIMÉ - Remplacé par navigation-fix.js pour éviter les conflits -->
     
 </body>
 </html>
