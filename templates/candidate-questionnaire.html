@@ -2218,91 +2218,13 @@
                                                 <div class="step4-checkbox">
                                                     <i class="fas fa-check"></i>
                                                 </div>
-                                                <div class="step4-checkbox-text">Problème en interne (organisation, management)</div>
+                                                <div class="step4-checkbox-text">Problèmes d'organisation interne</div>
                                             </div>
-                                            <div class="step4-checkbox-option" data-value="confidential">
+                                            <div class="step4-checkbox-option" data-value="autre">
                                                 <div class="step4-checkbox">
                                                     <i class="fas fa-check"></i>
                                                 </div>
-                                                <div class="step4-checkbox-text">Je ne souhaite pas communiquer</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="mismatch">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Le poste ne coïncide pas avec le poste proposé initialement</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="epanouissement">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Je ne m'épanouis plus, je souhaite découvrir de nouvelles choses</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="pse">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">PSE</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Préavis -->
-                                    <div class="step4-input-group">
-                                        <label class="step4-input-label">
-                                            De combien de temps est votre préavis ?
-                                        </label>
-                                        <div class="step4-options" id="notice-period-options">
-                                            <div class="step4-option" data-value="aucun" data-question="notice-period">
-                                                <div class="step4-option-content">
-                                                    <div class="step4-option-radio"></div>
-                                                    <div class="step4-option-text">Je n'en ai pas, encore en période d'essai</div>
-                                                </div>
-                                            </div>
-                                            <div class="step4-option" data-value="1mois" data-question="notice-period">
-                                                <div class="step4-option-content">
-                                                    <div class="step4-option-radio"></div>
-                                                    <div class="step4-option-text">1 mois</div>
-                                                </div>
-                                            </div>
-                                            <div class="step4-option" data-value="2mois" data-question="notice-period">
-                                                <div class="step4-option-content">
-                                                    <div class="step4-option-radio"></div>
-                                                    <div class="step4-option-text">2 mois</div>
-                                                </div>
-                                            </div>
-                                            <div class="step4-option" data-value="3mois" data-question="notice-period">
-                                                <div class="step4-option-content">
-                                                    <div class="step4-option-radio"></div>
-                                                    <div class="step4-option-text">3 mois</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Préavis négociable -->
-                                    <div class="step4-input-group">
-                                        <label class="step4-input-label">
-                                            Est-il négociable ?
-                                        </label>
-                                        <div class="step4-options" id="notice-negotiable-options">
-                                            <div class="step4-option" data-value="oui" data-question="notice-negotiable">
-                                                <div class="step4-option-content">
-                                                    <div class="step4-option-radio"></div>
-                                                    <div class="step4-option-text">OUI</div>
-                                                </div>
-                                            </div>
-                                            <div class="step4-option" data-value="non" data-question="notice-negotiable">
-                                                <div class="step4-option-content">
-                                                    <div class="step4-option-radio"></div>
-                                                    <div class="step4-option-text">NON</div>
-                                                </div>
-                                            </div>
-                                            <div class="step4-option" data-value="ne-sais-pas" data-question="notice-negotiable">
-                                                <div class="step4-option-content">
-                                                    <div class="step4-option-radio"></div>
-                                                    <div class="step4-option-text">Je ne sais pas</div>
-                                                </div>
+                                                <div class="step4-checkbox-text">Autre raison</div>
                                             </div>
                                         </div>
                                     </div>
@@ -2312,68 +2234,38 @@
                                 <div class="conditional-section" id="employment-no-section">
                                     <div class="conditional-section-title">
                                         <i class="fas fa-arrow-right"></i>
-                                        Question pour les personnes sans emploi actuel
+                                        Questions complémentaires pour les personnes sans emploi
                                     </div>
                                     
-                                    <!-- Pourquoi dernier contrat s'est arrêté -->
+                                    <!-- Depuis quand sans emploi -->
                                     <div class="step4-input-group">
                                         <label class="step4-input-label">
-                                            Pourquoi votre dernier contrat s'est-il arrêté ? (plusieurs choix possibles)
+                                            Depuis combien de temps êtes-vous sans emploi ?
                                         </label>
-                                        <div class="step4-checkbox-group" id="contract-end-reasons">
-                                            <div class="step4-checkbox-option" data-value="evolution">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
+                                        <div class="step4-options" id="unemployment-duration-options">
+                                            <div class="step4-option" data-value="moins1mois" data-question="unemployment-duration">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">Moins d'1 mois</div>
                                                 </div>
-                                                <div class="step4-checkbox-text">Manque de perspectives d'évolution</div>
                                             </div>
-                                            <div class="step4-checkbox-option" data-value="remuneration">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
+                                            <div class="step4-option" data-value="1a3mois" data-question="unemployment-duration">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">1 à 3 mois</div>
                                                 </div>
-                                                <div class="step4-checkbox-text">Rémunération trop faible</div>
                                             </div>
-                                            <div class="step4-checkbox-option" data-value="distance">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
+                                            <div class="step4-option" data-value="3a6mois" data-question="unemployment-duration">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">3 à 6 mois</div>
                                                 </div>
-                                                <div class="step4-checkbox-text">Poste trop loin de mon domicile</div>
                                             </div>
-                                            <div class="step4-checkbox-option" data-value="flexibilite">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
+                                            <div class="step4-option" data-value="plus6mois" data-question="unemployment-duration">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">Plus de 6 mois</div>
                                                 </div>
-                                                <div class="step4-checkbox-text">Manque de flexibilité (pas de TT, RTT)</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="organisation">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Problème en interne (organisation, management)</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="confidential">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Je ne souhaite pas communiquer</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="mismatch">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Le poste ne coïncide pas avec le poste proposé initialement</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="epanouissement">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Je ne m'épanouis plus, je souhaite découvrir de nouvelles choses</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="pse">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">PSE</div>
                                             </div>
                                         </div>
                                     </div>
@@ -2381,133 +2273,66 @@
                             </div>
                         </div>
 
-                        <!-- Question 3: Où en êtes-vous dans vos process de recrutement ? -->
-                        <div class="step4-container">
-                            <div class="step4-question">
-                                <h3 class="step4-question-title">
-                                    <i class="fas fa-tasks"></i>
-                                    3) Où en êtes-vous dans vos process de recrutement ?
-                                </h3>
-                                
-                                <div class="step4-options" id="recruitment-status-options">
-                                    <div class="step4-option" data-value="aucune-piste" data-question="recruitment-status">
-                                        <div class="step4-option-content">
-                                            <div class="step4-option-radio"></div>
-                                            <div class="step4-option-text">Je n'ai pas encore de piste</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="step4-option" data-value="entretiens" data-question="recruitment-status">
-                                        <div class="step4-option-content">
-                                            <div class="step4-option-radio"></div>
-                                            <div class="step4-option-text">J'avance sur différents entretiens</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="step4-option" data-value="processus-final" data-question="recruitment-status">
-                                        <div class="step4-option-content">
-                                            <div class="step4-option-radio"></div>
-                                            <div class="step4-option-text">Je suis en processus final</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="step4-option" data-value="propositions" data-question="recruitment-status">
-                                        <div class="step4-option-content">
-                                            <div class="step4-option-radio"></div>
-                                            <div class="step4-option-text">On m'a fait des propositions</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Boutons d'Action -->
+                        <!-- Boutons d'Action finaux avec redirection -->
                         <div class="modern-form-actions">
                             <button type="button" class="modern-btn btn-secondary" id="back-step3">
                                 <i class="fas fa-arrow-left"></i>
                                 <span>Retour</span>
                             </button>
-                            <button type="button" class="modern-btn btn-primary" id="submit-btn">
-                                <i class="fas fa-paper-plane"></i>
+                            <button type="button" class="modern-btn btn-primary" id="finalize-profile">
                                 <span>Finaliser mon profil</span>
+                                <i class="fas fa-check"></i>
                             </button>
                         </div>
 
                         <!-- Champs cachés pour intégration -->
                         <input type="hidden" id="hidden-timing" name="timing">
                         <input type="hidden" id="hidden-employment-status" name="employment-status">
-                        <input type="hidden" id="hidden-current-salary-min" name="current-salary-min-hidden">
-                        <input type="hidden" id="hidden-current-salary-max" name="current-salary-max-hidden">
+                        <input type="hidden" id="hidden-current-salary-range" name="current-salary-range">
                         <input type="hidden" id="hidden-listening-reasons" name="listening-reasons">
-                        <input type="hidden" id="hidden-notice-period" name="notice-period">
-                        <input type="hidden" id="hidden-notice-negotiable" name="notice-negotiable">
-                        <input type="hidden" id="hidden-contract-end-reasons" name="contract-end-reasons">
-                        <input type="hidden" id="hidden-recruitment-status" name="recruitment-status">
+                        <input type="hidden" id="hidden-unemployment-duration" name="unemployment-duration">
                     </div>
                 </form>
             </div>
         </div>
     </section>
-    
-    <!-- Notification -->
-    <div class="notification" id="notification">
-        <i class="fas fa-check-circle"></i>
-        <div class="notification-message">Message de notification</div>
-        <div class="notification-close"><i class="fas fa-times"></i></div>
-    </div>
 
-    <!-- Écran de chargement -->
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Traitement de votre candidature...</div>
-    </div>
-
-    <!-- Bouton Test CV API (mode debug) -->
-    <button id="test-cv-api" style="position: fixed; bottom: 20px; left: 20px; background: #10B981; color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; z-index: 1000;">
-        Test CV API
-    </button>
-
-    <footer id="contact">
+    <!-- Footer placeholders -->
+    <footer>
         <div class="container">
             <div class="footer-content">
-                <div>
-                    <h4 class="footer-heading">Nexten</h4>
-                    <p class="footer-description">Agence de recrutement spécialisée dans les métiers du digital.</p>
-                    <div class="footer-social">
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    </div>
+                <div class="footer-section">
+                    <h4>NEXTEN</h4>
+                    <p>Agence de recrutement spécialisée dans les métiers du digital.</p>
                 </div>
                 
-                <div>
-                    <h4 class="footer-heading">Navigation</h4>
-                    <ul class="footer-links">
-                        <li><a href="#accueil">Accueil</a></li>
-                        <li><a href="#services">Services</a></li>
-                        <li><a href="#about">À propos</a></li>
-                        <li><a href="#contact">Contact</a></li>
+                <div class="footer-section">
+                    <h4>NAVIGATION</h4>
+                    <ul>
+                        <li><a href="https://bapt252.github.io/Commitment-/templates/index.html">Accueil</a></li>
+                        <li><a href="https://bapt252.github.io/Commitment-/#services">Services</a></li>
+                        <li><a href="https://bapt252.github.io/Commitment-/#about">À propos</a></li>
+                        <li><a href="https://bapt252.github.io/Commitment-/contact.html">Contact</a></li>
                     </ul>
                 </div>
                 
-                <div>
-                    <h4 class="footer-heading">Services</h4>
-                    <ul class="footer-links">
+                <div class="footer-section">
+                    <h4>SERVICES</h4>
+                    <ul>
                         <li><a href="#recrutement">Recrutement</a></li>
-                        <li><a href="#conseil">Conseil RH</a></li>
+                        <li><a href="#conseil-rh">Conseil RH</a></li>
                         <li><a href="#formation">Formation</a></li>
                         <li><a href="#accompagnement">Accompagnement</a></li>
                     </ul>
                 </div>
                 
-                <div>
-                    <h4 class="footer-heading">Contact</h4>
-                    <div class="footer-contact">
-                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
-                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
-                        <p><i class="fas fa-map-marker-alt"></i> Paris, France</p>
-                    </div>
+                <div class="footer-section">
+                    <h4>CONTACT</h4>
+                    <ul>
+                        <li><a href="mailto:contact@nexten.fr"><i class="fas fa-envelope"></i> contact@nexten.fr</a></li>
+                        <li><a href="tel:+33123456789"><i class="fas fa-phone"></i> +33 1 23 45 67 89</a></li>
+                        <li><i class="fas fa-map-marker-alt"></i> Paris, France</li>
+                    </ul>
                 </div>
             </div>
             
@@ -2516,5 +2341,129 @@
             </div>
         </div>
     </footer>
+
+    <!-- Test CV API Tool -->
+    <button class="cv-test-indicator" id="test-cv-api">
+        <i class="fas fa-flask"></i> Test CV API
+    </button>
+
+    <!-- Script de redirection vers la page de recommandation -->
+    <script>
+        // Fonction pour rediriger vers la page de recommandation de postes
+        function redirectToRecommendation() {
+            console.log('🚀 Redirection vers la page de recommandation...');
+            
+            // Sauvegarder les données du questionnaire si nécessaire
+            const formData = new FormData(document.getElementById('questionnaire-form'));
+            const userData = {};
+            
+            // Collecter toutes les données du formulaire
+            for (let [key, value] of formData.entries()) {
+                userData[key] = value;
+            }
+            
+            // Sauvegarder dans localStorage pour la page de recommandation
+            try {
+                localStorage.setItem('candidateData', JSON.stringify(userData));
+                console.log('✅ Données candidat sauvegardées');
+            } catch (error) {
+                console.warn('⚠️ Erreur sauvegarde données:', error);
+            }
+            
+            // Redirection vers la page de recommandation
+            window.location.href = 'candidate-matching-improved.html';
+        }
+
+        // Attendre que le DOM soit chargé
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Initialisation du système de redirection...');
+            
+            // Fonction pour attacher l'événement de redirection au bouton final
+            function attachFinalRedirect() {
+                // Chercher tous les boutons qui pourraient être le bouton final
+                const potentialButtons = [
+                    // Boutons avec du texte contenant "finaliser"
+                    ...Array.from(document.querySelectorAll('button')).filter(btn => 
+                        btn.textContent && btn.textContent.toLowerCase().includes('finaliser')
+                    ),
+                    // Boutons avec ID contenant "final" ou "submit"
+                    ...Array.from(document.querySelectorAll('button[id*="final"], button[id*="submit"]')),
+                    // Boutons dans l'étape 4
+                    ...Array.from(document.querySelectorAll('#form-step4 button')),
+                    // Boutons avec classes spécifiques
+                    ...Array.from(document.querySelectorAll('.btn-final, .btn-submit, .submit-button'))
+                ];
+                
+                // Supprimer les doublons
+                const uniqueButtons = [...new Set(potentialButtons)];
+                
+                console.log(`🔍 Boutons candidats trouvés: ${uniqueButtons.length}`);
+                
+                uniqueButtons.forEach((button, index) => {
+                    console.log(`Bouton ${index + 1}: "${button.textContent.trim()}" (ID: ${button.id}, Classes: ${button.className})`);
+                    
+                    // Si c'est un bouton de finalisation, attacher la redirection
+                    if (button.textContent && 
+                        (button.textContent.toLowerCase().includes('finaliser') || 
+                         button.textContent.toLowerCase().includes('terminer') ||
+                         button.textContent.toLowerCase().includes('valider'))) {
+                        
+                        // Supprimer les anciens événements
+                        button.removeEventListener('click', button._originalHandler);
+                        
+                        // Créer le nouveau gestionnaire
+                        const newHandler = function(event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            
+                            console.log('🎯 Bouton de finalisation cliqué!');
+                            
+                            // Ajouter un effet visuel
+                            button.disabled = true;
+                            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirection...';
+                            
+                            // Petite pause pour l'effet visuel, puis redirection
+                            setTimeout(redirectToRecommendation, 1000);
+                        };
+                        
+                        // Attacher le nouveau gestionnaire
+                        button.addEventListener('click', newHandler);
+                        button._newHandler = newHandler;
+                        
+                        console.log(`✅ Redirection attachée au bouton: "${button.textContent.trim()}"`);
+                    }
+                });
+            }
+            
+            // Attacher immédiatement
+            attachFinalRedirect();
+            
+            // Réattacher périodiquement au cas où des boutons seraient ajoutés dynamiquement
+            setInterval(attachFinalRedirect, 2000);
+            
+            // Observer les changements dans l'étape 4
+            const step4 = document.getElementById('form-step4');
+            if (step4) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                            // De nouveaux éléments ont été ajoutés, réattacher les événements
+                            setTimeout(attachFinalRedirect, 100);
+                        }
+                    });
+                });
+                
+                observer.observe(step4, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+            
+            console.log('✅ Système de redirection initialisé');
+        });
+
+        // Fonction utilitaire pour forcer la redirection (peut être appelée manuellement)
+        window.forceRedirectToRecommendation = redirectToRecommendation;
+    </script>
 </body>
 </html>
