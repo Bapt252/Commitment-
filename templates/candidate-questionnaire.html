@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexten - Questionnaire Candidat</title>
     
-    <!-- CSS ---->
+    <!-- CSS ----->
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-modern-interactive.css">
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/candidate-analyzer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -202,6 +202,96 @@
             border-color: #7c3aed !important;
             box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1) !important;
         }
+
+        /* ✨ NOUVEAU: Styles pour les champs de temps de trajet dynamiques */
+        .travel-time-container {
+            margin-top: 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(-10px);
+            max-height: 0;
+            overflow: hidden;
+        }
+        
+        .travel-time-container.active {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 200px;
+        }
+        
+        .travel-time-field {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        
+        .travel-time-field:hover {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .travel-time-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .travel-time-label {
+            flex: 1;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .travel-time-input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .travel-time-input:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .travel-time-unit {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .travel-time-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        .travel-time-header i {
+            color: #7c3aed;
+        }
     </style>
     
     <!-- Styles du système NEXTEN V2.0 -->
@@ -317,25 +407,73 @@
                             <label class="form-label required">3) Comment vous déplacez-vous ? (plusieurs choix possibles)</label>
                             <div class="checkbox-group">
                                 <label class="checkbox-option">
-                                    <input type="checkbox" name="transport-method" value="public-transport">
+                                    <input type="checkbox" name="transport-method" value="public-transport" data-transport="public-transport">
                                     <span class="checkbox-checkmark"></span>
                                     Transports en commun
                                 </label>
                                 <label class="checkbox-option">
-                                    <input type="checkbox" name="transport-method" value="vehicle">
+                                    <input type="checkbox" name="transport-method" value="vehicle" data-transport="vehicle">
                                     <span class="checkbox-checkmark"></span>
                                     Véhicule personnel
                                 </label>
                                 <label class="checkbox-option">
-                                    <input type="checkbox" name="transport-method" value="bike">
+                                    <input type="checkbox" name="transport-method" value="bike" data-transport="bike">
                                     <span class="checkbox-checkmark"></span>
                                     Vélo
                                 </label>
                                 <label class="checkbox-option">
-                                    <input type="checkbox" name="transport-method" value="walking">
+                                    <input type="checkbox" name="transport-method" value="walking" data-transport="walking">
                                     <span class="checkbox-checkmark"></span>
                                     À pied
                                 </label>
+                            </div>
+                            
+                            <!-- ✨ NOUVEAU: Conteneur pour les champs de temps de trajet -->
+                            <div class="travel-time-container" id="travel-time-container">
+                                <div class="travel-time-header">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Temps de trajet acceptables</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-public-transport" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-bus"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet en transports en commun :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-public-transport" 
+                                           min="5" max="180" step="5" placeholder="30">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-vehicle" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet en véhicule personnel :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-vehicle" 
+                                           min="5" max="120" step="5" placeholder="25">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-bike" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-bicycle"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet à vélo :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-bike" 
+                                           min="5" max="90" step="5" placeholder="20">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-walking" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-walking"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet à pied :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-walking" 
+                                           min="5" max="60" step="5" placeholder="15">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
                             </div>
                         </div>
                         
@@ -1035,6 +1173,346 @@
     <!-- Scripts JavaScript additionnels -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/candidate-analyzer.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-contract-system.js"></script>
+    
+    <!-- ✨ NOUVEAU: Script pour la gestion des temps de trajet dans l'étape 2 -->
+    <script>
+        /**
+         * NEXTEN V3.0 - Gestion des temps de trajet dans l'étape 2
+         * Affichage dynamique des champs de saisie selon les moyens de transport sélectionnés
+         */
+        class TravelTimeManager {
+            constructor() {
+                this.transportMethods = {
+                    'public-transport': { 
+                        icon: 'fas fa-bus', 
+                        label: 'Temps de trajet en transports en commun',
+                        placeholder: '30',
+                        max: 180
+                    },
+                    'vehicle': { 
+                        icon: 'fas fa-car', 
+                        label: 'Temps de trajet en véhicule personnel',
+                        placeholder: '25',
+                        max: 120
+                    },
+                    'bike': { 
+                        icon: 'fas fa-bicycle', 
+                        label: 'Temps de trajet à vélo',
+                        placeholder: '20',
+                        max: 90
+                    },
+                    'walking': { 
+                        icon: 'fas fa-walking', 
+                        label: 'Temps de trajet à pied',
+                        placeholder: '15',
+                        max: 60
+                    }
+                };
+                this.selectedTransports = new Set();
+                this.init();
+            }
+
+            init() {
+                console.log('🚚 Initialisation TravelTimeManager NEXTEN V3.0');
+                this.setupEventListeners();
+                this.loadSavedData();
+            }
+
+            setupEventListeners() {
+                const transportCheckboxes = document.querySelectorAll('input[name="transport-method"]');
+                
+                transportCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', (e) => {
+                        this.handleTransportChange(e.target);
+                    });
+                });
+
+                // Gestion de la saisie des temps de trajet
+                document.addEventListener('input', (e) => {
+                    if (e.target.classList.contains('travel-time-input')) {
+                        this.handleTimeInput(e.target);
+                    }
+                });
+            }
+
+            handleTransportChange(checkbox) {
+                const transportType = checkbox.value;
+                const isChecked = checkbox.checked;
+                
+                if (isChecked) {
+                    this.selectedTransports.add(transportType);
+                    this.showTravelTimeField(transportType);
+                } else {
+                    this.selectedTransports.delete(transportType);
+                    this.hideTravelTimeField(transportType);
+                }
+                
+                this.updateContainerVisibility();
+                this.saveFormData();
+                
+                console.log('🚲 Transports sélectionnés:', Array.from(this.selectedTransports));
+            }
+
+            showTravelTimeField(transportType) {
+                const field = document.getElementById(`travel-time-${transportType}`);
+                if (field) {
+                    field.style.display = 'flex';
+                    
+                    // Animation d'apparition
+                    setTimeout(() => {
+                        field.style.opacity = '1';
+                        field.style.transform = 'translateX(0)';
+                    }, 10);
+                    
+                    // Focus sur le champ de saisie
+                    const input = field.querySelector('.travel-time-input');
+                    if (input && !input.value) {
+                        setTimeout(() => {
+                            input.focus();
+                        }, 300);
+                    }
+                }
+            }
+
+            hideTravelTimeField(transportType) {
+                const field = document.getElementById(`travel-time-${transportType}`);
+                if (field) {
+                    field.style.opacity = '0';
+                    field.style.transform = 'translateX(-20px)';
+                    
+                    setTimeout(() => {
+                        field.style.display = 'none';
+                        
+                        // Vider la valeur du champ
+                        const input = field.querySelector('.travel-time-input');
+                        if (input) {
+                            input.value = '';
+                        }
+                    }, 200);
+                }
+            }
+
+            updateContainerVisibility() {
+                const container = document.getElementById('travel-time-container');
+                if (!container) return;
+
+                if (this.selectedTransports.size > 0) {
+                    container.classList.add('active');
+                } else {
+                    container.classList.remove('active');
+                }
+            }
+
+            handleTimeInput(input) {
+                const value = parseInt(input.value);
+                const max = parseInt(input.max);
+                
+                // Validation de la valeur
+                if (value > max) {
+                    input.value = max;
+                    this.showTimeValidationMessage(input, `Maximum ${max} minutes`);
+                } else if (value < 5) {
+                    input.value = 5;
+                    this.showTimeValidationMessage(input, 'Minimum 5 minutes');
+                }
+                
+                // Animation de validation
+                this.animateTimeInput(input);
+                
+                // Sauvegarde
+                this.saveFormData();
+            }
+
+            showTimeValidationMessage(input, message) {
+                // Créer un tooltip temporaire
+                const tooltip = document.createElement('div');
+                tooltip.className = 'travel-time-tooltip';
+                tooltip.textContent = message;
+                tooltip.style.cssText = `
+                    position: absolute;
+                    top: -35px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #dc2626;
+                    color: white;
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    white-space: nowrap;
+                    z-index: 1000;
+                    animation: fadeInOut 2s ease-in-out;
+                `;
+                
+                input.parentElement.style.position = 'relative';
+                input.parentElement.appendChild(tooltip);
+                
+                setTimeout(() => {
+                    tooltip.remove();
+                }, 2000);
+            }
+
+            animateTimeInput(input) {
+                input.style.transform = 'scale(1.05)';
+                input.style.borderColor = '#10b981';
+                
+                setTimeout(() => {
+                    input.style.transform = 'scale(1)';
+                    input.style.borderColor = '#d1d5db';
+                }, 150);
+            }
+
+            saveFormData() {
+                try {
+                    const formData = this.getFormData();
+                    localStorage.setItem('nexten_travel_times_v3', JSON.stringify(formData));
+                    console.log('💾 Temps de trajet sauvegardés:', formData);
+                } catch (error) {
+                    console.error('❌ Erreur sauvegarde temps de trajet:', error);
+                }
+            }
+
+            loadSavedData() {
+                try {
+                    const saved = localStorage.getItem('nexten_travel_times_v3');
+                    if (saved) {
+                        const savedData = JSON.parse(saved);
+                        console.log('📂 Restauration des temps de trajet:', savedData);
+                        
+                        // Restaurer les sélections de transport
+                        if (savedData.selectedTransports) {
+                            savedData.selectedTransports.forEach(transport => {
+                                const checkbox = document.querySelector(`input[value="${transport}"]`);
+                                if (checkbox) {
+                                    checkbox.checked = true;
+                                    this.selectedTransports.add(transport);
+                                    this.showTravelTimeField(transport);
+                                }
+                            });
+                        }
+                        
+                        // Restaurer les valeurs de temps
+                        if (savedData.travelTimes) {
+                            Object.entries(savedData.travelTimes).forEach(([transport, time]) => {
+                                const input = document.querySelector(`input[name="travel-time-${transport}"]`);
+                                if (input && time) {
+                                    input.value = time;
+                                }
+                            });
+                        }
+                        
+                        this.updateContainerVisibility();
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur restauration temps de trajet:', error);
+                }
+            }
+
+            getFormData() {
+                const travelTimes = {};
+                
+                this.selectedTransports.forEach(transport => {
+                    const input = document.querySelector(`input[name="travel-time-${transport}"]`);
+                    if (input && input.value) {
+                        travelTimes[transport] = parseInt(input.value);
+                    }
+                });
+                
+                return {
+                    selectedTransports: Array.from(this.selectedTransports),
+                    travelTimes: travelTimes,
+                    lastSaved: new Date().toISOString()
+                };
+            }
+
+            // Méthode pour exposer les données aux autres scripts
+            getTravelTimeData() {
+                return this.getFormData();
+            }
+
+            // Méthode pour valider l'étape 2
+            validateStep2() {
+                let isValid = true;
+                const errors = [];
+                
+                // Vérifier qu'au moins un moyen de transport est sélectionné
+                if (this.selectedTransports.size === 0) {
+                    errors.push('Veuillez sélectionner au moins un moyen de transport');
+                    isValid = false;
+                }
+                
+                // Vérifier que tous les transports sélectionnés ont un temps de trajet
+                this.selectedTransports.forEach(transport => {
+                    const input = document.querySelector(`input[name="travel-time-${transport}"]`);
+                    if (!input || !input.value || parseInt(input.value) < 5) {
+                        errors.push(`Veuillez indiquer un temps de trajet valide pour ${this.transportMethods[transport]?.label || transport}`);
+                        isValid = false;
+                    }
+                });
+                
+                if (!isValid) {
+                    console.warn('⚠️ Validation échouée pour l\'étape 2:', errors);
+                }
+                
+                return { isValid, errors };
+            }
+
+            // Reset complet
+            reset() {
+                this.selectedTransports.clear();
+                
+                // Décocher toutes les checkboxes
+                document.querySelectorAll('input[name="transport-method"]').forEach(cb => {
+                    cb.checked = false;
+                });
+                
+                // Masquer tous les champs de temps
+                Object.keys(this.transportMethods).forEach(transport => {
+                    this.hideTravelTimeField(transport);
+                });
+                
+                this.updateContainerVisibility();
+                localStorage.removeItem('nexten_travel_times_v3');
+                
+                console.log('🔄 Reset des temps de trajet effectué');
+            }
+        }
+
+        // CSS pour les animations supplémentaires
+        const travelTimeStyles = `
+            @keyframes fadeInOut {
+                0%, 100% { opacity: 0; transform: translateX(-50%) translateY(5px); }
+                20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+            
+            .travel-time-field {
+                opacity: 0;
+                transform: translateX(-20px);
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+        `;
+        
+        // Injecter les styles
+        const travelTimeStyleEl = document.createElement('style');
+        travelTimeStyleEl.textContent = travelTimeStyles;
+        document.head.appendChild(travelTimeStyleEl);
+
+        // Initialiser le gestionnaire de temps de trajet quand le DOM est prêt
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                window.travelTimeManager = new TravelTimeManager();
+                
+                // Exposer pour debugging
+                window.TravelTimeManager = TravelTimeManager;
+                
+                console.log('✅ TravelTimeManager NEXTEN V3.0 initialisé');
+                console.log('🛠️ Commandes debug disponibles:');
+                console.log('   - travelTimeManager.getTravelTimeData() - Voir les données');
+                console.log('   - travelTimeManager.validateStep2() - Valider l\'étape');
+                console.log('   - travelTimeManager.reset() - Reset complet');
+            }, 500);
+        });
+    </script>
     
 </body>
 </html>
