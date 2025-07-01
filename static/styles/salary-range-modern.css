@@ -1,0 +1,352 @@
+/* ✨ NEXTEN V3.0 - STYLES FOURCHETTE SALARIALE MODERNE */
+
+.salary-range-container {
+    background: var(--surface-secondary);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-lg) 0;
+    border: 2px solid var(--border-color);
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.salary-range-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--nexten-gradient);
+    opacity: 0;
+    transition: var(--transition-base);
+}
+
+.salary-range-container:hover {
+    border-color: var(--nexten-primary-light);
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+}
+
+.salary-range-container:hover::before {
+    opacity: 1;
+}
+
+.salary-range-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+    gap: var(--spacing-base);
+}
+
+.salary-range-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.salary-range-title i {
+    color: var(--nexten-primary);
+    font-size: 1.1rem;
+}
+
+.salary-display {
+    background: var(--nexten-gradient);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-base);
+    border-radius: var(--radius-base);
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    box-shadow: var(--shadow-base);
+}
+
+.salary-inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: var(--spacing-lg);
+    align-items: end;
+    margin-bottom: var(--spacing-lg);
+}
+
+.salary-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.salary-input-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.salary-input-label i {
+    color: var(--nexten-primary);
+    font-size: 0.8rem;
+}
+
+.salary-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.salary-input {
+    width: 100%;
+    padding: var(--spacing-sm) 40px var(--spacing-sm) var(--spacing-sm);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-base);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--surface-primary);
+    transition: var(--transition-base);
+    text-align: center;
+}
+
+.salary-input:focus {
+    outline: none;
+    border-color: var(--nexten-primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    transform: scale(1.02);
+}
+
+.salary-input:valid {
+    border-color: #10b981;
+}
+
+.salary-input:invalid {
+    border-color: #ef4444;
+}
+
+.salary-unit {
+    position: absolute;
+    right: var(--spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+.salary-hint {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin-top: var(--spacing-xs);
+    text-align: center;
+}
+
+.salary-separator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin: 0 var(--spacing-sm);
+}
+
+.separator-line {
+    width: 2px;
+    height: 20px;
+    background: linear-gradient(to bottom, transparent, var(--nexten-primary), transparent);
+}
+
+.separator-text {
+    background: var(--nexten-gradient);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.salary-preview {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: var(--radius-base);
+    padding: var(--spacing-base);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-base);
+    transition: var(--transition-base);
+}
+
+.preview-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-base);
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.preview-text {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.preview-text strong {
+    color: var(--nexten-accent);
+}
+
+#preview-range {
+    color: var(--nexten-primary);
+    font-weight: 600;
+}
+
+.salary-validation {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-base);
+    padding: var(--spacing-sm);
+    color: #dc2626;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-base);
+    animation: shake 0.3s ease-in-out;
+}
+
+.salary-validation i {
+    color: #ef4444;
+}
+
+.salary-quick-options {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
+}
+
+.quick-options-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-base);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.quick-options-header i {
+    color: var(--nexten-primary);
+}
+
+.quick-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--spacing-sm);
+}
+
+.quick-option {
+    background: var(--surface-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-base);
+    padding: var(--spacing-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition-base);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.quick-option small {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.quick-option:hover {
+    border-color: var(--nexten-primary);
+    background: rgba(124, 58, 237, 0.05);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-base);
+}
+
+.quick-option:active {
+    transform: translateY(0);
+    background: rgba(124, 58, 237, 0.1);
+}
+
+/* === ANIMATIONS === */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.salary-input.error {
+    border-color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.05) !important;
+    animation: shake 0.3s ease-in-out;
+}
+
+.salary-input.valid {
+    border-color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.05) !important;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .salary-inputs-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-base);
+    }
+    
+    .salary-separator {
+        flex-direction: row;
+        justify-content: center;
+        order: 2;
+    }
+    
+    .salary-separator .separator-line {
+        width: 30px;
+        height: 2px;
+    }
+    
+    .salary-range-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .quick-options-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .salary-range-container {
+        padding: var(--spacing-base);
+    }
+    
+    .quick-options-grid {
+        grid-template-columns: 1fr;
+    }
+}
