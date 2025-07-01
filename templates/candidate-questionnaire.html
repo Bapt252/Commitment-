@@ -28,9 +28,6 @@
     <!-- Outil de test pour l'intégration CV (mode développement) -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/cv-api-tester.js"></script>
     
-    <!-- 🚨 FIX CRITIQUE: Navigation fixée (remplace le script inline en conflit) -->
-    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/navigation-fix.js"></script>
-    
     <!-- ✨ NOUVEAU: Script pour étapes 3 & 4 -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-steps34.js"></script>
     
@@ -537,6 +534,26 @@
         @keyframes fadeInUp {
             0% { opacity: 0; transform: translateY(10px); }
             100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 🔧 FIX: Styles pour éviter les conflits d'événements */
+        .travel-time-field {
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .travel-time-input {
+            transition: all 0.2s ease;
+        }
+        
+        .travel-time-input:focus {
+            transform: scale(1.02);
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateX(-50%) translateY(5px); }
+            20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
     </style>
     
@@ -1455,71 +1472,261 @@
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/candidate-analyzer.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-contract-system.js"></script>
     
-    <!-- ✨ NOUVEAU: Script OPTIMISÉ pour la gestion des temps de trajet dans l'étape 2 -->
+    <!-- 🔧 NOUVEAU: Script de navigation SÉCURISÉ pour éviter les boucles infinies -->
     <script>
         /**
-         * NEXTEN V3.0 - Gestion optimisée des temps de trajet dans l'étape 2
-         * FIX: Résolution des problèmes de saisie clavier et validation
+         * 🚀 NEXTEN V3.0 - Système de navigation sécurisé (FIX BOUCLE INFINIE)
+         * Gestion robuste de la navigation entre étapes sans conflits JavaScript
          */
-        class TravelTimeManagerOptimized {
+        class NextenNavigation {
             constructor() {
-                this.transportMethods = {
-                    'public-transport': { 
-                        icon: 'fas fa-bus', 
-                        label: 'Temps de trajet en transports en commun',
-                        placeholder: '30',
-                        max: 180
-                    },
-                    'vehicle': { 
-                        icon: 'fas fa-car', 
-                        label: 'Temps de trajet en véhicule personnel',
-                        placeholder: '25',
-                        max: 120
-                    },
-                    'bike': { 
-                        icon: 'fas fa-bicycle', 
-                        label: 'Temps de trajet à vélo',
-                        placeholder: '20',
-                        max: 90
-                    },
-                    'walking': { 
-                        icon: 'fas fa-walking', 
-                        label: 'Temps de trajet à pied',
-                        placeholder: '15',
-                        max: 60
-                    }
-                };
-                this.selectedTransports = new Set();
-                this.debounceTimer = null;
+                this.currentStep = 1;
+                this.maxSteps = 4;
+                this.isTransitioning = false;
+                this.eventListeners = new Map();
                 this.init();
             }
 
             init() {
-                console.log('🚚 Initialisation TravelTimeManagerOptimized NEXTEN V3.0');
+                console.log('🧭 Initialisation NextenNavigation V3.0 SÉCURISÉ');
                 this.setupEventListeners();
-                this.loadSavedData();
+                this.updateStepperProgress();
             }
 
             setupEventListeners() {
-                const transportCheckboxes = document.querySelectorAll('input[name="transport-method"]');
+                // Navigation sécurisée avec protection contre les boucles
+                this.safeAddEventListener('next-step1', 'click', () => this.goToStep(2));
+                this.safeAddEventListener('next-step2', 'click', () => this.goToStep(3));
+                this.safeAddEventListener('next-step3', 'click', () => this.goToStep(4));
                 
-                transportCheckboxes.forEach(checkbox => {
-                    checkbox.addEventListener('change', (e) => {
-                        this.handleTransportChange(e.target);
-                    });
-                });
+                this.safeAddEventListener('back-step1', 'click', () => this.goToStep(1));
+                this.safeAddEventListener('back-step2', 'click', () => this.goToStep(1));
+                this.safeAddEventListener('back-step3', 'click', () => this.goToStep(2));
 
-                // 🔧 FIX: Gestion optimisée des événements de saisie
-                document.addEventListener('input', (e) => {
-                    if (e.target.classList.contains('travel-time-input')) {
-                        this.handleTimeInputOptimized(e.target);
+                // Clic sur les numéros d'étapes (avec protection)
+                for (let i = 1; i <= this.maxSteps; i++) {
+                    this.safeAddEventListener(`step${i}`, 'click', () => this.goToStep(i));
+                }
+
+                console.log('✅ Event listeners sécurisés configurés');
+            }
+
+            safeAddEventListener(elementId, event, handler) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    // Supprimer l'ancien listener s'il existe
+                    if (this.eventListeners.has(elementId)) {
+                        const oldHandler = this.eventListeners.get(elementId);
+                        element.removeEventListener(event, oldHandler);
+                    }
+                    
+                    // Wrapper sécurisé avec protection contre les appels multiples
+                    const safeHandler = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        if (this.isTransitioning) {
+                            console.warn('⚠️ Transition en cours, action ignorée');
+                            return;
+                        }
+                        
+                        this.isTransitioning = true;
+                        try {
+                            handler();
+                        } catch (error) {
+                            console.error('❌ Erreur dans le handler:', error);
+                        } finally {
+                            setTimeout(() => {
+                                this.isTransitioning = false;
+                            }, 300);
+                        }
+                    };
+                    
+                    element.addEventListener(event, safeHandler);
+                    this.eventListeners.set(elementId, safeHandler);
+                }
+            }
+
+            goToStep(targetStep) {
+                if (targetStep < 1 || targetStep > this.maxSteps || targetStep === this.currentStep) {
+                    return;
+                }
+
+                console.log(`🎯 Navigation de l'étape ${this.currentStep} vers ${targetStep}`);
+
+                // Validation avant navigation
+                if (targetStep > this.currentStep && !this.validateCurrentStep()) {
+                    console.warn('⚠️ Validation échouée, navigation bloquée');
+                    return;
+                }
+
+                // Masquer l'étape actuelle
+                this.hideStep(this.currentStep);
+                
+                // Afficher la nouvelle étape
+                this.showStep(targetStep);
+                
+                // Mettre à jour l'état
+                this.currentStep = targetStep;
+                this.updateStepperProgress();
+                this.updateStepperIndicators();
+
+                console.log(`✅ Navigation terminée: étape ${targetStep}`);
+            }
+
+            hideStep(stepNumber) {
+                const step = document.getElementById(`form-step${stepNumber}`);
+                const stepIndicator = document.getElementById(`step${stepNumber}`);
+                
+                if (step) {
+                    step.classList.remove('active');
+                    step.style.display = 'none';
+                }
+                
+                if (stepIndicator) {
+                    stepIndicator.classList.remove('active');
+                }
+            }
+
+            showStep(stepNumber) {
+                const step = document.getElementById(`form-step${stepNumber}`);
+                const stepIndicator = document.getElementById(`step${stepNumber}`);
+                
+                if (step) {
+                    step.style.display = 'block';
+                    // Délai pour l'animation
+                    setTimeout(() => {
+                        step.classList.add('active');
+                    }, 50);
+                }
+                
+                if (stepIndicator) {
+                    stepIndicator.classList.add('active');
+                }
+            }
+
+            updateStepperProgress() {
+                const progress = document.getElementById('stepper-progress');
+                if (progress) {
+                    const percentage = ((this.currentStep - 1) / (this.maxSteps - 1)) * 100;
+                    progress.style.width = `${percentage}%`;
+                }
+            }
+
+            updateStepperIndicators() {
+                for (let i = 1; i <= this.maxSteps; i++) {
+                    const indicator = document.getElementById(`step${i}`);
+                    if (indicator) {
+                        indicator.classList.toggle('active', i === this.currentStep);
+                        indicator.classList.toggle('completed', i < this.currentStep);
+                    }
+                }
+            }
+
+            validateCurrentStep() {
+                switch (this.currentStep) {
+                    case 1:
+                        return this.validateStep1();
+                    case 2:
+                        return this.validateStep2();
+                    case 3:
+                        return this.validateStep3();
+                    default:
+                        return true;
+                }
+            }
+
+            validateStep1() {
+                const fullName = document.getElementById('full-name');
+                const jobTitle = document.getElementById('job-title');
+                
+                if (!fullName?.value.trim()) {
+                    this.showValidationMessage('Veuillez renseigner votre nom et prénom');
+                    return false;
+                }
+                
+                if (!jobTitle?.value.trim()) {
+                    this.showValidationMessage('Veuillez renseigner l\'intitulé de poste souhaité');
+                    return false;
+                }
+                
+                return true;
+            }
+
+            validateStep2() {
+                const transportMethods = document.querySelectorAll('input[name="transport-method"]:checked');
+                const address = document.getElementById('address');
+                const officePreference = document.querySelector('input[name="office-preference"]:checked');
+                
+                if (transportMethods.length === 0) {
+                    this.showValidationMessage('Veuillez sélectionner au moins un moyen de transport');
+                    return false;
+                }
+                
+                if (!address?.value.trim()) {
+                    this.showValidationMessage('Veuillez renseigner votre adresse');
+                    return false;
+                }
+                
+                if (!officePreference) {
+                    this.showValidationMessage('Veuillez sélectionner votre préférence d\'environnement de travail');
+                    return false;
+                }
+                
+                return true;
+            }
+
+            validateStep3() {
+                // Validation basique pour l'étape 3
+                return true;
+            }
+
+            showValidationMessage(message) {
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification(message, 'error');
+                } else {
+                    alert(message);
+                }
+            }
+
+            // Méthodes publiques pour debugging
+            getCurrentStep() {
+                return this.currentStep;
+            }
+
+            reset() {
+                this.goToStep(1);
+            }
+        }
+
+        /**
+         * 🔧 FIX: Gestionnaire des temps de trajet SÉCURISÉ (ÉVITE LES BOUCLES INFINIES)
+         */
+        class TravelTimeManagerFixed {
+            constructor() {
+                this.isProcessing = false;
+                this.updateQueue = [];
+                this.selectedTransports = new Set();
+                this.init();
+            }
+
+            init() {
+                console.log('🚚 TravelTimeManagerFixed initialisé');
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                // Utiliser la délégation d'événements pour éviter les conflits
+                document.addEventListener('change', (e) => {
+                    if (e.target.name === 'transport-method') {
+                        this.handleTransportChange(e.target);
                     }
                 });
 
-                // Gestion des événements clavier spécifiques
-                document.addEventListener('keydown', (e) => {
+                // 🔧 FIX CRITIQUE: Utiliser 'change' au lieu de 'input' pour éviter les boucles
+                document.addEventListener('change', (e) => {
                     if (e.target.classList.contains('travel-time-input')) {
-                        this.handleKeyboardInput(e);
+                        this.handleTimeInputSafe(e.target);
                     }
                 });
             }
@@ -1537,32 +1744,54 @@
                 }
                 
                 this.updateContainerVisibility();
-                this.debouncedSave();
-                
-                console.log('🚲 Transports sélectionnés:', Array.from(this.selectedTransports));
+            }
+
+            handleTimeInputSafe(input) {
+                // 🔧 FIX: Protection contre les boucles infinies
+                if (this.isProcessing) return;
+                this.isProcessing = true;
+
+                try {
+                    const value = parseInt(input.value);
+                    const max = parseInt(input.max) || 180;
+                    
+                    // Validation simple sans modifier la valeur (évite les boucles)
+                    if (value > max) {
+                        this.showTimeValidationMessage(input, `Maximum ${max} minutes`);
+                        // Ne pas changer input.value ici pour éviter les boucles!
+                        setTimeout(() => {
+                            if (input.value && parseInt(input.value) > max) {
+                                input.value = max;
+                            }
+                        }, 1000);
+                    }
+                    
+                    if (value < 1 && input.value !== '') {
+                        this.showTimeValidationMessage(input, 'Minimum 1 minute');
+                        setTimeout(() => {
+                            if (input.value && parseInt(input.value) < 1) {
+                                input.value = 1;
+                            }
+                        }, 1000);
+                    }
+                } catch (error) {
+                    console.error('Erreur validation temps de trajet:', error);
+                } finally {
+                    // Libérer le verrou après un délai
+                    setTimeout(() => {
+                        this.isProcessing = false;
+                    }, 100);
+                }
             }
 
             showTravelTimeField(transportType) {
                 const field = document.getElementById(`travel-time-${transportType}`);
                 if (field) {
                     field.style.display = 'flex';
-                    
-                    // Animation d'apparition
                     setTimeout(() => {
                         field.style.opacity = '1';
                         field.style.transform = 'translateX(0)';
-                    }, 10);
-                    
-                    // Focus sur le champ de saisie avec délai
-                    const input = field.querySelector('.travel-time-input');
-                    if (input && !input.value) {
-                        setTimeout(() => {
-                            input.focus();
-                            // Définir une valeur par défaut suggérée
-                            const placeholder = this.transportMethods[transportType]?.placeholder || '30';
-                            input.placeholder = placeholder;
-                        }, 300);
-                    }
+                    }, 50);
                 }
             }
 
@@ -1571,310 +1800,66 @@
                 if (field) {
                     field.style.opacity = '0';
                     field.style.transform = 'translateX(-20px)';
-                    
                     setTimeout(() => {
                         field.style.display = 'none';
-                        
-                        // Vider la valeur du champ
                         const input = field.querySelector('.travel-time-input');
-                        if (input) {
-                            input.value = '';
-                        }
+                        if (input) input.value = '';
                     }, 200);
                 }
             }
 
             updateContainerVisibility() {
                 const container = document.getElementById('travel-time-container');
-                if (!container) return;
-
-                if (this.selectedTransports.size > 0) {
-                    container.classList.add('active');
-                } else {
-                    container.classList.remove('active');
+                if (container) {
+                    container.classList.toggle('active', this.selectedTransports.size > 0);
                 }
-            }
-
-            // 🔧 FIX: Gestion optimisée de la saisie avec validation douce
-            handleTimeInputOptimized(input) {
-                // Éviter les boucles infinies en arrêtant les événements en cascade
-                if (input.dataset.processing) return;
-                input.dataset.processing = 'true';
-                
-                const value = parseInt(input.value);
-                const max = parseInt(input.max) || 180;
-                let newValue = value;
-                
-                // Validation douce - on permet la saisie libre, on corrige seulement à la fin
-                if (value > max) {
-                    newValue = max;
-                    this.showTimeValidationMessage(input, `Maximum ${max} minutes`);
-                } else if (value < 1 && input.value !== '') {
-                    newValue = 1;
-                    this.showTimeValidationMessage(input, 'Minimum 1 minute');
-                }
-                
-                // Ne changer la valeur que si nécessaire
-                if (newValue !== value && !isNaN(newValue)) {
-                    input.value = newValue;
-                }
-                
-                // Animation de validation
-                this.animateTimeInput(input);
-                
-                // Sauvegarde avec debounce
-                this.debouncedSave();
-                
-                // Retirer le flag de traitement
-                setTimeout(() => {
-                    delete input.dataset.processing;
-                }, 100);
-            }
-
-            // 🔧 FIX: Gestion spéciale des événements clavier
-            handleKeyboardInput(event) {
-                const input = event.target;
-                
-                // Permettre les touches de navigation et modification
-                const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-                
-                if (allowedKeys.includes(event.key)) {
-                    return; // Laisser passer
-                }
-                
-                // Permettre les chiffres
-                if (event.key >= '0' && event.key <= '9') {
-                    return; // Laisser passer
-                }
-                
-                // Bloquer tout le reste
-                event.preventDefault();
             }
 
             showTimeValidationMessage(input, message) {
-                // Supprimer les anciens tooltips
+                // Tooltip simple et sécurisé
                 const existingTooltip = input.parentElement.querySelector('.travel-time-tooltip');
-                if (existingTooltip) {
-                    existingTooltip.remove();
-                }
+                if (existingTooltip) existingTooltip.remove();
                 
-                // Créer un nouveau tooltip
                 const tooltip = document.createElement('div');
                 tooltip.className = 'travel-time-tooltip';
                 tooltip.textContent = message;
                 tooltip.style.cssText = `
-                    position: absolute;
-                    top: -35px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: #dc2626;
-                    color: white;
-                    padding: 6px 12px;
-                    border-radius: 6px;
-                    font-size: 12px;
-                    font-weight: 500;
-                    white-space: nowrap;
-                    z-index: 1000;
+                    position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
+                    background: #dc2626; color: white; padding: 6px 12px; border-radius: 6px;
+                    font-size: 12px; font-weight: 500; white-space: nowrap; z-index: 1000;
                     animation: fadeInOut 2s ease-in-out;
                 `;
                 
                 input.parentElement.style.position = 'relative';
                 input.parentElement.appendChild(tooltip);
                 
-                setTimeout(() => {
-                    tooltip.remove();
-                }, 2000);
-            }
-
-            animateTimeInput(input) {
-                input.style.transform = 'scale(1.05)';
-                input.style.borderColor = '#10b981';
-                
-                setTimeout(() => {
-                    input.style.transform = 'scale(1)';
-                    input.style.borderColor = '#d1d5db';
-                }, 150);
-            }
-
-            // 🔧 FIX: Sauvegarde avec debounce pour éviter les appels trop fréquents
-            debouncedSave() {
-                clearTimeout(this.debounceTimer);
-                this.debounceTimer = setTimeout(() => {
-                    this.saveFormData();
-                }, 500);
-            }
-
-            saveFormData() {
-                try {
-                    const formData = this.getFormData();
-                    localStorage.setItem('nexten_travel_times_v3_optimized', JSON.stringify(formData));
-                    console.log('💾 Temps de trajet sauvegardés (optimisé):', formData);
-                } catch (error) {
-                    console.error('❌ Erreur sauvegarde temps de trajet:', error);
-                }
-            }
-
-            loadSavedData() {
-                try {
-                    const saved = localStorage.getItem('nexten_travel_times_v3_optimized');
-                    if (saved) {
-                        const savedData = JSON.parse(saved);
-                        console.log('📂 Restauration des temps de trajet:', savedData);
-                        
-                        // Restaurer les sélections de transport
-                        if (savedData.selectedTransports) {
-                            savedData.selectedTransports.forEach(transport => {
-                                const checkbox = document.querySelector(`input[value="${transport}"]`);
-                                if (checkbox) {
-                                    checkbox.checked = true;
-                                    this.selectedTransports.add(transport);
-                                    this.showTravelTimeField(transport);
-                                }
-                            });
-                        }
-                        
-                        // Restaurer les valeurs de temps avec délai
-                        setTimeout(() => {
-                            if (savedData.travelTimes) {
-                                Object.entries(savedData.travelTimes).forEach(([transport, time]) => {
-                                    const input = document.querySelector(`input[name="travel-time-${transport}"]`);
-                                    if (input && time) {
-                                        input.value = time;
-                                    }
-                                });
-                            }
-                        }, 500);
-                        
-                        this.updateContainerVisibility();
-                    }
-                } catch (error) {
-                    console.error('❌ Erreur restauration temps de trajet:', error);
-                }
-            }
-
-            getFormData() {
-                const travelTimes = {};
-                
-                this.selectedTransports.forEach(transport => {
-                    const input = document.querySelector(`input[name="travel-time-${transport}"]`);
-                    if (input && input.value) {
-                        travelTimes[transport] = parseInt(input.value);
-                    }
-                });
-                
-                return {
-                    selectedTransports: Array.from(this.selectedTransports),
-                    travelTimes: travelTimes,
-                    lastSaved: new Date().toISOString(),
-                    version: '3.0-optimized'
-                };
-            }
-
-            // Méthode pour exposer les données aux autres scripts
-            getTravelTimeData() {
-                return this.getFormData();
-            }
-
-            // Méthode pour valider l'étape 2
-            validateStep2() {
-                let isValid = true;
-                const errors = [];
-                
-                // Vérifier qu'au moins un moyen de transport est sélectionné
-                if (this.selectedTransports.size === 0) {
-                    errors.push('Veuillez sélectionner au moins un moyen de transport');
-                    isValid = false;
-                }
-                
-                // Vérifier que tous les transports sélectionnés ont un temps de trajet valide
-                this.selectedTransports.forEach(transport => {
-                    const input = document.querySelector(`input[name="travel-time-${transport}"]`);
-                    const value = input ? parseInt(input.value) : 0;
-                    if (!input || !input.value || value < 1) {
-                        const transportName = this.transportMethods[transport]?.label || transport;
-                        errors.push(`Veuillez indiquer un temps de trajet valide pour ${transportName}`);
-                        isValid = false;
-                    }
-                });
-                
-                if (!isValid) {
-                    console.warn('⚠️ Validation échouée pour l\'étape 2:', errors);
-                }
-                
-                return { isValid, errors };
-            }
-
-            // Reset complet
-            reset() {
-                this.selectedTransports.clear();
-                clearTimeout(this.debounceTimer);
-                
-                // Décocher toutes les checkboxes
-                document.querySelectorAll('input[name="transport-method"]').forEach(cb => {
-                    cb.checked = false;
-                });
-                
-                // Masquer tous les champs de temps
-                Object.keys(this.transportMethods).forEach(transport => {
-                    this.hideTravelTimeField(transport);
-                });
-                
-                this.updateContainerVisibility();
-                localStorage.removeItem('nexten_travel_times_v3_optimized');
-                
-                console.log('🔄 Reset des temps de trajet effectué (optimisé)');
+                setTimeout(() => tooltip.remove(), 2000);
             }
         }
 
-        // CSS pour les animations supplémentaires
-        const travelTimeOptimizedStyles = `
-            @keyframes fadeInOut {
-                0%, 100% { opacity: 0; transform: translateX(-50%) translateY(5px); }
-                20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
-            }
-            
-            .travel-time-field {
-                opacity: 0;
-                transform: translateX(-20px);
-                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            }
-            
-            .travel-time-input {
-                transition: all 0.2s ease;
-            }
-            
-            .travel-time-input:focus {
-                transform: scale(1.02);
-            }
-        `;
-        
-        // Injecter les styles
-        const travelTimeOptimizedStyleEl = document.createElement('style');
-        travelTimeOptimizedStyleEl.textContent = travelTimeOptimizedStyles;
-        document.head.appendChild(travelTimeOptimizedStyleEl);
-
-        // Initialiser le gestionnaire optimisé quand le DOM est prêt
+        // 🚀 Initialisation sécurisée au chargement du DOM
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('🌟 Initialisation NEXTEN V3.0 - Version SÉCURISÉE');
+            
+            // Attendre que tous les scripts externes soient chargés
             setTimeout(() => {
-                // Vérifier si l'ancien manager existe et le nettoyer
-                if (window.travelTimeManager) {
-                    console.log('🔄 Remplacement de l\'ancien TravelTimeManager');
-                    if (typeof window.travelTimeManager.reset === 'function') {
-                        window.travelTimeManager.reset();
-                    }
+                try {
+                    // Initialiser la navigation sécurisée
+                    window.nextenNavigation = new NextenNavigation();
+                    
+                    // Initialiser le gestionnaire de temps de trajet corrigé
+                    window.travelTimeManager = new TravelTimeManagerFixed();
+                    
+                    console.log('✅ Initialisation NEXTEN V3.0 terminée avec succès');
+                    console.log('🛠️ Commandes debug disponibles:');
+                    console.log('   - nextenNavigation.goToStep(n) - Aller à l\'étape n');
+                    console.log('   - nextenNavigation.getCurrentStep() - Étape actuelle');
+                    console.log('   - nextenNavigation.reset() - Retour étape 1');
+                    
+                } catch (error) {
+                    console.error('❌ Erreur initialisation NEXTEN:', error);
                 }
-                
-                window.travelTimeManager = new TravelTimeManagerOptimized();
-                
-                // Exposer pour debugging
-                window.TravelTimeManagerOptimized = TravelTimeManagerOptimized;
-                
-                console.log('✅ TravelTimeManagerOptimized NEXTEN V3.0 initialisé');
-                console.log('🛠️ Commandes debug disponibles:');
-                console.log('   - travelTimeManager.getTravelTimeData() - Voir les données');
-                console.log('   - travelTimeManager.validateStep2() - Valider l\'étape');
-                console.log('   - travelTimeManager.reset() - Reset complet');
-            }, 1000);
+            }, 500);
         });
     </script>
     
