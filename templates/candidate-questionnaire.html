@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexten - Questionnaire Candidat</title>
     
-    <!-- CSS -->
+    <!-- CSS ---->
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-modern-interactive.css">
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/candidate-analyzer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- ✨ NEXTEN V3.0 - Interface moderne -->
+    <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-modern-v3.css">
     
     <!-- 🔥 CRITICAL: Scripts backend prioritaires - PRÉSERVÉS -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/cv-parser-integration.js"></script>
@@ -30,6 +33,9 @@
     
     <!-- ✨ NOUVEAU: Script pour étapes 3 & 4 -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-steps34.js"></script>
+    
+    <!-- ✨ NEXTEN V3.0 - Interactions modernes -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-modern-interactions.js"></script>
     
     <!-- 🗺️ Google Maps API avec autocomplete fonctionnel -->
     <script>
@@ -509,93 +515,183 @@
                         </div>
                     </div>
                     
-                    <!-- ✨ ÉTAPE 3 : MOTIVATIONS ET SECTEURS (NOUVEAU CONTENU) -->
-                    <div class="form-step" id="form-step3">
-                        <h2 class="form-section-title">Vos Motivations Professionnelles</h2>
+                    <!-- ✨ ÉTAPE 3 : MOTIVATIONS ET SECTEURS (VERSION MODERNE NEXTEN V3.0) -->
+                    <div class="form-step nexten-v3-modern" id="form-step3">
+                        <h2 class="form-section-title">🎯 Vos Motivations Professionnelles</h2>
                         <p class="step-description">
-                            Dites-nous ce qui vous motive et les secteurs qui vous intéressent pour affiner nos recommandations
+                            Dites-nous ce qui vous anime et explorez les secteurs qui correspondent à vos aspirations pour des recommandations sur-mesure
                         </p>
 
+                        <!-- Section Motivations avec Cards Interactives -->
                         <div class="form-group">
-                            <label class="form-label">Quelles sont vos principales motivations professionnelles ?</label>
-                            <div class="checkbox-group">
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="motiv-evolution" name="motivations" value="evolution">
-                                    <label class="checkbox-label" for="motiv-evolution">Évolution de carrière</label>
-                                    <div class="checkbox-description">Progresser vers des postes à responsabilités</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="motiv-salaire" name="motivations" value="salaire">
-                                    <label class="checkbox-label" for="motiv-salaire">Augmentation salariale</label>
-                                    <div class="checkbox-description">Améliorer votre rémunération</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="motiv-equilibre" name="motivations" value="equilibre">
-                                    <label class="checkbox-label" for="motiv-equilibre">Équilibre vie pro/perso</label>
-                                    <div class="checkbox-description">Télétravail, horaires flexibles</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="motiv-defis" name="motivations" value="defis">
-                                    <label class="checkbox-label" for="motiv-defis">Nouveaux défis</label>
-                                    <div class="checkbox-description">Projets stimulants et innovants</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="motiv-formation" name="motivations" value="formation">
-                                    <label class="checkbox-label" for="motiv-formation">Formation continue</label>
-                                    <div class="checkbox-description">Développer de nouvelles compétences</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="motiv-autonomie" name="motivations" value="autonomie">
-                                    <label class="checkbox-label" for="motiv-autonomie">Autonomie</label>
-                                    <div class="checkbox-description">Indépendance dans le travail</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Secteurs d'activité qui vous intéressent</label>
-                            <div class="checkbox-group">
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="secteur-tech" name="secteurs" value="tech">
-                                    <label class="checkbox-label" for="secteur-tech">Technologie & IT</label>
-                                    <div class="checkbox-description">Informatique, digital, innovations</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="secteur-finance" name="secteurs" value="finance">
-                                    <label class="checkbox-label" for="secteur-finance">Finance & Banque</label>
-                                    <div class="checkbox-description">Services financiers, assurance</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="secteur-sante" name="secteurs" value="sante">
-                                    <label class="checkbox-label" for="secteur-sante">Santé & Médical</label>
-                                    <div class="checkbox-description">Soins, pharmaceutique, recherche</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="secteur-education" name="secteurs" value="education">
-                                    <label class="checkbox-label" for="secteur-education">Éducation & Formation</label>
-                                    <div class="checkbox-description">Enseignement, formation professionnelle</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="secteur-industrie" name="secteurs" value="industrie">
-                                    <label class="checkbox-label" for="secteur-industrie">Industrie & Manufacturing</label>
-                                    <div class="checkbox-description">Production, logistique, ingénierie</div>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="secteur-commerce" name="secteurs" value="commerce">
-                                    <label class="checkbox-label" for="secteur-commerce">Commerce & Retail</label>
-                                    <div class="checkbox-description">Vente, marketing, distribution</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Fourchette salariale souhaitée (brut annuel)</label>
-                            <div class="salary-slider">
-                                <div class="slider-container">
-                                    <input type="range" class="slider" id="salary-range" min="25000" max="120000" value="45000" step="1000">
-                                    <div class="slider-value">
-                                        <span id="salary-display">45 000 €</span>
+                            <label class="modern-label">
+                                <span class="label-icon">
+                                    <i class="fas fa-heart"></i>
+                                    Quelles sont vos principales motivations professionnelles ?
+                                </span>
+                            </label>
+                            
+                            <div class="modern-card-grid">
+                                <div class="interactive-card" data-card-group="motivations" data-value="evolution" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-chart-line"></i>
                                     </div>
+                                    <div class="card-title">Évolution de carrière</div>
+                                    <div class="card-description">Progresser vers des postes à responsabilités et développer votre leadership</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="motivations" data-value="salaire" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-coins"></i>
+                                    </div>
+                                    <div class="card-title">Augmentation salariale</div>
+                                    <div class="card-description">Améliorer significativement votre rémunération et vos avantages</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="motivations" data-value="equilibre" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </div>
+                                    <div class="card-title">Équilibre vie pro/perso</div>
+                                    <div class="card-description">Télétravail, horaires flexibles et respect de votre temps personnel</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="motivations" data-value="defis" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-mountain"></i>
+                                    </div>
+                                    <div class="card-title">Nouveaux défis</div>
+                                    <div class="card-description">Projets stimulants, innovations et challenges intellectuels</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="motivations" data-value="formation" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-graduation-cap"></i>
+                                    </div>
+                                    <div class="card-title">Formation continue</div>
+                                    <div class="card-description">Développer de nouvelles compétences et rester à la pointe</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="motivations" data-value="autonomie" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-user-astronaut"></i>
+                                    </div>
+                                    <div class="card-title">Autonomie</div>
+                                    <div class="card-description">Indépendance dans les décisions et liberté d'organisation</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Secteurs avec Cards Interactives -->
+                        <div class="form-group">
+                            <label class="modern-label">
+                                <span class="label-icon">
+                                    <i class="fas fa-industry"></i>
+                                    Secteurs d'activité qui vous passionnent
+                                </span>
+                            </label>
+                            
+                            <div class="modern-card-grid">
+                                <div class="interactive-card" data-card-group="secteurs" data-value="tech" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-laptop-code"></i>
+                                    </div>
+                                    <div class="card-title">Technologie & IT</div>
+                                    <div class="card-description">Informatique, digital, IA, cybersécurité et innovations technologiques</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="secteurs" data-value="finance" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-university"></i>
+                                    </div>
+                                    <div class="card-title">Finance & Banque</div>
+                                    <div class="card-description">Services financiers, assurance, investissement et fintech</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="secteurs" data-value="sante" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-heartbeat"></i>
+                                    </div>
+                                    <div class="card-title">Santé & Médical</div>
+                                    <div class="card-description">Soins, pharmaceutique, biotechnologies et recherche médicale</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="secteurs" data-value="education" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                    </div>
+                                    <div class="card-title">Éducation & Formation</div>
+                                    <div class="card-description">Enseignement, e-learning, formation professionnelle et EdTech</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="secteurs" data-value="industrie" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-cogs"></i>
+                                    </div>
+                                    <div class="card-title">Industrie & Manufacturing</div>
+                                    <div class="card-description">Production, logistique, ingénierie et industrie 4.0</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="interactive-card" data-card-group="secteurs" data-value="commerce" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </div>
+                                    <div class="card-title">Commerce & Retail</div>
+                                    <div class="card-description">Vente, marketing, e-commerce et distribution omnicanale</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slider Salaire Moderne -->
+                        <div class="form-group">
+                            <div class="modern-slider-container">
+                                <div class="slider-header">
+                                    <label class="slider-title">
+                                        <i class="fas fa-euro-sign"></i>
+                                        Fourchette salariale souhaitée (brut annuel)
+                                    </label>
+                                    <div class="slider-value-display" id="salary-display">45K €</div>
+                                </div>
+                                
+                                <div class="slider-track">
+                                    <input type="range" class="modern-slider" id="salary-range" 
+                                           min="25000" max="120000" value="45000" step="1000">
                                     <div class="slider-labels">
                                         <span>25K €</span>
                                         <span>120K €+</span>
@@ -604,154 +700,269 @@
                             </div>
                         </div>
 
+                        <!-- Textarea Moderne pour Aspirations -->
                         <div class="form-group">
-                            <label class="form-label" for="aspirations">Décrivez vos aspirations professionnelles (optionnel)</label>
+                            <label class="modern-label" for="aspirations">
+                                <span class="label-icon">
+                                    <i class="fas fa-star"></i>
+                                    Partagez vos aspirations professionnelles
+                                </span>
+                            </label>
                             <textarea 
-                                class="form-input form-textarea" 
+                                class="modern-textarea" 
                                 id="aspirations" 
                                 name="aspirations" 
-                                placeholder="Parlez-nous de vos objectifs de carrière, vos projets, ce qui vous anime dans votre métier..."
+                                placeholder="Décrivez vos objectifs de carrière, vos projets, ce qui vous anime dans votre métier, vos rêves professionnels..."
                             ></textarea>
                         </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn-action btn-back" id="back-step2">
+
+                        <!-- Boutons d'Action Modernes -->
+                        <div class="modern-form-actions">
+                            <button type="button" class="modern-btn btn-secondary" id="back-step2">
                                 <i class="fas fa-arrow-left"></i>
                                 <span>Retour</span>
                             </button>
-                            <button type="button" class="btn-action btn-next" id="next-step3">
-                                <span>Suivant</span>
+                            <button type="button" class="modern-btn btn-primary" id="next-step3">
+                                <span>Continuer</span>
                                 <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
+
+                        <!-- Champs cachés pour intégration -->
+                        <input type="hidden" id="hidden-motivations" name="motivations">
+                        <input type="hidden" id="hidden-secteurs" name="secteurs">
+                        <input type="hidden" id="hidden-salaire" name="salaire">
                     </div>
                     
-                    <!-- ✨ ÉTAPE 4 : DISPONIBILITÉ ET SITUATION (NOUVEAU CONTENU) -->
-                    <div class="form-step" id="form-step4">
-                        <h2 class="form-section-title">Disponibilité & Situation</h2>
+                    <!-- ✨ ÉTAPE 4 : DISPONIBILITÉ ET SITUATION (VERSION MODERNE NEXTEN V3.0) -->
+                    <div class="form-step nexten-v3-modern" id="form-step4" style="display: none;">
+                        <h2 class="form-section-title">🚀 Disponibilité & Situation</h2>
                         <p class="step-description">
-                            Informations sur votre situation actuelle et vos contraintes de timing
+                            Dernière étape ! Précisez votre situation actuelle et vos préférences pour finaliser votre profil candidat
                         </p>
 
+                        <!-- Situation Professionnelle avec Options Modernes -->
                         <div class="form-group">
-                            <label class="form-label">Quelle est votre situation professionnelle actuelle ?</label>
-                            <div class="radio-group">
-                                <div class="radio-item">
-                                    <input type="radio" id="situation-emploi" name="situation" value="emploi">
-                                    <label class="radio-label" for="situation-emploi">En poste actuellement</label>
-                                    <div class="radio-description">Je travaille et cherche de nouvelles opportunités</div>
+                            <label class="modern-label">
+                                <span class="label-icon">
+                                    <i class="fas fa-briefcase"></i>
+                                    Quelle est votre situation professionnelle actuelle ?
+                                </span>
+                            </label>
+                            
+                            <div class="modern-option-group">
+                                <div class="modern-option" data-option-group="situation" data-value="emploi" tabindex="0">
+                                    <div class="option-input radio"></div>
+                                    <div class="option-content">
+                                        <div class="option-title">En poste actuellement</div>
+                                        <div class="option-description">Je travaille et cherche de nouvelles opportunités en parallèle</div>
+                                    </div>
                                 </div>
-                                <div class="radio-item">
-                                    <input type="radio" id="situation-recherche" name="situation" value="recherche">
-                                    <label class="radio-label" for="situation-recherche">En recherche active</label>
-                                    <div class="radio-description">Je suis disponible immédiatement</div>
+                                
+                                <div class="modern-option" data-option-group="situation" data-value="recherche" tabindex="0">
+                                    <div class="option-input radio"></div>
+                                    <div class="option-content">
+                                        <div class="option-title">En recherche active</div>
+                                        <div class="option-description">Je suis disponible immédiatement pour un nouveau poste</div>
+                                    </div>
                                 </div>
-                                <div class="radio-item">
-                                    <input type="radio" id="situation-preavis" name="situation" value="preavis">
-                                    <label class="radio-label" for="situation-preavis">Préavis en cours</label>
-                                    <div class="radio-description">Mon contrat se termine bientôt</div>
+                                
+                                <div class="modern-option" data-option-group="situation" data-value="preavis" tabindex="0">
+                                    <div class="option-input radio"></div>
+                                    <div class="option-content">
+                                        <div class="option-title">Préavis en cours</div>
+                                        <div class="option-description">Mon contrat actuel se termine bientôt</div>
+                                    </div>
                                 </div>
-                                <div class="radio-item">
-                                    <input type="radio" id="situation-etudiant" name="situation" value="etudiant">
-                                    <label class="radio-label" for="situation-etudiant">Étudiant/Diplômé</label>
-                                    <div class="radio-description">Je termine mes études ou viens de diplômer</div>
+                                
+                                <div class="modern-option" data-option-group="situation" data-value="etudiant" tabindex="0">
+                                    <div class="option-input radio"></div>
+                                    <div class="option-content">
+                                        <div class="option-title">Étudiant/Diplômé</div>
+                                        <div class="option-description">Je termine mes études ou viens d'obtenir mon diplôme</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Disponibilité avec Options Modernes -->
                         <div class="form-group">
-                            <label class="form-label">Dans combien de temps pourriez-vous commencer ?</label>
-                            <div class="radio-group">
-                                <div class="radio-item">
-                                    <input type="radio" id="dispo-immediat" name="disponibilite" value="immediat">
-                                    <label class="radio-label" for="dispo-immediat">Immédiatement</label>
-                                    <div class="radio-description">Je peux commencer dès maintenant</div>
+                            <label class="modern-label">
+                                <span class="label-icon">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Dans combien de temps pourriez-vous commencer ?
+                                </span>
+                            </label>
+                            
+                            <div class="modern-option-group">
+                                <div class="modern-option" data-option-group="disponibilite" data-value="immediat" tabindex="0">
+                                    <div class="option-input radio"></div>
+                                    <div class="option-content">
+                                        <div class="option-title">Immédiatement</div>
+                                        <div class="option-description">Je peux commencer dès maintenant ou dans les jours qui suivent</div>
+                                    </div>
                                 </div>
-                                <div class="radio-item">
-                                    <input type="radio" id="dispo-1mois" name="disponibilite" value="1mois">
-                                    <label class="radio-label" for="dispo-1mois">Dans 1 mois</label>
-                                    <div class="radio-description">Délai standard pour finir mes missions</div>
+                                
+                                <div class="modern-option" data-option-group="disponibilite" data-value="1mois" tabindex="0">
+                                    <div class="option-input radio"></div>
+                                    <div class="option-content">
+                                        <div class="option-title">Dans 1 mois</div>
+                                        <div class="option-description">Délai standard pour finaliser mes missions actuelles</div>
+                                    </div>
                                 </div>
-                                <div class="radio-item">
-                                    <input type="radio" id="dispo-2mois" name="disponibilite" value="2mois">
-                                    <label class="radio-label" for="dispo-2mois">Dans 2-3 mois</label>
-                                    <div class="radio-description">Préavis ou fin de contrat prévue</div>
+                                
+                                <div class="modern-option" data-option-group="disponibilite" data-value="2mois" tabindex="0">
+                                    <div class="option-input radio"></div>
+                                    <div class="option-content">
+                                        <div class="option-title">Dans 2-3 mois</div>
+                                        <div class="option-description">Préavis en cours ou fin de contrat prévue</div>
+                                    </div>
                                 </div>
-                                <div class="radio-item">
-                                    <input type="radio" id="dispo-flexible" name="disponibilite" value="flexible">
-                                    <label class="radio-label" for="dispo-flexible">À négocier</label>
-                                    <div class="radio-description">Selon l'opportunité proposée</div>
+                                
+                                <div class="modern-option" data-option-group="disponibilite" data-value="flexible" tabindex="0">
+                                    <div class="option-input radio"></div>
+                                    <div class="option-content">
+                                        <div class="option-title">À négocier</div>
+                                        <div class="option-description">Selon l'opportunité et les conditions proposées</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Modes de Travail avec Cards Sélectionnables -->
                         <div class="form-group">
-                            <label class="form-label">Préférences de mode de travail</label>
-                            <div class="checkbox-group">
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="mode-presentiel" name="modes-travail" value="presentiel">
-                                    <label class="checkbox-label" for="mode-presentiel">100% Présentiel</label>
-                                    <div class="checkbox-description">Travail exclusivement sur site</div>
+                            <label class="modern-label">
+                                <span class="label-icon">
+                                    <i class="fas fa-home"></i>
+                                    Préférences de mode de travail
+                                </span>
+                            </label>
+                            
+                            <div class="modern-card-grid">
+                                <div class="interactive-card" data-card-group="modes-travail" data-value="presentiel" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div class="card-title">100% Présentiel</div>
+                                    <div class="card-description">Travail exclusivement sur site, en équipe et dans l'entreprise</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
                                 </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="mode-hybride" name="modes-travail" value="hybride">
-                                    <label class="checkbox-label" for="mode-hybride">Hybride</label>
-                                    <div class="checkbox-description">Mix bureau/télétravail (2-3j/semaine)</div>
+                                
+                                <div class="interactive-card" data-card-group="modes-travail" data-value="hybride" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </div>
+                                    <div class="card-title">Hybride</div>
+                                    <div class="card-description">Mix optimal bureau/télétravail (2-3 jours par semaine)</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
                                 </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="mode-remote" name="modes-travail" value="remote">
-                                    <label class="checkbox-label" for="mode-remote">100% Télétravail</label>
-                                    <div class="checkbox-description">Travail entièrement à distance</div>
+                                
+                                <div class="interactive-card" data-card-group="modes-travail" data-value="remote" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-wifi"></i>
+                                    </div>
+                                    <div class="card-title">100% Télétravail</div>
+                                    <div class="card-description">Travail entièrement à distance, flexibilité maximale</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Types d'Entreprise avec Cards Sélectionnables -->
                         <div class="form-group">
-                            <label class="form-label">Type d'entreprise privilégié</label>
-                            <div class="checkbox-group">
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="entreprise-startup" name="types-entreprise" value="startup">
-                                    <label class="checkbox-label" for="entreprise-startup">Startup/Scale-up</label>
-                                    <div class="checkbox-description">Environnement dynamique et innovant</div>
+                            <label class="modern-label">
+                                <span class="label-icon">
+                                    <i class="fas fa-rocket"></i>
+                                    Type d'entreprise privilégié
+                                </span>
+                            </label>
+                            
+                            <div class="modern-card-grid">
+                                <div class="interactive-card" data-card-group="types-entreprise" data-value="startup" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-lightbulb"></i>
+                                    </div>
+                                    <div class="card-title">Startup/Scale-up</div>
+                                    <div class="card-description">Environnement dynamique, innovation et croissance rapide</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
                                 </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="entreprise-pme" name="types-entreprise" value="pme">
-                                    <label class="checkbox-label" for="entreprise-pme">PME/ETI</label>
-                                    <div class="checkbox-description">Entreprise à taille humaine</div>
+                                
+                                <div class="interactive-card" data-card-group="types-entreprise" data-value="pme" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="card-title">PME/ETI</div>
+                                    <div class="card-description">Entreprise à taille humaine, proximité et polyvalence</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
                                 </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="entreprise-grand-groupe" name="types-entreprise" value="grand-groupe">
-                                    <label class="checkbox-label" for="entreprise-grand-groupe">Grand Groupe</label>
-                                    <div class="checkbox-description">Structure établie avec de nombreuses opportunités</div>
+                                
+                                <div class="interactive-card" data-card-group="types-entreprise" data-value="grand-groupe" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-city"></i>
+                                    </div>
+                                    <div class="card-title">Grand Groupe</div>
+                                    <div class="card-description">Structure établie, stabilité et nombreuses opportunités</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
                                 </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="entreprise-conseil" name="types-entreprise" value="conseil">
-                                    <label class="checkbox-label" for="entreprise-conseil">Cabinet de Conseil</label>
-                                    <div class="checkbox-description">Missions variées chez différents clients</div>
+                                
+                                <div class="interactive-card" data-card-group="types-entreprise" data-value="conseil" tabindex="0">
+                                    <div class="card-icon">
+                                        <i class="fas fa-chess"></i>
+                                    </div>
+                                    <div class="card-title">Cabinet de Conseil</div>
+                                    <div class="card-description">Missions variées chez différents clients, expertise</div>
+                                    <div class="card-check">
+                                        <i class="fas fa-check"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Textarea Moderne pour Contraintes -->
                         <div class="form-group">
-                            <label class="form-label" for="contraintes">Contraintes particulières ou informations complémentaires</label>
+                            <label class="modern-label" for="contraintes">
+                                <span class="label-icon">
+                                    <i class="fas fa-info-circle"></i>
+                                    Contraintes particulières ou informations complémentaires
+                                </span>
+                            </label>
                             <textarea 
-                                class="form-input form-textarea" 
+                                class="modern-textarea" 
                                 id="contraintes" 
                                 name="contraintes" 
-                                placeholder="Contraintes géographiques, horaires, préférences particulières, questions à poser aux recruteurs..."
+                                placeholder="Contraintes géographiques, horaires spécifiques, préférences particulières, questions à poser aux recruteurs, informations importantes à nous communiquer..."
                             ></textarea>
                         </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn-action btn-back" id="back-step3">
+
+                        <!-- Boutons d'Action Modernes -->
+                        <div class="modern-form-actions">
+                            <button type="button" class="modern-btn btn-secondary" id="back-step3">
                                 <i class="fas fa-arrow-left"></i>
                                 <span>Retour</span>
                             </button>
-                            <button type="button" class="btn-action btn-submit" id="submit-btn">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Soumettre</span>
+                            <button type="button" class="modern-btn btn-primary" id="submit-btn">
+                                <i class="fas fa-paper-plane"></i>
+                                <span>Finaliser mon profil</span>
                             </button>
                         </div>
+
+                        <!-- Champs cachés pour intégration -->
+                        <input type="hidden" id="hidden-situation" name="situation">
+                        <input type="hidden" id="hidden-disponibilite" name="disponibilite">
+                        <input type="hidden" id="hidden-modes-travail" name="modes-travail">
+                        <input type="hidden" id="hidden-types-entreprise" name="types-entreprise">
                     </div>
                 </form>
             </div>
