@@ -135,23 +135,9 @@
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-v2-hybrid.css">
 </head>
 <body>
-    <!-- Debug Navigation Panel -->
-    <div id="debug-panel" style="position: fixed; bottom: 20px; left: 20px; z-index: 1000; background: #333; color: white; padding: 10px; border-radius: 8px; display: none;">
-        <h4>🔧 Mode débogage - Navigation</h4>
-        <div style="margin: 10px 0;">
-            <strong>🎯 Diagnostic étape 3 corrigé :</strong>
-            <button onclick="window.testNavigation.goToStep3()" style="margin: 5px; padding: 5px 10px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">Aller à l'étape 3</button>
-        </div>
-        <div style="font-size: 12px; opacity: 0.8;">
-            ✅ Motivations : fonctionnelles<br>
-            ✅ Secteurs : fonctionnels<br>
-            ✅ Salaire : fonctionnel
-        </div>
-    </div>
-
     <!-- Notification bar -->
     <div class="notification-bar">
-        🎯 Étape 3 corrigée ! Toutes les fonctionnalités (motivations, secteurs, salaire) sont maintenant opérationnelles
+        Votre parcours vers une nouvelle opportunité commence ici : complétez votre questionnaire pour nous permettre de trouver le poste parfait pour vous
     </div>
 
     <!-- Header -->
@@ -192,12 +178,7 @@
     </section>
 
     <!-- Mode CV Parsing - Bandeaux indicateurs -->
-    <div id="cv-parsing-indicators">
-        <div class="real-cv-indicator" style="text-align: center; margin: 20px 0;">
-            <i class="fas fa-tools" style="margin-right: 8px;"></i>
-            <strong>Mode débogage activé</strong> - L'étape 3 a été corrigée et toutes les fonctionnalités sont maintenant opérationnelles
-        </div>
-    </div>
+    <div id="cv-parsing-indicators"></div>
 
     <section>
         <div class="container">
@@ -784,19 +765,5 @@
             </div>
         </div>
     </section>
-
-    <!-- Script d'activation du panneau de débogage -->
-    <script>
-        // Afficher le panneau de débogage en mode test
-        document.addEventListener('DOMContentLoaded', function() {
-            const debugPanel = document.getElementById('debug-panel');
-            if (debugPanel) {
-                debugPanel.style.display = 'block';
-            }
-            
-            console.log('🎯 Questionnaire chargé avec corrections étape 3');
-            console.log('✅ Script de correction étape 3 intégré');
-        });
-    </script>
 </body>
 </html>
