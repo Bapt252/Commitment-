@@ -40,6 +40,11 @@
     <!-- 🎯 CORRECTION CRITIQUE: Synchronisation motivations étape 3 → étape 4 -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/etape3-motivation-sync-fix.js"></script>
     
+    <!-- 🆕 SCRIPTS FONCTIONNALITÉS MANQUANTES -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-contract-system.js"></script>
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-sectors-v3.js"></script>
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/step4-fix.js"></script>
+    
     <!-- 🗺️ Google Maps API avec autocomplete fonctionnel -->
     <script>
         // Fonction setupAddressAutocomplete manquante - AJOUTÉE
@@ -130,6 +135,1288 @@
         script.defer = true;
         document.head.appendChild(script);
     </script>
+    
+    <!-- Styles pour les indicateurs CV parsing -->
+    <style>
+        .cv-test-indicator {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .real-cv-indicator {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin: 10px 0 20px 0;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .simulated-data-badge {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 10px;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 5;
+        }
+        
+        .form-group {
+            position: relative;
+        }
+        
+        /* Styles Google Maps */
+        .address-validated {
+            border-color: #10B981 !important;
+            background-color: rgba(16, 185, 129, 0.05) !important;
+        }
+        
+        .pac-container {
+            z-index: 10000 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+            font-family: 'Inter', sans-serif !important;
+            border: none !important;
+            margin-top: 5px !important;
+        }
+        
+        .pac-item {
+            padding: 10px !important;
+            cursor: pointer !important;
+        }
+        
+        .pac-item:hover {
+            background-color: rgba(124, 58, 237, 0.05) !important;
+        }
+        
+        .pac-item-selected {
+            background-color: rgba(124, 58, 237, 0.1) !important;
+        }
+        
+        #address.focused {
+            border-color: #7c3aed !important;
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1) !important;
+        }
+
+        /* ✨ NOUVEAU: Styles pour les champs de temps de trajet dynamiques */
+        .travel-time-container {
+            margin-top: 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(-10px);
+            max-height: 0;
+            overflow: hidden;
+        }
+        
+        .travel-time-container.active {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 200px;
+        }
+        
+        .travel-time-field {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        
+        .travel-time-field:hover {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .travel-time-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .travel-time-label {
+            flex: 1;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .travel-time-input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .travel-time-input:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .travel-time-unit {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .travel-time-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        .travel-time-header i {
+            color: #7c3aed;
+        }
+
+        /* ===== NOUVEAU SYSTÈME DE CLASSEMENT DES MOTIVATIONS ===== */
+        .motivation-ranking-container {
+            background: var(--surface-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-lg) 0;
+            border: 2px solid var(--border-color);
+        }
+
+        .ranking-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .ranking-counter {
+            background: var(--nexten-gradient);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-base);
+            font-weight: 600;
+            font-size: 0.875rem;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .ranking-instructions {
+            background: rgba(124, 58, 237, 0.05);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: var(--radius-base);
+            padding: var(--spacing-base);
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+        }
+
+        .ranking-instructions i {
+            color: var(--nexten-primary);
+            margin-top: 2px;
+        }
+
+        .motivation-card {
+            background: var(--surface-elevated);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--spacing-base);
+        }
+
+        .motivation-card:hover {
+            border-color: var(--nexten-primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .motivation-card.selected {
+            border-color: var(--nexten-primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .motivation-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--surface-tertiary);
+        }
+
+        .motivation-card.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .card-content {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-base);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            background: var(--nexten-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .card-text {
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 0.875rem;
+        }
+
+        .ranking-badge {
+            position: absolute;
+            top: var(--spacing-sm);
+            right: var(--spacing-sm);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--nexten-gradient);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            box-shadow: var(--shadow-base);
+            z-index: 2;
+        }
+
+        .motivation-card.selected .ranking-badge {
+            display: flex;
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .ranking-badge.rank-1 {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+
+        .ranking-badge.rank-2 {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+        }
+
+        .ranking-badge.rank-3 {
+            background: linear-gradient(135deg, #cd7f32, #b45309);
+        }
+
+        /* Champ "Autre" */
+        .autre-motivation-field {
+            margin-top: var(--spacing-base);
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all var(--transition-base);
+        }
+
+        .autre-motivation-field.active {
+            opacity: 1;
+            max-height: 120px;
+        }
+
+        .autre-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: var(--spacing-sm);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-base);
+            font-family: inherit;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            resize: vertical;
+            transition: all var(--transition-base);
+        }
+
+        .autre-textarea:focus {
+            outline: none;
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .autre-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Résumé des choix */
+        .motivation-summary {
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-base);
+            padding: var(--spacing-base);
+            margin-top: var(--spacing-lg);
+            display: none;
+        }
+
+        .motivation-summary.active {
+            display: block;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            color: var(--nexten-accent);
+            margin-bottom: var(--spacing-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .summary-list {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .summary-rank {
+            background: var(--nexten-primary);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* === 🆕 STYLES POUR LA NOUVELLE SECTION SECTEURS === */
+        .modern-dropdown-container {
+            background: var(--surface-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-lg) 0;
+            border: 2px solid var(--border-color);
+            transition: var(--transition-base);
+        }
+
+        .modern-dropdown-container:hover {
+            border-color: var(--nexten-primary-light);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+        }
+
+        .dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .dropdown-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-lg);
+            background: var(--nexten-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .dropdown-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .selection-counter {
+            background: var(--nexten-gradient);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-base);
+            font-weight: 600;
+            font-size: 0.875rem;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .dropdown-search-container {
+            position: relative;
+            margin-bottom: var(--spacing-base);
+        }
+
+        .dropdown-search {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) 40px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: var(--surface-primary);
+            transition: var(--transition-base);
+        }
+
+        .dropdown-search:focus {
+            outline: none;
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .dropdown-search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .dropdown-options {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-base);
+            background: var(--surface-primary);
+        }
+
+        .dropdown-option {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-base);
+            padding: var(--spacing-base);
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition-base);
+        }
+
+        .dropdown-option:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-option:hover {
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .dropdown-option.selected {
+            background: rgba(124, 58, 237, 0.1);
+            border-left: 4px solid var(--nexten-primary);
+        }
+
+        .option-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-base);
+            flex-shrink: 0;
+        }
+
+        .dropdown-option.selected .option-checkbox {
+            background: var(--nexten-gradient);
+            border-color: var(--nexten-primary);
+            color: white;
+        }
+
+        .option-content {
+            flex: 1;
+        }
+
+        .option-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .option-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .option-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-base);
+            background: var(--nexten-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        /* === SELECTED TAGS === */
+        .selected-sectors-container {
+            margin-top: var(--spacing-base);
+            padding: var(--spacing-base);
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-base);
+            display: none;
+        }
+
+        .selected-sectors-container.active {
+            display: block;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .selected-sectors-title {
+            font-weight: 600;
+            color: var(--nexten-accent);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
+        .sector-tag {
+            background: var(--nexten-gradient);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-base);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            animation: scaleIn 0.2s ease-out;
+        }
+
+        .sector-tag .remove-tag {
+            cursor: pointer;
+            opacity: 0.8;
+            transition: var(--transition-base);
+        }
+
+        .sector-tag .remove-tag:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* === SECTEURS RÉDHIBITOIRES === */
+        .redhibitoires-container {
+            background: #fff5f5;
+            border: 2px solid #fed7d7;
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-xl) 0;
+        }
+
+        .redhibitoires-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .redhibitoires-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .redhibitoires-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #7f1d1d;
+            flex: 1;
+        }
+
+        .redhibitoires-counter {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-base);
+            font-weight: 600;
+            font-size: 0.875rem;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .redhibitoires-instructions {
+            background: rgba(220, 38, 38, 0.05);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            border-radius: var(--radius-base);
+            padding: var(--spacing-base);
+            margin-bottom: var(--spacing-lg);
+            color: #7f1d1d;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+        }
+
+        .conflict-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: var(--spacing-base);
+            border-radius: var(--radius-base);
+            margin-top: var(--spacing-base);
+            display: none;
+            align-items: center;
+            gap: var(--spacing-sm);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .conflict-warning.active {
+            display: flex;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 🔧 FIX: Styles pour éviter les conflits d'événements */
+        .travel-time-field {
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .travel-time-input {
+            transition: all 0.2s ease;
+        }
+        
+        .travel-time-input:focus {
+            transform: scale(1.02);
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateX(-50%) translateY(5px); }
+            20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .dropdown-header,
+            .redhibitoires-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-base);
+            }
+            
+            .selection-counter,
+            .redhibitoires-counter {
+                min-width: auto;
+            }
+        }
+
+        /* ===== 🆕 STYLES FOURCHETTE SALARIALE MODERNE ===== */
+        .salary-range-container {
+            background: var(--surface-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-lg) 0;
+            border: 2px solid var(--border-color);
+            transition: all var(--transition-base);
+        }
+
+        .salary-range-container:hover {
+            border-color: var(--nexten-primary-light);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+        }
+
+        .salary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+            gap: var(--spacing-base);
+        }
+
+        .salary-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .salary-title i {
+            color: var(--nexten-primary);
+        }
+
+        .salary-display {
+            background: var(--nexten-gradient);
+            color: white;
+            padding: var(--spacing-sm) var(--spacing-base);
+            border-radius: var(--radius-base);
+            font-weight: 700;
+            font-size: 1.125rem;
+            min-width: 160px;
+            text-align: center;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-base);
+        }
+
+        .salary-inputs-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .salary-input-group {
+            background: var(--surface-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-base);
+            transition: all var(--transition-base);
+        }
+
+        .salary-input-group:hover {
+            border-color: var(--nexten-primary-light);
+        }
+
+        .salary-input-group.focused {
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .salary-input-group.error {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .salary-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .salary-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .salary-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: transparent;
+            text-align: center;
+        }
+
+        .salary-input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .salary-unit {
+            font-weight: 600;
+            color: var(--nexten-primary);
+            font-size: 1rem;
+        }
+
+        .salary-sliders {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-base);
+        }
+
+        .salary-slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .salary-slider-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .salary-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: var(--radius-base);
+            background: var(--border-color);
+            outline: none;
+            -webkit-appearance: none;
+            transition: all var(--transition-base);
+        }
+
+        .salary-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--nexten-gradient);
+            cursor: pointer;
+            box-shadow: var(--shadow-base);
+            transition: all var(--transition-base);
+        }
+
+        .salary-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 6px rgba(124, 58, 237, 0.2);
+        }
+
+        .salary-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--nexten-gradient);
+            cursor: pointer;
+            border: none;
+            box-shadow: var(--shadow-base);
+        }
+
+        .salary-range-track {
+            position: relative;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: var(--radius-base);
+            margin: var(--spacing-base) 0;
+        }
+
+        .salary-range-fill {
+            position: absolute;
+            height: 100%;
+            background: var(--nexten-gradient);
+            border-radius: var(--radius-base);
+            transition: all var(--transition-base);
+        }
+
+        .salary-validation-message {
+            display: none;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: var(--spacing-sm) var(--spacing-base);
+            border-radius: var(--radius-base);
+            margin-top: var(--spacing-base);
+            font-size: 0.875rem;
+            font-weight: 500;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .salary-validation-message.active {
+            display: flex;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .salary-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-base);
+        }
+
+        .salary-suggestion {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--nexten-primary);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-base);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+        }
+
+        .salary-suggestion:hover {
+            background: var(--nexten-primary);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* === RESPONSIVE POUR FOURCHETTE SALARIALE === */
+        @media (max-width: 768px) {
+            .salary-inputs-container,
+            .salary-sliders {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-base);
+            }
+
+            .salary-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .salary-display {
+                align-self: center;
+                min-width: auto;
+            }
+        }
+
+        /* ===== 🚀 NOUVEAUX STYLES ÉTAPE 4 - DISPONIBILITÉ & SITUATION ===== */
+        .step4-container {
+            background: var(--surface-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-lg) 0;
+            border: 2px solid var(--border-color);
+            transition: all var(--transition-base);
+        }
+
+        .step4-container:hover {
+            border-color: var(--nexten-primary-light);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+        }
+
+        .step4-question {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .step4-question-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .step4-question-title i {
+            color: var(--nexten-primary);
+        }
+
+        .step4-options {
+            display: grid;
+            gap: var(--spacing-base);
+        }
+
+        .step4-option {
+            background: var(--surface-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+        }
+
+        .step4-option:hover {
+            border-color: var(--nexten-primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .step4-option.selected {
+            border-color: var(--nexten-primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .step4-option-content {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-base);
+        }
+
+        .step4-option-radio {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-base);
+            flex-shrink: 0;
+        }
+
+        .step4-option.selected .step4-option-radio {
+            border-color: var(--nexten-primary);
+            background: var(--nexten-primary);
+        }
+
+        .step4-option.selected .step4-option-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .step4-option-text {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Questions conditionnelles */
+        .conditional-section {
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-lg);
+            background: rgba(124, 58, 237, 0.05);
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            border-radius: var(--radius-lg);
+            display: none;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .conditional-section.active {
+            display: block;
+        }
+
+        .conditional-section-title {
+            font-weight: 600;
+            color: var(--nexten-primary);
+            margin-bottom: var(--spacing-base);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .step4-input-group {
+            margin-bottom: var(--spacing-base);
+        }
+
+        .step4-input-label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .step4-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: var(--surface-primary);
+            transition: all var(--transition-base);
+        }
+
+        .step4-input:focus {
+            outline: none;
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .step4-checkbox-group {
+            display: grid;
+            gap: var(--spacing-sm);
+        }
+
+        .step4-checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background: var(--surface-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .step4-checkbox-option:hover {
+            border-color: var(--nexten-primary-light);
+            background: rgba(124, 58, 237, 0.02);
+        }
+
+        .step4-checkbox-option.selected {
+            border-color: var(--nexten-primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .step4-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-base);
+            flex-shrink: 0;
+        }
+
+        .step4-checkbox-option.selected .step4-checkbox {
+            border-color: var(--nexten-primary);
+            background: var(--nexten-primary);
+            color: white;
+        }
+
+        .step4-checkbox i {
+            font-size: 0.75rem;
+            display: none;
+        }
+
+        .step4-checkbox-option.selected .step4-checkbox i {
+            display: block;
+        }
+
+        .step4-checkbox-text {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Salary range input */
+        .salary-range-input {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            background: var(--surface-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-base);
+            padding: var(--spacing-sm);
+            transition: all var(--transition-base);
+        }
+
+        .salary-range-input:focus-within {
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .salary-input-small {
+            width: 60px;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: transparent;
+        }
+
+        .salary-separator {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .salary-unit-small {
+            color: var(--nexten-primary);
+            font-weight: 600;
+        }
+
+        /* Animation styles */
+        @keyframes slideInFromLeft {
+            0% { 
+                opacity: 0; 
+                transform: translateX(-20px); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+
+        .step4-option {
+            animation: slideInFromLeft 0.3s ease-out;
+        }
+
+        .step4-option:nth-child(1) { animation-delay: 0.1s; }
+        .step4-option:nth-child(2) { animation-delay: 0.2s; }
+        .step4-option:nth-child(3) { animation-delay: 0.3s; }
+        .step4-option:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .step4-container {
+                padding: var(--spacing-lg);
+                margin: var(--spacing-base) 0;
+            }
+
+            .step4-question-title {
+                font-size: 1.125rem;
+            }
+
+            .step4-option {
+                padding: var(--spacing-base);
+            }
+
+            .conditional-section {
+                padding: var(--spacing-base);
+            }
+
+            .salary-range-input {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
     
     <!-- Styles du système NEXTEN V2.0 -->
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-v2-hybrid.css">
@@ -264,6 +1551,54 @@
                                     À pied
                                 </label>
                             </div>
+                            
+                            <!-- ✨ NOUVEAU: Conteneur pour les champs de temps de trajet -->
+                            <div class="travel-time-container" id="travel-time-container">
+                                <div class="travel-time-header">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Temps de trajet acceptables</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-public-transport" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-bus"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet en transports en commun :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-public-transport" 
+                                           min="1" max="180" step="1" placeholder="30">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-vehicle" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet en véhicule personnel :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-vehicle" 
+                                           min="1" max="120" step="1" placeholder="25">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-bike" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-bicycle"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet à vélo :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-bike" 
+                                           min="1" max="90" step="1" placeholder="20">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-walking" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-walking"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet à pied :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-walking" 
+                                           min="1" max="60" step="1" placeholder="15">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -276,9 +1611,141 @@
                             </div>
                             <small class="text-muted">Nous utiliserons cette adresse pour calculer le temps de trajet vers les entreprises</small>
                         </div>
+
+                        <!-- Système de contrats NEXTEN V2.0 -->
+                        <div class="form-group">
+                            <div class="contract-ultra-container">
+                                <div class="contract-ultra-header">
+                                    <div class="contract-ultra-icon">
+                                        <i class="fas fa-file-contract"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="contract-ultra-title">5) Quel(s) type(s) de contrat recherchez-vous ?</h3>
+                                        <p class="contract-ultra-subtitle">
+                                            Sélectionnez et classez par ordre de préférence les types de contrats qui vous intéressent
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="ranking-instructions">
+                                    <div class="instructions-icon">
+                                        <i class="fas fa-lightbulb"></i>
+                                    </div>
+                                    <div class="instructions-content">
+                                        <h4 class="instructions-title">Instructions :</h4>
+                                        <p class="instructions-text">
+                                            Cliquez sur "Ajouter" pour les types de contrats qui vous intéressent, puis utilisez les flèches pour les classer par ordre de préférence. 
+                                            <strong>Votre premier choix aura le plus d'impact</strong> sur vos recommandations d'emploi.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="contract-selection-grid">
+                                    <div class="available-contracts-section">
+                                        <div class="section-header">
+                                            <div class="section-icon">
+                                                <i class="fas fa-list"></i>
+                                            </div>
+                                            <h4 class="section-title">Types de contrats disponibles</h4>
+                                        </div>
+
+                                        <div class="contract-card" data-type="cdi" data-name="CDI">
+                                            <div class="contract-card-icon cdi">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </div>
+                                            <div class="contract-card-content">
+                                                <h5 class="contract-card-name">CDI (Contrat à Durée Indéterminée)</h5>
+                                                <p class="contract-card-description">Stabilité et sécurité d'emploi, perspectives d'évolution de carrière à long terme</p>
+                                            </div>
+                                            <button type="button" class="add-contract-button" onclick="contractSystem.addToRanking('cdi')">
+                                                <i class="fas fa-plus"></i> Ajouter
+                                            </button>
+                                        </div>
+
+                                        <div class="contract-card" data-type="cdd" data-name="CDD">
+                                            <div class="contract-card-icon cdd">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </div>
+                                            <div class="contract-card-content">
+                                                <h5 class="contract-card-name">CDD (Contrat à Durée Déterminée)</h5>
+                                                <p class="contract-card-description">Missions courtes, projets spécifiques, flexibilité et découverte</p>
+                                            </div>
+                                            <button type="button" class="add-contract-button" onclick="contractSystem.addToRanking('cdd')">
+                                                <i class="fas fa-plus"></i> Ajouter
+                                            </button>
+                                        </div>
+
+                                        <div class="contract-card" data-type="freelance" data-name="Freelance">
+                                            <div class="contract-card-icon freelance">
+                                                <i class="fas fa-laptop-code"></i>
+                                            </div>
+                                            <div class="contract-card-content">
+                                                <h5 class="contract-card-name">Freelance / Consulting</h5>
+                                                <p class="contract-card-description">Indépendance totale, choix des missions, tarifs libres et autonomie</p>
+                                            </div>
+                                            <button type="button" class="add-contract-button" onclick="contractSystem.addToRanking('freelance')">
+                                                <i class="fas fa-plus"></i> Ajouter
+                                            </button>
+                                        </div>
+
+                                        <div class="contract-card" data-type="interim" data-name="Intérim">
+                                            <div class="contract-card-icon interim">
+                                                <i class="fas fa-users-cog"></i>
+                                            </div>
+                                            <div class="contract-card-content">
+                                                <h5 class="contract-card-name">Intérim</h5>
+                                                <p class="contract-card-description">Missions temporaires, découverte d'entreprises, polyvalence et expérience</p>
+                                            </div>
+                                            <button type="button" class="add-contract-button" onclick="contractSystem.addToRanking('interim')">
+                                                <i class="fas fa-plus"></i> Ajouter
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="ranking-section">
+                                        <div class="section-header">
+                                            <div class="section-icon">
+                                                <i class="fas fa-trophy"></i>
+                                            </div>
+                                            <h4 class="section-title">Votre classement de préférence</h4>
+                                        </div>
+                                        <div id="ranking-list">
+                                            <div class="ranking-empty">
+                                                <div class="ranking-empty-icon">
+                                                    <i class="fas fa-hand-pointer"></i>
+                                                </div>
+                                                <h5 class="ranking-empty-title">Commencez votre sélection</h5>
+                                                <p class="ranking-empty-text">
+                                                    Ajoutez les types de contrats qui vous intéressent pour créer votre classement personnalisé
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="contract-ultra-summary" id="contract-summary">
+                                    <div class="summary-header">
+                                        <div class="summary-icon">
+                                            <i class="fas fa-clipboard-check"></i>
+                                        </div>
+                                        <h4 class="summary-title">Résumé de vos préférences contractuelles</h4>
+                                    </div>
+                                    <div class="summary-content" id="summary-content">
+                                        <!-- Contenu généré dynamiquement -->
+                                    </div>
+                                </div>
+
+                                <!-- Champs cachés pour l'intégration -->
+                                <input type="hidden" id="contract-ranking-order" name="contract-ranking-order">
+                                <input type="hidden" id="contract-selection-mode" name="contract-selection-mode" value="ranking">
+                                <input type="hidden" id="contract-types-selected" name="contract-types-selected">
+                                <input type="hidden" id="contract-preference-level" name="contract-preference-level">
+                                <input type="hidden" id="contract-primary-choice" name="contract-primary-choice">
+                            </div>
+                        </div>
                         
                         <div class="form-group">
-                            <label for="office-preference" class="form-label required">5) Préférez-vous un environnement :</label>
+                            <label for="office-preference" class="form-label required">6) Préférez-vous un environnement :</label>
                             <div class="radio-group">
                                 <label class="radio-option">
                                     <input type="radio" name="office-preference" value="open-space" required>
@@ -310,7 +1777,7 @@
                         </div>
                     </div>
                     
-                    <!-- ÉTAPE 3 : MOTIVATIONS PROFESSIONNELLES -->
+                    <!-- ✨ ÉTAPE 3 : MOTIVATIONS PROFESSIONNELLES AVEC SYSTÈME DE CLASSEMENT + SECTEURS MODERNES -->
                     <div class="form-step nexten-v3-modern" id="form-step3">
                         <h2 class="form-section-title">🎯 Vos Motivations Professionnelles</h2>
                         <p class="step-description">
@@ -340,7 +1807,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Options de Motivations -->
+                                <!-- Nouvelles Options de Motivations -->
                                 <div class="motivation-card" data-motivation="evolution" tabindex="0">
                                     <div class="card-content">
                                         <div class="card-icon">
@@ -401,6 +1868,21 @@
                                     <div class="ranking-badge" data-rank="4">4</div>
                                 </div>
 
+                                <!-- Champ libre pour "Autre" -->
+                                <div class="autre-motivation-field" id="autre-field">
+                                    <label for="autre-motivation-text" style="font-weight: 500; color: #374151; margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-edit"></i> Précisez votre autre motivation :
+                                    </label>
+                                    <textarea 
+                                        id="autre-motivation-text" 
+                                        name="autre-motivation-text"
+                                        class="autre-textarea"
+                                        placeholder="Décrivez ce qui vous motive professionnellement (ex: innovation, impact social, créativité, reconnaissance, défis techniques...)"
+                                        maxlength="200"
+                                    ></textarea>
+                                    <small style="color: #6b7280; font-size: 0.75rem;">Maximum 200 caractères</small>
+                                </div>
+
                                 <!-- Résumé des choix -->
                                 <div class="motivation-summary" id="motivation-summary">
                                     <div class="summary-title">
@@ -412,6 +1894,192 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- ✨🆕 NOUVELLE SECTION SECTEURS MODERNE - LISTE DÉROULANTE + RÉDHIBITOIRES -->
+                        <div class="form-group">
+                            <!-- === LISTE DÉROULANTE SECTEURS === -->
+                            <div class="modern-dropdown-container">
+                                <div class="dropdown-header">
+                                    <div class="dropdown-icon">
+                                        <i class="fas fa-industry"></i>
+                                    </div>
+                                    <div class="dropdown-title">Secteurs d'activité qui vous passionnent</div>
+                                    <div class="selection-counter" id="secteurs-counter">0 sélectionnés</div>
+                                </div>
+
+                                <div class="dropdown-search-container">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search" id="secteurs-search" 
+                                           placeholder="Rechercher un secteur d'activité...">
+                                </div>
+
+                                <div class="dropdown-options" id="secteurs-options">
+                                    <!-- Options générées dynamiquement par JavaScript -->
+                                </div>
+
+                                <div class="selected-sectors-container" id="secteurs-selected">
+                                    <div class="selected-sectors-title">
+                                        <i class="fas fa-check-circle"></i>
+                                        Secteurs sélectionnés
+                                    </div>
+                                    <div class="selected-tags" id="secteurs-tags">
+                                        <!-- Tags générés dynamiquement -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- === SECTEURS RÉDHIBITOIRES === -->
+                            <div class="redhibitoires-container">
+                                <div class="redhibitoires-header">
+                                    <div class="redhibitoires-icon">
+                                        <i class="fas fa-ban"></i>
+                                    </div>
+                                    <div class="redhibitoires-title">Avez-vous des secteurs d'activité rédhibitoires ?</div>
+                                    <div class="redhibitoires-counter" id="redhibitoires-counter">0 exclus</div>
+                                </div>
+
+                                <div class="redhibitoires-instructions">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <strong>Optionnel :</strong> Sélectionnez les secteurs dans lesquels vous ne souhaitez 
+                                        absolument pas travailler. Ces secteurs seront exclus de vos recommandations d'emploi.
+                                    </div>
+                                </div>
+
+                                <div class="dropdown-search-container">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search" id="redhibitoires-search" 
+                                           placeholder="Rechercher un secteur à exclure...">
+                                </div>
+
+                                <div class="dropdown-options" id="redhibitoires-options">
+                                    <!-- Options générées dynamiquement par JavaScript -->
+                                </div>
+
+                                <div class="selected-sectors-container" id="redhibitoires-selected">
+                                    <div class="selected-sectors-title" style="color: #dc2626;">
+                                        <i class="fas fa-times-circle"></i>
+                                        Secteurs exclus
+                                    </div>
+                                    <div class="selected-tags" id="redhibitoires-tags">
+                                        <!-- Tags générés dynamiquement -->
+                                    </div>
+                                </div>
+
+                                <div class="conflict-warning" id="conflict-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <strong>Conflit détecté :</strong> Vous avez sélectionné des secteurs à la fois comme passionnants et rédhibitoires. Veuillez corriger cette incohérence.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ✨🆕 NOUVELLE SECTION FOURCHETTE SALARIALE MODERNE -->
+                        <div class="form-group">
+                            <div class="salary-range-container">
+                                <div class="salary-header">
+                                    <div class="salary-title">
+                                        <i class="fas fa-euro-sign"></i>
+                                        Fourchette salariale souhaitée (brut annuel)
+                                    </div>
+                                    <div class="salary-display" id="salary-display">
+                                        Entre 40K et 45K €
+                                    </div>
+                                </div>
+                                
+                                <div class="salary-inputs-container">
+                                    <div class="salary-input-group" id="salary-min-group">
+                                        <label class="salary-label" for="salary-min">
+                                            <i class="fas fa-arrow-down"></i> Salaire minimum souhaité
+                                        </label>
+                                        <div class="salary-input-wrapper">
+                                            <input type="number" 
+                                                   class="salary-input" 
+                                                   id="salary-min" 
+                                                   name="salary-min"
+                                                   min="20" 
+                                                   max="200" 
+                                                   step="1" 
+                                                   value="40"
+                                                   placeholder="40">
+                                            <span class="salary-unit">K €</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="salary-input-group" id="salary-max-group">
+                                        <label class="salary-label" for="salary-max">
+                                            <i class="fas fa-arrow-up"></i> Salaire maximum souhaité
+                                        </label>
+                                        <div class="salary-input-wrapper">
+                                            <input type="number" 
+                                                   class="salary-input" 
+                                                   id="salary-max" 
+                                                   name="salary-max"
+                                                   min="20" 
+                                                   max="200" 
+                                                   step="1" 
+                                                   value="45"
+                                                   placeholder="45">
+                                            <span class="salary-unit">K €</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="salary-sliders">
+                                    <div class="salary-slider-group">
+                                        <div class="salary-slider-label">Minimum</div>
+                                        <input type="range" 
+                                               class="salary-slider" 
+                                               id="salary-slider-min"
+                                               min="20" 
+                                               max="200" 
+                                               step="1" 
+                                               value="40">
+                                    </div>
+                                    <div class="salary-slider-group">
+                                        <div class="salary-slider-label">Maximum</div>
+                                        <input type="range" 
+                                               class="salary-slider" 
+                                               id="salary-slider-max"
+                                               min="20" 
+                                               max="200" 
+                                               step="1" 
+                                               value="45">
+                                    </div>
+                                </div>
+
+                                <div class="salary-validation-message" id="salary-validation">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>Le salaire maximum doit être supérieur au salaire minimum</span>
+                                </div>
+
+                                <div class="salary-suggestions">
+                                    <div class="salary-suggestion" data-min="25" data-max="35">25-35K</div>
+                                    <div class="salary-suggestion" data-min="35" data-max="45">35-45K</div>
+                                    <div class="salary-suggestion" data-min="45" data-max="55">45-55K</div>
+                                    <div class="salary-suggestion" data-min="55" data-max="70">55-70K</div>
+                                    <div class="salary-suggestion" data-min="70" data-max="90">70-90K</div>
+                                    <div class="salary-suggestion" data-min="90" data-max="120">90-120K</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Textarea Aspirations (inchangée) -->
+                        <div class="form-group">
+                            <label class="modern-label" for="aspirations">
+                                <span class="label-icon">
+                                    <i class="fas fa-star"></i>
+                                    Partagez vos aspirations professionnelles
+                                </span>
+                            </label>
+                            <textarea 
+                                class="modern-textarea" 
+                                id="aspirations" 
+                                name="aspirations" 
+                                placeholder="Décrivez vos objectifs de carrière, vos projets, ce qui vous anime dans votre métier, vos rêves professionnels..."
+                            ></textarea>
                         </div>
 
                         <!-- Boutons d'Action -->
@@ -429,9 +2097,14 @@
                         <!-- Champs cachés pour intégration -->
                         <input type="hidden" id="hidden-motivations" name="motivations">
                         <input type="hidden" id="hidden-motivations-ranking" name="motivations-ranking">
+                        <input type="hidden" id="hidden-secteurs" name="secteurs">
+                        <input type="hidden" id="hidden-secteurs-redhibitoires" name="secteurs-redhibitoires">
+                        <input type="hidden" id="hidden-salary-min" name="salary-min-hidden">
+                        <input type="hidden" id="hidden-salary-max" name="salary-max-hidden">
+                        <input type="hidden" id="hidden-salary-range" name="salary-range">
                     </div>
                     
-                    <!-- ÉTAPE 4 : DISPONIBILITÉ & SITUATION -->
+                    <!-- ===== 🚀 ÉTAPE 4 COMPLÈTEMENT RECONSTRUITE : DISPONIBILITÉ & SITUATION ===== -->
                     <div class="form-step nexten-v3-modern" id="form-step4">
                         <h2 class="form-section-title">🚀 Disponibilité & Situation</h2>
                         <p class="step-description">
@@ -501,6 +2174,177 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Section conditionnelle pour "OUI" -->
+                                <div class="conditional-section" id="employment-yes-section">
+                                    <div class="conditional-section-title">
+                                        <i class="fas fa-arrow-right"></i>
+                                        Questions complémentaires pour les personnes en poste
+                                    </div>
+                                    
+                                    <!-- Salaire actuel -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label" for="current-salary">
+                                            Votre salaire actuel (fourchette) :
+                                        </label>
+                                        <div class="salary-range-input">
+                                            <input type="number" class="salary-input-small" id="current-salary-min" name="current-salary-min" placeholder="40" min="20" max="200">
+                                            <span class="salary-separator">K -</span>
+                                            <input type="number" class="salary-input-small" id="current-salary-max" name="current-salary-max" placeholder="45" min="20" max="200">
+                                            <span class="salary-unit-small">K €</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Pourquoi à l'écoute -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label">
+                                            Pourquoi êtes-vous de nouveau à l'écoute ? (plusieurs choix possibles)
+                                        </label>
+                                        <div class="step4-checkbox-group" id="listening-reasons">
+                                            <div class="step4-checkbox-option" data-value="evolution">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Manque de perspectives d'évolution</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="remuneration">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Rémunération trop faible</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="distance">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Poste trop loin de mon domicile</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="flexibilite">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Manque de flexibilité (pas de TT, RTT)</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="relationnel">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Relations interpersonnelles difficiles</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="ambiance">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Ambiance de travail dégradée</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="management">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Management dysfonctionnel</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="autre-raison">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Autre raison</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section conditionnelle pour "NON" -->
+                                <div class="conditional-section" id="employment-no-section">
+                                    <div class="conditional-section-title">
+                                        <i class="fas fa-arrow-right"></i>
+                                        Questions complémentaires pour les personnes sans emploi
+                                    </div>
+                                    
+                                    <!-- Durée de recherche -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label" for="job-search-duration">
+                                            Depuis quand recherchez-vous un emploi ?
+                                        </label>
+                                        <select class="step4-input" id="job-search-duration" name="job-search-duration">
+                                            <option value="">Sélectionnez une durée</option>
+                                            <option value="moins-1-mois">Moins d'1 mois</option>
+                                            <option value="1-3-mois">1 à 3 mois</option>
+                                            <option value="3-6-mois">3 à 6 mois</option>
+                                            <option value="6-12-mois">6 à 12 mois</option>
+                                            <option value="plus-12-mois">Plus de 12 mois</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Situation actuelle -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label">
+                                            Quelle est votre situation actuelle ? (plusieurs choix possibles)
+                                        </label>
+                                        <div class="step4-checkbox-group" id="current-situation">
+                                            <div class="step4-checkbox-option" data-value="demandeur-emploi">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Demandeur d'emploi</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="formation">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">En formation</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="etudiant">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Étudiant</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="freelance">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Freelance/indépendant</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="pause-carriere">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Pause dans ma carrière</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="autre-situation">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Autre situation</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dernière question : Prétentions salariales -->
+                        <div class="step4-container">
+                            <div class="step4-question">
+                                <h3 class="step4-question-title">
+                                    <i class="fas fa-euro-sign"></i>
+                                    3) Confirmez vos prétentions salariales
+                                </h3>
+                                
+                                <div class="step4-input-group">
+                                    <label class="step4-input-label">
+                                        Fourchette salariale souhaitée (brut annuel) :
+                                    </label>
+                                    <div class="salary-range-input">
+                                        <input type="number" class="salary-input-small" id="final-salary-min" name="final-salary-min" placeholder="40" min="20" max="200">
+                                        <span class="salary-separator">K -</span>
+                                        <input type="number" class="salary-input-small" id="final-salary-max" name="final-salary-max" placeholder="45" min="20" max="200">
+                                        <span class="salary-unit-small">K €</span>
+                                    </div>
+                                    <small style="color: #6b7280; margin-top: 8px; display: block;">
+                                        Cette information sera automatiquement remplie à partir de l'étape 3 si vous l'avez complétée
+                                    </small>
+                                </div>
                             </div>
                         </div>
 
@@ -510,11 +2354,18 @@
                                 <i class="fas fa-arrow-left"></i>
                                 <span>Retour</span>
                             </button>
-                            <button type="button" class="modern-btn btn-success" id="submit-questionnaire">
+                            <button type="submit" class="modern-btn btn-success" id="submit-questionnaire">
                                 <span>Terminer le questionnaire</span>
                                 <i class="fas fa-check"></i>
                             </button>
                         </div>
+
+                        <!-- Champs cachés pour intégration -->
+                        <input type="hidden" id="hidden-timing" name="timing">
+                        <input type="hidden" id="hidden-employment-status" name="employment-status">
+                        <input type="hidden" id="hidden-listening-reasons" name="listening-reasons">
+                        <input type="hidden" id="hidden-current-situation" name="current-situation">
+                        <input type="hidden" id="hidden-final-salary" name="final-salary">
                     </div>
                 </form>
             </div>
@@ -543,5 +2394,41 @@
             </div>
         </div>
     </footer>
+
+    <!-- Script d'initialisation global (à la fin du body) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Questionnaire candidat initialisé');
+            
+            // Force la redirection vers URL canonique si nécessaire
+            if (window.location.search && !window.location.search.includes('from=parsing')) {
+                const canonicalUrl = 'candidate-questionnaire.html?from=parsing&t=1751384534850&cv_data=available';
+                if (window.location.href !== window.location.origin + '/' + canonicalUrl) {
+                    console.log('🔄 Redirection vers URL canonique...');
+                    window.location.href = canonicalUrl;
+                    return;
+                }
+            }
+            
+            // Initialisation des systèmes de correction
+            setTimeout(() => {
+                if (window.motivationSystem) {
+                    console.log('✅ Système motivations détecté et initialisé');
+                }
+                if (window.sectorsSystem) {
+                    console.log('✅ Système secteurs détecté et initialisé');  
+                }
+                if (window.salarySystem) {
+                    console.log('✅ Système salaire détecté et initialisé');
+                }
+                if (window.contractSystem) {
+                    console.log('✅ Système contrats détecté et initialisé');
+                }
+                if (window.step4System) {
+                    console.log('✅ Système étape 4 détecté et initialisé');
+                }
+            }, 500);
+        });
+    </script>
 </body>
 </html>
