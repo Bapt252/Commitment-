@@ -40,6 +40,97 @@
     <!-- 🎯 CORRECTION CRITIQUE: Synchronisation motivations étape 3 → étape 4 -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/etape3-motivation-sync-fix.js"></script>
     
+    <!-- 🗺️ Google Maps API avec autocomplete fonctionnel -->
+    <script>
+        // Fonction setupAddressAutocomplete manquante - AJOUTÉE
+        function setupAddressAutocomplete() {
+            console.log('🚀 Initialisation autocomplete Google Maps...');
+            
+            const addressField = document.getElementById('address');
+            if (!addressField) {
+                console.warn('Champ adresse non trouvé');
+                return;
+            }
+
+            try {
+                // Créer l'autocomplete
+                const autocomplete = new google.maps.places.Autocomplete(addressField, {
+                    types: ['address'],
+                    componentRestrictions: { country: 'fr' },
+                    fields: ['formatted_address', 'geometry', 'place_id', 'address_components']
+                });
+
+                // Stocker la référence pour tests
+                addressField._autocomplete = autocomplete;
+
+                // Gérer la sélection d'une adresse
+                autocomplete.addListener('place_changed', function() {
+                    const place = autocomplete.getPlace();
+                    console.log('📍 Adresse sélectionnée:', place);
+
+                    if (place.geometry) {
+                        // Mettre à jour les champs cachés
+                        const latField = document.getElementById('address-lat');
+                        const lngField = document.getElementById('address-lng');
+                        const placeIdField = document.getElementById('address-place-id');
+
+                        if (latField) latField.value = place.geometry.location.lat();
+                        if (lngField) lngField.value = place.geometry.location.lng();
+                        if (placeIdField) placeIdField.value = place.place_id;
+
+                        // Ajouter classe de validation
+                        addressField.classList.add('address-validated');
+                        
+                        // Notification de succès
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Adresse validée avec succès', 'success');
+                        }
+
+                        console.log('✅ Coordonnées sauvegardées:', {
+                            lat: place.geometry.location.lat(),
+                            lng: place.geometry.location.lng(),
+                            placeId: place.place_id
+                        });
+                    }
+                });
+
+                // Gérer le focus
+                addressField.addEventListener('focus', function() {
+                    this.classList.add('focused');
+                });
+
+                addressField.addEventListener('blur', function() {
+                    this.classList.remove('focused');
+                });
+
+                console.log('✅ Autocomplete Google Maps configuré avec succès');
+
+            } catch (error) {
+                console.error('❌ Erreur configuration autocomplete:', error);
+            }
+        }
+
+        function initGoogleMaps() {
+            console.log('🗺️ Google Maps API initialisée');
+            
+            // Délai pour s'assurer que le DOM est prêt
+            setTimeout(() => {
+                if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+                    setupAddressAutocomplete();
+                } else {
+                    console.error('❌ Google Maps Places API non disponible');
+                }
+            }, 100);
+        }
+        
+        // Chargement automatique Google Maps
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initGoogleMaps';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    </script>
+    
     <!-- Styles du système NEXTEN V2.0 -->
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-v2-hybrid.css">
 </head>
@@ -176,7 +267,18 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="office-preference" class="form-label required">4) Préférez-vous un environnement :</label>
+                            <label for="address" class="form-label required">4) Adresse exacte</label>
+                            <input type="text" id="address" name="address" class="form-control" required placeholder="Votre adresse complète (obligatoire pour simuler les temps de trajet)">
+                            <div id="address-coords-container" style="display: none;">
+                                <input type="hidden" id="address-lat" name="address-lat">
+                                <input type="hidden" id="address-lng" name="address-lng">
+                                <input type="hidden" id="address-place-id" name="address-place-id">
+                            </div>
+                            <small class="text-muted">Nous utiliserons cette adresse pour calculer le temps de trajet vers les entreprises</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="office-preference" class="form-label required">5) Préférez-vous un environnement :</label>
                             <div class="radio-group">
                                 <label class="radio-option">
                                     <input type="radio" name="office-preference" value="open-space" required>
