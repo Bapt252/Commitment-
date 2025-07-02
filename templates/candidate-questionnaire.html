@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexten - Questionnaire Candidat</title>
     
-    <!-- CSS ----->
+    <!-- CSS ---->
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-modern-interactive.css">
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/candidate-analyzer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -127,3 +127,637 @@
         script.defer = true;
         document.head.appendChild(script);
     </script>
+</head>
+<body>
+    <!-- Notification bar -->
+    <div class="notification-bar">
+        Votre parcours vers une nouvelle opportunité commence ici : complétez votre questionnaire pour nous permettre de trouver le poste parfait pour vous
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="logo">
+                Nex<span>ten</span>
+            </div>
+            
+            <button class="menu-toggle" aria-label="Menu principal">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav>
+                <ul>
+                    <li><a href="https://bapt252.github.io/Commitment-/templates/index.html">Accueil</a></li>
+                    <li><a href="https://bapt252.github.io/Commitment-/#services">Services</a></li>
+                    <li><a href="https://bapt252.github.io/Commitment-/#about">À propos</a></li>
+                    <li><a href="https://bapt252.github.io/Commitment-/contact.html">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero" style="min-height: 35vh; padding-bottom: var(--spacing-xl);">
+        <div class="hero-particles">
+            <!-- Les particules seront ajoutées dynamiquement via JavaScript -->
+        </div>
+        
+        <div class="container">
+            <div class="hero-content">
+                <h1>Questionnaire Candidat</h1>
+                <p class="hero-subtitle">
+                    Merci de compléter ce questionnaire pour nous aider à mieux comprendre votre profil et vos attentes professionnelles.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mode CV Parsing - Bandeaux indicateurs -->
+    <div id="cv-parsing-indicators"></div>
+
+    <section>
+        <div class="container">
+            <div class="form-container">
+                <div class="stepper">
+                    <div class="stepper-line"></div>
+                    <div class="stepper-progress" id="stepper-progress"></div>
+                    
+                    <div class="step active" id="step1">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">Informations personnelles</div>
+                    </div>
+                    
+                    <div class="step" id="step2">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">Mobilité et préférences</div>
+                    </div>
+                    
+                    <div class="step" id="step3">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">Motivations et secteurs</div>
+                    </div>
+                    
+                    <div class="step" id="step4">
+                        <div class="step-circle">4</div>
+                        <div class="step-label">Disponibilité et situation</div>
+                    </div>
+                </div>
+                
+                <form id="questionnaire-form">
+                    <!-- ÉTAPE 1 : INFORMATIONS PERSONNELLES -->
+                    <div class="form-step active" id="form-step1">
+                        <h2 class="form-section-title">Informations personnelles</h2>
+                        
+                        <div class="form-group">
+                            <label for="full-name" class="form-label required">1) Nom Prénom</label>
+                            <input type="text" id="full-name" name="full-name" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="job-title" class="form-label required">2) Intitulé de poste souhaité</label>
+                            <input type="text" id="job-title" name="job-title" class="form-control" required>
+                            <small class="text-muted">Nous proposerons des intitulés intelligents en fonction de votre CV.</small>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-action btn-back" disabled>
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Retour</span>
+                            </button>
+                            <button type="button" class="btn-action btn-next" id="next-step1">
+                                <span>Suivant</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- ÉTAPE 2 : MOBILITÉ ET PRÉFÉRENCES -->
+                    <div class="form-step" id="form-step2">
+                        <h2 class="form-section-title">Mobilité et préférences</h2>
+                        
+                        <div class="form-group">
+                            <label class="form-label required">3) Comment vous déplacez-vous ? (plusieurs choix possibles)</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="transport-method" value="public-transport" data-transport="public-transport">
+                                    <span class="checkbox-checkmark"></span>
+                                    Transports en commun
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="transport-method" value="vehicle" data-transport="vehicle">
+                                    <span class="checkbox-checkmark"></span>
+                                    Véhicule personnel
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="transport-method" value="bike" data-transport="bike">
+                                    <span class="checkbox-checkmark"></span>
+                                    Vélo
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="transport-method" value="walking" data-transport="walking">
+                                    <span class="checkbox-checkmark"></span>
+                                    À pied
+                                </label>
+                            </div>
+                            
+                            <!-- ✨ NOUVEAU: Conteneur pour les champs de temps de trajet -->
+                            <div class="travel-time-container" id="travel-time-container">
+                                <div class="travel-time-header">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Temps de trajet acceptables</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-public-transport" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-bus"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet en transports en commun :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-public-transport" 
+                                           min="1" max="180" step="1" placeholder="30">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-vehicle" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet en véhicule personnel :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-vehicle" 
+                                           min="1" max="120" step="1" placeholder="25">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-bike" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-bicycle"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet à vélo :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-bike" 
+                                           min="1" max="90" step="1" placeholder="20">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-walking" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-walking"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet à pied :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-walking" 
+                                           min="1" max="60" step="1" placeholder="15">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address" class="form-label required">4) Adresse exacte</label>
+                            <input type="text" id="address" name="address" class="form-control" required placeholder="Votre adresse complète (obligatoire pour simuler les temps de trajet)">
+                            <div id="address-coords-container" style="display: none;">
+                                <input type="hidden" id="address-lat" name="address-lat">
+                                <input type="hidden" id="address-lng" name="address-lng">
+                                <input type="hidden" id="address-place-id" name="address-place-id">
+                            </div>
+                            <small class="text-muted">Nous utiliserons cette adresse pour calculer le temps de trajet vers les entreprises</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="office-preference" class="form-label required">5) Préférez-vous un environnement :</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="office-preference" value="open-space" required>
+                                    <span class="radio-checkmark"></span>
+                                    Open Space
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="office-preference" value="office">
+                                    <span class="radio-checkmark"></span>
+                                    Bureau
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="office-preference" value="no-preference">
+                                    <span class="radio-checkmark"></span>
+                                    Sans préférence
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-action btn-back" id="back-step1">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Retour</span>
+                            </button>
+                            <button type="button" class="btn-action btn-next" id="next-step2">
+                                <span>Suivant</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- ✨ ÉTAPE 3 : MOTIVATIONS PROFESSIONNELLES AVEC SYSTÈME DE CLASSEMENT + SECTEURS MODERNES -->
+                    <div class="form-step nexten-v3-modern" id="form-step3">
+                        <h2 class="form-section-title">🎯 Vos Motivations Professionnelles</h2>
+                        <p class="step-description">
+                            Sélectionnez et classez par ordre de priorité vos 3 principales motivations professionnelles pour des recommandations sur-mesure
+                        </p>
+
+                        <!-- Section Motivations avec Système de Classement -->
+                        <div class="form-group">
+                            <div class="motivation-ranking-container">
+                                <div class="ranking-header">
+                                    <label class="modern-label">
+                                        <span class="label-icon">
+                                            <i class="fas fa-heart"></i>
+                                            Classez vos 3 principales motivations professionnelles
+                                        </span>
+                                    </label>
+                                    <div class="ranking-counter" id="motivation-counter">
+                                        0 / 3 sélectionnées
+                                    </div>
+                                </div>
+                                
+                                <div class="ranking-instructions">
+                                    <i class="fas fa-info-circle"></i>
+                                    <div>
+                                        <strong>Instructions :</strong> Cliquez pour sélectionner jusqu'à 3 motivations. 
+                                        L'ordre de sélection détermine votre classement : 1er choix = priorité maximale.
+                                    </div>
+                                </div>
+
+                                <!-- Nouvelles Options de Motivations -->
+                                <div class="motivation-card" data-motivation="evolution" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Perspectives d'évolution</div>
+                                            <div class="card-description">
+                                                Progresser vers des postes à responsabilités, développer votre leadership et accéder à de nouvelles opportunités de carrière
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ranking-badge" data-rank="1">1</div>
+                                </div>
+
+                                <div class="motivation-card" data-motivation="salaire" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-euro-sign"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Augmentation salariale</div>
+                                            <div class="card-description">
+                                                Améliorer significativement votre rémunération, obtenir de meilleurs avantages et reconnaissance financière de vos compétences
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ranking-badge" data-rank="2">2</div>
+                                </div>
+
+                                <div class="motivation-card" data-motivation="flexibilite" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-balance-scale"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Flexibilité</div>
+                                            <div class="card-description">
+                                                Télétravail, horaires flexibles, équilibre vie pro/perso et liberté d'organisation de votre temps de travail
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ranking-badge" data-rank="3">3</div>
+                                </div>
+
+                                <div class="motivation-card" data-motivation="autre" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-plus-circle"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Autre</div>
+                                            <div class="card-description">
+                                                Une motivation spécifique qui vous anime et que vous souhaitez préciser
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ranking-badge" data-rank="4">4</div>
+                                </div>
+
+                                <!-- Champ libre pour "Autre" -->
+                                <div class="autre-motivation-field" id="autre-field">
+                                    <label for="autre-motivation-text" style="font-weight: 500; color: #374151; margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-edit"></i> Précisez votre autre motivation :
+                                    </label>
+                                    <textarea 
+                                        id="autre-motivation-text" 
+                                        name="autre-motivation-text"
+                                        class="autre-textarea"
+                                        placeholder="Décrivez ce qui vous motive professionnellement (ex: innovation, impact social, créativité, reconnaissance, défis techniques...)"
+                                        maxlength="200"
+                                    ></textarea>
+                                    <small style="color: #6b7280; font-size: 0.75rem;">Maximum 200 caractères</small>
+                                </div>
+
+                                <!-- Résumé des choix -->
+                                <div class="motivation-summary" id="motivation-summary">
+                                    <div class="summary-title">
+                                        <i class="fas fa-clipboard-check"></i>
+                                        Votre classement de motivations
+                                    </div>
+                                    <div class="summary-list" id="summary-list">
+                                        <!-- Contenu généré dynamiquement -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ✨🆕 NOUVELLE SECTION SECTEURS MODERNE - LISTE DÉROULANTE + RÉDHIBITOIRES -->
+                        <div class="form-group">
+                            <!-- === LISTE DÉROULANTE SECTEURS === -->
+                            <div class="modern-dropdown-container">
+                                <div class="dropdown-header">
+                                    <div class="dropdown-icon">
+                                        <i class="fas fa-industry"></i>
+                                    </div>
+                                    <div class="dropdown-title">Secteurs d'activité qui vous passionnent</div>
+                                    <div class="selection-counter" id="secteurs-counter">0 sélectionnés</div>
+                                </div>
+
+                                <div class="dropdown-search-container">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search" id="secteurs-search" 
+                                           placeholder="Rechercher un secteur d'activité...">
+                                </div>
+
+                                <div class="dropdown-options" id="secteurs-options">
+                                    <!-- Options générées dynamiquement par JavaScript -->
+                                </div>
+
+                                <div class="selected-sectors-container" id="secteurs-selected">
+                                    <div class="selected-sectors-title">
+                                        <i class="fas fa-check-circle"></i>
+                                        Secteurs sélectionnés
+                                    </div>
+                                    <div class="selected-tags" id="secteurs-tags">
+                                        <!-- Tags générés dynamiquement -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- === SECTEURS RÉDHIBITOIRES === -->
+                            <div class="redhibitoires-container">
+                                <div class="redhibitoires-header">
+                                    <div class="redhibitoires-icon">
+                                        <i class="fas fa-ban"></i>
+                                    </div>
+                                    <div class="redhibitoires-title">Avez-vous des secteurs d'activité rédhibitoires ?</div>
+                                    <div class="redhibitoires-counter" id="redhibitoires-counter">0 exclus</div>
+                                </div>
+
+                                <div class="redhibitoires-instructions">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <strong>Optionnel :</strong> Sélectionnez les secteurs dans lesquels vous ne souhaitez 
+                                        absolument pas travailler. Ces secteurs seront exclus de vos recommandations d'emploi.
+                                    </div>
+                                </div>
+
+                                <div class="dropdown-search-container">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search" id="redhibitoires-search" 
+                                           placeholder="Rechercher un secteur à exclure...">
+                                </div>
+
+                                <div class="dropdown-options" id="redhibitoires-options">
+                                    <!-- Options générées dynamiquement par JavaScript -->
+                                </div>
+
+                                <div class="selected-sectors-container" id="redhibitoires-selected">
+                                    <div class="selected-sectors-title" style="color: #dc2626;">
+                                        <i class="fas fa-times-circle"></i>
+                                        Secteurs exclus
+                                    </div>
+                                    <div class="selected-tags" id="redhibitoires-tags">
+                                        <!-- Tags générés dynamiquement -->
+                                    </div>
+                                </div>
+
+                                <div class="conflict-warning" id="conflict-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <strong>Conflit détecté :</strong> Vous avez sélectionné des secteurs à la fois comme passionnants et rédhibitoires. Veuillez corriger cette incohérence.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ✨🆕 NOUVELLE SECTION FOURCHETTE SALARIALE MODERNE -->
+                        <div class="form-group">
+                            <div class="salary-range-container">
+                                <div class="salary-header">
+                                    <div class="salary-title">
+                                        <i class="fas fa-euro-sign"></i>
+                                        Fourchette salariale souhaitée (brut annuel)
+                                    </div>
+                                    <div class="salary-display" id="salary-display">
+                                        Entre 40K et 45K €
+                                    </div>
+                                </div>
+                                
+                                <div class="salary-inputs-container">
+                                    <div class="salary-input-group" id="salary-min-group">
+                                        <label class="salary-label" for="salary-min">
+                                            <i class="fas fa-arrow-down"></i> Salaire minimum souhaité
+                                        </label>
+                                        <div class="salary-input-wrapper">
+                                            <input type="number" 
+                                                   class="salary-input" 
+                                                   id="salary-min" 
+                                                   name="salary-min"
+                                                   min="20" 
+                                                   max="200" 
+                                                   step="1" 
+                                                   value="40"
+                                                   placeholder="40">
+                                            <span class="salary-unit">K €</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="salary-input-group" id="salary-max-group">
+                                        <label class="salary-label" for="salary-max">
+                                            <i class="fas fa-arrow-up"></i> Salaire maximum souhaité
+                                        </label>
+                                        <div class="salary-input-wrapper">
+                                            <input type="number" 
+                                                   class="salary-input" 
+                                                   id="salary-max" 
+                                                   name="salary-max"
+                                                   min="20" 
+                                                   max="200" 
+                                                   step="1" 
+                                                   value="45"
+                                                   placeholder="45">
+                                            <span class="salary-unit">K €</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="salary-sliders">
+                                    <div class="salary-slider-group">
+                                        <div class="salary-slider-label">Minimum</div>
+                                        <input type="range" 
+                                               class="salary-slider" 
+                                               id="salary-slider-min"
+                                               min="20" 
+                                               max="200" 
+                                               step="1" 
+                                               value="40">
+                                    </div>
+                                    <div class="salary-slider-group">
+                                        <div class="salary-slider-label">Maximum</div>
+                                        <input type="range" 
+                                               class="salary-slider" 
+                                               id="salary-slider-max"
+                                               min="20" 
+                                               max="200" 
+                                               step="1" 
+                                               value="45">
+                                    </div>
+                                </div>
+
+                                <div class="salary-validation-message" id="salary-validation">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>Le salaire maximum doit être supérieur au salaire minimum</span>
+                                </div>
+
+                                <div class="salary-suggestions">
+                                    <div class="salary-suggestion" data-min="25" data-max="35">25-35K</div>
+                                    <div class="salary-suggestion" data-min="35" data-max="45">35-45K</div>
+                                    <div class="salary-suggestion" data-min="45" data-max="55">45-55K</div>
+                                    <div class="salary-suggestion" data-min="55" data-max="70">55-70K</div>
+                                    <div class="salary-suggestion" data-min="70" data-max="90">70-90K</div>
+                                    <div class="salary-suggestion" data-min="90" data-max="120">90-120K</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Textarea Aspirations (inchangée) -->
+                        <div class="form-group">
+                            <label class="modern-label" for="aspirations">
+                                <span class="label-icon">
+                                    <i class="fas fa-star"></i>
+                                    Partagez vos aspirations professionnelles
+                                </span>
+                            </label>
+                            <textarea 
+                                class="modern-textarea" 
+                                id="aspirations" 
+                                name="aspirations" 
+                                placeholder="Décrivez vos objectifs de carrière, vos projets, ce qui vous anime dans votre métier, vos rêves professionnels..."
+                            ></textarea>
+                        </div>
+
+                        <!-- Boutons d'Action -->
+                        <div class="modern-form-actions">
+                            <button type="button" class="modern-btn btn-secondary" id="back-step2">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Retour</span>
+                            </button>
+                            <button type="button" class="modern-btn btn-primary" id="next-step3">
+                                <span>Continuer</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- Champs cachés pour intégration -->
+                        <input type="hidden" id="hidden-motivations" name="motivations">
+                        <input type="hidden" id="hidden-motivations-ranking" name="motivations-ranking">
+                        <input type="hidden" id="hidden-secteurs" name="secteurs">
+                        <input type="hidden" id="hidden-secteurs-redhibitoires" name="secteurs-redhibitoires">
+                        <input type="hidden" id="hidden-salary-min" name="salary-min-hidden">
+                        <input type="hidden" id="hidden-salary-max" name="salary-max-hidden">
+                        <input type="hidden" id="hidden-salary-range" name="salary-range">
+                    </div>
+                    
+                    <!-- ÉTAPE 4 : DISPONIBILITÉ & SITUATION -->
+                    <div class="form-step nexten-v3-modern" id="form-step4">
+                        <h2 class="form-section-title">🚀 Disponibilité & Situation</h2>
+                        <p class="step-description">
+                            Dernière étape ! Précisez votre situation actuelle et vos attentes pour finaliser votre profil candidat
+                        </p>
+
+                        <div class="form-group">
+                            <label for="timing" class="form-label required">Quand souhaitez-vous commencer un nouveau poste ?</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="timing" value="immediat" required>
+                                    <span class="radio-checkmark"></span>
+                                    Immédiatement
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="timing" value="1mois">
+                                    <span class="radio-checkmark"></span>
+                                    Dans 1 mois
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="timing" value="2mois">
+                                    <span class="radio-checkmark"></span>
+                                    Dans 2 mois
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="timing" value="3mois">
+                                    <span class="radio-checkmark"></span>
+                                    Dans 3 mois ou plus
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="current-status" class="form-label required">Quelle est votre situation actuelle ?</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="current-status" value="employed" required>
+                                    <span class="radio-checkmark"></span>
+                                    En poste
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="current-status" value="unemployed">
+                                    <span class="radio-checkmark"></span>
+                                    En recherche active
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="current-status" value="student">
+                                    <span class="radio-checkmark"></span>
+                                    Étudiant
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="additional-comments" class="form-label">Commentaires additionnels (optionnel)</label>
+                            <textarea 
+                                id="additional-comments" 
+                                name="additional-comments" 
+                                class="form-control" 
+                                rows="4"
+                                placeholder="Partagez toute information supplémentaire qui pourrait nous aider à mieux comprendre votre profil..."
+                            ></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-action btn-back" id="back-step3">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Retour</span>
+                            </button>
+                            <button type="submit" class="btn-action btn-submit" id="submit-form">
+                                <span>Finaliser</span>
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
