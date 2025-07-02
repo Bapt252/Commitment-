@@ -1520,6 +1520,83 @@
 <!-- 🛡️ SYSTÈME DE SÉCURITÉ ANTI-ACCÈS NON AUTORISÉ -->
 <script src="js/security-monitor.js"></script>
 
+<!-- 🔧 FORCE URL CANONIQUE - SOLUTION ROBUSTE -->
+<script>
+// ========================================
+// FORCER URL CANONIQUE AVEC TIMESTAMP FIXE
+// Solution robuste pour tous paramètres
+// ========================================
+
+// ✅ TIMESTAMP CANONIQUE FIXE
+const CANONICAL_TIMESTAMP = 1751384534850;
+
+// 🔧 Fonction pour forcer l'URL canonique au questionnaire
+function forceCanonicalQuestionnaireURL() {
+    const canonicalURL = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
+    const canonicalParams = new URLSearchParams({
+        from: 'parsing',
+        t: CANONICAL_TIMESTAMP,
+        cv_data: 'available'
+    });
+    
+    return `${canonicalURL}?${canonicalParams.toString()}`;
+}
+
+// 🎯 NAVIGATION PRINCIPALE - TOUJOURS TIMESTAMP FIXE
+function navigateToQuestionnaire() {
+    console.log('🚀 Navigation vers questionnaire avec URL canonique');
+    console.log('📍 Timestamp fixe utilisé:', CANONICAL_TIMESTAMP);
+    
+    const canonicalURL = forceCanonicalQuestionnaireURL();
+    console.log('🔗 URL finale:', canonicalURL);
+    
+    window.location.href = canonicalURL;
+}
+
+// 🔄 REDIRECTION AVEC DONNÉES - TOUJOURS TIMESTAMP FIXE
+function navigateToQuestionnaireWithData(skipped = false) {
+    console.log('🚀 Navigation avec données vers questionnaire');
+    console.log('📍 Timestamp fixe utilisé:', CANONICAL_TIMESTAMP);
+    
+    const canonicalURL = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
+    const canonicalParams = new URLSearchParams({
+        from: 'parsing',
+        t: CANONICAL_TIMESTAMP,
+        cv_data: skipped ? 'skipped' : 'available'
+    });
+    
+    const finalURL = `${canonicalURL}?${canonicalParams.toString()}`;
+    console.log('🔗 URL finale:', finalURL);
+    
+    window.location.href = finalURL;
+}
+
+// 📋 VALIDATION AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Vérification URL canonique au chargement...');
+    
+    const currentParams = new URLSearchParams(window.location.search);
+    const hasNonStandardParams = currentParams.has('integration') || 
+                                  (currentParams.has('t') && currentParams.get('t') !== CANONICAL_TIMESTAMP.toString());
+    
+    if (hasNonStandardParams) {
+        console.log('⚠️ Paramètres non-standard détectés:', Object.fromEntries(currentParams.entries()));
+        console.log('✅ URL canonique sera utilisée pour la navigation');
+        
+        // Optionnel: rediriger immédiatement vers URL propre (décommentez si souhaité)
+        // const cleanURL = window.location.origin + window.location.pathname;
+        // console.log('🧹 Redirection vers URL propre:', cleanURL);
+        // window.location.replace(cleanURL);
+    } else {
+        console.log('✅ URL standard détectée - navigation canonique garantie');
+    }
+    
+    console.log('📍 Timestamp canonique configuré:', CANONICAL_TIMESTAMP);
+});
+
+console.log('✅ Système de force URL canonique chargé');
+</script>
+
 <!-- JavaScript - Fonctionnalité identique, design premium -->
 <script>
 console.log('🚀 === PARSING VRAIMENT EXHAUSTIF v6.3.3 - PREMIUM UI ===');
@@ -2243,13 +2320,6 @@ function configureApiKey() {
     updateDebug('✅ Clé API configurée pour extraction maximale');
 }
 
-// 🎯 FONCTION MODIFIÉE AVEC TIMESTAMP FIXE
-function navigateToQuestionnaire() {
-    const questionnaireUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
-    // ✅ TIMESTAMP FIXE au lieu de Date.now()
-    window.location.href = questionnaireUrl + '?from=parsing&t=1751384534850&cv_data=available';
-}
-
 function showMessage(message, type) {
     console.log(`[${type.toUpperCase()}] ${message}`);
     updateDebug(`[${type.toUpperCase()}] ${message}`);
@@ -2361,20 +2431,20 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
-    // Navigation
+    // Navigation avec fonctions canoniques
     const nextBtn = document.getElementById('nextBtn');
     const skipBtn = document.getElementById('skipBtn');
     
     if (nextBtn) {
         nextBtn.onclick = () => {
-            updateDebug('🚀 Navigation vers questionnaire...');
+            updateDebug('🚀 Navigation vers questionnaire avec URL canonique...');
             navigateToQuestionnaire();
         };
     }
     
     if (skipBtn) {
         skipBtn.onclick = () => {
-            updateDebug('⏭️ Étape ignorée - Navigation vers questionnaire...');
+            updateDebug('⏭️ Étape ignorée - Navigation vers questionnaire avec URL canonique...');
             navigateToQuestionnaire();
         };
     }
@@ -2387,7 +2457,7 @@ document.addEventListener('DOMContentLoaded', function() {
 console.log('✅ Parsing VRAIMENT Exhaustif v6.3.3 - PREMIUM UI - Code JavaScript chargé');
 </script>
 
-<!-- 🔗 SYSTÈME DE PONT CV → QUESTIONNAIRE -->
+<!-- 🔗 SYSTÈME DE PONT CV → QUESTIONNAIRE (AVEC URL CANONIQUE) -->
 <script>
 // ========================================
 // SYSTÈME DE PONT CV → QUESTIONNAIRE
@@ -2511,18 +2581,21 @@ class CVQuestionnaireBridge {
         }
     }
 
-    // 🎯 MÉTHODE MODIFIÉE AVEC TIMESTAMP FIXE
+    // 🎯 MÉTHODE AVEC URL CANONIQUE FORCÉE
     navigateToQuestionnaireWithData(skipped = false) {
+        console.log('🚀 Navigation avec données vers questionnaire - URL canonique forcée');
+        console.log('📍 Timestamp canonique utilisé:', CANONICAL_TIMESTAMP);
+        
         const baseUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
         const params = new URLSearchParams({
             from: 'parsing',
-            t: 1751384534850, // ✅ TIMESTAMP FIXE au lieu de Date.now()
+            t: CANONICAL_TIMESTAMP, // ✅ TIMESTAMP CANONIQUE FIXE
             cv_data: skipped ? 'skipped' : 'available'
         });
         
         const finalUrl = `${baseUrl}?${params.toString()}`;
+        console.log('🔗 URL finale canonique:', finalUrl);
         
-        console.log('🚀 Navigation vers questionnaire avec données CV');
         window.location.href = finalUrl;
     }
 }
