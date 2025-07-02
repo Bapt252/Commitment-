@@ -1713,7 +1713,7 @@ function cleanExtractedText(text) {
         // Préserver la structure importante
         .replace(/([.!?])\s+([A-Z])/g, '$1\n$2')
         // Nettoyer les caractères indésirables
-        .replace(/[^\w\s\-.,;:()\\/@+%&']/g, ' ')
+        .replace(/[^\w\s\-.,;:()\/@+%&']/g, ' ')
         .trim();
 }
 
@@ -2243,9 +2243,11 @@ function configureApiKey() {
     updateDebug('✅ Clé API configurée pour extraction maximale');
 }
 
+// 🎯 FONCTION MODIFIÉE AVEC TIMESTAMP FIXE
 function navigateToQuestionnaire() {
     const questionnaireUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
-    window.location.href = questionnaireUrl + '?from=parsing&t=' + Date.now();
+    // ✅ TIMESTAMP FIXE au lieu de Date.now()
+    window.location.href = questionnaireUrl + '?from=parsing&t=1751384534850&cv_data=available';
 }
 
 function showMessage(message, type) {
@@ -2509,11 +2511,12 @@ class CVQuestionnaireBridge {
         }
     }
 
+    // 🎯 MÉTHODE MODIFIÉE AVEC TIMESTAMP FIXE
     navigateToQuestionnaireWithData(skipped = false) {
         const baseUrl = 'https://bapt252.github.io/Commitment-/templates/candidate-questionnaire.html';
         const params = new URLSearchParams({
             from: 'parsing',
-            t: Date.now(),
+            t: 1751384534850, // ✅ TIMESTAMP FIXE au lieu de Date.now()
             cv_data: skipped ? 'skipped' : 'available'
         });
         
