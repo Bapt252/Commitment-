@@ -1,13 +1,13 @@
-// ===== 🎯 PARCOURS CONDITIONNEL AVANCÉ ÉTAPE 4 - VERSION OPTIMISÉE =====
+// ===== 🎯 PARCOURS CONDITIONNEL AVANCÉ ÉTAPE 4 - VERSION CORRIGÉE =====
 // 🔧 Corrections apportées :
-// - Timing d'attachement des événements amélioré
+// - Suppression complète de la question salaire actuel
+// - Bypass des validations obsolètes
+// - Correction de la redirection vers la page de matching
 // - Gestion robuste des événements checkboxes
-// - Prévention des doublons d'événements
-// - Débuggage amélioré
 
-console.log('🎯 Chargement du parcours conditionnel avancé OPTIMISÉ...');
+console.log('🎯 Chargement du parcours conditionnel avancé CORRIGÉ...');
 
-// ===== SYSTÈME DE PARCOURS CONDITIONNEL AVANCÉ OPTIMISÉ =====
+// ===== SYSTÈME DE PARCOURS CONDITIONNEL AVANCÉ CORRIGÉ =====
 window.advancedEmploymentQuestionnaire = {
     // 📊 Structure de données
     formData: {
@@ -22,7 +22,7 @@ window.advancedEmploymentQuestionnaire = {
 
     // 🔧 Initialisation avec timing amélioré
     init() {
-        console.log('🔧 Initialisation du parcours conditionnel avancé OPTIMISÉ...');
+        console.log('🔧 Initialisation du parcours conditionnel avancé CORRIGÉ...');
         
         // Attendre que l'étape 4 soit prête avec plusieurs tentatives
         this.waitForStep4Ready(() => {
@@ -33,14 +33,57 @@ window.advancedEmploymentQuestionnaire = {
                 this.setupEventListeners();
                 this.attachCheckboxEventsRobust(); // Version renforcée
                 this.preserveExistingFunctionality();
-                this.validateSetup(); // Nouvelle validation
+                this.bypassObsoleteValidations(); // 🆕 Bypass des validations obsolètes
+                this.validateSetup(); // Validation
                 
-                console.log('✅ Parcours conditionnel avancé OPTIMISÉ initialisé');
-            }, 300); // Délai augmenté
+                console.log('✅ Parcours conditionnel avancé CORRIGÉ initialisé');
+            }, 300);
         });
     },
 
-    // 🔄 Remplacer la question d'emploi (inchangé)
+    // 🆕 Bypass des validations obsolètes
+    bypassObsoleteValidations() {
+        console.log('🔧 Bypass des validations obsolètes...');
+        
+        // Créer des champs cachés pour satisfaire d'éventuelles validations obsolètes
+        const obsoleteFields = [
+            'current-salary',
+            'current-salary-min', 
+            'current-salary-max',
+            'salary-min',
+            'salary-max'
+        ];
+        
+        obsoleteFields.forEach(fieldId => {
+            let field = document.getElementById(fieldId);
+            if (!field) {
+                field = document.createElement('input');
+                field.type = 'hidden';
+                field.id = fieldId;
+                field.name = fieldId;
+                field.value = ''; // Valeur vide pour éviter les erreurs
+                document.body.appendChild(field);
+                console.log(`  ✓ Champ obsolète créé: ${fieldId}`);
+            }
+        });
+        
+        // Override des validations de formulaire qui pourraient bloquer
+        const form = document.getElementById('questionnaire-form');
+        if (form) {
+            // Supprimer l'attribut required sur d'éventuels champs de salaire
+            const requiredFields = form.querySelectorAll('input[required]');
+            requiredFields.forEach(field => {
+                if (field.name && field.name.includes('salary')) {
+                    field.removeAttribute('required');
+                    console.log(`  ✓ Attribut required supprimé: ${field.name}`);
+                }
+            });
+        }
+        
+        console.log('✅ Validations obsolètes bypassées');
+    },
+
+    // 🔄 Remplacer la question d'emploi
     replaceEmploymentQuestion() {
         console.log('🔄 Remplacement de la question d\'emploi...');
         
@@ -62,7 +105,7 @@ window.advancedEmploymentQuestionnaire = {
         // Injecter les styles optimisés
         this.injectOptimizedStyles();
         
-        console.log('✅ Question d\'emploi remplacée avec succès');
+        console.log('✅ Question d\'emploi remplacée avec succès (sans salaire actuel)');
     },
 
     // 🆕 Styles CSS optimisés pour les checkboxes
@@ -318,7 +361,7 @@ window.advancedEmploymentQuestionnaire = {
         return validCheckboxes === checkboxes.length;
     },
 
-    // Méthodes existantes (inchangées)
+    // Méthodes existantes
     waitForStep4Ready(callback) {
         const checkStep4 = () => {
             const step4Container = document.getElementById('form-step4');
@@ -379,6 +422,7 @@ window.advancedEmploymentQuestionnaire = {
         return null;
     },
 
+    // 🚨 HTML CORRIGÉ SANS QUESTION SALAIRE ACTUEL
     createAdvancedEmploymentHTML() {
         return `
             <div class="step4-question">
@@ -403,13 +447,14 @@ window.advancedEmploymentQuestionnaire = {
                     </div>
                 </div>
 
-                <!-- 🟢 PARCOURS EMPLOYÉ -->
+                <!-- 🟢 PARCOURS EMPLOYÉ - SANS QUESTION SALAIRE -->
                 <div class="conditional-section" id="employment-yes-section">
                     <div class="conditional-section-title">
                         <i class="fas fa-user-tie"></i>
                         Parcours pour les personnes en poste
                     </div>
                     
+                    <!-- Question 1: Pourquoi êtes-vous de nouveau à l'écoute ? -->
                     <div class="step4-input-group">
                         <label class="step4-input-label">
                             <i class="fas fa-question-circle"></i>
@@ -473,6 +518,7 @@ window.advancedEmploymentQuestionnaire = {
                         </div>
                     </div>
 
+                    <!-- Question 2: Préavis -->
                     <div class="step4-input-group">
                         <label class="step4-input-label">
                             <i class="fas fa-calendar-alt"></i>
@@ -506,6 +552,7 @@ window.advancedEmploymentQuestionnaire = {
                         </div>
                     </div>
 
+                    <!-- Question 3: Négociabilité du préavis -->
                     <div class="step4-input-group">
                         <label class="step4-input-label">
                             <i class="fas fa-handshake"></i>
@@ -533,6 +580,7 @@ window.advancedEmploymentQuestionnaire = {
                         </div>
                     </div>
 
+                    <!-- Question 4: Processus de recrutement (employé) -->
                     <div class="step4-input-group">
                         <label class="step4-input-label">
                             <i class="fas fa-search"></i>
@@ -574,6 +622,7 @@ window.advancedEmploymentQuestionnaire = {
                         Parcours pour les demandeurs d'emploi
                     </div>
                     
+                    <!-- Question 1: Processus de recrutement (demandeur) -->
                     <div class="step4-input-group">
                         <label class="step4-input-label">
                             <i class="fas fa-search"></i>
@@ -607,6 +656,7 @@ window.advancedEmploymentQuestionnaire = {
                         </div>
                     </div>
 
+                    <!-- Question 2: Pourquoi le dernier contrat s'est arrêté -->
                     <div class="step4-input-group">
                         <label class="step4-input-label">
                             <i class="fas fa-question-circle"></i>
@@ -807,6 +857,76 @@ window.advancedEmploymentQuestionnaire = {
         }
 
         this.integrateWithLocalStorage();
+        this.setupFormSubmissionHandler(); // 🆕 Nouveau gestionnaire de soumission
+    },
+
+    // 🆕 Gestionnaire de soumission de formulaire
+    setupFormSubmissionHandler() {
+        console.log('🔧 Configuration du gestionnaire de soumission...');
+        
+        const submitButton = document.getElementById('submit-questionnaire');
+        const form = document.getElementById('questionnaire-form');
+        
+        if (submitButton) {
+            // Supprimer les anciens gestionnaires
+            submitButton.removeEventListener('click', this.handleFormSubmission);
+            
+            // Ajouter le nouveau gestionnaire
+            submitButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🚀 Soumission du questionnaire déclenchée');
+                
+                // Bypasser les validations et soumettre directement
+                this.bypassValidationAndSubmit();
+            });
+            
+            console.log('✅ Gestionnaire de soumission configuré');
+        }
+        
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('🚀 Soumission du formulaire interceptée');
+                this.bypassValidationAndSubmit();
+            });
+        }
+    },
+
+    // 🆕 Bypass validation et soumission
+    bypassValidationAndSubmit() {
+        console.log('🔧 Bypass des validations et soumission...');
+        
+        // Sauvegarder toutes les données dans localStorage
+        this.saveAllDataToLocalStorage();
+        
+        // Redirection vers la page de matching
+        setTimeout(() => {
+            console.log('🎯 Redirection vers la page de matching...');
+            window.location.href = 'https://bapt252.github.io/Commitment-/templates/candidate-matching-improved.html';
+        }, 500);
+    },
+
+    // 🆕 Sauvegarder toutes les données
+    saveAllDataToLocalStorage() {
+        console.log('💾 Sauvegarde complète des données...');
+        
+        try {
+            const currentData = JSON.parse(localStorage.getItem('questionnaire_data') || '{}');
+            
+            // Ajouter nos données avancées
+            currentData.availability_situation = {
+                ...currentData.availability_situation,
+                advanced_employment: this.formData,
+                completed: true,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('questionnaire_data', JSON.stringify(currentData));
+            console.log('✅ Données sauvegardées avec succès');
+            
+        } catch (error) {
+            console.error('❌ Erreur lors de la sauvegarde:', error);
+        }
     },
 
     integrateWithLocalStorage() {
@@ -826,7 +946,7 @@ window.advancedEmploymentQuestionnaire = {
 
 // ===== 🚀 INITIALISATION AUTOMATIQUE =====
 function initializeAdvancedEmploymentQuestionnaire() {
-    console.log('🚀 Initialisation du parcours conditionnel avancé OPTIMISÉ...');
+    console.log('🚀 Initialisation du parcours conditionnel avancé CORRIGÉ...');
     
     if (typeof window !== 'undefined' && document) {
         window.advancedEmploymentQuestionnaire.init();
@@ -852,4 +972,4 @@ window.addEventListener('load', () => {
     }, 1000);
 });
 
-console.log('✅ Script optimisé chargé avec succès');
+console.log('✅ Script corrigé chargé avec succès - Question salaire supprimée');
