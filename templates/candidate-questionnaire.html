@@ -45,6 +45,9 @@
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-sectors-v3.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/step4-fix.js"></script>
     
+    <!-- 🎯 NOUVEAU: Script de redirection automatique vers la page de matching -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/questionnaire-redirect.js"></script>
+    
     <!-- 🗺️ Google Maps API avec autocomplete fonctionnel -->
     <script>
         // Fonction setupAddressAutocomplete manquante - AJOUTÉE
@@ -2223,31 +2226,19 @@
                                                 <div class="step4-checkbox">
                                                     <i class="fas fa-check"></i>
                                                 </div>
-                                                <div class="step4-checkbox-text">Manque de flexibilité (pas de TT, RTT)</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="relationnel">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Relations interpersonnelles difficiles</div>
+                                                <div class="step4-checkbox-text">Manque de flexibilité (télétravail, horaires)</div>
                                             </div>
                                             <div class="step4-checkbox-option" data-value="ambiance">
                                                 <div class="step4-checkbox">
                                                     <i class="fas fa-check"></i>
                                                 </div>
-                                                <div class="step4-checkbox-text">Ambiance de travail dégradée</div>
+                                                <div class="step4-checkbox-text">Ambiance de travail difficile</div>
                                             </div>
-                                            <div class="step4-checkbox-option" data-value="management">
+                                            <div class="step4-checkbox-option" data-value="defis">
                                                 <div class="step4-checkbox">
                                                     <i class="fas fa-check"></i>
                                                 </div>
-                                                <div class="step4-checkbox-text">Management dysfonctionnel</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="autre-raison">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Autre raison</div>
+                                                <div class="step4-checkbox-text">Manque de défis professionnels</div>
                                             </div>
                                         </div>
                                     </div>
@@ -2257,93 +2248,194 @@
                                 <div class="conditional-section" id="employment-no-section">
                                     <div class="conditional-section-title">
                                         <i class="fas fa-arrow-right"></i>
-                                        Questions complémentaires pour les personnes sans emploi
+                                        Questions complémentaires pour les personnes en recherche d'emploi
                                     </div>
                                     
-                                    <!-- Durée de recherche -->
-                                    <div class="step4-input-group">
-                                        <label class="step4-input-label" for="job-search-duration">
-                                            Depuis quand recherchez-vous un emploi ?
-                                        </label>
-                                        <select class="step4-input" id="job-search-duration" name="job-search-duration">
-                                            <option value="">Sélectionnez une durée</option>
-                                            <option value="moins-1-mois">Moins d'1 mois</option>
-                                            <option value="1-3-mois">1 à 3 mois</option>
-                                            <option value="3-6-mois">3 à 6 mois</option>
-                                            <option value="6-12-mois">6 à 12 mois</option>
-                                            <option value="plus-12-mois">Plus de 12 mois</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <!-- Situation actuelle -->
+                                    <!-- Durée sans emploi -->
                                     <div class="step4-input-group">
                                         <label class="step4-input-label">
-                                            Quelle est votre situation actuelle ? (plusieurs choix possibles)
+                                            Depuis combien de temps recherchez-vous ?
                                         </label>
-                                        <div class="step4-checkbox-group" id="current-situation">
-                                            <div class="step4-checkbox-option" data-value="demandeur-emploi">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
+                                        <div class="step4-options">
+                                            <div class="step4-option" data-value="moins1mois" data-question="unemployment-duration">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">Moins d'1 mois</div>
                                                 </div>
-                                                <div class="step4-checkbox-text">Demandeur d'emploi</div>
                                             </div>
-                                            <div class="step4-checkbox-option" data-value="formation">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
+                                            <div class="step4-option" data-value="1-3mois" data-question="unemployment-duration">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">1 à 3 mois</div>
                                                 </div>
-                                                <div class="step4-checkbox-text">En formation</div>
                                             </div>
-                                            <div class="step4-checkbox-option" data-value="etudiant">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
+                                            <div class="step4-option" data-value="3-6mois" data-question="unemployment-duration">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">3 à 6 mois</div>
                                                 </div>
-                                                <div class="step4-checkbox-text">Étudiant</div>
                                             </div>
-                                            <div class="step4-checkbox-option" data-value="freelance">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
+                                            <div class="step4-option" data-value="plus6mois" data-question="unemployment-duration">
+                                                <div class="step4-option-content">
+                                                    <div class="step4-option-radio"></div>
+                                                    <div class="step4-option-text">Plus de 6 mois</div>
                                                 </div>
-                                                <div class="step4-checkbox-text">Freelance/indépendant</div>
                                             </div>
-                                            <div class="step4-checkbox-option" data-value="pause-carriere">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Pause dans ma carrière</div>
-                                            </div>
-                                            <div class="step4-checkbox-option" data-value="autre-situation">
-                                                <div class="step4-checkbox">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <div class="step4-checkbox-text">Autre situation</div>
-                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Dernier salaire -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label" for="last-salary">
+                                            Votre dernier salaire (K€ brut annuel) :
+                                        </label>
+                                        <div class="salary-range-input">
+                                            <input type="number" class="step4-input" id="last-salary" 
+                                                   name="last-salary" placeholder="42" min="20" max="200">
+                                            <span class="salary-unit-small">K €</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Dernière question : Prétentions salariales -->
+                        <!-- Question 3: Contraintes de disponibilité -->
                         <div class="step4-container">
                             <div class="step4-question">
                                 <h3 class="step4-question-title">
-                                    <i class="fas fa-euro-sign"></i>
-                                    3) Confirmez vos prétentions salariales
+                                    <i class="fas fa-clock"></i>
+                                    3) Avez-vous des contraintes de disponibilité ?
                                 </h3>
                                 
                                 <div class="step4-input-group">
                                     <label class="step4-input-label">
-                                        Fourchette salariale souhaitée (brut annuel) :
+                                        (Plusieurs choix possibles)
                                     </label>
-                                    <div class="salary-range-input">
-                                        <input type="number" class="salary-input-small" id="final-salary-min" name="final-salary-min" placeholder="40" min="20" max="200">
-                                        <span class="salary-separator">K -</span>
-                                        <input type="number" class="salary-input-small" id="final-salary-max" name="final-salary-max" placeholder="45" min="20" max="200">
-                                        <span class="salary-unit-small">K €</span>
+                                    <div class="step4-checkbox-group" id="availability-constraints">
+                                        <div class="step4-checkbox-option" data-value="aucune">
+                                            <div class="step4-checkbox">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step4-checkbox-text">Aucune contrainte particulière</div>
+                                        </div>
+                                        <div class="step4-checkbox-option" data-value="enfants">
+                                            <div class="step4-checkbox">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step4-checkbox-text">Garde d'enfants</div>
+                                        </div>
+                                        <div class="step4-checkbox-option" data-value="formation">
+                                            <div class="step4-checkbox">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step4-checkbox-text">Formation en cours</div>
+                                        </div>
+                                        <div class="step4-checkbox-option" data-value="preavis">
+                                            <div class="step4-checkbox">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step4-checkbox-text">Préavis à respecter</div>
+                                        </div>
+                                        <div class="step4-checkbox-option" data-value="sante">
+                                            <div class="step4-checkbox">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step4-checkbox-text">Contraintes de santé</div>
+                                        </div>
                                     </div>
-                                    <small style="color: #6b7280; margin-top: 8px; display: block;">
-                                        Cette information sera automatiquement remplie à partir de l'étape 3 si vous l'avez complétée
-                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Question 4: Préférences de travail -->
+                        <div class="step4-container">
+                            <div class="step4-question">
+                                <h3 class="step4-question-title">
+                                    <i class="fas fa-laptop-house"></i>
+                                    4) Vos préférences de travail
+                                </h3>
+                                
+                                <div class="step4-input-group">
+                                    <label class="step4-input-label">
+                                        Quel mode de travail préférez-vous ? (Plusieurs choix possibles)
+                                    </label>
+                                    <div class="step4-checkbox-group" id="work-preferences">
+                                        <div class="step4-checkbox-option" data-value="presentiel">
+                                            <div class="step4-checkbox">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step4-checkbox-text">100% présentiel sur site</div>
+                                        </div>
+                                        <div class="step4-checkbox-option" data-value="hybride">
+                                            <div class="step4-checkbox">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step4-checkbox-text">Travail hybride (mix présentiel/télétravail)</div>
+                                        </div>
+                                        <div class="step4-checkbox-option" data-value="remote">
+                                            <div class="step4-checkbox">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step4-checkbox-text">100% télétravail</div>
+                                        </div>
+                                        <div class="step4-checkbox-option" data-value="flexible">
+                                            <div class="step4-checkbox">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step4-checkbox-text">Horaires flexibles</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Question 5: Mobilité géographique -->
+                        <div class="step4-container">
+                            <div class="step4-question">
+                                <h3 class="step4-question-title">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    5) Accepteriez-vous de déménager pour un poste ?
+                                </h3>
+                                
+                                <div class="step4-options" id="relocation-options">
+                                    <div class="step4-option" data-value="oui" data-question="relocation">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">OUI, je suis ouvert à la mobilité géographique</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="step4-option" data-value="selon-poste" data-question="relocation">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Selon le poste et les conditions proposées</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="step4-option" data-value="non" data-question="relocation">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">NON, je souhaite rester dans ma région actuelle</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Question 6: Informations complémentaires -->
+                        <div class="step4-container">
+                            <div class="step4-question">
+                                <h3 class="step4-question-title">
+                                    <i class="fas fa-comment-dots"></i>
+                                    6) Informations complémentaires (optionnel)
+                                </h3>
+                                
+                                <div class="step4-input-group">
+                                    <label class="step4-input-label" for="additional-info">
+                                        Y a-t-il d'autres éléments importants que nous devrions connaître ?
+                                    </label>
+                                    <textarea class="step4-input" id="additional-info" name="additional-info" 
+                                              rows="4" placeholder="Projets personnels, contraintes particulières, certifications en cours, souhaits spécifiques..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -2363,9 +2455,14 @@
                         <!-- Champs cachés pour intégration -->
                         <input type="hidden" id="hidden-timing" name="timing">
                         <input type="hidden" id="hidden-employment-status" name="employment-status">
+                        <input type="hidden" id="hidden-current-salary" name="current-salary">
                         <input type="hidden" id="hidden-listening-reasons" name="listening-reasons">
-                        <input type="hidden" id="hidden-current-situation" name="current-situation">
-                        <input type="hidden" id="hidden-final-salary" name="final-salary">
+                        <input type="hidden" id="hidden-unemployment-duration" name="unemployment-duration">
+                        <input type="hidden" id="hidden-last-salary" name="last-salary">
+                        <input type="hidden" id="hidden-availability-constraints" name="availability-constraints">
+                        <input type="hidden" id="hidden-work-preferences" name="work-preferences">
+                        <input type="hidden" id="hidden-relocation" name="relocation">
+                        <input type="hidden" id="hidden-additional-info" name="additional-info">
                     </div>
                 </form>
             </div>
@@ -2377,58 +2474,34 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Nexten</h3>
-                    <p>Votre partenaire pour une recherche d'emploi réussie.</p>
+                    <div class="logo footer-logo">
+                        Nex<span>ten</span>
+                    </div>
+                    <p>Votre partenaire pour une carrière épanouissante et des opportunités professionnelles sur-mesure.</p>
                 </div>
+                
                 <div class="footer-section">
-                    <h4>Liens utiles</h4>
+                    <h3>Services</h3>
                     <ul>
-                        <li><a href="#services">Services</a></li>
-                        <li><a href="#about">À propos</a></li>
-                        <li><a href="#contact">Contact</a></li>
+                        <li><a href="#matching">Matching intelligent</a></li>
+                        <li><a href="#conseil">Conseil carrière</a></li>
+                        <li><a href="#accompagnement">Accompagnement</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><a href="mailto:contact@nexten.fr">contact@nexten.fr</a></li>
+                        <li><a href="tel:+33123456789">01 23 45 67 89</a></li>
                     </ul>
                 </div>
             </div>
+            
             <div class="footer-bottom">
                 <p>&copy; 2024 Nexten. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
-
-    <!-- Script d'initialisation global (à la fin du body) -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Questionnaire candidat initialisé');
-            
-            // Force la redirection vers URL canonique si nécessaire
-            if (window.location.search && !window.location.search.includes('from=parsing')) {
-                const canonicalUrl = 'candidate-questionnaire.html?from=parsing&t=1751384534850&cv_data=available';
-                if (window.location.href !== window.location.origin + '/' + canonicalUrl) {
-                    console.log('🔄 Redirection vers URL canonique...');
-                    window.location.href = canonicalUrl;
-                    return;
-                }
-            }
-            
-            // Initialisation des systèmes de correction
-            setTimeout(() => {
-                if (window.motivationSystem) {
-                    console.log('✅ Système motivations détecté et initialisé');
-                }
-                if (window.sectorsSystem) {
-                    console.log('✅ Système secteurs détecté et initialisé');  
-                }
-                if (window.salarySystem) {
-                    console.log('✅ Système salaire détecté et initialisé');
-                }
-                if (window.contractSystem) {
-                    console.log('✅ Système contrats détecté et initialisé');
-                }
-                if (window.step4System) {
-                    console.log('✅ Système étape 4 détecté et initialisé');
-                }
-            }, 500);
-        });
-    </script>
 </body>
 </html>
