@@ -1403,7 +1403,7 @@
     <div class="redirect-transition" id="redirectTransition">
         <div class="redirect-content">
             <h3><i class="fas fa-check-circle"></i> Questionnaire soumis avec succès !</h3>
-            <p>Redirection vers la page de matching des candidats...</p>
+            <p>Redirection vers le dashboard entreprise...</p>
         </div>
     </div>
 
@@ -1588,14 +1588,14 @@
         }
 
         // ===============================================
-        // SOLUTION DE REDIRECTION NEXTEN - VERSION ULTRA ROBUSTE
+        // SOLUTION DE REDIRECTION NEXTEN - MODIFIÉE POUR DASHBOARD ENTREPRISE
         // ===============================================
         
         (function() {
             'use strict';
             
-            // Variables de configuration - MODIFIÉE POUR POINTER VERS CANDIDATE RECOMMENDATION
-            const MATCHING_URL = 'https://bapt252.github.io/Commitment-/templates/candidate-recommendation.html';
+            // Variables de configuration - MODIFIÉE POUR POINTER VERS DASHBOARD ENTREPRISE
+            const MATCHING_URL = 'https://bapt252.github.io/Commitment-/templates/company-dashboard.html';
             const DEBUG_MODE = true;
             
             // Variables globales
@@ -1659,8 +1659,8 @@
                     overlay.className = 'redirect-transition';
                     overlay.innerHTML = `
                         <div class="redirect-content">
-                            <h3><i class="fas fa-check-circle"></i> Redirection vers le matching...</h3>
-                            <p>Recherche de candidats en cours</p>
+                            <h3><i class="fas fa-check-circle"></i> Redirection vers le dashboard entreprise...</h3>
+                            <p>Préparation de votre espace de gestion</p>
                         </div>
                     `;
                     document.body.appendChild(overlay);
@@ -1676,7 +1676,7 @@
                 }
                 
                 redirectionInProgress = true;
-                debugLog('🚀 DÉBUT DE LA REDIRECTION VERS LE MATCHING');
+                debugLog('🚀 DÉBUT DE LA REDIRECTION VERS LE DASHBOARD ENTREPRISE');
                 
                 // Sauvegarder les données des étapes 1-2 + données de géolocalisation
                 const step1Data = {
@@ -1709,7 +1709,7 @@
                 }
                 
                 // Afficher notification de succès
-                showNotificationCustom('Données sauvegardées ! Redirection vers le matching...', 'success');
+                showNotificationCustom('Données sauvegardées ! Redirection vers le dashboard entreprise...', 'success');
                 
                 // Créer et afficher l'overlay
                 const overlay = createRedirectOverlay();
@@ -1833,7 +1833,7 @@
                 if (submitButton) {
                     submitButton.addEventListener('click', function(event) {
                         event.preventDefault();
-                        debugLog('🎯 BOUTON SOUMETTRE CLIQUÉ - REDIRECTION VERS MATCHING');
+                        debugLog('🎯 BOUTON SOUMETTRE CLIQUÉ - REDIRECTION VERS DASHBOARD ENTREPRISE');
                         performRedirection();
                     });
                     debugLog('✅ Event listener ajouté au bouton de soumission');
@@ -1881,7 +1881,7 @@
                         if (recruitmentChoice.value === 'no') {
                             event.preventDefault();
                             event.stopPropagation();
-                            debugLog('🔄 OPTION "NON" DÉTECTÉE - REDIRECTION IMMÉDIATE');
+                            debugLog('🔄 OPTION "NON" DÉTECTÉE - REDIRECTION VERS DASHBOARD ENTREPRISE');
                             
                             setTimeout(() => {
                                 performRedirection();
@@ -1920,7 +1920,7 @@
                     recruitmentNo.addEventListener('change', function() {
                         if (this.checked) {
                             debugLog('✅ Option "Non" sélectionnée');
-                            showNotificationCustom('Option "Non" sélectionnée. Cliquez sur "Continuer" pour accéder au matching.', 'info');
+                            showNotificationCustom('Option "Non" sélectionnée. Cliquez sur "Continuer" pour accéder au dashboard entreprise.', 'info');
                         }
                     });
                     
@@ -2526,7 +2526,7 @@ Répondez uniquement avec un objet JSON contenant:
             validateGeolocation: validateAddressGeolocation
         };
 
-        console.log('🎉 QUESTIONNAIRE NEXTEN AVEC GOOGLE MAPS CHARGÉ AVEC SUCCÈS');
+        console.log('🎉 QUESTIONNAIRE NEXTEN AVEC REDIRECTION DASHBOARD ENTREPRISE CHARGÉ AVEC SUCCÈS');
     </script>
 </body>
 </html>
