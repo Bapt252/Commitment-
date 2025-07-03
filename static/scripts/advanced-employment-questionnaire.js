@@ -2,7 +2,7 @@
 // 🚨 MODIFICATION CIBLÉE : Remplace UNIQUEMENT la question "Êtes-vous actuellement en poste ?"
 // 🔒 PROTECTION ABSOLUE : Préserve tout le code existant et les autres questions
 // 🎨 NEXTEN V3.0 : Maintient l'interface moderne et l'expérience utilisateur
-// Version: 1.0 - Parcours conditionnel complexe
+// Version: 1.1 - Parcours conditionnel complexe + Correction checkboxes
 // Auteur: Système Nexten - Respect strict des contraintes
 
 console.log('🎯 Chargement du parcours conditionnel avancé étape 4...');
@@ -29,7 +29,8 @@ window.advancedEmploymentQuestionnaire = {
         // Attendre que l'étape 4 soit prête
         this.waitForStep4Ready(() => {
             this.replaceEmploymentQuestion();
-            this.setupEventListeners();
+            this.setupEventListeners(); // Maintenant appelé APRÈS le remplacement
+            this.attachCheckboxEvents(); // 🆕 Nouvelle méthode pour les checkboxes
             this.preserveExistingFunctionality();
             
             // 📊 Rapport de sécurité final
@@ -94,9 +95,6 @@ window.advancedEmploymentQuestionnaire = {
         console.log('🔄 Remplacement de la question d\'emploi par le parcours conditionnel...');
         
         // 🎯 CIBLAGE ULTRA-PRÉCIS : Localiser UNIQUEMENT la question "Êtes-vous actuellement en poste ?"
-        // en s'assurant qu'on ne touche PAS à la question "Quand cherchez-vous à prendre un poste ?"
-        
-        // Méthode 1: Cibler par le texte exact de la question
         const employmentQuestionContainer = this.findEmploymentQuestionContainer();
         
         if (!employmentQuestionContainer) {
@@ -117,18 +115,155 @@ window.advancedEmploymentQuestionnaire = {
         // Remplacer le contenu existant
         employmentQuestionContainer.innerHTML = newEmploymentHTML;
         
-        // 🔍 VÉRIFICATION POST-MODIFICATION : S'assurer que la question timing est toujours là
+        // 🆕 Injecter les styles CSS pour les checkboxes
+        this.injectCheckboxStyles();
+        
+        // 🔍 VÉRIFICATION POST-MODIFICATION
         setTimeout(() => {
             const timingStillThere = this.validateTimingQuestionIntegrity();
             if (!timingStillThere) {
                 console.error('❌ ERREUR CRITIQUE : Question timing disparue après modification !');
-                // En cas d'erreur, on pourrait restaurer ou alerter
             } else {
                 console.log('✅ Modification réussie, question timing préservée');
             }
         }, 100);
         
         console.log('✅ Question d\'emploi remplacée par le parcours conditionnel avancé');
+    },
+
+    // 🆕 Injecter les styles CSS pour les checkboxes
+    injectCheckboxStyles() {
+        // Éviter les doublons
+        const existingStyle = document.getElementById('advanced-checkbox-styles');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
+        const style = document.createElement('style');
+        style.id = 'advanced-checkbox-styles';
+        style.textContent = `
+            /* Styles pour les checkboxes sélectionnées */
+            .step4-checkbox-option.selected {
+                border-color: #7c3aed !important;
+                background: rgba(124, 58, 237, 0.08) !important;
+                transform: scale(1.01) !important;
+            }
+
+            .step4-checkbox-option.selected .step4-checkbox {
+                border-color: #7c3aed !important;
+                background: #7c3aed !important;
+                color: white !important;
+            }
+
+            .step4-checkbox-option.selected .step4-checkbox i {
+                display: block !important;
+                opacity: 1 !important;
+            }
+
+            .step4-checkbox-option {
+                cursor: pointer !important;
+                transition: all 0.3s ease !important;
+            }
+
+            .step4-checkbox-option:hover {
+                border-color: #a855f7 !important;
+                background: rgba(124, 58, 237, 0.03) !important;
+            }
+
+            /* Améliorer la visibilité du checkbox */
+            .step4-checkbox {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 20px !important;
+                height: 20px !important;
+                border: 2px solid #d1d5db !important;
+                border-radius: 4px !important;
+                transition: all 0.2s ease !important;
+            }
+
+            .step4-checkbox i {
+                font-size: 0.75rem !important;
+                display: none !important;
+                opacity: 0 !important;
+                transition: all 0.2s ease !important;
+            }
+        `;
+        document.head.appendChild(style);
+        console.log('✅ Styles CSS pour checkboxes injectés');
+    },
+
+    // 🆕 Attacher les événements spécifiquement aux checkboxes
+    attachCheckboxEvents() {
+        console.log('🎯 Attachement des événements aux checkboxes...');
+        
+        // Attendre un petit délai pour s'assurer que le DOM est mis à jour
+        setTimeout(() => {
+            const checkboxOptions = document.querySelectorAll('.step4-checkbox-option');
+            console.log(`🔍 ${checkboxOptions.length} checkboxes trouvées`);
+            
+            checkboxOptions.forEach((checkbox, index) => {
+                // Supprimer les anciens gestionnaires
+                checkbox.removeEventListener('click', this.handleCheckboxClick);
+                
+                // Attacher le nouveau gestionnaire
+                checkbox.addEventListener('click', (e) => this.handleCheckboxClick(e));
+                
+                // S'assurer que le curseur est correct
+                checkbox.style.cursor = 'pointer';
+                
+                console.log(`  ✓ Checkbox ${index + 1}: ${checkbox.dataset.value}`);
+            });
+            
+            console.log('✅ Événements checkboxes attachés avec succès');
+        }, 100);
+    },
+
+    // 🆕 Gestionnaire d'événement spécialisé pour les checkboxes
+    handleCheckboxClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const checkbox = event.currentTarget;
+        const value = checkbox.dataset.value;
+        const container = checkbox.closest('.step4-checkbox-group');
+        
+        if (!container) {
+            console.warn('⚠️ Conteneur checkbox non trouvé');
+            return;
+        }
+        
+        // Basculer la sélection
+        checkbox.classList.toggle('selected');
+        const isSelected = checkbox.classList.contains('selected');
+        
+        console.log(`Checkbox "${value}": ${isSelected ? '✅ SÉLECTIONNÉE' : '❌ désélectionnée'}`);
+        
+        // Mettre à jour les données
+        this.updateCheckboxData(container, checkbox, value, isSelected);
+        
+        // Sauvegarder dans les champs cachés
+        this.saveToHiddenFields();
+        
+        return false;
+    },
+
+    // 🆕 Mettre à jour les données des checkboxes
+    updateCheckboxData(container, checkbox, value, isSelected) {
+        const groupId = container.id;
+        
+        if (groupId === 'listening-reasons-employed') {
+            this.toggleArrayValue(this.formData.listeningReasons, value);
+        } else if (groupId === 'last-contract-end-reasons') {
+            this.toggleArrayValue(this.formData.lastContractEndReasons, value);
+        }
+        
+        console.log(`💾 Groupe ${groupId}: ${this.getSelectedValuesCount(container)} valeurs sélectionnées`);
+    },
+
+    // 🆕 Compter les valeurs sélectionnées dans un groupe
+    getSelectedValuesCount(container) {
+        return container.querySelectorAll('.step4-checkbox-option.selected').length;
     },
 
     // 🔍 Méthode sécurisée pour trouver la question d'emploi
@@ -475,7 +610,7 @@ window.advancedEmploymentQuestionnaire = {
         `;
     },
 
-    // 🎛️ Configuration des événements
+    // 🎛️ Configuration des événements (pour les options radio)
     setupEventListeners() {
         console.log('🎛️ Configuration des événements du parcours conditionnel...');
 
@@ -487,15 +622,7 @@ window.advancedEmploymentQuestionnaire = {
             }
         });
 
-        // Gestion des checkboxes
-        document.addEventListener('click', (e) => {
-            const checkbox = e.target.closest('.step4-checkbox-option');
-            if (checkbox && this.isAdvancedEmploymentCheckbox(checkbox)) {
-                this.handleCheckboxOption(checkbox);
-            }
-        });
-
-        console.log('✅ Événements du parcours conditionnel configurés');
+        console.log('✅ Événements radio configurés');
     },
 
     // 🔍 Vérifier si l'option appartient au parcours conditionnel avancé
@@ -503,12 +630,6 @@ window.advancedEmploymentQuestionnaire = {
         const question = option.dataset.question;
         return ['employment-status', 'notice-time', 'notice-negotiable', 
                 'recruitment-status-employed', 'recruitment-status-unemployed'].includes(question);
-    },
-
-    // 🔍 Vérifier si la checkbox appartient au parcours conditionnel avancé
-    isAdvancedEmploymentCheckbox(checkbox) {
-        const container = checkbox.closest('.step4-checkbox-group');
-        return container && ['listening-reasons-employed', 'last-contract-end-reasons'].includes(container.id);
     },
 
     // 🎯 Gestion des options radio
@@ -529,26 +650,6 @@ window.advancedEmploymentQuestionnaire = {
         
         // Gérer l'affichage conditionnel
         this.handleConditionalDisplay(question, value);
-        
-        // Sauvegarder dans les champs cachés
-        this.saveToHiddenFields();
-    },
-
-    // ☑️ Gestion des checkboxes
-    handleCheckboxOption(checkbox) {
-        const value = checkbox.dataset.value;
-        const container = checkbox.closest('.step4-checkbox-group');
-        const groupId = container.id;
-        
-        // Basculer la sélection
-        checkbox.classList.toggle('selected');
-        
-        // Mettre à jour le tableau correspondant
-        if (groupId === 'listening-reasons-employed') {
-            this.toggleArrayValue(this.formData.listeningReasons, value);
-        } else if (groupId === 'last-contract-end-reasons') {
-            this.toggleArrayValue(this.formData.lastContractEndReasons, value);
-        }
         
         // Sauvegarder dans les champs cachés
         this.saveToHiddenFields();
@@ -682,25 +783,13 @@ window.advancedEmploymentQuestionnaire = {
         const employmentModified = document.querySelector('#employment-yes-section, #employment-no-section');
         console.log(`🎯 Question 2 "Êtes-vous en poste..." : ${employmentModified ? '✅ MODIFIÉE' : '❌ NON MODIFIÉE'}`);
         
-        // Vérifier les autres questions de l'étape 4
-        const allQuestions = document.querySelectorAll('#form-step4 .step4-question-title, #form-step4 h3');
-        console.log(`🎯 Nombre total de questions étape 4 : ${allQuestions.length}`);
+        // Vérifier les checkboxes
+        const checkboxes = document.querySelectorAll('.step4-checkbox-option');
+        console.log(`🎯 Checkboxes trouvées : ${checkboxes.length}`);
         
-        // Vérifier les scripts existants
-        const existingScripts = [
-            'step4System',
-            'questionnaire-redirect.js'
-        ];
-        
-        existingScripts.forEach(script => {
-            const exists = typeof window[script] !== 'undefined' || 
-                          document.querySelector(`script[src*="${script}"]`);
-            console.log(`🎯 Script "${script}" : ${exists ? '✅ ACTIF' : '⚠️ NON DÉTECTÉ'}`);
-        });
-        
-        // Vérifier localStorage
-        const localStorageWorking = typeof localStorage !== 'undefined';
-        console.log(`🎯 LocalStorage : ${localStorageWorking ? '✅ FONCTIONNEL' : '❌ INDISPONIBLE'}`);
+        // Vérifier les styles
+        const styles = document.getElementById('advanced-checkbox-styles');
+        console.log(`🎯 Styles checkboxes : ${styles ? '✅ INJECTÉS' : '❌ MANQUANTS'}`);
         
         console.log('📊 === FIN RAPPORT DE SÉCURITÉ ===');
     },
