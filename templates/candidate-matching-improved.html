@@ -712,6 +712,107 @@
                 background-position: -200% 0;
             }
         }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            border: none;
+            border-radius: 50px;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(100px) scale(0.8);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fab:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-xl);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fab:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .fab-icon {
+            font-size: 1.25rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .fab-text {
+            white-space: nowrap;
+        }
+
+        .fab-badge {
+            background: var(--secondary);
+            color: var(--white);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+            margin-left: 0.5rem;
+            animation: bounce 2s infinite;
+            transition: transform 0.2s ease;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-3px);
+            }
+            60% {
+                transform: translateY(-2px);
+            }
+        }
+
+        /* Mobile Responsive for FAB */
+        @media (max-width: 768px) {
+            .fab {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 0.875rem 1.5rem;
+                font-size: 0.875rem;
+            }
+            
+            .fab-text {
+                display: none;
+            }
+            
+            .fab-badge {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                margin: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1034,9 +1135,19 @@
         </div>
     </div>
 
+    <!-- Floating Action Button -->
+    <a href="https://bapt252.github.io/Commitment-/templates/candidate-dashboard.html" class="fab">
+        <i class="fas fa-rocket fab-icon"></i>
+        <span class="fab-text">Accéder au tableau de bord</span>
+        <span class="fab-badge">3</span>
+    </a>
+
     <script>
         // Ajouter des interactions dynamiques
         document.addEventListener('DOMContentLoaded', function() {
+            let savedJobs = 0;
+            const fabBadge = document.querySelector('.fab-badge');
+            
             // Animation des cartes au scroll
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -1061,19 +1172,37 @@
                     const icon = this.querySelector('i');
                     const text = this.querySelector('span');
                     
-                    if (icon.classList.contains('fa-heart')) {
-                        icon.classList.remove('fa-heart');
-                        icon.classList.add('fa-heart', 'fas');
+                    if (icon.classList.contains('fa-heart') && !icon.classList.contains('fas')) {
+                        // Sauvegarder
+                        icon.classList.add('fas');
                         text.textContent = 'Sauvegardé';
                         this.style.borderColor = 'var(--danger)';
                         this.style.color = 'var(--danger)';
-                    } else {
+                        savedJobs++;
+                        
+                        // Animation de succès
+                        this.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            this.style.transform = 'scale(1)';
+                        }, 100);
+                        
+                    } else if (icon.classList.contains('fas')) {
+                        // Désauvegarder
                         icon.classList.remove('fas');
-                        icon.classList.add('far');
                         text.textContent = 'Sauvegarder';
                         this.style.borderColor = 'var(--gray-300)';
                         this.style.color = 'var(--gray-600)';
+                        savedJobs--;
                     }
+                    
+                    // Mettre à jour le badge
+                    fabBadge.textContent = savedJobs;
+                    
+                    // Animation du badge
+                    fabBadge.style.transform = 'scale(1.3)';
+                    setTimeout(() => {
+                        fabBadge.style.transform = 'scale(1)';
+                    }, 200);
                 });
             });
 
@@ -1081,16 +1210,23 @@
             const searchInput = document.querySelector('.search-input');
             searchInput.addEventListener('input', function() {
                 const query = this.value.toLowerCase();
+                let visibleJobs = 0;
+                
                 document.querySelectorAll('.job-card').forEach(card => {
                     const title = card.querySelector('.job-title').textContent.toLowerCase();
                     const company = card.querySelector('.detail-value').textContent.toLowerCase();
                     
                     if (title.includes(query) || company.includes(query) || query === '') {
                         card.style.display = 'block';
+                        visibleJobs++;
                     } else {
                         card.style.display = 'none';
                     }
                 });
+                
+                // Mettre à jour le compteur de résultats
+                const resultsCount = document.querySelector('.results-count');
+                resultsCount.textContent = `${visibleJobs} opportunité${visibleJobs > 1 ? 's' : ''} trouvée${visibleJobs > 1 ? 's' : ''}`;
             });
 
             // Effet de hover amélioré sur les cartes
@@ -1102,6 +1238,31 @@
                 card.addEventListener('mouseleave', function() {
                     this.style.transform = 'translateY(0) scale(1)';
                 });
+            });
+
+            // Animation d'entrée du FAB
+            setTimeout(() => {
+                const fab = document.querySelector('.fab');
+                fab.style.transform = 'translateY(0) scale(1)';
+                fab.style.opacity = '1';
+            }, 1000);
+
+            // Effet de scroll sur le FAB
+            let lastScrollTop = 0;
+            window.addEventListener('scroll', function() {
+                const fab = document.querySelector('.fab');
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop) {
+                    // Scrolling down - hide FAB
+                    fab.style.transform = 'translateY(100px) scale(0.8)';
+                    fab.style.opacity = '0.7';
+                } else {
+                    // Scrolling up - show FAB
+                    fab.style.transform = 'translateY(0) scale(1)';
+                    fab.style.opacity = '1';
+                }
+                lastScrollTop = scrollTop;
             });
         });
     </script>
