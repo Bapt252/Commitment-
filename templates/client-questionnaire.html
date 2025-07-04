@@ -259,6 +259,44 @@
             box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
         }
 
+        /* === STYLES SECTEUR D'ACTIVITÉ === */
+        .sector-highlight {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .sector-highlight::before {
+            content: "ESSENTIEL";
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sector-highlight.filled {
+            animation: pulse 0.3s ease;
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            border-color: var(--success);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
         /* === STYLES GOOGLE MAPS PLACES AUTOCOMPLETE === */
         
         /* Container spécifique pour le champ d'adresse avec autocomplétion */
@@ -959,6 +997,11 @@
                 max-width: 90vw !important;
                 left: 5vw !important;
             }
+
+            .sector-highlight {
+                padding: 1rem;
+                margin: 1rem 0;
+            }
         }
 
         /* Responsive spécifique pour très petits écrans */
@@ -1144,6 +1187,36 @@
                             <i class="fas fa-map-marker-alt"></i> Géolocalisé
                         </div>
                         <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
+                    </div>
+
+                    <!-- SECTEUR D'ACTIVITÉ - NOUVEAU CHAMP ESSENTIEL POUR NEXTVISION -->
+                    <div class="sector-highlight" id="sectorSection">
+                        <div class="form-group">
+                            <label for="company-sector" class="required-field">Secteur d'activité de votre entreprise</label>
+                            <select id="company-sector" name="company-sector" class="form-control" 
+                                    required onchange="handleSectorChange()">
+                                <option value="">Sélectionnez votre secteur d'activité</option>
+                                <option value="tech">Technologies de l'information (Développement, IA, cybersécurité)</option>
+                                <option value="finance">Finance et banque (Banque, assurance, fintech)</option>
+                                <option value="health">Santé et médical (Médecine, pharmaceutique, biotechnologies)</option>
+                                <option value="education">Education et formation</option>
+                                <option value="commerce">Commerce et retail (Vente, e-commerce, distribution)</option>
+                                <option value="industry">Industrie et manufacture (Production, automobile, aéronautique)</option>
+                                <option value="energy">Energie et environnement (Energies renouvelables, développement durable)</option>
+                                <option value="transport">Transport et logistique (Transport, supply chain, livraison)</option>
+                                <option value="construction">Immobilier et construction (BTP, promotion immobilière)</option>
+                                <option value="media">Médias et communication (Journalisme, publicité, marketing)</option>
+                                <option value="luxury">Luxe et mode (Mode, cosmétiques, joaillerie)</option>
+                                <option value="agriculture">Agriculture et agroalimentaire (Agriculture, food-tech, nutrition)</option>
+                                <option value="services">Services aux entreprises (Conseil, RH, services généraux)</option>
+                                <option value="culture">Culture et divertissement (Arts, spectacle, gaming)</option>
+                                <option value="sport">Sport et loisirs (Sport professionnel, équipements sportifs)</option>
+                            </select>
+                            <small style="color: var(--gray); margin-top: 0.5rem; display: block;">
+                                <i class="fas fa-info-circle"></i> 
+                                Cette information est essentielle pour optimiser les recommandations de candidats selon vos préférences sectorielles.
+                            </small>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -1523,6 +1596,43 @@
         let autocomplete;
         let selectedPlace = null;
         
+        // Liste des secteurs pour compatibilité future avec Nextvision
+        const COMPANY_SECTORS = {
+            'tech': 'Technologies de l\'information',
+            'finance': 'Finance et banque',
+            'health': 'Santé et médical',
+            'education': 'Education et formation',
+            'commerce': 'Commerce et retail',
+            'industry': 'Industrie et manufacture',
+            'energy': 'Energie et environnement',
+            'transport': 'Transport et logistique',
+            'construction': 'Immobilier et construction',
+            'media': 'Médias et communication',
+            'luxury': 'Luxe et mode',
+            'agriculture': 'Agriculture et agroalimentaire',
+            'services': 'Services aux entreprises',
+            'culture': 'Culture et divertissement',
+            'sport': 'Sport et loisirs'
+        };
+
+        // Gestion du changement de secteur (nouvelle fonctionnalité)
+        function handleSectorChange() {
+            const sectorSelect = document.getElementById('company-sector');
+            const sectorSection = document.getElementById('sectorSection');
+            
+            if (sectorSelect.value) {
+                sectorSection.classList.add('filled');
+                // Animation de confirmation
+                setTimeout(() => {
+                    sectorSection.classList.remove('filled');
+                }, 300);
+                
+                // Notification de sélection
+                const sectorText = COMPANY_SECTORS[sectorSelect.value] || sectorSelect.value;
+                showNotificationCustom(`✅ Secteur sélectionné: ${sectorText}`, 'success');
+            }
+        }
+        
         // Callback d'initialisation Google Maps
         function initGoogleMaps() {
             console.log('🗺️ Initialisation Google Maps Places API');
@@ -1780,10 +1890,11 @@
                 redirectionInProgress = true;
                 debugLog('🚀 DÉBUT DE LA REDIRECTION VERS LE DASHBOARD ENTREPRISE');
                 
-                // Sauvegarder les données des étapes 1-2 + données de géolocalisation
+                // Sauvegarder les données des étapes 1-2 + données de géolocalisation + SECTEUR D'ACTIVITÉ
                 const step1Data = {
                     companyName: document.getElementById('company-name')?.value || '',
                     companyAddress: document.getElementById('company-address')?.value || '',
+                    companySector: document.getElementById('company-sector')?.value || '', // NOUVEAU: Secteur d'activité
                     companyWebsite: document.getElementById('company-website')?.value || '',
                     companyDescription: document.getElementById('company-description')?.value || '',
                     companySize: document.getElementById('company-size')?.value || '',
@@ -1799,19 +1910,30 @@
                     contactPreferred: document.getElementById('contact-preferred')?.value || ''
                 };
                 
+                // Données spéciales pour l'algorithme Nextvision
+                const nextvisionData = {
+                    company_sector: step1Data.companySector,
+                    sector_weight: 0.1, // 10% du score de matching
+                    profile_type: 'company',
+                    timestamp: new Date().toISOString(),
+                    source: 'client-questionnaire-v3.0'
+                };
+                
                 // Sauvegarder dans localStorage
                 try {
                     localStorage.setItem('nexten_company_data', JSON.stringify(step1Data));
                     localStorage.setItem('nexten_contact_data', JSON.stringify(step2Data));
+                    localStorage.setItem('nexten_nextvision_data', JSON.stringify(nextvisionData)); // NOUVEAU: Données Nextvision
                     localStorage.setItem('nexten_redirect_from_questionnaire', 'true');
                     localStorage.setItem('nexten_redirect_timestamp', Date.now().toString());
-                    debugLog('💾 Données sauvegardées en localStorage', { step1Data, step2Data });
+                    debugLog('💾 Données sauvegardées en localStorage (avec secteur)', { step1Data, step2Data, nextvisionData });
                 } catch (error) {
                     debugLog('❌ Erreur sauvegarde localStorage', error);
                 }
                 
-                // Afficher notification de succès
-                showNotificationCustom('Données sauvegardées ! Redirection vers le dashboard entreprise...', 'success');
+                // Afficher notification de succès avec mention du secteur
+                const sectorText = COMPANY_SECTORS[step1Data.companySector] || 'Non spécifié';
+                showNotificationCustom(`Données sauvegardées (secteur: ${sectorText}) ! Redirection vers le dashboard entreprise...`, 'success');
                 
                 // Créer et afficher l'overlay
                 const overlay = createRedirectOverlay();
@@ -1844,11 +1966,11 @@
                 return false;
             }
             
-            // Fonction de navigation normale avec validation d'adresse
+            // Fonction de navigation normale avec validation d'adresse ET secteur
             function navigateToStep(stepNumber) {
                 debugLog(`🔄 Navigation vers l'étape ${stepNumber}`);
                 
-                // Validation spéciale pour l'étape 1 (adresse géolocalisée)
+                // Validation spéciale pour l'étape 1 (adresse géolocalisée + secteur obligatoire)
                 if (stepNumber > 1 && currentStep === 1) {
                     if (!validateStep1()) {
                         return false;
@@ -1870,12 +1992,37 @@
                 return true;
             }
             
-            // Validation de l'étape 1 (avec vérification de géolocalisation)
+            // Validation de l'étape 1 (avec vérification de géolocalisation ET secteur d'activité)
             function validateStep1() {
                 const companyName = document.getElementById('company-name')?.value.trim();
+                const companySector = document.getElementById('company-sector')?.value;
                 
                 if (!companyName) {
                     showNotificationCustom('Veuillez renseigner le nom de la structure', 'error');
+                    return false;
+                }
+                
+                // Valider le secteur d'activité (OBLIGATOIRE)
+                if (!companySector) {
+                    showNotificationCustom('⚠️ Le secteur d\'activité est obligatoire pour optimiser les recommandations de candidats', 'error');
+                    
+                    // Mettre en évidence le champ secteur
+                    const sectorField = document.getElementById('company-sector');
+                    const sectorSection = document.getElementById('sectorSection');
+                    if (sectorField && sectorSection) {
+                        sectorField.style.borderColor = 'var(--error)';
+                        sectorSection.style.borderColor = 'var(--error)';
+                        
+                        // Scroll vers le secteur
+                        sectorSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Remettre les couleurs normales après 3 secondes
+                        setTimeout(() => {
+                            sectorField.style.borderColor = '';
+                            sectorSection.style.borderColor = '';
+                        }, 3000);
+                    }
+                    
                     return false;
                 }
                 
@@ -1913,9 +2060,9 @@
                 }
             }
 
-            // Fonction pour générer le récapitulatif
+            // Fonction pour générer le récapitulatif (MISE À JOUR AVEC SECTEUR)
             function generateSummary() {
-                debugLog('📋 Génération du récapitulatif');
+                debugLog('📋 Génération du récapitulatif (avec secteur)');
                 
                 const summaryContent = document.getElementById('summary-content');
                 if (!summaryContent) return;
@@ -1931,6 +2078,15 @@
                             <div class="summary-item">
                                 <div class="summary-label">Nom de la structure</div>
                                 <div class="summary-value">${data.companyName || '<span class="empty">Non renseigné</span>'}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Secteur d'activité</div>
+                                <div class="summary-value">
+                                    ${data.companySector ? 
+                                        `<span class="summary-badge">${COMPANY_SECTORS[data.companySector] || data.companySector}</span>` : 
+                                        '<span class="empty">Non renseigné</span>'
+                                    }
+                                </div>
                             </div>
                             <div class="summary-item">
                                 <div class="summary-label">Adresse</div>
@@ -2005,9 +2161,25 @@
                                     <p>Comme vous n'avez pas de poste à pourvoir actuellement, vous serez redirigé vers le dashboard entreprise où vous pourrez :</p>
                                     <ul class="summary-list">
                                         <li>Gérer votre profil entreprise</li>
-                                        <li>Consulter notre base de candidats</li>
+                                        <li>Consulter notre base de candidats selon votre secteur d'activité</li>
                                         <li>Créer des postes quand vous en aurez besoin</li>
                                         <li>Suivre vos recrutements futurs</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${data.companySector ? `
+                        <div class="summary-section">
+                            <h3><i class="fas fa-target"></i> Algorithme de matching</h3>
+                            <div class="summary-item">
+                                <div class="summary-value">
+                                    <p><strong>Votre secteur d'activité sera utilisé pour optimiser les recommandations :</strong></p>
+                                    <ul class="summary-list">
+                                        <li>Exclusion automatique des candidats ayant votre secteur en "rédhibitoire"</li>
+                                        <li>Boost des candidats ayant votre secteur en "préféré"</li>
+                                        <li>Pondération secteur : 10% du score global de matching</li>
                                     </ul>
                                 </div>
                             </div>
@@ -2016,15 +2188,16 @@
                 `;
                 
                 summaryContent.innerHTML = summaryHTML;
-                debugLog('✅ Récapitulatif généré avec succès');
+                debugLog('✅ Récapitulatif généré avec succès (avec secteur)');
             }
 
-            // Fonction pour collecter toutes les données du formulaire
+            // Fonction pour collecter toutes les données du formulaire (MISE À JOUR AVEC SECTEUR)
             function collectFormData() {
                 return {
-                    // Étape 1 - Structure
+                    // Étape 1 - Structure (avec secteur d'activité)
                     companyName: document.getElementById('company-name')?.value || '',
                     companyAddress: document.getElementById('company-address')?.value || '',
+                    companySector: document.getElementById('company-sector')?.value || '', // NOUVEAU
                     companyWebsite: document.getElementById('company-website')?.value || '',
                     companyDescription: document.getElementById('company-description')?.value || '',
                     companySize: document.getElementById('company-size')?.value || '',
@@ -2273,7 +2446,7 @@
                                 event.preventDefault();
                                 event.stopPropagation();
                                 
-                                // Utiliser la fonction de navigation qui inclut la logique de redirection
+                                // Utiliser la fonction de navigation qui inclut la logique de validation/redirection
                                 const canNavigate = navigateToStep(targetStep);
                                 if (!canNavigate) {
                                     debugLog('🚫 Navigation bloquée par la logique de validation/redirection');
@@ -2328,7 +2501,12 @@
                 },
                 showStep,
                 navigateToStep,
-                getSelectedAddress: () => selectedPlace
+                getSelectedAddress: () => selectedPlace,
+                validateSector: () => {
+                    const sector = document.getElementById('company-sector')?.value;
+                    console.log('🎯 Secteur actuel:', sector, COMPANY_SECTORS[sector]);
+                    return sector;
+                }
             };
             
             debugLog('🎉 SCRIPT DE REDIRECTION NEXTEN CHARGÉ AVEC SUCCÈS');
@@ -2893,7 +3071,7 @@ Répondez uniquement avec un objet JSON contenant:
             validateGeolocation: validateAddressGeolocation
         };
 
-        console.log('🎉 QUESTIONNAIRE NEXTEN AVEC REDIRECTION DASHBOARD ENTREPRISE CHARGÉ AVEC SUCCÈS');
+        console.log('🎉 QUESTIONNAIRE NEXTEN AVEC SECTEUR D\'ACTIVITÉ ET REDIRECTION DASHBOARD ENTREPRISE CHARGÉ AVEC SUCCÈS');
     </script>
 </body>
 </html>
