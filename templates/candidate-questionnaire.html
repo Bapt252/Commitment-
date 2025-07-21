@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexten - Questionnaire Candidat</title>
     
-    <!-- CSS -->
+    <!-- CSS ---->
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-modern-interactive.css">
     <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/candidate-analyzer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- IMPORTANT: Script d'intégration CV prioritaire -->
+    <!-- ✨ NEXTEN V3.0 - Interface moderne -->
+    <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-modern-v3.css">
+    
+    <!-- 🔥 CRITICAL: Scripts backend prioritaires - PRÉSERVÉS -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/cv-parser-integration.js"></script>
     
-    <!-- Scripts secondaires -->
+    <!-- Scripts secondaires critiques -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/api-adapter.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/form-parser-connector.js"></script>
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/form-connection.js"></script>
@@ -25,666 +28,584 @@
     <!-- Outil de test pour l'intégration CV (mode développement) -->
     <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/cv-api-tester.js"></script>
     
-    <!-- Styles pour Google Maps Autocomplete -->
-    <style id="google-maps-autocomplete-styles">
-      .address-validated {
-        border-color: #10B981 !important;
-        background-color: rgba(16, 185, 129, 0.05) !important;
-      }
-      
-      .pac-container {
-        z-index: 10000 !important;
-        border-radius: 8px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
-        font-family: 'Inter', sans-serif !important;
-        border: none !important;
-        margin-top: 5px !important;
-      }
-      
-      .pac-item {
-        padding: 10px !important;
-        cursor: pointer !important;
-      }
-      
-      .pac-item:hover {
-        background-color: rgba(124, 58, 237, 0.05) !important;
-      }
-      
-      .pac-item-selected {
-        background-color: rgba(124, 58, 237, 0.1) !important;
-      }
-      
-      /* Style supplémentaire pour l'input en focus */
-      #address.focused {
-        border-color: #7c3aed !important;
-        box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1) !important;
-      }
-    </style>
+    <!-- ✨ NOUVEAU: Script pour étapes 3 & 4 -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-steps34.js"></script>
     
-    <!-- Styles spécifiques au questionnaire -->
+    <!-- ✨ NEXTEN V3.0 - Interactions modernes -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-modern-interactions.js"></script>
+    
+    <!-- 🚀 CORRECTION: Script de correction des fonctionnalités étape 3 -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/questionnaire-fixes.js"></script>
+    
+    <!-- 🎯 CORRECTION CRITIQUE: Synchronisation motivations étape 3 → étape 4 -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/etape3-motivation-sync-fix.js"></script>
+    
+    <!-- 🆕 SCRIPTS FONCTIONNALITÉS MANQUANTES -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-contract-system.js"></script>
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/nexten-sectors-v3.js"></script>
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/step4-fix.js"></script>
+    
+    <!-- 🎯 NOUVEAU: Script de redirection automatique vers la page de matching -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/questionnaire-redirect.js"></script>
+    
+    <!-- 🎯 NOUVEAU: Parcours conditionnel avancé étape 4 -->
+    <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/advanced-employment-questionnaire.css">
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/advanced-employment-questionnaire.js"></script>
+    
+    <!-- 🗺️ Google Maps API avec autocomplete fonctionnel -->
+    <script>
+        // Fonction setupAddressAutocomplete manquante - AJOUTÉE
+        function setupAddressAutocomplete() {
+            console.log('🚀 Initialisation autocomplete Google Maps...');
+            
+            const addressField = document.getElementById('address');
+            if (!addressField) {
+                console.warn('Champ adresse non trouvé');
+                return;
+            }
+
+            try {
+                // Créer l'autocomplete
+                const autocomplete = new google.maps.places.Autocomplete(addressField, {
+                    types: ['address'],
+                    componentRestrictions: { country: 'fr' },
+                    fields: ['formatted_address', 'geometry', 'place_id', 'address_components']
+                });
+
+                // Stocker la référence pour tests
+                addressField._autocomplete = autocomplete;
+
+                // Gérer la sélection d'une adresse
+                autocomplete.addListener('place_changed', function() {
+                    const place = autocomplete.getPlace();
+                    console.log('📍 Adresse sélectionnée:', place);
+
+                    if (place.geometry) {
+                        // Mettre à jour les champs cachés
+                        const latField = document.getElementById('address-lat');
+                        const lngField = document.getElementById('address-lng');
+                        const placeIdField = document.getElementById('address-place-id');
+
+                        if (latField) latField.value = place.geometry.location.lat();
+                        if (lngField) lngField.value = place.geometry.location.lng();
+                        if (placeIdField) placeIdField.value = place.place_id;
+
+                        // Ajouter classe de validation
+                        addressField.classList.add('address-validated');
+                        
+                        // Notification de succès
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Adresse validée avec succès', 'success');
+                        }
+
+                        console.log('✅ Coordonnées sauvegardées:', {
+                            lat: place.geometry.location.lat(),
+                            lng: place.geometry.location.lng(),
+                            placeId: place.place_id
+                        });
+                    }
+                });
+
+                // Gérer le focus
+                addressField.addEventListener('focus', function() {
+                    this.classList.add('focused');
+                });
+
+                addressField.addEventListener('blur', function() {
+                    this.classList.remove('focused');
+                });
+
+                console.log('✅ Autocomplete Google Maps configuré avec succès');
+
+            } catch (error) {
+                console.error('❌ Erreur configuration autocomplete:', error);
+            }
+        }
+
+        function initGoogleMaps() {
+            console.log('🗺️ Google Maps API initialisée');
+            
+            // Délai pour s'assurer que le DOM est prêt
+            setTimeout(() => {
+                if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+                    setupAddressAutocomplete();
+                } else {
+                    console.error('❌ Google Maps Places API non disponible');
+                }
+            }, 100);
+        }
+        
+        // Chargement automatique Google Maps
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initGoogleMaps';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    </script>
+    
+    <!-- Styles pour les indicateurs CV parsing -->
     <style>
-        /* Styles spécifiques au questionnaire candidat */
-        .form-container {
-            background-color: var(--white);
+        .cv-test-indicator {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 15px 25px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .real-cv-indicator {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin: 10px 0 20px 0;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .simulated-data-badge {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 10px;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 5;
+        }
+        
+        .form-group {
             position: relative;
+        }
+        
+        /* Styles Google Maps */
+        .address-validated {
+            border-color: #10B981 !important;
+            background-color: rgba(16, 185, 129, 0.05) !important;
+        }
+        
+        .pac-container {
+            z-index: 10000 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+            font-family: 'Inter', sans-serif !important;
+            border: none !important;
+            margin-top: 5px !important;
+        }
+        
+        .pac-item {
+            padding: 10px !important;
+            cursor: pointer !important;
+        }
+        
+        .pac-item:hover {
+            background-color: rgba(124, 58, 237, 0.05) !important;
+        }
+        
+        .pac-item-selected {
+            background-color: rgba(124, 58, 237, 0.1) !important;
+        }
+        
+        #address.focused {
+            border-color: #7c3aed !important;
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1) !important;
+        }
+
+        /* ✨ NOUVEAU: Styles pour les champs de temps de trajet dynamiques */
+        .travel-time-container {
+            margin-top: 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(-10px);
+            max-height: 0;
             overflow: hidden;
         }
-
-        .form-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 30%;
-            height: 5px;
-            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
-            z-index: 1;
+        
+        .travel-time-container.active {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 200px;
         }
-
-        .stepper {
+        
+        .travel-time-field {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: var(--spacing-xl);
-            position: relative;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
         }
-
-        .stepper-line {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background-color: var(--cream-dark);
-            transform: translateY(-50%);
-            z-index: 1;
+        
+        .travel-time-field:hover {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
         }
-
-        .stepper-progress {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 0%;
-            height: 2px;
-            background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%);
-            transform: translateY(-50%);
-            z-index: 2;
-            transition: width 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            z-index: 3;
-            width: 25%; /* 4 étapes */
-        }
-
-        .step-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--white);
-            border: 2px solid var(--cream-dark);
+        
+        .travel-time-icon {
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--gray);
-            font-weight: 500;
-            margin-bottom: var(--spacing-xs);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .step.active .step-circle {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            border-color: var(--purple);
-            color: var(--white);
-            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
-            transform: scale(1.1);
-        }
-
-        .step.completed .step-circle {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            border-color: var(--purple);
-            color: var(--white);
-        }
-
-        .step.completed .step-circle::after {
-            content: '\f00c';
-            font-family: 'Font Awesome 5 Free';
-            font-weight: 900;
-        }
-
-        .step-label {
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--gray);
-            transition: all 0.3s ease;
-        }
-
-        .step.active .step-label {
-            color: var(--purple);
-            font-weight: 500;
-        }
-
-        .form-step {
-            display: none;
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        .form-step.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .form-section-title {
-            font-size: 1.75rem;
-            margin-bottom: var(--spacing-lg);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 400;
-            position: relative;
-            display: inline-block;
-            color: var(--black);
-        }
-
-        .form-section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 0;
-            width: 60px;
-            height: 3px;
-            background: var(--purple);
-            border-radius: 2px;
-        }
-
-        .form-group {
-            margin-bottom: var(--spacing-md);
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: var(--spacing-xs);
-            font-weight: 500;
-            font-size: 0.95rem;
-            color: var(--black);
-            position: relative;
-        }
-
-        .form-label.required::after {
-            content: '*';
-            color: var(--purple);
-            margin-left: 4px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1px solid var(--cream-dark);
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
             border-radius: 8px;
-            background-color: var(--white);
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            font-weight: 300;
-            color: var(--black);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-size: 14px;
         }
-
-        .form-control:focus {
+        
+        .travel-time-label {
+            flex: 1;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .travel-time-input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .travel-time-input:focus {
             outline: none;
-            border-color: var(--purple);
-            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
-            transform: translateY(-2px);
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
         }
-
-        /* Styles spécifiques pour les champs avec données CV réelles */
-        .real-cv-data {
-            background-color: rgba(16, 185, 129, 0.05);
-            border-color: #10B981;
+        
+        .travel-time-unit {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
         }
-
-        textarea.form-control {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .info-icon {
-            margin-left: 6px;
-            color: var(--gray-light);
-            cursor: help;
-            transition: all 0.3s ease;
-        }
-
-        .info-icon:hover {
-            color: var(--purple);
-            transform: scale(1.2);
-        }
-
-        .radio-group, .checkbox-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: var(--spacing-xs);
-        }
-
-        .radio-option, .checkbox-option {
+        
+        .travel-time-header {
             display: flex;
             align-items: center;
-            position: relative;
+            gap: 8px;
+            margin-bottom: 16px;
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        .travel-time-header i {
+            color: #7c3aed;
+        }
+
+        /* ===== 🚀 STYLES ÉTAPE 4 SIMPLIFIÉE ===== */
+        .step4-container {
+            background: var(--surface-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-lg) 0;
+            border: 2px solid var(--border-color);
+            transition: all var(--transition-base);
+        }
+
+        .step4-container:hover {
+            border-color: var(--nexten-primary-light);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+        }
+
+        .step4-question {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .step4-question-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .step4-question-title i {
+            color: var(--nexten-primary);
+        }
+
+        .step4-options {
+            display: grid;
+            gap: var(--spacing-base);
+        }
+
+        .step4-option {
+            background: var(--surface-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
             cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
-
-        .radio-option:hover, .checkbox-option:hover {
-            background-color: var(--cream);
-        }
-
-        .radio-option input, .checkbox-option input {
-            position: absolute;
-            opacity: 0;
-            cursor: pointer;
-            height: 0;
-            width: 0;
-        }
-
-        .radio-checkmark, .checkbox-checkmark {
+            transition: all var(--transition-base);
             position: relative;
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            background-color: var(--white);
-            border: 2px solid var(--gray-light);
-            margin-right: 10px;
-            transition: all 0.3s ease;
         }
 
-        .radio-checkmark {
+        .step4-option:hover {
+            border-color: var(--nexten-primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .step4-option.selected {
+            border-color: var(--nexten-primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .step4-option-content {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-base);
+        }
+
+        .step4-option-radio {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
             border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-base);
+            flex-shrink: 0;
         }
 
-        .checkbox-checkmark {
-            border-radius: 4px;
+        .step4-option.selected .step4-option-radio {
+            border-color: var(--nexten-primary);
+            background: var(--nexten-primary);
         }
 
-        .radio-option:hover .radio-checkmark, 
-        .checkbox-option:hover .checkbox-checkmark {
-            border-color: var(--purple);
-        }
-
-        .radio-option input:checked ~ .radio-checkmark,
-        .checkbox-option input:checked ~ .checkbox-checkmark {
-            background-color: var(--purple);
-            border-color: var(--purple);
-        }
-
-        .radio-checkmark:after,
-        .checkbox-checkmark:after {
-            content: "";
-            position: absolute;
-            display: none;
-        }
-
-        .radio-option input:checked ~ .radio-checkmark:after,
-        .checkbox-option input:checked ~ .checkbox-checkmark:after {
-            display: block;
-        }
-
-        .radio-option .radio-checkmark:after {
-            top: 5px;
-            left: 5px;
+        .step4-option.selected .step4-option-radio::after {
+            content: '';
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: var(--white);
+            background: white;
         }
 
-        .checkbox-option .checkbox-checkmark:after {
-            left: 6px;
-            top: 2px;
-            width: 6px;
-            height: 10px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-
-        .form-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: var(--spacing-xl);
-        }
-
-        .btn-action {
-            padding: 14px 32px;
-            font-size: 0.95rem;
-            border-radius: 8px;
+        .step4-option-text {
+            flex: 1;
             font-weight: 500;
-            letter-spacing: 0.5px;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-            overflow: hidden;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            color: var(--text-primary);
         }
 
-        .btn-action::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 0%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.1);
-            transition: width 0.3s ease;
-            z-index: 1;
+        /* Questions conditionnelles */
+        .conditional-section {
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-lg);
+            background: rgba(124, 58, 237, 0.05);
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            border-radius: var(--radius-lg);
+            display: none;
+            animation: fadeInUp 0.3s ease-out;
         }
 
-        .btn-action:hover::before {
-            width: 100%;
+        .conditional-section.active {
+            display: block;
         }
 
-        .btn-action i {
-            position: relative;
-            z-index: 2;
-            transition: transform 0.3s ease;
-        }
-
-        .btn-action span {
-            position: relative;
-            z-index: 2;
-        }
-
-        .btn-back {
-            background: var(--white);
-            border: 1px solid var(--cream-dark);
-            color: var(--black);
-        }
-
-        .btn-back:hover {
-            border-color: var(--black);
-            transform: translateX(-5px);
-        }
-
-        .btn-back:hover i {
-            transform: translateX(-5px);
-        }
-
-        .btn-next {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            border: none;
-            color: var(--white);
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
-        }
-
-        .btn-next:hover {
-            transform: translateX(5px);
-            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
-        }
-
-        .btn-next:hover i {
-            transform: translateX(5px);
-        }
-
-        .btn-next:disabled, .btn-back:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-next:disabled:hover, .btn-back:disabled:hover {
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-next:disabled:hover i, .btn-back:disabled:hover i {
-            transform: none;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            border: none;
-            color: var(--white);
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
-        }
-
-        /* Priorités de motivation - drag and drop */
-        .motivation-priorities {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .motivation-item {
-            padding: 15px;
-            margin-bottom: 10px;
-            background-color: var(--cream);
-            border-radius: 8px;
-            cursor: move;
-            position: relative;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-
-        .motivation-item:hover {
-            background-color: var(--cream-dark);
-        }
-
-        .drag-handle {
-            color: var(--gray);
-            margin-right: 10px;
-            cursor: move;
-        }
-
-        .motivation-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            background-color: var(--purple);
-            border-radius: 50%;
-            color: white;
+        .conditional-section-title {
             font-weight: 600;
-            margin-right: 12px;
-        }
-
-        /* Notification */
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 16px 24px;
-            background: var(--white);
-            color: var(--black);
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            color: var(--nexten-primary);
+            margin-bottom: var(--spacing-base);
             display: flex;
             align-items: center;
-            gap: 12px;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            z-index: 1000;
-        }
-        
-        .notification.success {
-            border-left: 4px solid #10B981;
-        }
-        
-        .notification.error {
-            border-left: 4px solid #EF4444;
-        }
-        
-        .notification.info {
-            border-left: 4px solid #3B82F6;
-        }
-        
-        .notification.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .notification i {
-            font-size: 1.5rem;
-        }
-        
-        .notification.success i {
-            color: #10B981;
-        }
-        
-        .notification.error i {
-            color: #EF4444;
-        }
-        
-        .notification.info i {
-            color: #3B82F6;
-        }
-        
-        .notification-message {
-            font-weight: 500;
-        }
-        
-        .notification-close {
-            margin-left: 20px;
-            color: var(--gray);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .notification-close:hover {
-            color: var(--black);
-            transform: rotate(90deg);
+            gap: var(--spacing-xs);
         }
 
-        /* Animation de chargement de la redirection */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .step4-input-group {
+            margin-bottom: var(--spacing-base);
+        }
+
+        .step4-input-label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .step4-input {
             width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.8);
+            padding: var(--spacing-sm);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: var(--surface-primary);
+            transition: all var(--transition-base);
+        }
+
+        .step4-input:focus {
+            outline: none;
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .step4-checkbox-group {
+            display: grid;
+            gap: var(--spacing-sm);
+        }
+
+        .step4-checkbox-option {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background: var(--surface-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .step4-checkbox-option:hover {
+            border-color: var(--nexten-primary-light);
+            background: rgba(124, 58, 237, 0.02);
+        }
+
+        .step4-checkbox-option.selected {
+            border-color: var(--nexten-primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .step4-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: all var(--transition-base);
+            flex-shrink: 0;
         }
 
-        .loading-overlay.active {
-            opacity: 1;
-            visibility: visible;
+        .step4-checkbox-option.selected .step4-checkbox {
+            border-color: var(--nexten-primary);
+            background: var(--nexten-primary);
+            color: white;
         }
 
-        .loading-spinner {
+        .step4-checkbox i {
+            font-size: 0.75rem;
+            display: none;
+        }
+
+        .step4-checkbox-option.selected .step4-checkbox i {
+            display: block;
+        }
+
+        .step4-checkbox-text {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Salary range input */
+        .salary-range-input {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            background: var(--surface-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-base);
+            padding: var(--spacing-sm);
+            transition: all var(--transition-base);
+        }
+
+        .salary-range-input:focus-within {
+            border-color: var(--nexten-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .salary-input-small {
             width: 60px;
-            height: 60px;
-            border: 4px solid rgba(124, 58, 237, 0.1);
-            border-radius: 50%;
-            border-top: 4px solid var(--purple);
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        .loading-text {
-            font-size: 1.2rem;
-            color: var(--purple);
-            font-weight: 500;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Styles pour les sous-questions sur le temps de trajet */
-        #transport-time-questions {
-            margin-top: 15px;
-            margin-left: 25px;
-        }
-        
-        #transport-time-questions .form-group {
-            margin-bottom: 15px;
-        }
-
-        /* Animations pour les indicateurs */
-        @keyframes pulseCVIndicator {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        /* Indicateur de CV réel */
-        .real-cv-indicator {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10B981;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            border: none;
+            outline: none;
             text-align: center;
-            font-weight: 500;
-            border: 2px solid #10B981;
-            animation: pulseCVIndicator 2s infinite;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: transparent;
         }
-        
+
+        .salary-separator {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .salary-unit-small {
+            color: var(--nexten-primary);
+            font-weight: 600;
+        }
+
+        /* Animation styles */
+        @keyframes slideInFromLeft {
+            0% { 
+                opacity: 0; 
+                transform: translateX(-20px); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .step4-option {
+            animation: slideInFromLeft 0.3s ease-out;
+        }
+
+        .step4-option:nth-child(1) { animation-delay: 0.1s; }
+        .step4-option:nth-child(2) { animation-delay: 0.2s; }
+        .step4-option:nth-child(3) { animation-delay: 0.3s; }
+        .step4-option:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .stepper {
-                flex-direction: column;
-                gap: var(--spacing-md);
-                margin-bottom: var(--spacing-lg);
+            .step4-container {
+                padding: var(--spacing-lg);
+                margin: var(--spacing-base) 0;
             }
-            
-            .stepper-line, .stepper-progress {
-                display: none;
+
+            .step4-question-title {
+                font-size: 1.125rem;
             }
-            
-            .step {
-                flex-direction: row;
-                width: 100%;
-                justify-content: flex-start;
-                gap: var(--spacing-sm);
+
+            .step4-option {
+                padding: var(--spacing-base);
             }
-            
-            .step-circle {
-                margin-bottom: 0;
+
+            .conditional-section {
+                padding: var(--spacing-base);
             }
-            
-            .form-actions {
-                flex-direction: column;
-                gap: var(--spacing-sm);
-            }
-            
-            .btn-action {
-                width: 100%;
+
+            .salary-range-input {
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
     </style>
+    
+    <!-- Styles du système NEXTEN V2.0 -->
+    <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-v2-hybrid.css">
 </head>
 <body>
     <!-- Notification bar -->
@@ -705,7 +626,7 @@
             
             <nav>
                 <ul>
-                    <li><a href="https://bapt252.github.io/Commitment-/">Accueil</a></li>
+                    <li><a href="https://bapt252.github.io/Commitment-/templates/index.html">Accueil</a></li>
                     <li><a href="https://bapt252.github.io/Commitment-/#services">Services</a></li>
                     <li><a href="https://bapt252.github.io/Commitment-/#about">À propos</a></li>
                     <li><a href="https://bapt252.github.io/Commitment-/contact.html">Contact</a></li>
@@ -728,6 +649,9 @@
             </div>
         </div>
     </section>
+
+    <!-- Mode CV Parsing - Bandeaux indicateurs -->
+    <div id="cv-parsing-indicators"></div>
 
     <section>
         <div class="container">
@@ -793,34 +717,78 @@
                             <label class="form-label required">3) Comment vous déplacez-vous ? (plusieurs choix possibles)</label>
                             <div class="checkbox-group">
                                 <label class="checkbox-option">
-                                    <input type="checkbox" name="transport-method" value="public-transport">
+                                    <input type="checkbox" name="transport-method" value="public-transport" data-transport="public-transport">
                                     <span class="checkbox-checkmark"></span>
                                     Transports en commun
                                 </label>
                                 <label class="checkbox-option">
-                                    <input type="checkbox" name="transport-method" value="vehicle">
+                                    <input type="checkbox" name="transport-method" value="vehicle" data-transport="vehicle">
                                     <span class="checkbox-checkmark"></span>
                                     Véhicule personnel
                                 </label>
                                 <label class="checkbox-option">
-                                    <input type="checkbox" name="transport-method" value="bike">
+                                    <input type="checkbox" name="transport-method" value="bike" data-transport="bike">
                                     <span class="checkbox-checkmark"></span>
                                     Vélo
                                 </label>
                                 <label class="checkbox-option">
-                                    <input type="checkbox" name="transport-method" value="walking">
+                                    <input type="checkbox" name="transport-method" value="walking" data-transport="walking">
                                     <span class="checkbox-checkmark"></span>
                                     À pied
                                 </label>
                             </div>
                             
-                            <!-- Conteneur pour les questions dynamiques sur le temps de trajet -->
-                            <div id="transport-time-questions" style="display: none;"></div>
+                            <!-- ✨ NOUVEAU: Conteneur pour les champs de temps de trajet -->
+                            <div class="travel-time-container" id="travel-time-container">
+                                <div class="travel-time-header">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Temps de trajet acceptables</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-public-transport" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-bus"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet en transports en commun :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-public-transport" 
+                                           min="1" max="180" step="1" placeholder="30">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-vehicle" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet en véhicule personnel :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-vehicle" 
+                                           min="1" max="120" step="1" placeholder="25">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-bike" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-bicycle"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet à vélo :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-bike" 
+                                           min="1" max="90" step="1" placeholder="20">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                                
+                                <div class="travel-time-field" id="travel-time-walking" style="display: none;">
+                                    <div class="travel-time-icon">
+                                        <i class="fas fa-walking"></i>
+                                    </div>
+                                    <div class="travel-time-label">Temps de trajet à pied :</div>
+                                    <input type="number" class="travel-time-input" name="travel-time-walking" 
+                                           min="1" max="60" step="1" placeholder="15">
+                                    <span class="travel-time-unit">minutes</span>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="form-group">
                             <label for="address" class="form-label required">4) Adresse exacte</label>
-                            <!-- Utilisation d'un input text au lieu d'un textarea -->
                             <input type="text" id="address" name="address" class="form-control" required placeholder="Votre adresse complète (obligatoire pour simuler les temps de trajet)">
                             <div id="address-coords-container" style="display: none;">
                                 <input type="hidden" id="address-lat" name="address-lat">
@@ -829,9 +797,141 @@
                             </div>
                             <small class="text-muted">Nous utiliserons cette adresse pour calculer le temps de trajet vers les entreprises</small>
                         </div>
+
+                        <!-- Système de contrats NEXTEN V2.0 -->
+                        <div class="form-group">
+                            <div class="contract-ultra-container">
+                                <div class="contract-ultra-header">
+                                    <div class="contract-ultra-icon">
+                                        <i class="fas fa-file-contract"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="contract-ultra-title">5) Quel(s) type(s) de contrat recherchez-vous ?</h3>
+                                        <p class="contract-ultra-subtitle">
+                                            Sélectionnez et classez par ordre de préférence les types de contrats qui vous intéressent
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="ranking-instructions">
+                                    <div class="instructions-icon">
+                                        <i class="fas fa-lightbulb"></i>
+                                    </div>
+                                    <div class="instructions-content">
+                                        <h4 class="instructions-title">Instructions :</h4>
+                                        <p class="instructions-text">
+                                            Cliquez sur "Ajouter" pour les types de contrats qui vous intéressent, puis utilisez les flèches pour les classer par ordre de préférence. 
+                                            <strong>Votre premier choix aura le plus d'impact</strong> sur vos recommandations d'emploi.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="contract-selection-grid">
+                                    <div class="available-contracts-section">
+                                        <div class="section-header">
+                                            <div class="section-icon">
+                                                <i class="fas fa-list"></i>
+                                            </div>
+                                            <h4 class="section-title">Types de contrats disponibles</h4>
+                                        </div>
+
+                                        <div class="contract-card" data-type="cdi" data-name="CDI">
+                                            <div class="contract-card-icon cdi">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </div>
+                                            <div class="contract-card-content">
+                                                <h5 class="contract-card-name">CDI (Contrat à Durée Indéterminée)</h5>
+                                                <p class="contract-card-description">Stabilité et sécurité d'emploi, perspectives d'évolution de carrière à long terme</p>
+                                            </div>
+                                            <button type="button" class="add-contract-button" onclick="contractSystem.addToRanking('cdi')">
+                                                <i class="fas fa-plus"></i> Ajouter
+                                            </button>
+                                        </div>
+
+                                        <div class="contract-card" data-type="cdd" data-name="CDD">
+                                            <div class="contract-card-icon cdd">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </div>
+                                            <div class="contract-card-content">
+                                                <h5 class="contract-card-name">CDD (Contrat à Durée Déterminée)</h5>
+                                                <p class="contract-card-description">Missions courtes, projets spécifiques, flexibilité et découverte</p>
+                                            </div>
+                                            <button type="button" class="add-contract-button" onclick="contractSystem.addToRanking('cdd')">
+                                                <i class="fas fa-plus"></i> Ajouter
+                                            </button>
+                                        </div>
+
+                                        <div class="contract-card" data-type="freelance" data-name="Freelance">
+                                            <div class="contract-card-icon freelance">
+                                                <i class="fas fa-laptop-code"></i>
+                                            </div>
+                                            <div class="contract-card-content">
+                                                <h5 class="contract-card-name">Freelance / Consulting</h5>
+                                                <p class="contract-card-description">Indépendance totale, choix des missions, tarifs libres et autonomie</p>
+                                            </div>
+                                            <button type="button" class="add-contract-button" onclick="contractSystem.addToRanking('freelance')">
+                                                <i class="fas fa-plus"></i> Ajouter
+                                            </button>
+                                        </div>
+
+                                        <div class="contract-card" data-type="interim" data-name="Intérim">
+                                            <div class="contract-card-icon interim">
+                                                <i class="fas fa-users-cog"></i>
+                                            </div>
+                                            <div class="contract-card-content">
+                                                <h5 class="contract-card-name">Intérim</h5>
+                                                <p class="contract-card-description">Missions temporaires, découverte d'entreprises, polyvalence et expérience</p>
+                                            </div>
+                                            <button type="button" class="add-contract-button" onclick="contractSystem.addToRanking('interim')">
+                                                <i class="fas fa-plus"></i> Ajouter
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="ranking-section">
+                                        <div class="section-header">
+                                            <div class="section-icon">
+                                                <i class="fas fa-trophy"></i>
+                                            </div>
+                                            <h4 class="section-title">Votre classement de préférence</h4>
+                                        </div>
+                                        <div id="ranking-list">
+                                            <div class="ranking-empty">
+                                                <div class="ranking-empty-icon">
+                                                    <i class="fas fa-hand-pointer"></i>
+                                                </div>
+                                                <h5 class="ranking-empty-title">Commencez votre sélection</h5>
+                                                <p class="ranking-empty-text">
+                                                    Ajoutez les types de contrats qui vous intéressent pour créer votre classement personnalisé
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="contract-ultra-summary" id="contract-summary">
+                                    <div class="summary-header">
+                                        <div class="summary-icon">
+                                            <i class="fas fa-clipboard-check"></i>
+                                        </div>
+                                        <h4 class="summary-title">Résumé de vos préférences contractuelles</h4>
+                                    </div>
+                                    <div class="summary-content" id="summary-content">
+                                        <!-- Contenu généré dynamiquement -->
+                                    </div>
+                                </div>
+
+                                <!-- Champs cachés pour l'intégration -->
+                                <input type="hidden" id="contract-ranking-order" name="contract-ranking-order">
+                                <input type="hidden" id="contract-selection-mode" name="contract-selection-mode" value="ranking">
+                                <input type="hidden" id="contract-types-selected" name="contract-types-selected">
+                                <input type="hidden" id="contract-preference-level" name="contract-preference-level">
+                                <input type="hidden" id="contract-primary-choice" name="contract-primary-choice">
+                            </div>
+                        </div>
                         
                         <div class="form-group">
-                            <label for="office-preference" class="form-label required">5) Préférez-vous un environnement :</label>
+                            <label for="office-preference" class="form-label required">6) Préférez-vous un environnement :</label>
                             <div class="radio-group">
                                 <label class="radio-option">
                                     <input type="radio" name="office-preference" value="open-space" required>
@@ -863,869 +963,615 @@
                         </div>
                     </div>
                     
-                    <!-- ÉTAPE 3 : MOTIVATIONS ET SECTEURS -->
-                    <div class="form-step" id="form-step3">
-                        <h2 class="form-section-title">Motivations et secteurs</h2>
-                        
+                    <!-- ✨ ÉTAPE 3 : MOTIVATIONS PROFESSIONNELLES AVEC SYSTÈME DE CLASSEMENT + SECTEURS MODERNES -->
+                    <div class="form-step nexten-v3-modern" id="form-step3">
+                        <h2 class="form-section-title">🎯 Vos Motivations Professionnelles</h2>
+                        <p class="step-description">
+                            Sélectionnez et classez par ordre de priorité vos 3 principales motivations professionnelles pour des recommandations sur-mesure
+                        </p>
+
+                        <!-- Section Motivations avec Système de Classement -->
                         <div class="form-group">
-                            <label class="form-label required">6) Quels sont vos leviers de motivation ? (classez par ordre d'importance)</label>
-                            <ul class="motivation-priorities" id="motivation-priorities">
-                                <li class="motivation-item" draggable="true" data-value="remuneration">
-                                    <span class="drag-handle"><i class="fas fa-grip-vertical"></i></span>
-                                    <span class="motivation-number">1</span>
-                                    Rémunération
-                                </li>
-                                <li class="motivation-item" draggable="true" data-value="evolution">
-                                    <span class="drag-handle"><i class="fas fa-grip-vertical"></i></span>
-                                    <span class="motivation-number">2</span>
-                                    Perspectives d'évolution
-                                </li>
-                                <li class="motivation-item" draggable="true" data-value="flexibility">
-                                    <span class="drag-handle"><i class="fas fa-grip-vertical"></i></span>
-                                    <span class="motivation-number">3</span>
-                                    Flexibilité
-                                </li>
-                                <li class="motivation-item" draggable="true" data-value="location">
-                                    <span class="drag-handle"><i class="fas fa-grip-vertical"></i></span>
-                                    <span class="motivation-number">4</span>
-                                    Localisation
-                                </li>
-                                <li class="motivation-item" draggable="true" data-value="other">
-                                    <span class="drag-handle"><i class="fas fa-grip-vertical"></i></span>
-                                    <span class="motivation-number">5</span>
-                                    Autre
-                                </li>
-                            </ul>
-                            <input type="hidden" id="motivation-order" name="motivation-order">
-                            <div id="other-motivation-container" style="display: none; margin-top: 15px;">
-                                <label for="other-motivation">Précisez :</label>
-                                <input type="text" id="other-motivation" name="other-motivation" class="form-control">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="structure-type" class="form-label required">7) Quel type de structure priorisez-vous ? (plusieurs choix possibles)</label>
-                            <div class="checkbox-group">
-                                <label class="checkbox-option">
-                                    <input type="checkbox" name="structure-type" value="startup">
-                                    <span class="checkbox-checkmark"></span>
-                                    Start-up
-                                </label>
-                                <label class="checkbox-option">
-                                    <input type="checkbox" name="structure-type" value="pme">
-                                    <span class="checkbox-checkmark"></span>
-                                    PME
-                                </label>
-                                <label class="checkbox-option">
-                                    <input type="checkbox" name="structure-type" value="group">
-                                    <span class="checkbox-checkmark"></span>
-                                    Grand groupe
-                                </label>
-                                <label class="checkbox-option">
-                                    <input type="checkbox" name="structure-type" value="no-preference">
-                                    <span class="checkbox-checkmark"></span>
-                                    Ça n'a pas d'importance pour moi
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">8) Avez-vous une préférence pour un secteur d'activité ?</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="has-sector-preference" value="yes" onchange="toggleSectorPreference(this)">
-                                    <span class="radio-checkmark"></span>
-                                    Oui
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="has-sector-preference" value="no" onchange="toggleSectorPreference(this)" checked>
-                                    <span class="radio-checkmark"></span>
-                                    Non
-                                </label>
-                            </div>
-                            
-                            <div id="sector-preference-container" style="display: none; margin-top: 15px;">
-                                <label for="sector-preference">Sélectionnez les secteurs (plusieurs choix possibles) :</label>
-                                <select id="sector-preference" name="sector-preference[]" class="form-control" multiple size="5">
-                                    <option value="tech">Technologie</option>
-                                    <option value="finance">Finance</option>
-                                    <option value="healthcare">Santé</option>
-                                    <option value="education">Éducation</option>
-                                    <option value="retail">Commerce</option>
-                                    <option value="manufacturing">Industrie</option>
-                                    <option value="energy">Énergie</option>
-                                    <option value="transportation">Transport</option>
-                                    <option value="media">Médias</option>
-                                    <option value="hospitality">Hôtellerie</option>
-                                    <option value="construction">Construction</option>
-                                    <option value="agriculture">Agriculture</option>
-                                    <option value="public">Secteur public</option>
-                                    <option value="nonprofit">Associations</option>
-                                </select>
-                                
-                                <div id="prohibited-sector-container" style="margin-top: 15px;">
-                                    <label class="form-label">Avez-vous un secteur rédhibitoire ?</label>
-                                    <div class="radio-group">
-                                        <label class="radio-option">
-                                            <input type="radio" name="has-prohibited-sector" value="yes" onchange="toggleProhibitedSector(this)">
-                                            <span class="radio-checkmark"></span>
-                                            Oui
-                                        </label>
-                                        <label class="radio-option">
-                                            <input type="radio" name="has-prohibited-sector" value="no" onchange="toggleProhibitedSector(this)" checked>
-                                            <span class="radio-checkmark"></span>
-                                            Non
-                                        </label>
+                            <div class="motivation-ranking-container">
+                                <div class="ranking-header">
+                                    <label class="modern-label">
+                                        <span class="label-icon">
+                                            <i class="fas fa-heart"></i>
+                                            Classez vos 3 principales motivations professionnelles
+                                        </span>
+                                    </label>
+                                    <div class="ranking-counter" id="motivation-counter">
+                                        0 / 3 sélectionnées
                                     </div>
-                                    
-                                    <div id="prohibited-sector-selection" style="display: none; margin-top: 15px;">
-                                        <label for="prohibited-sector">Sélectionnez les secteurs à éviter (plusieurs choix possibles) :</label>
-                                        <select id="prohibited-sector" name="prohibited-sector[]" class="form-control" multiple size="5">
-                                            <option value="tech">Technologie</option>
-                                            <option value="finance">Finance</option>
-                                            <option value="healthcare">Santé</option>
-                                            <option value="education">Éducation</option>
-                                            <option value="retail">Commerce</option>
-                                            <option value="manufacturing">Industrie</option>
-                                            <option value="energy">Énergie</option>
-                                            <option value="transportation">Transport</option>
-                                            <option value="media">Médias</option>
-                                            <option value="hospitality">Hôtellerie</option>
-                                            <option value="construction">Construction</option>
-                                            <option value="agriculture">Agriculture</option>
-                                            <option value="public">Secteur public</option>
-                                            <option value="nonprofit">Associations</option>
-                                        </select>
+                                </div>
+                                
+                                <div class="ranking-instructions">
+                                    <i class="fas fa-info-circle"></i>
+                                    <div>
+                                        <strong>Instructions :</strong> Cliquez pour sélectionner jusqu'à 3 motivations. 
+                                        L'ordre de sélection détermine votre classement : 1er choix = priorité maximale.
+                                    </div>
+                                </div>
+
+                                <!-- Nouvelles Options de Motivations -->
+                                <div class="motivation-card" data-motivation="evolution" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Perspectives d'évolution</div>
+                                            <div class="card-description">
+                                                Progresser vers des postes à responsabilités, développer votre leadership et accéder à de nouvelles opportunités de carrière
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ranking-badge" data-rank="1">1</div>
+                                </div>
+
+                                <div class="motivation-card" data-motivation="salaire" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-euro-sign"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Augmentation salariale</div>
+                                            <div class="card-description">
+                                                Améliorer significativement votre rémunération, obtenir de meilleurs avantages et reconnaissance financière de vos compétences
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ranking-badge" data-rank="2">2</div>
+                                </div>
+
+                                <div class="motivation-card" data-motivation="flexibilite" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-balance-scale"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Flexibilité</div>
+                                            <div class="card-description">
+                                                Télétravail, horaires flexibles, équilibre vie pro/perso et liberté d'organisation de votre temps de travail
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ranking-badge" data-rank="3">3</div>
+                                </div>
+
+                                <div class="motivation-card" data-motivation="autre" tabindex="0">
+                                    <div class="card-content">
+                                        <div class="card-icon">
+                                            <i class="fas fa-plus-circle"></i>
+                                        </div>
+                                        <div class="card-text">
+                                            <div class="card-title">Autre</div>
+                                            <div class="card-description">
+                                                Une motivation spécifique qui vous anime et que vous souhaitez préciser
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ranking-badge" data-rank="4">4</div>
+                                </div>
+
+                                <!-- Champ libre pour "Autre" -->
+                                <div class="autre-motivation-field" id="autre-field">
+                                    <label for="autre-motivation-text" style="font-weight: 500; color: #374151; margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-edit"></i> Précisez votre autre motivation :
+                                    </label>
+                                    <textarea 
+                                        id="autre-motivation-text" 
+                                        name="autre-motivation-text"
+                                        class="autre-textarea"
+                                        placeholder="Décrivez ce qui vous motive professionnellement (ex: innovation, impact social, créativité, reconnaissance, défis techniques...)"
+                                        maxlength="200"
+                                    ></textarea>
+                                    <small style="color: #6b7280; font-size: 0.75rem;">Maximum 200 caractères</small>
+                                </div>
+
+                                <!-- Résumé des choix -->
+                                <div class="motivation-summary" id="motivation-summary">
+                                    <div class="summary-title">
+                                        <i class="fas fa-clipboard-check"></i>
+                                        Votre classement de motivations
+                                    </div>
+                                    <div class="summary-list" id="summary-list">
+                                        <!-- Contenu généré dynamiquement -->
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
+
+                        <!-- ✨🆕 NOUVELLE SECTION SECTEURS MODERNE - LISTE DÉROULANTE + RÉDHIBITOIRES -->
                         <div class="form-group">
-                            <label for="salary-range" class="form-label required">9) Quelle est votre fourchette de rémunération ?</label>
-                            <input type="text" id="salary-range" name="salary-range" class="form-control" required placeholder="Ex: 35K€ - 45K€ brut annuel">
+                            <!-- === LISTE DÉROULANTE SECTEURS === -->
+                            <div class="modern-dropdown-container">
+                                <div class="dropdown-header">
+                                    <div class="dropdown-icon">
+                                        <i class="fas fa-industry"></i>
+                                    </div>
+                                    <div class="dropdown-title">Secteurs d'activité qui vous passionnent</div>
+                                    <div class="selection-counter" id="secteurs-counter">0 sélectionnés</div>
+                                </div>
+
+                                <div class="dropdown-search-container">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search" id="secteurs-search" 
+                                           placeholder="Rechercher un secteur d'activité...">
+                                </div>
+
+                                <div class="dropdown-options" id="secteurs-options">
+                                    <!-- Options générées dynamiquement par JavaScript -->
+                                </div>
+
+                                <div class="selected-sectors-container" id="secteurs-selected">
+                                    <div class="selected-sectors-title">
+                                        <i class="fas fa-check-circle"></i>
+                                        Secteurs sélectionnés
+                                    </div>
+                                    <div class="selected-tags" id="secteurs-tags">
+                                        <!-- Tags générés dynamiquement -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- === SECTEURS RÉDHIBITOIRES === -->
+                            <div class="redhibitoires-container">
+                                <div class="redhibitoires-header">
+                                    <div class="redhibitoires-icon">
+                                        <i class="fas fa-ban"></i>
+                                    </div>
+                                    <div class="redhibitoires-title">Avez-vous des secteurs d'activité rédhibitoires ?</div>
+                                    <div class="redhibitoires-counter" id="redhibitoires-counter">0 exclus</div>
+                                </div>
+
+                                <div class="redhibitoires-instructions">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <strong>Optionnel :</strong> Sélectionnez les secteurs dans lesquels vous ne souhaitez 
+                                        absolument pas travailler. Ces secteurs seront exclus de vos recommandations d'emploi.
+                                    </div>
+                                </div>
+
+                                <div class="dropdown-search-container">
+                                    <i class="fas fa-search dropdown-search-icon"></i>
+                                    <input type="text" class="dropdown-search" id="redhibitoires-search" 
+                                           placeholder="Rechercher un secteur à exclure...">
+                                </div>
+
+                                <div class="dropdown-options" id="redhibitoires-options">
+                                    <!-- Options générées dynamiquement par JavaScript -->
+                                </div>
+
+                                <div class="selected-sectors-container" id="redhibitoires-selected">
+                                    <div class="selected-sectors-title" style="color: #dc2626;">
+                                        <i class="fas fa-times-circle"></i>
+                                        Secteurs exclus
+                                    </div>
+                                    <div class="selected-tags" id="redhibitoires-tags">
+                                        <!-- Tags générés dynamiquement -->
+                                    </div>
+                                </div>
+
+                                <div class="conflict-warning" id="conflict-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <strong>Conflit détecté :</strong> Vous avez sélectionné des secteurs à la fois comme passionnants et rédhibitoires. Veuillez corriger cette incohérence.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn-action btn-back" id="back-step2">
+
+                        <!-- ✨🆕 NOUVELLE SECTION FOURCHETTE SALARIALE MODERNE -->
+                        <div class="form-group">
+                            <div class="salary-range-container">
+                                <div class="salary-header">
+                                    <div class="salary-title">
+                                        <i class="fas fa-euro-sign"></i>
+                                        Fourchette salariale souhaitée (brut annuel)
+                                    </div>
+                                    <div class="salary-display" id="salary-display">
+                                        Entre 40K et 45K €
+                                    </div>
+                                </div>
+                                
+                                <div class="salary-inputs-container">
+                                    <div class="salary-input-group" id="salary-min-group">
+                                        <label class="salary-label" for="salary-min">
+                                            <i class="fas fa-arrow-down"></i> Salaire minimum souhaité
+                                        </label>
+                                        <div class="salary-input-wrapper">
+                                            <input type="number" 
+                                                   class="salary-input" 
+                                                   id="salary-min" 
+                                                   name="salary-min"
+                                                   min="20" 
+                                                   max="200" 
+                                                   step="1" 
+                                                   value="40"
+                                                   placeholder="40">
+                                            <span class="salary-unit">K €</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="salary-input-group" id="salary-max-group">
+                                        <label class="salary-label" for="salary-max">
+                                            <i class="fas fa-arrow-up"></i> Salaire maximum souhaité
+                                        </label>
+                                        <div class="salary-input-wrapper">
+                                            <input type="number" 
+                                                   class="salary-input" 
+                                                   id="salary-max" 
+                                                   name="salary-max"
+                                                   min="20" 
+                                                   max="200" 
+                                                   step="1" 
+                                                   value="45"
+                                                   placeholder="45">
+                                            <span class="salary-unit">K €</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="salary-sliders">
+                                    <div class="salary-slider-group">
+                                        <div class="salary-slider-label">Minimum</div>
+                                        <input type="range" 
+                                               class="salary-slider" 
+                                               id="salary-slider-min"
+                                               min="20" 
+                                               max="200" 
+                                               step="1" 
+                                               value="40">
+                                    </div>
+                                    <div class="salary-slider-group">
+                                        <div class="salary-slider-label">Maximum</div>
+                                        <input type="range" 
+                                               class="salary-slider" 
+                                               id="salary-slider-max"
+                                               min="20" 
+                                               max="200" 
+                                               step="1" 
+                                               value="45">
+                                    </div>
+                                </div>
+
+                                <div class="salary-validation-message" id="salary-validation">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>Le salaire maximum doit être supérieur au salaire minimum</span>
+                                </div>
+
+                                <div class="salary-suggestions">
+                                    <div class="salary-suggestion" data-min="25" data-max="35">25-35K</div>
+                                    <div class="salary-suggestion" data-min="35" data-max="45">35-45K</div>
+                                    <div class="salary-suggestion" data-min="45" data-max="55">45-55K</div>
+                                    <div class="salary-suggestion" data-min="55" data-max="70">55-70K</div>
+                                    <div class="salary-suggestion" data-min="70" data-max="90">70-90K</div>
+                                    <div class="salary-suggestion" data-min="90" data-max="120">90-120K</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Textarea Aspirations (inchangée) -->
+                        <div class="form-group">
+                            <label class="modern-label" for="aspirations">
+                                <span class="label-icon">
+                                    <i class="fas fa-star"></i>
+                                    Partagez vos aspirations professionnelles
+                                </span>
+                            </label>
+                            <textarea 
+                                class="modern-textarea" 
+                                id="aspirations" 
+                                name="aspirations" 
+                                placeholder="Décrivez vos objectifs de carrière, vos projets, ce qui vous anime dans votre métier, vos rêves professionnels..."
+                            ></textarea>
+                        </div>
+
+                        <!-- Boutons d'Action -->
+                        <div class="modern-form-actions">
+                            <button type="button" class="modern-btn btn-secondary" id="back-step2">
                                 <i class="fas fa-arrow-left"></i>
                                 <span>Retour</span>
                             </button>
-                            <button type="button" class="btn-action btn-next" id="next-step3">
-                                <span>Suivant</span>
+                            <button type="button" class="modern-btn btn-primary" id="next-step3">
+                                <span>Continuer</span>
                                 <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
+
+                        <!-- Champs cachés pour intégration -->
+                        <input type="hidden" id="hidden-motivations" name="motivations">
+                        <input type="hidden" id="hidden-motivations-ranking" name="motivations-ranking">
+                        <input type="hidden" id="hidden-secteurs" name="secteurs">
+                        <input type="hidden" id="hidden-secteurs-redhibitoires" name="secteurs-redhibitoires">
+                        <input type="hidden" id="hidden-salary-min" name="salary-min-hidden">
+                        <input type="hidden" id="hidden-salary-max" name="salary-max-hidden">
+                        <input type="hidden" id="hidden-salary-range" name="salary-range">
                     </div>
                     
-                    <!-- ÉTAPE 4 : DISPONIBILITÉ ET SITUATION -->
-                    <div class="form-step" id="form-step4">
-                        <h2 class="form-section-title">Disponibilité et situation actuelle</h2>
-                        
-                        <div class="form-group">
-                            <label for="availability" class="form-label required">10) Quand recherchez-vous à prendre un poste en main ?</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="availability" value="immediate" required>
-                                    <span class="radio-checkmark"></span>
-                                    Immédiatement
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="availability" value="1month">
-                                    <span class="radio-checkmark"></span>
-                                    1 mois
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="availability" value="2months">
-                                    <span class="radio-checkmark"></span>
-                                    2 mois
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="availability" value="3months">
-                                    <span class="radio-checkmark"></span>
-                                    3 mois
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label required">11) Êtes-vous actuellement en poste ?</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="currently-employed" value="yes" onchange="toggleEmploymentStatus(this)" required>
-                                    <span class="radio-checkmark"></span>
-                                    Oui
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="currently-employed" value="no" onchange="toggleEmploymentStatus(this)">
-                                    <span class="radio-checkmark"></span>
-                                    Non
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- Section pour les candidats actuellement en poste -->
-                        <div id="employed-section" style="display: none;">
-                            <div class="form-group">
-                                <label class="form-label required">Pourquoi êtes-vous de nouveau à l'écoute ?</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="no-fulfillment">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne m'épanouis plus, je souhaite découvrir de nouvelles choses
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="no-evolution">
-                                        <span class="radio-checkmark"></span>
-                                        Manque de perspectives d'évolutions
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="low-salary">
-                                        <span class="radio-checkmark"></span>
-                                        Rémunération trop faible
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="far-location">
-                                        <span class="radio-checkmark"></span>
-                                        Poste trop loin de mon domicile
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="no-flexibility">
-                                        <span class="radio-checkmark"></span>
-                                        Manque de flexibilité (pas de TT, RTT)
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="internal-issues">
-                                        <span class="radio-checkmark"></span>
-                                        Problème en interne (organisation, management)
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="mismatched-position">
-                                        <span class="radio-checkmark"></span>
-                                        Le poste ne coïncide pas avec le poste proposé initialement
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="pse">
-                                        <span class="radio-checkmark"></span>
-                                        PSE
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="listening-reason" value="no-comment">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne souhaite pas communiquer
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="notice-period" class="form-label required">Combien de temps est votre préavis ?</label>
-                                <select id="notice-period" name="notice-period" class="form-control">
-                                    <option value="">Sélectionnez votre préavis</option>
-                                    <option value="none">Je n'en ai pas</option>
-                                    <option value="trial">Encore en période d'essai</option>
-                                    <option value="1month">1 mois</option>
-                                    <option value="2months">2 mois</option>
-                                    <option value="3months">3 mois</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label required">Le préavis est-il négociable ?</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="notice-negotiable" value="yes">
-                                        <span class="radio-checkmark"></span>
-                                        Oui
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="notice-negotiable" value="no">
-                                        <span class="radio-checkmark"></span>
-                                        Non
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="notice-negotiable" value="unknown">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne sais pas
-                                    </label>
+                    <!-- ===== 🚀 ÉTAPE 4 SIMPLIFIÉE : DISPONIBILITÉ & SITUATION ===== -->
+                    <div class="form-step nexten-v3-modern" id="form-step4">
+                        <h2 class="form-section-title">🚀 Disponibilité & Situation</h2>
+                        <p class="step-description">
+                            Dernière étape ! Précisez votre situation actuelle et vos attentes pour finaliser votre profil candidat
+                        </p>
+
+                        <!-- Question 1: Quand cherchez-vous à prendre un poste ? -->
+                        <div class="step4-container">
+                            <div class="step4-question">
+                                <h3 class="step4-question-title">
+                                    <i class="fas fa-calendar-check"></i>
+                                    1) Quand cherchez-vous à prendre un poste ?
+                                </h3>
+                                
+                                <div class="step4-options" id="timing-options">
+                                    <div class="step4-option" data-value="immediat" data-question="timing">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Immédiatement</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="step4-option" data-value="1mois" data-question="timing">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Dans 1 mois</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="step4-option" data-value="2mois" data-question="timing">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Dans 2 mois</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="step4-option" data-value="3mois" data-question="timing">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">Dans 3 mois</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Section pour les candidats non en poste -->
-                        <div id="unemployed-section" style="display: none;">
-                            <div class="form-group">
-                                <label class="form-label required">Pourquoi votre dernier contrat s'est arrêté ?</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="no-fulfillment">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne m'épanouissais plus, je souhaite découvrir de nouvelles choses
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="no-evolution">
-                                        <span class="radio-checkmark"></span>
-                                        Manque de perspectives d'évolutions
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="low-salary">
-                                        <span class="radio-checkmark"></span>
-                                        Rémunération trop faible
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="far-location">
-                                        <span class="radio-checkmark"></span>
-                                        Poste trop loin de mon domicile
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="no-flexibility">
-                                        <span class="radio-checkmark"></span>
-                                        Manque de flexibilité (pas de TT, RTT)
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="internal-issues">
-                                        <span class="radio-checkmark"></span>
-                                        Problème en interne (organisation, management)
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="mismatched-position">
-                                        <span class="radio-checkmark"></span>
-                                        Le poste ne coïncide pas avec le poste proposé initialement
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="pse">
-                                        <span class="radio-checkmark"></span>
-                                        PSE
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="contract-end-reason" value="no-comment">
-                                        <span class="radio-checkmark"></span>
-                                        Je ne souhaite pas communiquer
-                                    </label>
+
+                        <!-- Question 2: Êtes-vous actuellement en poste ? -->
+                        <div class="step4-container">
+                            <div class="step4-question">
+                                <h3 class="step4-question-title">
+                                    <i class="fas fa-briefcase"></i>
+                                    2) Êtes-vous actuellement en poste ?
+                                </h3>
+                                
+                                <div class="step4-options" id="employment-status-options">
+                                    <div class="step4-option" data-value="oui" data-question="employment-status">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">OUI</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="step4-option" data-value="non" data-question="employment-status">
+                                        <div class="step4-option-content">
+                                            <div class="step4-option-radio"></div>
+                                            <div class="step4-option-text">NON</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section conditionnelle pour "OUI" -->
+                                <div class="conditional-section" id="employment-yes-section">
+                                    <div class="conditional-section-title">
+                                        <i class="fas fa-arrow-right"></i>
+                                        Questions complémentaires pour les personnes en poste
+                                    </div>
+                                    
+                                    <!-- Salaire actuel -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label" for="current-salary">
+                                            Votre salaire actuel (fourchette) :
+                                        </label>
+                                        <div class="salary-range-input">
+                                            <input type="number" class="salary-input-small" id="current-salary-min" name="current-salary-min" placeholder="40" min="20" max="200">
+                                            <span class="salary-separator">K -</span>
+                                            <input type="number" class="salary-input-small" id="current-salary-max" name="current-salary-max" placeholder="45" min="20" max="200">
+                                            <span class="salary-unit-small">K €</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Pourquoi à l'écoute -->
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label">
+                                            Pourquoi êtes-vous de nouveau à l'écoute ? (plusieurs choix possibles)
+                                        </label>
+                                        <div class="step4-checkbox-group" id="listening-reasons">
+                                            <div class="step4-checkbox-option" data-value="evolution">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Manque de perspectives d'évolution</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="remuneration">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Rémunération trop faible</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="management">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Problèmes de management</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="conditions">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Conditions de travail</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="mission">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Missions peu intéressantes</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section conditionnelle pour "NON" -->
+                                <div class="conditional-section" id="employment-no-section">
+                                    <div class="conditional-section-title">
+                                        <i class="fas fa-arrow-right"></i>
+                                        Situation actuelle
+                                    </div>
+                                    
+                                    <div class="step4-input-group">
+                                        <label class="step4-input-label">
+                                            Quelle est votre situation actuelle ? (plusieurs choix possibles)
+                                        </label>
+                                        <div class="step4-checkbox-group" id="current-situation">
+                                            <div class="step4-checkbox-option" data-value="etudiant">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Étudiant en recherche de stage/emploi</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="demandeur">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Demandeur d'emploi</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="freelance">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">Freelance/Consultant</div>
+                                            </div>
+                                            <div class="step4-checkbox-option" data-value="reconversion">
+                                                <div class="step4-checkbox">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="step4-checkbox-text">En reconversion professionnelle</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Section commune pour tous les candidats -->
-                        <div class="form-group">
-                            <label class="form-label required">Où en êtes-vous dans vos process de recrutement ?</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="recruitment-status" value="no-leads" required>
-                                    <span class="radio-checkmark"></span>
-                                    Je n'ai pas encore de piste
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="recruitment-status" value="in-progress">
-                                    <span class="radio-checkmark"></span>
-                                    J'avance sur différents entretiens
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="recruitment-status" value="final-process">
-                                    <span class="radio-checkmark"></span>
-                                    Je suis en processus final
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="recruitment-status" value="offers-received">
-                                    <span class="radio-checkmark"></span>
-                                    On m'a fait des propositions
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label required">
-                                <input type="checkbox" id="privacy-consent" name="privacy-consent" required>
-                                J'accepte que mes données soient traitées conformément à la politique de confidentialité
-                            </label>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn-action btn-back" id="back-step3">
+
+                        <!-- Boutons d'Action -->
+                        <div class="modern-form-actions">
+                            <button type="button" class="modern-btn btn-secondary" id="back-step3">
                                 <i class="fas fa-arrow-left"></i>
                                 <span>Retour</span>
                             </button>
-                            <button type="button" class="btn-action btn-submit" id="submit-btn">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Soumettre</span>
+                            <button type="button" class="modern-btn btn-primary" id="submit-questionnaire">
+                                <span>Finaliser mon profil</span>
+                                <i class="fas fa-check"></i>
                             </button>
                         </div>
+
+                        <!-- Champs cachés pour intégration -->
+                        <input type="hidden" id="hidden-timing" name="timing">
+                        <input type="hidden" id="hidden-employment-status" name="employment-status">
+                        <input type="hidden" id="hidden-listening-reasons" name="listening-reasons">
+                        <input type="hidden" id="hidden-current-situation" name="current-situation">
                     </div>
                 </form>
             </div>
         </div>
     </section>
-    
-    <!-- Notification -->
-    <div class="notification" id="notification">
-        <i class="fas fa-check-circle"></i>
-        <div class="notification-message">Message de notification</div>
-        <div class="notification-close"><i class="fas fa-times"></i></div>
-    </div>
 
-    <!-- Écran de chargement pour la redirection -->
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Traitement de votre candidature...</div>
-    </div>
-
-    <footer id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div>
-                    <h4 class="footer-heading">Nexten</h4>
-                    <p class="footer-description">Agence de recrutement spécialisée dans les métiers du digital.</p>
-                    <div class="footer-social">
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    </div>
-                </div>
-                
-                <div>
-                    <h4 class="footer-heading">Navigation</h4>
-                    <ul class="footer-links">
-                        <li><a href="https://bapt252.github.io/Commitment-/"><i class="fas fa-chevron-right"></i> Accueil</a></li>
-                        <li><a href="https://bapt252.github.io/Commitment-/#services"><i class="fas fa-chevron-right"></i> Services</a></li>
-                        <li><a href="https://bapt252.github.io/Commitment-/#about"><i class="fas fa-chevron-right"></i> À propos</a></li>
-                        <li><a href="https://bapt252.github.io/Commitment-/contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="footer-heading">Contact</h4>
-                    <div class="footer-contact">
-                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue du Recrutement, 75001 Paris</p>
-                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
-                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="https://bapt252.github.io/Commitment-/privacy.html">Politique de confidentialité</a> | <a href="https://bapt252.github.io/Commitment-/terms.html">Conditions d'utilisation</a></p>
-            </div>
-        </div>
-    </footer>
-    
-    <!-- Bouton de retour en haut -->
-    <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
-        <i class="fas fa-arrow-up"></i>
-    </button>
-
-    <!-- Scripts JavaScript -->
-    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/candidate-analyzer.js"></script>
-    
+    <!-- Scripts de fonctionnalité -->
     <script>
-        // Fonctions globales nécessaires au fonctionnement du formulaire
-        
-        // Fonction pour afficher/masquer les préférences de secteur
-        function toggleSectorPreference(radio) {
-            const container = document.getElementById('sector-preference-container');
-            if (container) {
-                container.style.display = radio.value === 'yes' ? 'block' : 'none';
-            }
-        }
-        
-        // Fonction pour afficher/masquer les secteurs prohibés
-        function toggleProhibitedSector(radio) {
-            const container = document.getElementById('prohibited-sector-selection');
-            if (container) {
-                container.style.display = radio.value === 'yes' ? 'block' : 'none';
-            }
-        }
-        
-        // Fonction pour afficher/masquer les sections en fonction du statut d'emploi
-        function toggleEmploymentStatus(radio) {
-            const employedSection = document.getElementById('employed-section');
-            const unemployedSection = document.getElementById('unemployed-section');
-            
-            if (employedSection && unemployedSection) {
-                employedSection.style.display = radio.value === 'yes' ? 'block' : 'none';
-                unemployedSection.style.display = radio.value === 'yes' ? 'none' : 'block';
-                
-                // Gestion des champs requis
-                if (radio.value === 'yes') {
-                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    document.getElementById('notice-period').setAttribute('required', '');
-                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    
-                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                } else {
-                    document.querySelectorAll('#unemployed-section input[type="radio"][name="contract-end-reason"]').forEach(input => {
-                        input.setAttribute('required', '');
-                    });
-                    
-                    document.querySelectorAll('#employed-section input[type="radio"][name="listening-reason"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                    document.getElementById('notice-period').removeAttribute('required');
-                    document.querySelectorAll('#employed-section input[type="radio"][name="notice-negotiable"]').forEach(input => {
-                        input.removeAttribute('required');
-                    });
-                }
-            }
-        }
-        
-        // Fonction pour rediriger directement vers les matchings en cas d'échec du système d'analyse
-        function redirectToMatchingPage() {
-            document.getElementById('loading-overlay').classList.add('active');
-            setTimeout(function() {
-                window.location.href = 'candidate-matching-improved.html';
-            }, 2000);
-        }
-        
+        // 🎯 Script pour l'étape 4 simplifiée
         document.addEventListener('DOMContentLoaded', function() {
-            // En cas d'erreur d'analyse, ajouter un bouton de secours
-            const submitBtn = document.getElementById('submit-btn');
-            if (submitBtn) {
-                submitBtn.addEventListener('dblclick', function(e) {
-                    e.preventDefault();
-                    console.log("Double-clic détecté - redirection de secours activée");
-                    redirectToMatchingPage();
-                });
-            }
-            
-            // Création des particules pour l'arrière-plan hero
-            const heroParticles = document.querySelector('.hero-particles');
-            
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.width = Math.random() * 10 + 5 + 'px';
-                particle.style.height = particle.style.width;
-                particle.style.background = 'rgba(124, 58, 237, ' + (Math.random() * 0.2 + 0.05) + ')';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 5 + 's';
-                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                heroParticles.appendChild(particle);
-            }
-            
-            // Gestion des moyens de transport et des questions sur le temps de trajet
-            const transportCheckboxes = document.querySelectorAll('input[name="transport-method"]');
-            const transportTimeQuestionsContainer = document.getElementById('transport-time-questions');
-            
-            // Définir les libellés pour chaque moyen de transport
-            const transportLabels = {
-                'public-transport': 'transports en commun',
-                'vehicle': 'véhicule personnel',
-                'bike': 'vélo',
-                'walking': 'à pied'
+            // Gestion des options de l'étape 4
+            const step4Options = document.querySelectorAll('.step4-option');
+            const employmentSections = {
+                'oui': document.getElementById('employment-yes-section'),
+                'non': document.getElementById('employment-no-section')
             };
-            
-            // Fonction pour mettre à jour les questions sur le temps de trajet
-            function updateTransportTimeQuestions() {
-                transportTimeQuestionsContainer.innerHTML = ''; // Effacer les sous-questions existantes
-                let hasSelectedTransport = false;
-                
-                // Pour chaque moyen de transport coché, ajouter une sous-question
-                transportCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) {
-                        hasSelectedTransport = true;
-                        const transportType = checkbox.value;
-                        const transportLabel = transportLabels[transportType];
-                        
-                        const subQuestionDiv = document.createElement('div');
-                        subQuestionDiv.className = 'form-group';
-                        
-                        subQuestionDiv.innerHTML = `
-                            <label for="commute-time-${transportType}" class="form-label required">
-                                Combien de temps de trajet êtes-vous prêt à faire en ${transportLabel} ?
-                            </label>
-                            <select id="commute-time-${transportType}" name="commute-time-${transportType}" class="form-control" required>
-                                <option value="">Sélectionnez une durée</option>
-                                <option value="10">10 minutes</option>
-                                <option value="20">20 minutes</option>
-                                <option value="30">30 minutes</option>
-                                <option value="45">45 minutes</option>
-                                <option value="60">1 heure</option>
-                                <option value="90">1 heure 30</option>
-                                <option value="120">2 heures</option>
-                            </select>
-                        `;
-                        
-                        transportTimeQuestionsContainer.appendChild(subQuestionDiv);
-                    }
-                });
-                
-                // Afficher ou masquer le conteneur en fonction de la présence de sous-questions
-                transportTimeQuestionsContainer.style.display = hasSelectedTransport ? 'block' : 'none';
-            }
-            
-            // Ajouter des écouteurs d'événements pour les cases à cocher
-            transportCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateTransportTimeQuestions);
-            });
-            
-            // Gestion des étapes
-            const stepperProgress = document.getElementById('stepper-progress');
-            const progressValues = ['0%', '33%', '66%', '100%'];
-            
-            // Fonctions pour afficher les notifications
-            window.showNotification = function(message, type = 'success') {
-                const notification = document.getElementById('notification');
-                const notificationMessage = notification.querySelector('.notification-message');
-                
-                notification.className = 'notification ' + type;
-                notificationMessage.innerText = message;
-                
-                const icon = notification.querySelector('i:first-child');
-                if (type === 'success') {
-                    icon.className = 'fas fa-check-circle';
-                } else if (type === 'error') {
-                    icon.className = 'fas fa-exclamation-circle';
-                } else if (type === 'info') {
-                    icon.className = 'fas fa-info-circle';
-                }
-                
-                notification.classList.add('show');
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 5000);
-            }
-            
-            // Fermer la notification
-            document.querySelector('.notification-close').addEventListener('click', function() {
-                document.getElementById('notification').classList.remove('show');
-            });
-            
-            // Navigation entre les étapes
-            function goToStep(currentStep, nextStep) {
-                // Hide current step
-                document.getElementById('form-step' + currentStep).classList.remove('active');
-                document.getElementById('step' + currentStep).classList.remove('active');
-                document.getElementById('step' + currentStep).classList.add('completed');
-                
-                // Show next step
-                document.getElementById('form-step' + nextStep).classList.add('active');
-                document.getElementById('step' + nextStep).classList.add('active');
-                
-                // Update progress bar
-                stepperProgress.style.width = progressValues[nextStep - 1];
-                
-                // Scroll to top of form
-                document.querySelector('.form-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            
-            // Validation des formulaires
-            window.validateStep = function(stepNumber) {
-                const currentStepElement = document.getElementById(`form-step${stepNumber}`);
-                const requiredFields = currentStepElement.querySelectorAll('[required]');
-                let isValid = true;
-                let firstInvalidField = null;
-                
-                requiredFields.forEach(field => {
-                    // Pour les groupes de checkbox, vérifier qu'au moins une est cochée
-                    if (field.type === 'checkbox' && field.name === 'transport-method') {
-                        const checkboxGroup = document.querySelectorAll('input[name="transport-method"]');
-                        const anyChecked = Array.from(checkboxGroup).some(cb => cb.checked);
-                        if (!anyChecked) {
-                            isValid = false;
-                            if (!firstInvalidField) {
-                                firstInvalidField = field;
-                            }
+
+            step4Options.forEach(option => {
+                option.addEventListener('click', function() {
+                    const question = this.dataset.question;
+                    const value = this.dataset.value;
+
+                    // Désélectionner les autres options de la même question
+                    const sameQuestionOptions = document.querySelectorAll(`[data-question="${question}"]`);
+                    sameQuestionOptions.forEach(opt => opt.classList.remove('selected'));
+
+                    // Sélectionner l'option cliquée
+                    this.classList.add('selected');
+
+                    // Gestion des sections conditionnelles
+                    if (question === 'employment-status') {
+                        // Masquer toutes les sections conditionnelles
+                        Object.values(employmentSections).forEach(section => {
+                            if (section) section.classList.remove('active');
+                        });
+
+                        // Afficher la section correspondante
+                        if (employmentSections[value]) {
+                            employmentSections[value].classList.add('active');
                         }
                     }
-                    // Pour les groupes de checkbox de type de structure
-                    else if (field.type === 'checkbox' && field.name === 'structure-type') {
-                        const checkboxGroup = document.querySelectorAll('input[name="structure-type"]');
-                        const anyChecked = Array.from(checkboxGroup).some(cb => cb.checked);
-                        if (!anyChecked) {
-                            isValid = false;
-                            if (!firstInvalidField) {
-                                firstInvalidField = field;
-                            }
-                        }
-                    }
-                    // Validation normale pour les autres champs
-                    else if ((field.type === 'checkbox' && !field.checked) || 
-                             (field.type !== 'checkbox' && !field.value.trim())) {
-                        isValid = false;
-                        field.classList.add('invalid');
-                        
-                        if (!firstInvalidField) {
-                            firstInvalidField = field;
-                        }
-                    } else {
-                        field.classList.remove('invalid');
-                    }
-                });
-                
-                if (!isValid) {
-                    showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                    if (firstInvalidField) {
-                        firstInvalidField.focus();
-                    }
-                }
-                
-                return isValid;
-            }
-            
-            // Drag and drop pour le classement des motivations
-            const motivationsList = document.getElementById('motivation-priorities');
-            const motivationItems = motivationsList.querySelectorAll('.motivation-item');
-            const motivationOrderInput = document.getElementById('motivation-order');
-            let draggedItem = null;
 
-            // Fonction pour mettre à jour les numéros après réorganisation
-            function updateMotivationNumbers() {
-                const items = motivationsList.querySelectorAll('.motivation-item');
-                items.forEach((item, index) => {
-                    const numberSpan = item.querySelector('.motivation-number');
-                    numberSpan.textContent = index + 1;
-                });
-
-                // Mettre à jour le champ caché avec l'ordre actuel
-                const motivationOrder = Array.from(items).map(item => item.dataset.value);
-                motivationOrderInput.value = motivationOrder.join(',');
-                
-                // Si "Autre" est dans le top 3, afficher le champ de saisie
-                const otherIndex = motivationOrder.indexOf('other');
-                if (otherIndex < 3) {
-                    document.getElementById('other-motivation-container').style.display = 'block';
-                    document.getElementById('other-motivation').setAttribute('required', '');
-                } else {
-                    document.getElementById('other-motivation-container').style.display = 'none';
-                    document.getElementById('other-motivation').removeAttribute('required');
-                }
-            }
-
-            motivationItems.forEach(item => {
-                // Event listeners pour le drag and drop
-                item.addEventListener('dragstart', function() {
-                    draggedItem = this;
-                    setTimeout(() => this.classList.add('dragging'), 0);
-                });
-
-                item.addEventListener('dragend', function() {
-                    this.classList.remove('dragging');
-                    draggedItem = null;
-                    updateMotivationNumbers();
-                });
-
-                item.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                });
-
-                item.addEventListener('dragenter', function(e) {
-                    e.preventDefault();
-                    if (this !== draggedItem) {
-                        const draggedRect = draggedItem.getBoundingClientRect();
-                        const targetRect = this.getBoundingClientRect();
-                        
-                        if (draggedRect.top < targetRect.top) {
-                            motivationsList.insertBefore(draggedItem, this.nextSibling);
-                        } else {
-                            motivationsList.insertBefore(draggedItem, this);
-                        }
+                    // Sauvegarder la réponse
+                    const hiddenField = document.getElementById(`hidden-${question}`);
+                    if (hiddenField) {
+                        hiddenField.value = value;
                     }
                 });
             });
 
-            // Initialiser l'ordre des motivations
-            updateMotivationNumbers();
-            
-            // Étape 1 -> Étape 2
-            document.getElementById('next-step1').addEventListener('click', function() {
-                if (validateStep(1)) {
-                    goToStep(1, 2);
-                }
-            });
-            
-            // Étape 2 -> Étape 1
-            document.getElementById('back-step1').addEventListener('click', function() {
-                goToStep(2, 1);
-                document.getElementById('step1').classList.remove('completed');
-            });
-            
-            // Étape 2 -> Étape 3
-            document.getElementById('next-step2').addEventListener('click', function() {
-                if (validateStep(2)) {
-                    goToStep(2, 3);
-                }
-            });
-            
-            // Étape 3 -> Étape 2
-            document.getElementById('back-step2').addEventListener('click', function() {
-                goToStep(3, 2);
-                document.getElementById('step2').classList.remove('completed');
-            });
-            
-            // Étape 3 -> Étape 4
-            document.getElementById('next-step3').addEventListener('click', function() {
-                if (validateStep(3)) {
-                    goToStep(3, 4);
-                }
-            });
-            
-            // Étape 4 -> Étape 3
-            document.getElementById('back-step3').addEventListener('click', function() {
-                goToStep(4, 3);
-                document.getElementById('step3').classList.remove('completed');
-            });
-            
-            // Désactiver la soumission du formulaire par défaut
-            document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                // La soumission est gérée par le bouton submit-btn
-            });
-            
-            // Bouton de soumission
-            document.getElementById('submit-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                if (validateStep(4)) {
-                    // Afficher l'écran de chargement
-                    document.getElementById('loading-overlay').classList.add('active');
+            // Gestion des checkboxes
+            const checkboxOptions = document.querySelectorAll('.step4-checkbox-option');
+            checkboxOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    this.classList.toggle('selected');
                     
-                    // Simulation d'envoi des données
-                    setTimeout(function() {
-                        // Redirection vers la page de matching
-                        window.location.href = 'candidate-matching-improved.html';
-                    }, 2000);
-                }
-            });
-            
-            // Bouton de retour en haut
-            const scrollToTopButton = document.getElementById('scroll-to-top');
-            
-            window.addEventListener('scroll', function() {
-                if (window.pageYOffset > 300) {
-                    scrollToTopButton.classList.add('visible');
-                } else {
-                    scrollToTopButton.classList.remove('visible');
-                }
-            });
-            
-            scrollToTopButton.addEventListener('click', function() {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
+                    // Collecter toutes les valeurs sélectionnées
+                    const group = this.closest('.step4-checkbox-group');
+                    const groupId = group.id;
+                    const selectedValues = [];
+                    
+                    group.querySelectorAll('.step4-checkbox-option.selected').forEach(selected => {
+                        selectedValues.push(selected.dataset.value);
+                    });
+
+                    // Sauvegarder dans le champ caché
+                    const hiddenField = document.getElementById(`hidden-${groupId.replace('-', '-')}`);
+                    if (hiddenField) {
+                        hiddenField.value = selectedValues.join(',');
+                    }
                 });
             });
-            
-            // Menu mobile
-            const menuToggle = document.querySelector('.menu-toggle');
-            const nav = document.querySelector('nav');
-            
-            menuToggle.addEventListener('click', function() {
-                nav.classList.toggle('active');
-                menuToggle.classList.toggle('active');
-            });
+
+            // Bouton de soumission
+            const submitBtn = document.getElementById('submit-questionnaire');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function() {
+                    // Validation et soumission du questionnaire
+                    console.log('🎯 Questionnaire finalisé - redirection vers page de matching');
+                    
+                    // Le script questionnaire-redirect.js gère la redirection automatique
+                    const form = document.getElementById('questionnaire-form');
+                    if (form) {
+                        // Déclencher la soumission du formulaire
+                        const submitEvent = new Event('submit');
+                        form.dispatchEvent(submitEvent);
+                    }
+                });
+            }
+
+            console.log('✅ Étape 4 simplifiée initialisée');
         });
     </script>
-    
-    <!-- Script d'autocomplétion d'adresse avec Google Maps -->
-    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/scripts/address-autocomplete.js"></script>
-    
-    <!-- Google Maps API avec clé API et callback -->
-    <script id="google-maps-api" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cpNgAXN1U0L14pB4HmD7BvP8pD6K8t8&libraries=places&callback=initAutocompleteCallback" async defer></script>
 </body>
 </html>

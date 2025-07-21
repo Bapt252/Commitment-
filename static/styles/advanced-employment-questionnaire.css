@@ -1,0 +1,515 @@
+/* ===== 🎨 STYLES PARCOURS CONDITIONNEL AVANCÉ ÉTAPE 4 ===== */
+/* 🎯 Styles spécifiques pour le parcours employé/demandeur d'emploi avancé */
+/* 🔒 Respecte le design system Nexten V3.0 existant */
+/* 🎨 Interface moderne et expérience utilisateur fluide */
+
+/* ===== CONTENEURS PRINCIPAUX ===== */
+.conditional-section {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.03), rgba(124, 58, 237, 0.08));
+    border: 2px solid rgba(124, 58, 237, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 24px;
+    transition: all 0.3s ease;
+    transform: translateY(-10px);
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.1);
+}
+
+.conditional-section.active {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 2000px;
+    animation: slideInFromRight 0.4s ease-out;
+}
+
+/* ===== TITRES DES SECTIONS CONDITIONNELLES ===== */
+.conditional-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--nexten-primary, #7c3aed);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid rgba(124, 58, 237, 0.2);
+    position: relative;
+}
+
+.conditional-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--nexten-primary, #7c3aed), rgba(124, 58, 237, 0.3));
+    border-radius: 2px;
+}
+
+.conditional-section-title i {
+    font-size: 1.1rem;
+    padding: 8px;
+    background: rgba(124, 58, 237, 0.1);
+    border-radius: 8px;
+    color: var(--nexten-primary, #7c3aed);
+}
+
+/* ===== GROUPES DE QUESTIONS ===== */
+.step4-input-group {
+    margin-bottom: 28px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(124, 58, 237, 0.1);
+    transition: all 0.3s ease;
+}
+
+.step4-input-group:hover {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(124, 58, 237, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.15);
+}
+
+/* ===== LABELS DES QUESTIONS ===== */
+.step4-input-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary, #1f2937);
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+.step4-input-label i {
+    color: var(--nexten-primary, #7c3aed);
+    font-size: 1rem;
+    padding: 4px;
+    background: rgba(124, 58, 237, 0.1);
+    border-radius: 6px;
+}
+
+/* ===== OPTIONS RADIO AVANCÉES ===== */
+.step4-options {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.step4-option {
+    background: var(--surface-primary, #ffffff);
+    border: 2px solid rgba(124, 58, 237, 0.15);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.step4-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent, rgba(124, 58, 237, 0.02));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.step4-option:hover {
+    border-color: rgba(124, 58, 237, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(124, 58, 237, 0.2);
+}
+
+.step4-option:hover::before {
+    opacity: 1;
+}
+
+.step4-option.selected {
+    border-color: var(--nexten-primary, #7c3aed);
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(124, 58, 237, 0.1));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.25);
+}
+
+.step4-option-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.step4-option-radio {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(124, 58, 237, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    background: var(--surface-primary, #ffffff);
+}
+
+.step4-option.selected .step4-option-radio {
+    border-color: var(--nexten-primary, #7c3aed);
+    background: var(--nexten-primary, #7c3aed);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+
+.step4-option.selected .step4-option-radio::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    animation: radioCheck 0.3s ease-out;
+}
+
+.step4-option-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary, #1f2937);
+    line-height: 1.4;
+}
+
+.step4-option.selected .step4-option-text {
+    color: var(--nexten-primary, #7c3aed);
+    font-weight: 600;
+}
+
+/* ===== GROUPES DE CHECKBOXES AVANCÉES ===== */
+.step4-checkbox-group {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.step4-checkbox-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    background: var(--surface-primary, #ffffff);
+    border: 2px solid rgba(124, 58, 237, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.step4-checkbox-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent, rgba(124, 58, 237, 0.02));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.step4-checkbox-option:hover {
+    border-color: rgba(124, 58, 237, 0.3);
+    transform: translateX(4px);
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.15);
+}
+
+.step4-checkbox-option:hover::before {
+    opacity: 1;
+}
+
+.step4-checkbox-option.selected {
+    border-color: var(--nexten-primary, #7c3aed);
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(124, 58, 237, 0.08));
+    transform: translateX(2px);
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.2);
+}
+
+.step4-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid rgba(124, 58, 237, 0.3);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    background: var(--surface-primary, #ffffff);
+    position: relative;
+    z-index: 1;
+}
+
+.step4-checkbox-option.selected .step4-checkbox {
+    border-color: var(--nexten-primary, #7c3aed);
+    background: var(--nexten-primary, #7c3aed);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+
+.step4-checkbox i {
+    font-size: 0.75rem;
+    color: transparent;
+    transition: all 0.3s ease;
+}
+
+.step4-checkbox-option.selected .step4-checkbox i {
+    color: white;
+    animation: checkboxCheck 0.3s ease-out;
+}
+
+.step4-checkbox-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary, #1f2937);
+    line-height: 1.4;
+    position: relative;
+    z-index: 1;
+}
+
+.step4-checkbox-option.selected .step4-checkbox-text {
+    color: var(--nexten-primary, #7c3aed);
+    font-weight: 600;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideInFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes radioCheck {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes checkboxCheck {
+    0% {
+        opacity: 0;
+        transform: scale(0.5) rotate(-45deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* ===== ANIMATIONS D'ENTRÉE PROGRESSIVE ===== */
+.step4-checkbox-option {
+    animation: slideInFromLeft 0.4s ease-out;
+}
+
+.step4-checkbox-option:nth-child(1) { animation-delay: 0.1s; }
+.step4-checkbox-option:nth-child(2) { animation-delay: 0.15s; }
+.step4-checkbox-option:nth-child(3) { animation-delay: 0.2s; }
+.step4-checkbox-option:nth-child(4) { animation-delay: 0.25s; }
+.step4-checkbox-option:nth-child(5) { animation-delay: 0.3s; }
+.step4-checkbox-option:nth-child(6) { animation-delay: 0.35s; }
+.step4-checkbox-option:nth-child(7) { animation-delay: 0.4s; }
+.step4-checkbox-option:nth-child(8) { animation-delay: 0.45s; }
+.step4-checkbox-option:nth-child(9) { animation-delay: 0.5s; }
+
+.step4-option {
+    animation: slideInFromLeft 0.4s ease-out;
+}
+
+.step4-option:nth-child(1) { animation-delay: 0.1s; }
+.step4-option:nth-child(2) { animation-delay: 0.2s; }
+.step4-option:nth-child(3) { animation-delay: 0.3s; }
+.step4-option:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes slideInFromLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ===== ÉTATS DE FOCUS POUR L'ACCESSIBILITÉ ===== */
+.step4-option:focus,
+.step4-checkbox-option:focus {
+    outline: 3px solid rgba(124, 58, 237, 0.5);
+    outline-offset: 2px;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .conditional-section {
+        padding: 16px;
+        margin-top: 16px;
+    }
+    
+    .conditional-section-title {
+        font-size: 1.1rem;
+        margin-bottom: 16px;
+    }
+    
+    .step4-input-group {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+    
+    .step4-input-label {
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+    
+    .step4-option {
+        padding: 12px;
+    }
+    
+    .step4-option-content {
+        gap: 12px;
+    }
+    
+    .step4-checkbox-option {
+        padding: 12px;
+    }
+    
+    .step4-checkbox-text {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .conditional-section {
+        padding: 12px;
+        border-radius: 12px;
+    }
+    
+    .conditional-section-title {
+        font-size: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .step4-input-group {
+        padding: 12px;
+    }
+    
+    .step4-input-label {
+        font-size: 0.95rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    
+    .step4-option {
+        padding: 10px;
+    }
+    
+    .step4-checkbox-option {
+        padding: 10px;
+    }
+}
+
+/* ===== INDICATEURS VISUELS ===== */
+.conditional-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--nexten-primary, #7c3aed), rgba(124, 58, 237, 0.3));
+    border-radius: 16px 16px 0 0;
+}
+
+.conditional-section {
+    position: relative;
+}
+
+/* ===== EFFET DE BRILLANCE ===== */
+.step4-option.selected::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.6s ease;
+}
+
+.step4-option.selected:hover::after {
+    left: 100%;
+}
+
+/* ===== COMPATIBILITÉ AVEC LES VARIABLES CSS EXISTANTES ===== */
+:root {
+    --nexten-primary: #7c3aed;
+    --nexten-primary-light: #a855f7;
+    --text-primary: #1f2937;
+    --surface-primary: #ffffff;
+    --surface-secondary: #f8fafc;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
+    --transition-base: all 0.3s ease;
+}
+
+/* ===== DARK MODE SUPPORT (si nécessaire) ===== */
+@media (prefers-color-scheme: dark) {
+    .conditional-section {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.15));
+        border-color: rgba(124, 58, 237, 0.3);
+    }
+    
+    .step4-input-group {
+        background: rgba(0, 0, 0, 0.2);
+        border-color: rgba(124, 58, 237, 0.2);
+    }
+    
+    .step4-option,
+    .step4-checkbox-option {
+        background: rgba(0, 0, 0, 0.3);
+        border-color: rgba(124, 58, 237, 0.2);
+    }
+    
+    .step4-option-text,
+    .step4-checkbox-text,
+    .step4-input-label {
+        color: #e5e7eb;
+    }
+}

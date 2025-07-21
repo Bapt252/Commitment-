@@ -3,1329 +3,677 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Nexten - Propositions de postes personnalisées">
-    <title>Propositions de Postes - Nexten</title>
-    
-    <!-- Google Fonts - Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    
-    <!-- Script d'initialisation des données de démo -->
-    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/js/localStorage_init.js"></script>
-    
+    <title>Nexten - Matching Candidat</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            /* Palette de couleurs Nexten */
-            --cream: #F8F7F3;
-            --cream-dark: #EFEEE9;
-            --black: #1A1A1A;
-            --black-light: #2D2D2D;
-            --black-lighter: #3F3F3F;
-            --purple: #7C3AED;
-            --purple-light: #A78BFA;
-            --purple-dark: #5B21B6;
-            --purple-glass: rgba(124, 58, 237, 0.1);
-            --gray: #666666;
-            --gray-light: #9CA3AF;
-            --gray-lightest: #F3F4F6;
-            --white: #FFFFFF;
-            --success: #10B981;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            
-            /* Espacement */
-            --spacing-xs: 0.5rem;
-            --spacing-sm: 1rem;
-            --spacing-md: 1.5rem;
-            --spacing-lg: 2.5rem;
-            --spacing-xl: 4rem;
-            
-            /* Transitions et effets */
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --transition-bounce: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-        }
-        
-        /* Reset et base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
+        :root {
+            --primary: #8B5CF6;
+            --primary-dark: #7C3AED;
+            --primary-light: #A78BFA;
+            --secondary: #10D9C4;
+            --secondary-dark: #0D9488;
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            --white: #FFFFFF;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --border-radius: 12px;
+            --border-radius-lg: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            font-weight: 300;
-            color: var(--black);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
             line-height: 1.6;
-            background-color: var(--cream);
-            font-size: 16px;
-            overflow-x: hidden;
         }
-        
-        /* ScrollBar personnalisée */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: var(--cream);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--purple-light);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--purple);
-        }
-        
-        /* Container */
-        .container {
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 var(--spacing-md);
-        }
-        
+
         /* Header */
-        header {
-            padding: var(--spacing-sm) 0;
-            position: fixed;
-            width: 100%;
+        .header {
+            background: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
             top: 0;
             z-index: 1000;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            background-color: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--gray-200);
         }
-        
-        header .container {
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .logo {
-            font-size: 1.8rem;
-            letter-spacing: 1px;
             display: flex;
             align-items: center;
-            position: relative;
-            transition: transform 0.3s ease;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--gray-800);
             text-decoration: none;
-            color: var(--black);
         }
-        
-        .logo:hover {
-            transform: scale(1.05);
-        }
-        
-        .logo span {
-            color: var(--purple);
-            font-weight: 500;
-        }
-        
+
         .logo-badge {
-            display: inline-flex;
+            background: var(--primary);
+            color: var(--white);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
-            background-color: var(--purple);
-            color: var(--white);
-            border-radius: 50%;
-            font-size: 14px;
-            margin-left: 5px;
-            vertical-align: middle;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
+            font-size: 0.875rem;
+            font-weight: 600;
         }
-        
-        .logo-badge::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-        }
-        
-        /* Navigation */
-        nav ul {
+
+        .nav-links {
             display: flex;
-            list-style: none;
-            gap: var(--spacing-lg);
+            gap: 2rem;
+            align-items: center;
         }
-        
-        nav a {
-            font-weight: 400;
-            padding: var(--spacing-xs);
-            transition: all 0.3s ease;
-            position: relative;
-            color: var(--black);
+
+        .nav-link {
             text-decoration: none;
-        }
-        
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 2px;
-            background: var(--purple);
-            transition: width 0.3s ease;
-        }
-        
-        nav a:hover::after, nav a.active::after {
-            width: 100%;
-        }
-        
-        nav a:hover, nav a.active {
-            color: var(--purple);
-        }
-        
-        /* Main Content */
-        .main-content {
-            padding-top: 90px;
-            padding-bottom: 4rem;
-        }
-        
-        /* Notification bar */
-        .notification-bar {
-            background: linear-gradient(90deg, var(--purple-dark) 0%, var(--purple) 100%);
-            color: var(--white);
-            text-align: center;
-            padding: 0.6rem 1rem;
-            font-size: 0.9rem;
+            color: var(--gray-600);
             font-weight: 500;
+            transition: var(--transition);
             position: relative;
-            overflow: hidden;
         }
-        
-        .notification-bar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: shine 3s infinite;
+
+        .nav-link:hover {
+            color: var(--primary);
         }
-        
-        @keyframes shine {
-            to {
-                left: 100%;
-            }
+
+        .nav-link.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.25rem;
         }
-        
-        .notification-bar .ten-badge {
-            display: inline-block;
-            background-color: white;
-            color: var(--purple);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            line-height: 20px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 0.7rem;
-            margin-left: 4px;
-            vertical-align: middle;
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
         }
-        
-        /* Progress steps */
+
+        /* Progress Steps */
         .progress-steps {
-            margin-bottom: 3rem;
             display: flex;
-            justify-content: space-between;
-            position: relative;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            z-index: 10;
-            opacity: 0;
-            transform: translateY(30px);
-            animation: fadeInUp 1s forwards 0.2s;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 3rem;
+            gap: 1rem;
         }
-        
-        .progress-steps::before {
-            content: '';
-            position: absolute;
-            top: 16px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: var(--cream-dark);
-            z-index: 0;
-        }
-        
-        .progress-steps .step {
-            position: relative;
-            z-index: 1;
+
+        .step {
             display: flex;
             flex-direction: column;
             align-items: center;
+            gap: 0.5rem;
             flex: 1;
+            max-width: 200px;
         }
-        
+
         .step-circle {
-            width: 38px;
-            height: 38px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background-color: var(--white);
-            border: 2px solid var(--cream-dark);
-            color: var(--gray);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            margin-bottom: 0.8rem;
+            font-size: 1.125rem;
             transition: var(--transition);
-            z-index: 1;
+            position: relative;
         }
-        
-        .step.active .step-circle {
-            background-color: var(--purple);
-            border-color: var(--purple);
-            color: white;
-            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2);
-            transform: scale(1.1);
-        }
-        
+
         .step.completed .step-circle {
-            background-color: var(--success);
-            border-color: var(--success);
-            color: white;
+            background: var(--secondary);
+            color: var(--white);
         }
-        
-        .step-text {
-            font-size: 0.9rem;
+
+        .step.active .step-circle {
+            background: var(--primary);
+            color: var(--white);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+        }
+
+        .step.pending .step-circle {
+            background: var(--gray-200);
+            color: var(--gray-500);
+        }
+
+        .step-line {
+            height: 2px;
+            background: var(--gray-200);
+            flex: 1;
+            margin: 0 1rem;
+        }
+
+        .step-line.completed {
+            background: var(--secondary);
+        }
+
+        .step-title {
+            font-size: 0.875rem;
             font-weight: 500;
-            color: var(--gray);
-            transition: var(--transition);
+            text-align: center;
+            color: var(--gray-600);
         }
-        
-        .step.active .step-text {
-            color: var(--purple);
+
+        .step.active .step-title {
+            color: var(--primary);
             font-weight: 600;
         }
-        
-        .step.completed .step-text {
-            color: var(--success);
-        }
-        
-        /* Progress connection lines */
-        .step:not(:first-child)::before {
-            content: '';
-            position: absolute;
-            height: 2px;
-            top: 18px;
-            left: -50%;
-            width: 100%;
-            z-index: -1;
-        }
-        
-        .step.completed:not(:first-child)::before {
-            background-color: var(--success);
-        }
-        
-        .step.active:not(:first-child)::before {
-            background: linear-gradient(to right, var(--success), var(--purple));
-        }
-        
-        /* Header section */
-        .matching-header {
+
+        /* Hero Section */
+        .hero {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
             text-align: center;
-            margin-bottom: 3rem;
-            background: linear-gradient(135deg, var(--purple-glass) 0%, rgba(124, 58, 237, 0.05) 100%);
-            padding: 2.5rem 2rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.1);
-            transform: translateY(0);
-            transition: var(--transition);
-            position: relative;
-            border: 1px solid rgba(124, 58, 237, 0.2);
-            animation: fadeInUp 1s forwards 0.3s;
-            opacity: 0;
-        }
-        
-        .matching-header:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(124, 58, 237, 0.15);
-        }
-        
-        .matching-header h2 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 1.2rem;
-            position: relative;
-            z-index: 2;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--black);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .matching-header h2::after {
-            width: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .matching-header .ten-accent {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--purple);
-            color: var(--white);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-weight: 700;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            vertical-align: middle;
-            margin: 0 5px;
-            font-size: 1.5rem;
         }
-        
-        .matching-header .ten-accent:hover {
-            transform: scale(1.1) rotate(10deg);
-            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
-        }
-        
-        .matching-header p {
-            color: var(--gray);
-            font-size: 1.15rem;
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-            line-height: 1.6;
-        }
-        
-        /* Filters section */
-        .filters-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            align-items: center;
-            background-color: var(--white);
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
-            animation: fadeInUp 1s forwards 0.5s;
-            opacity: 0;
-            position: relative;
-            transition: var(--transition);
-        }
-        
-        .filters-section:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .filters-section::before {
+
+        .hero::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, var(--purple-glass) 0%, var(--purple) 100%);
-            opacity: 0.7;
-            border-radius: 12px 12px 0 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
         }
-        
-        .filter-control {
-            position: relative;
-            min-width: 180px;
-            flex: 1;
-        }
-        
-        .filter-label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--gray);
-            margin-bottom: 0.4rem;
-        }
-        
-        .filter-select {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
-            border: 1.5px solid var(--cream-dark);
-            background-color: white;
-            font-size: 0.95rem;
-            color: var(--black);
-            appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%236B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 0.7rem center;
-            background-size: 1em;
-            transition: var(--transition);
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .filter-select:focus {
-            border-color: var(--purple);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-        }
-        
-        .search-input {
-            flex-grow: 2;
-            position: relative;
-        }
-        
-        .search-input input {
-            width: 100%;
-            padding: 0.8rem 1rem 0.8rem 2.5rem;
-            border-radius: 8px;
-            border: 1.5px solid var(--cream-dark);
-            background-color: white;
-            font-size: 0.95rem;
-            color: var(--black);
-            transition: var(--transition);
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .search-input input:focus {
-            border-color: var(--purple);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-        }
-        
-        .search-input i {
-            position: absolute;
-            left: 0.8rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-light);
-            font-size: 1rem;
-        }
-        
-        /* Filter chips */
-        .filter-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin: 1.5rem 0;
-        }
-        
-        .filter-chip {
+
+        .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--gray-800), var(--gray-600));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* Filters Section */
+        .filters {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 1.5rem;
+            align-items: end;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--gray-50);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 1.125rem;
+        }
+
+        .select-container {
+            position: relative;
+        }
+
+        .select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            background: var(--gray-50);
+            font-size: 1rem;
+            transition: var(--transition);
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .select-container::after {
+            content: '\f107';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            pointer-events: none;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Filter Tags */
+        .filter-tags {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary);
+            color: var(--white);
             padding: 0.5rem 1rem;
-            background-color: var(--cream);
-            border: 1px solid var(--cream-dark);
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 400;
-            color: var(--gray);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .filter-tag.secondary {
+            background: var(--secondary);
+        }
+
+        .filter-tag.gray {
+            background: var(--gray-600);
+        }
+
+        .add-filter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            border: 2px dashed var(--gray-300);
+            color: var(--gray-500);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
             cursor: pointer;
             transition: var(--transition);
         }
-        
-        .filter-chip.active {
-            background-color: var(--purple-glass);
-            color: var(--purple);
-            border-color: var(--purple-light);
+
+        .add-filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
         }
-        
-        .filter-chip:hover {
-            border-color: var(--purple);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .filter-chip i {
-            font-size: 0.85rem;
-        }
-        
-        .filter-chip .remove {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--cream-dark);
-            color: var(--gray);
-            font-size: 0.7rem;
-            transition: var(--transition);
-        }
-        
-        .filter-chip .remove:hover {
-            background-color: #FFE1E1;
-            color: var(--danger);
-        }
-        
-        /* Stats Bar */
-        .stats-bar {
+
+        /* Results Header */
+        .results-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding: 1rem 1.2rem;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: var(--shadow-sm);
-            animation: fadeInUp 1s forwards 0.6s;
-            opacity: 0;
-            transition: var(--transition);
+            margin-bottom: 2rem;
         }
-        
-        .stats-bar:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .results-count {
-            font-size: 0.95rem;
-            color: var(--gray);
-        }
-        
-        .results-count span {
-            font-weight: 600;
-            color: var(--black);
-        }
-        
-        .sort-options {
+
+        .results-info {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
+            gap: 1rem;
         }
-        
-        .sort-label {
-            font-size: 0.95rem;
-            color: var(--gray);
+
+        .results-count {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-800);
         }
-        
+
+        .results-sort {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         .sort-select {
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            border: 1px solid var(--cream-dark);
-            font-size: 0.9rem;
-            color: var(--black);
-            appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%236B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 0.5rem center;
-            background-size: 0.8em;
-            padding-right: 2rem;
-            font-family: 'Inter', sans-serif;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius);
+            background: var(--white);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        /* Job Cards */
+        .jobs-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .job-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+
+        .job-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary);
+        }
+
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
             transition: var(--transition);
         }
-        
-        .sort-select:focus {
-            border-color: var(--purple);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+
+        .job-card:hover::before {
+            transform: scaleX(1);
         }
-        
-        /* Job Card */
-        .job-card {
-            background-color: white;
-            border-radius: 16px;
-            margin-bottom: 2rem;
-            overflow: hidden;
-            box-shadow: var(--shadow-md);
-            transition: var(--transition-bounce);
-            border: 1px solid var(--cream-dark);
-            transform: translateY(0);
-            animation: fadeInUp 1s forwards;
-            opacity: 0;
-            position: relative;
-        }
-        
-        .job-card:nth-child(1) {
-            animation-delay: 0.7s;
-        }
-        
-        .job-card:nth-child(2) {
-            animation-delay: 0.8s;
-        }
-        
-        .job-card:nth-child(3) {
-            animation-delay: 0.9s;
-        }
-        
-        .job-card:nth-child(4) {
-            animation-delay: 1s;
-        }
-        
-        .job-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--purple-light);
-        }
-        
-        .job-card-header {
-            padding: 1.8rem;
+
+        .job-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 1px solid var(--cream-dark);
-            position: relative;
-            transition: var(--transition);
+            margin-bottom: 1.5rem;
         }
-        
-        .job-card:hover .job-card-header {
-            background-color: var(--purple-glass);
-        }
-        
-        .job-card-header:after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--purple) 0%, #9f94ff 100%);
-            transition: var(--transition);
-        }
-        
-        .job-card:hover .job-card-header:after {
-            width: 100%;
-        }
-        
-        .job-title-company {
-            display: flex;
-            align-items: center;
+
+        .job-title-section {
             flex: 1;
         }
-        
-        .company-logo {
+
+        .job-avatar {
             width: 60px;
             height: 60px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin-right: 1.2rem;
-            background-color: var(--purple-glass);
+            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
             font-size: 1.5rem;
-            color: var(--purple);
-            transition: var(--transition);
-            box-shadow: 0 4px 6px rgba(124, 58, 237, 0.1);
-        }
-        
-        .job-card:hover .company-logo {
-            box-shadow: 0 8px 15px rgba(124, 58, 237, 0.15);
-            transform: scale(1.05);
-        }
-        
-        .job-title-info h3 {
-            margin: 0 0 0.5rem 0;
-            font-size: 1.4rem;
-            color: var(--black);
             font-weight: 700;
-            transition: var(--transition);
+            color: var(--white);
+            margin-bottom: 1rem;
         }
-        
-        .job-card:hover .job-title-info h3 {
-            color: var(--purple);
+
+        .job-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
         }
-        
+
         .job-description {
-            color: var(--gray);
-            font-size: 0.95rem;
-            margin: 0;
-            line-height: 1.5;
-            max-height: 3em;
-            overflow: hidden;
-            transition: var(--transition);
-            position: relative;
-            cursor: pointer;
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
         }
-        
-        .job-description.expanded {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .job-description:not(.expanded)::after {
-            content: "...";
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            padding-left: 0.5rem;
-            background: linear-gradient(to right, transparent, white 40%);
-            width: 3rem;
-        }
-        
-        .job-match {
+
+        .match-score {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding-left: 1.5rem;
+            gap: 0.5rem;
         }
-        
-        .match-percentage {
-            font-size: 1.3rem;
-            font-weight: 800;
+
+        .match-circle {
             width: 80px;
             height: 80px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 0.8rem;
-            box-shadow: var(--shadow-md);
-            transition: var(--transition-bounce);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--white);
             position: relative;
-            background: white;
-            border: 2px solid var(--purple-light);
+            background: conic-gradient(var(--success) 0deg 324deg, var(--gray-200) 324deg 360deg);
         }
-        
-        .match-percentage::before {
+
+        .match-circle.excellent {
+            background: conic-gradient(var(--success) 0deg 331deg, var(--gray-200) 331deg 360deg);
+        }
+
+        .match-circle.good {
+            background: conic-gradient(var(--secondary) 0deg 317deg, var(--gray-200) 317deg 360deg);
+        }
+
+        .match-circle::before {
             content: '';
             position: absolute;
-            top: 5px;
-            left: 5px;
-            right: 5px;
-            bottom: 5px;
+            inset: 8px;
             border-radius: 50%;
-            border: 3px solid var(--cream-dark);
-            border-top-color: var(--purple);
-            border-right-color: var(--purple);
-            transform: rotate(45deg);
+            background: var(--white);
         }
-        
-        .job-card:hover .match-percentage {
-            transform: scale(1.1);
-            box-shadow: var(--shadow-lg);
+
+        .match-percentage {
+            position: relative;
+            z-index: 1;
+            color: var(--gray-800);
         }
-        
-        .match-indicators {
-            display: none; /* Masquer les indicateurs comme demandé */
+
+        .match-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            font-weight: 500;
         }
-        
-        .indicator {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-        }
-        
-        .indicator.success {
-            background-color: var(--success);
-        }
-        
-        .indicator.danger {
-            background-color: var(--danger);
-        }
-        
-        .job-card:hover .indicator {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .job-card-body {
-            padding: 1.8rem;
+
+        /* Job Details Grid */
+        .job-details {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
-            font-size: 0.95rem;
-            background-color: var(--cream);
-            transition: var(--transition);
+            margin-bottom: 1.5rem;
         }
-        
-        .job-card:hover .job-card-body {
-            background-color: var(--cream-dark);
-        }
-        
-        .job-info-item {
+
+        .detail-item {
             display: flex;
             flex-direction: column;
-            position: relative;
-            transition: var(--transition);
-            padding: 0.75rem;
-            border-radius: 8px;
+            gap: 0.25rem;
         }
-        
-        .job-info-item:hover {
-            transform: translateY(-3px);
-            background-color: rgba(255, 255, 255, 0.7);
-            box-shadow: var(--shadow-sm);
+
+        .detail-icon {
+            color: var(--primary);
+            font-size: 1rem;
         }
-        
-        .info-label {
-            font-size: 0.85rem;
-            color: var(--gray);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-        
-        .info-label i {
-            color: var(--purple);
-            font-size: 0.9rem;
-        }
-        
-        .info-value {
-            color: var(--black);
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-        }
-        
-        .candidate-tags, .contract-badges {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            margin-top: 0.2rem;
-        }
-        
-        .contract-badge, .candidate-tag {
+
+        .detail-label {
             font-size: 0.75rem;
+            color: var(--gray-500);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-value {
+            font-size: 0.875rem;
             font-weight: 600;
-            padding: 0.3rem 0.7rem;
-            border-radius: 20px;
-            background-color: var(--purple-glass);
-            color: var(--purple);
-            transition: var(--transition);
+            color: var(--gray-800);
         }
-        
-        .contract-badge:hover, .candidate-tag:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .link-style {
-            color: var(--purple);
-            font-size: 0.85rem;
+
+        .detail-link {
+            color: var(--primary);
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
+            font-size: 0.875rem;
+            font-weight: 500;
             transition: var(--transition);
-            margin-top: 0.3rem;
         }
-        
-        .link-style:hover {
-            color: var(--purple-dark);
-            text-decoration: underline;
+
+        .detail-link:hover {
+            color: var(--primary-dark);
         }
-        
-        .link-style i {
-            font-size: 0.8rem;
-        }
-        
+
+        /* Job Actions */
         .job-actions {
-            padding: 1rem 1.8rem;
-            background-color: white;
-            border-top: 1px solid var(--cream-dark);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
         }
-        
-        /* Job selection */
-        .job-select {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            z-index: 10;
-        }
-        
-        .job-select input[type="checkbox"] {
-            width: 0;
-            height: 0;
-            position: absolute;
-            opacity: 0;
-        }
-        
-        .job-select .checkbox-custom {
-            display: inline-block;
-            width: 25px;
-            height: 25px;
-            border: 2px solid var(--cream-dark);
-            border-radius: 6px;
-            background-color: white;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s;
-        }
-        
-        .job-select input[type="checkbox"]:checked + .checkbox-custom {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            border-color: var(--purple);
-        }
-        
-        .job-select input[type="checkbox"]:checked + .checkbox-custom::before {
-            content: '\f00c';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 14px;
-        }
-        
-        .job-select .checkbox-custom:hover {
-            border-color: var(--purple);
-            box-shadow: 0 2px 5px rgba(124, 58, 237, 0.2);
-        }
-        
-        .job-select input[type="checkbox"]:focus + .checkbox-custom {
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
-        }
-        
-        /* Boutons */
-        .save-job {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: none;
-            border: none;
-            padding: 0.5rem 0.8rem;
-            color: var(--gray);
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: var(--transition);
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .save-job:hover {
-            background-color: var(--cream);
-            color: var(--black);
-        }
-        
-        .save-job.saved {
-            color: var(--purple);
-        }
-        
-        .save-job i {
-            font-size: 1.1rem;
-        }
-        
+
         .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: 'Inter', sans-serif;
+            text-decoration: none;
         }
-        
+
         .btn-primary {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            color: white;
-            border: none;
+            background: var(--primary);
+            color: var(--white);
         }
-        
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #8B5CF6 0%, var(--purple) 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(124, 58, 237, 0.2);
+            background: var(--primary-dark);
+            transform: translateY(-1px);
         }
-        
+
         .btn-outline {
-            background-color: white;
-            color: var(--purple);
-            border: 1.5px solid var(--purple);
+            background: transparent;
+            color: var(--gray-600);
+            border: 2px solid var(--gray-300);
         }
-        
+
         .btn-outline:hover {
-            background-color: var(--purple-glass);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(124, 58, 237, 0.15);
+            border-color: var(--gray-400);
+            color: var(--gray-700);
         }
-        
-        .btn-primary:active, .btn-outline:active {
-            transform: translateY(0);
-        }
-        
-        /* Actions area */
-        .actions-area {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
-            margin: 2rem 0;
-            animation: fadeInUp 1s forwards 1.1s;
-            opacity: 0;
-            position: relative;
-            transition: var(--transition);
-        }
-        
-        .actions-area:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .actions-area::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 10%;
-            width: 80%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--purple-glass), transparent);
-        }
-        
-        .selected-count {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .selected-count-badge {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 8px rgba(124, 58, 237, 0.2);
-            transition: var(--transition-bounce);
-        }
-        
-        .selected-count:hover .selected-count-badge {
-            transform: scale(1.1) rotate(10deg);
-            box-shadow: 0 6px 12px rgba(124, 58, 237, 0.3);
-        }
-        
-        .selected-count-text {
-            font-size: 1rem;
-            color: var(--gray);
-        }
-        
-        .selected-count-text strong {
-            color: var(--black);
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 0.8rem;
-        }
-        
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin: 3rem 0 2rem;
-            gap: 0.5rem;
-            animation: fadeInUp 1s forwards 1.2s;
-            opacity: 0;
-        }
-        
-        .pagination-item {
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-weight: 400;
-            cursor: pointer;
-            transition: var(--transition);
-            color: var(--gray);
-            font-size: 0.95rem;
-            border: 1px solid var(--cream-dark);
-            background-color: white;
-        }
-        
-        .pagination-item:hover:not(.active) {
-            background-color: var(--cream);
-            color: var(--purple);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .pagination-item.active {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
-            color: white;
-            border-color: var(--purple);
-            box-shadow: 0 4px 8px rgba(124, 58, 237, 0.25);
-        }
-        
-        /* Tooltip */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .tooltip .tooltip-text {
-            visibility: hidden;
-            width: 150px;
-            background-color: var(--black);
-            color: white;
-            text-align: center;
-            border-radius: 6px;
-            padding: 0.5rem;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 0.8rem;
-            font-weight: normal;
-            box-shadow: var(--shadow-md);
-        }
-        
-        .tooltip .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: var(--black) transparent transparent transparent;
-        }
-        
-        .tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-        
-        /* Loader & Notification */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(5px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
-        
-        .loading-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--purple-glass);
-            border-radius: 50%;
-            border-top-color: var(--purple);
-            animation: spin 1s infinite linear;
-            margin-bottom: 1rem;
-        }
-        
-        .loading-text {
-            font-size: 1rem;
-            color: var(--purple);
-            font-weight: 500;
-        }
-        
-        @keyframes spin {
-            from {
-                transform: rotate(0deg);
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
             }
-            to {
-                transform: rotate(360deg);
+
+            .hero {
+                padding: 2rem 1.5rem;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .results-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .job-details {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .job-actions {
+                flex-direction: column;
+            }
+
+            .progress-steps {
+                gap: 0.5rem;
+            }
+
+            .step-title {
+                font-size: 0.75rem;
             }
         }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: var(--shadow-md);
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            transform: translateX(120%);
-            transition: transform 0.3s ease-out;
-            z-index: 1000;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification i {
-            font-size: 1.2rem;
-        }
-        
-        .notification-message {
-            font-weight: 500;
-        }
-        
-        /* Match color indicators */
-        .match-high {
-            color: var(--success);
-            font-weight: 700;
-        }
-        
-        .match-medium {
-            color: var(--warning);
-            font-weight: 700;
-        }
-        
-        .match-low {
-            color: var(--danger);
-            font-weight: 700;
-        }
-        
-        /* Animation */
+
+        /* Animations */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -1336,274 +684,559 @@
                 transform: translateY(0);
             }
         }
-        
-        /* Mobile responsiveness */
-        @media (max-width: 992px) {
-            .job-card-body {
-                grid-template-columns: repeat(2, 1fr);
+
+        .job-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .job-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .job-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        /* Loading States */
+        .skeleton {
+            background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
             }
         }
-        
+
+        /* Floating Action Button - Version Sobre */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            background: var(--white);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .fab:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .fab:active {
+            transform: translateY(0);
+        }
+
+        .fab-icon {
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .fab:hover .fab-icon {
+            transform: translateX(2px);
+        }
+
+        .fab-text {
+            white-space: nowrap;
+        }
+
+        .fab-badge {
+            background: var(--primary);
+            color: var(--white);
+            font-size: 0.625rem;
+            font-weight: 600;
+            padding: 0.125rem 0.375rem;
+            border-radius: 50px;
+            margin-left: 0.25rem;
+            min-width: 1.25rem;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        /* Mobile Responsive for FAB */
         @media (max-width: 768px) {
-            nav {
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background-color: white;
-                box-shadow: var(--shadow-md);
-                padding: 1rem;
-                display: none;
-            }
-            
-            nav.active {
-                display: block;
-            }
-            
-            nav ul {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .menu-toggle {
-                display: block;
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                color: var(--gray);
-                cursor: pointer;
-            }
-            
-            .job-card-header {
-                flex-direction: column;
-                gap: 1.5rem;
-            }
-            
-            .job-match {
-                flex-direction: row;
-                padding-left: 0;
-                justify-content: space-between;
-                width: 100%;
-            }
-            
-            .filters-section {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .filter-control, .search-input {
-                width: 100%;
-            }
-            
-            .stats-bar {
-                flex-direction: column;
-                gap: 0.8rem;
-                align-items: flex-start;
-            }
-            
-            .actions-area {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: center;
-                text-align: center;
-            }
-            
-            .action-buttons {
-                width: 100%;
-            }
-            
-            .action-buttons .btn-outline, 
-            .action-buttons .btn-primary {
-                flex: 1;
-                justify-content: center;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .job-card-body {
-                grid-template-columns: 1fr;
-            }
-            
-            .job-actions {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: stretch;
-            }
-            
-            .apply-btn, .save-job {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .progress-steps .step-text {
+            .fab {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                padding: 0.625rem 1rem;
                 font-size: 0.8rem;
+            }
+            
+            .fab-text {
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         }
     </style>
 </head>
 <body>
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-spinner"></div>
-        <p class="loading-text">Chargement en cours...</p>
-    </div>
-
-    <div class="notification" id="selection-notification">
-        <i class="fas fa-check-circle"></i>
-        <span class="notification-message">Votre sélection a été enregistrée avec succès!</span>
-    </div>
-
-    <!-- Notification bar -->
-    <div class="notification-bar">
-        <i class="fas fa-bell"></i> Votre recrutement change, votre approche aussi : découvrez notre approche TOP <span class="ten-badge">10</span>
-    </div>
-
-    <header>
-        <div class="container">
-            <a href="https://bapt252.github.io/Commitment-/" class="logo">
-                nex<span>ten</span><div class="logo-badge">10</div>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">
+                <span>nex</span><span style="color: var(--primary);">ten</span>
+                <div class="logo-badge">10</div>
             </a>
-            
-            <button class="menu-toggle" aria-label="Menu principal">
-                <i class="fas fa-bars"></i>
-            </button>
-            
-            <nav>
-                <ul>
-                    <li><a href="https://bapt252.github.io/Commitment-/">Accueil</a></li>
-                    <li><a href="https://raw.githack.com/Bapt252/Commitment-/main/templates/candidate-dashboard.html" class="active">Espace candidat</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
+            <nav class="nav-links">
+                <a href="#" class="nav-link">Accueil</a>
+                <a href="#" class="nav-link active">Espace candidat</a>
+                <a href="#" class="nav-link">Contact</a>
             </nav>
         </div>
     </header>
 
-    <section class="main-content" id="main-content">
-        <div class="container">
-            <div class="matching-container">
-                <div class="progress-steps">
-                    <div class="step completed" data-step="1">
-                        <div class="step-circle"><i class="fas fa-check"></i></div>
-                        <div class="step-text">Création du compte</div>
-                    </div>
-                    <div class="step completed" data-step="2">
-                        <div class="step-circle"><i class="fas fa-check"></i></div>
-                        <div class="step-text">Questionnaire</div>
-                    </div>
-                    <div class="step active" data-step="3">
-                        <div class="step-circle">3</div>
-                        <div class="step-text">Matching</div>
-                    </div>
-                    <div class="step" data-step="4">
-                        <div class="step-circle">4</div>
-                        <div class="step-text">Tableau de bord</div>
-                    </div>
+    <div class="container">
+        <!-- Progress Steps -->
+        <div class="progress-steps">
+            <div class="step completed">
+                <div class="step-circle">
+                    <i class="fas fa-check"></i>
                 </div>
-
-                <div class="matching-header">
-                    <h2>PROPOSITION DE POSTES <i class="fas fa-briefcase" style="color: var(--purple); font-size: 1.8rem;"></i> <span class="ten-accent">TOP 10</span></h2>
-                    <p>En fonction de votre profil et de vos préférences, nous avons sélectionné les 10 postes qui correspondent le mieux à vos attentes. Choisissez les postes qui vous intéressent pour accéder à votre tableau de bord personnalisé.</p>
+                <span class="step-title">Création du compte</span>
+            </div>
+            <div class="step-line completed"></div>
+            <div class="step completed">
+                <div class="step-circle">
+                    <i class="fas fa-check"></i>
                 </div>
+                <span class="step-title">Questionnaire</span>
+            </div>
+            <div class="step-line completed"></div>
+            <div class="step active">
+                <div class="step-circle">3</div>
+                <span class="step-title">Matching</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step pending">
+                <div class="step-circle">4</div>
+                <span class="step-title">Tableau de bord</span>
+            </div>
+        </div>
 
-                <!-- Filters Section -->
-                <div class="filters-section">
-                    <div class="search-input">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Rechercher par titre, entreprise ou compétence..." id="search-input">
-                    </div>
-                    
-                    <div class="filter-control">
-                        <label class="filter-label">Type de contrat</label>
-                        <select class="filter-select" id="contract-filter">
-                            <option value="all">Tous les contrats</option>
-                            <option value="cdi">CDI</option>
-                            <option value="cdd">CDD</option>
-                            <option value="interim">Intérim</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-control">
-                        <label class="filter-label">Niveau de matching</label>
-                        <select class="filter-select" id="matching-filter">
-                            <option value="all">Tous les niveaux</option>
-                            <option value="high">Élevé (80-100%)</option>
-                            <option value="medium">Moyen (60-80%)</option>
-                            <option value="low">Faible (0-60%)</option>
-                        </select>
-                    </div>
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="hero-badge">
+                <i class="fas fa-briefcase"></i>
+                <span>10 Opportunités</span>
+            </div>
+            <h1 class="hero-title">Vos Opportunités Personnalisées</h1>
+            <p class="hero-subtitle">
+                Grâce à notre algorithme de matching avancé, nous avons sélectionné les opportunités qui correspondent parfaitement à votre profil et vos aspirations professionnelles.
+            </p>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filters-grid">
+                <div class="search-container">
+                    <label class="label">Rechercher</label>
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Titre, entreprise, compétence...">
                 </div>
-
-                <!-- Filter Chips -->
-                <div class="filter-chips">
-                    <div class="filter-chip active">
-                        <i class="fas fa-star"></i>
-                        <span>Score > 80%</span>
-                    </div>
-                    <div class="filter-chip">
-                        <i class="fas fa-clock"></i>
-                        <span>Disponibilité immédiate</span>
-                    </div>
-                    <div class="filter-chip">
-                        <i class="fas fa-code"></i>
-                        <span>JavaScript</span>
-                        <span class="remove"><i class="fas fa-times"></i></span>
-                    </div>
-                    <div class="filter-chip">
-                        <i class="fas fa-plus"></i>
-                        <span>Ajouter un filtre</span>
-                    </div>
+                <div class="select-container">
+                    <label class="label">Type de contrat</label>
+                    <select class="select">
+                        <option>Tous les contrats</option>
+                        <option>CDI</option>
+                        <option>CDD</option>
+                        <option>Freelance</option>
+                        <option>Stage</option>
+                    </select>
                 </div>
-
-                <!-- Stats Bar -->
-                <div class="stats-bar">
-                    <div class="results-count">
-                        <span>10</span> résultats trouvés
-                    </div>
-                    <div class="sort-options">
-                        <span class="sort-label">Trier par:</span>
-                        <select class="sort-select" id="sort-options">
-                            <option value="matching">% de correspondance</option>
-                            <option value="date">Date de prise de poste</option>
-                            <option value="company">Entreprise</option>
-                        </select>
-                    </div>
+                <div class="select-container">
+                    <label class="label">Niveau de matching</label>
+                    <select class="select">
+                        <option>Tous les niveaux</option>
+                        <option>90%+</option>
+                        <option>80-89%</option>
+                        <option>70-79%</option>
+                    </select>
                 </div>
-
-                <!-- Job Cards Container (Sera rempli par le JavaScript) -->
-                <div class="job-cards-container">
-                    <!-- Les cartes seront injectées ici par le script JavaScript -->
+                <button class="add-filter-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Ajouter un filtre</span>
+                </button>
+            </div>
+            
+            <div class="filter-tags">
+                <div class="filter-tag">
+                    <i class="fas fa-star"></i>
+                    <span>Score > 80%</span>
                 </div>
-
-                <!-- Actions area -->
-                <div class="actions-area">
-                    <div class="selected-count">
-                        <div class="selected-count-badge" id="selected-count">0</div>
-                        <div class="selected-count-text"><strong id="selected-text">Aucun poste</strong> sélectionné</div>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-outline" id="clear-selection">
-                            <i class="fas fa-undo"></i>
-                            Effacer la sélection
-                        </button>
-                        <button class="btn btn-primary" id="confirm-selection">
-                            <i class="fas fa-check"></i>
-                            Valider ma sélection
-                        </button>
-                    </div>
+                <div class="filter-tag secondary">
+                    <i class="fas fa-clock"></i>
+                    <span>Disponibilité immédiate</span>
                 </div>
-
-                <!-- Pagination -->
-                <div class="pagination">
-                    <div class="pagination-item"><i class="fas fa-chevron-left"></i></div>
-                    <div class="pagination-item active">1</div>
-                    <div class="pagination-item">2</div>
-                    <div class="pagination-item">3</div>
-                    <div class="pagination-item"><i class="fas fa-chevron-right"></i></div>
+                <div class="filter-tag gray">
+                    <i class="fas fa-code"></i>
+                    <span>JavaScript</span>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Script du système de matching -->
-    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/js/candidate-matching.js"></script>
+        <!-- Results Header -->
+        <div class="results-header">
+            <div class="results-info">
+                <span class="results-count">3 opportunités trouvées</span>
+            </div>
+            <div class="results-sort">
+                <span style="font-size: 0.875rem; color: var(--gray-600);">Trier par:</span>
+                <select class="sort-select">
+                    <option>% de correspondance</option>
+                    <option>Date de publication</option>
+                    <option>Salaire</option>
+                    <option>Distance</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Job Cards -->
+        <div class="jobs-grid">
+            <!-- Job Card 1 -->
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-title-section">
+                        <div class="job-avatar">T</div>
+                        <h2 class="job-title">Développeur Front-End Senior</h2>
+                        <p class="job-description">
+                            Nous recherchons un développeur Front-End expérimenté pour renforcer notre équipe technique en pleine croissance. Vous travaillerez sur des projets innovants avec les dernières technologies.
+                        </p>
+                    </div>
+                    <div class="match-score">
+                        <div class="match-circle excellent">
+                            <span class="match-percentage">92%</span>
+                        </div>
+                        <span class="match-label">Excellent match</span>
+                    </div>
+                </div>
+
+                <div class="job-details">
+                    <div class="detail-item">
+                        <i class="fas fa-building detail-icon"></i>
+                        <span class="detail-label">Entreprise</span>
+                        <span class="detail-value">TechVision</span>
+                        <a href="#" class="detail-link">Voir le profil</a>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-file-contract detail-icon"></i>
+                        <span class="detail-label">Contrat</span>
+                        <span class="detail-value">CDI</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt detail-icon"></i>
+                        <span class="detail-label">Temps de trajet</span>
+                        <span class="detail-value">21 min</span>
+                        <a href="#" class="detail-link">Voir sur Maps</a>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-euro-sign detail-icon"></i>
+                        <span class="detail-label">Rémunération</span>
+                        <span class="detail-value">45K-55K€</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-calendar-alt detail-icon"></i>
+                        <span class="detail-label">Date de prise de poste</span>
+                        <span class="detail-value">01/05/2025</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-user-tie detail-icon"></i>
+                        <span class="detail-label">Expérience requise</span>
+                        <span class="detail-value">3-5 ans</span>
+                    </div>
+                </div>
+
+                <div class="job-actions">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-eye"></i>
+                        <span>Voir les détails</span>
+                    </button>
+                    <button class="btn btn-outline">
+                        <i class="fas fa-heart"></i>
+                        <span>Sauvegarder</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Job Card 2 -->
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-title-section">
+                        <div class="job-avatar" style="background: linear-gradient(135deg, var(--secondary), var(--primary));">I</div>
+                        <h2 class="job-title">Développeur Full-Stack</h2>
+                        <p class="job-description">
+                            Notre entreprise cherche un développeur Full-Stack talentueux pour participer au développement de notre plateforme innovante utilisant les technologies les plus récentes.
+                        </p>
+                    </div>
+                    <div class="match-score">
+                        <div class="match-circle good">
+                            <span class="match-percentage">88%</span>
+                        </div>
+                        <span class="match-label">Très bon match</span>
+                    </div>
+                </div>
+
+                <div class="job-details">
+                    <div class="detail-item">
+                        <i class="fas fa-building detail-icon"></i>
+                        <span class="detail-label">Entreprise</span>
+                        <span class="detail-value">InnovateTech</span>
+                        <a href="#" class="detail-link">Voir le profil</a>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-file-contract detail-icon"></i>
+                        <span class="detail-label">Contrat</span>
+                        <span class="detail-value">CDI</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt detail-icon"></i>
+                        <span class="detail-label">Temps de trajet</span>
+                        <span class="detail-value">32 min</span>
+                        <a href="#" class="detail-link">Voir sur Maps</a>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-euro-sign detail-icon"></i>
+                        <span class="detail-label">Rémunération</span>
+                        <span class="detail-value">42K-48K€</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-calendar-alt detail-icon"></i>
+                        <span class="detail-label">Date de prise de poste</span>
+                        <span class="detail-value">15/04/2025</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-user-tie detail-icon"></i>
+                        <span class="detail-label">Expérience requise</span>
+                        <span class="detail-value">2-4 ans</span>
+                    </div>
+                </div>
+
+                <div class="job-actions">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-eye"></i>
+                        <span>Voir les détails</span>
+                    </button>
+                    <button class="btn btn-outline">
+                        <i class="fas fa-heart"></i>
+                        <span>Sauvegarder</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Job Card 3 -->
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="job-title-section">
+                        <div class="job-avatar" style="background: linear-gradient(135deg, var(--warning), var(--danger));">S</div>
+                        <h2 class="job-title">Lead Developer JavaScript</h2>
+                        <p class="job-description">
+                            Rejoignez notre équipe en tant que Lead Developer pour diriger le développement de solutions web modernes et encadrer une équipe de développeurs talentueux.
+                        </p>
+                    </div>
+                    <div class="match-score">
+                        <div class="match-circle">
+                            <span class="match-percentage">75%</span>
+                        </div>
+                        <span class="match-label">Bon match</span>
+                    </div>
+                </div>
+
+                <div class="job-details">
+                    <div class="detail-item">
+                        <i class="fas fa-building detail-icon"></i>
+                        <span class="detail-label">Entreprise</span>
+                        <span class="detail-value">StartupScale</span>
+                        <a href="#" class="detail-link">Voir le profil</a>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-file-contract detail-icon"></i>
+                        <span class="detail-label">Contrat</span>
+                        <span class="detail-value">CDI</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt detail-icon"></i>
+                        <span class="detail-label">Temps de trajet</span>
+                        <span class="detail-value">45 min</span>
+                        <a href="#" class="detail-link">Voir sur Maps</a>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-euro-sign detail-icon"></i>
+                        <span class="detail-label">Rémunération</span>
+                        <span class="detail-value">55K-65K€</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-calendar-alt detail-icon"></i>
+                        <span class="detail-label">Date de prise de poste</span>
+                        <span class="detail-value">01/06/2025</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-user-tie detail-icon"></i>
+                        <span class="detail-label">Expérience requise</span>
+                        <span class="detail-value">5-7 ans</span>
+                    </div>
+                </div>
+
+                <div class="job-actions">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-eye"></i>
+                        <span>Voir les détails</span>
+                    </button>
+                    <button class="btn btn-outline">
+                        <i class="fas fa-heart"></i>
+                        <span>Sauvegarder</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <a href="https://bapt252.github.io/Commitment-/templates/candidate-dashboard.html" class="fab">
+        <i class="fas fa-arrow-right fab-icon"></i>
+        <span class="fab-text">Tableau de bord</span>
+        <span class="fab-badge">3</span>
+    </a>
+
+    <script>
+        // Ajouter des interactions dynamiques
+        document.addEventListener('DOMContentLoaded', function() {
+            let savedJobs = 0;
+            const fabBadge = document.querySelector('.fab-badge');
+            
+            // Animation des cartes au scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.job-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+
+            // Effet sur les boutons de sauvegarde
+            document.querySelectorAll('.btn-outline').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const icon = this.querySelector('i');
+                    const text = this.querySelector('span');
+                    
+                    if (icon.classList.contains('fa-heart') && !icon.classList.contains('fas')) {
+                        // Sauvegarder
+                        icon.classList.add('fas');
+                        text.textContent = 'Sauvegardé';
+                        this.style.borderColor = 'var(--danger)';
+                        this.style.color = 'var(--danger)';
+                        savedJobs++;
+                        
+                        // Animation de succès
+                        this.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            this.style.transform = 'scale(1)';
+                        }, 100);
+                        
+                    } else if (icon.classList.contains('fas')) {
+                        // Désauvegarder
+                        icon.classList.remove('fas');
+                        text.textContent = 'Sauvegarder';
+                        this.style.borderColor = 'var(--gray-300)';
+                        this.style.color = 'var(--gray-600)';
+                        savedJobs--;
+                    }
+                    
+                    // Mettre à jour le badge
+                    fabBadge.textContent = savedJobs;
+                    
+                    // Animation du badge
+                    fabBadge.style.transform = 'scale(1.3)';
+                    setTimeout(() => {
+                        fabBadge.style.transform = 'scale(1)';
+                    }, 200);
+                });
+            });
+
+            // Recherche en temps réel (simulation)
+            const searchInput = document.querySelector('.search-input');
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                let visibleJobs = 0;
+                
+                document.querySelectorAll('.job-card').forEach(card => {
+                    const title = card.querySelector('.job-title').textContent.toLowerCase();
+                    const company = card.querySelector('.detail-value').textContent.toLowerCase();
+                    
+                    if (title.includes(query) || company.includes(query) || query === '') {
+                        card.style.display = 'block';
+                        visibleJobs++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Mettre à jour le compteur de résultats
+                const resultsCount = document.querySelector('.results-count');
+                resultsCount.textContent = `${visibleJobs} opportunité${visibleJobs > 1 ? 's' : ''} trouvée${visibleJobs > 1 ? 's' : ''}`;
+            });
+
+            // Effet de hover amélioré sur les cartes
+            document.querySelectorAll('.job-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Animation d'entrée du FAB (plus discrète)
+            setTimeout(() => {
+                const fab = document.querySelector('.fab');
+                fab.style.transform = 'translateY(0)';
+                fab.style.opacity = '1';
+            }, 800);
+
+            // Effet de scroll sur le FAB (plus subtil)
+            let lastScrollTop = 0;
+            window.addEventListener('scroll', function() {
+                const fab = document.querySelector('.fab');
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > 200) {
+                    fab.style.opacity = '0.9';
+                } else {
+                    fab.style.opacity = '1';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

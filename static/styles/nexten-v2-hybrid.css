@@ -1,0 +1,1212 @@
+/* ========================================
+   NEXTEN V2.0 - SYSTÈME HYBRIDE CSS
+   Interface moderne pour questionnaire candidat
+   ======================================== */
+
+:root {
+    /* Couleurs principales NEXTEN */
+    --nexten-primary: #7C3AED;
+    --nexten-primary-light: #A78BFA;
+    --nexten-primary-dark: #5B21B6;
+    --nexten-secondary: #10B981;
+    --nexten-warning: #F59E0B;
+    --nexten-error: #EF4444;
+    --nexten-success: #10B981;
+    
+    /* Couleurs neutres */
+    --nexten-white: #FFFFFF;
+    --nexten-cream: #F8F7F3;
+    --nexten-cream-dark: #EFEEE9;
+    --nexten-gray-50: #F9FAFB;
+    --nexten-gray-100: #F3F4F6;
+    --nexten-gray-200: #E5E7EB;
+    --nexten-gray-300: #D1D5DB;
+    --nexten-gray-500: #6B7280;
+    --nexten-gray-700: #374151;
+    --nexten-gray-900: #111827;
+    --nexten-black: #1A1A1A;
+    
+    /* Espacements */
+    --nexten-space-1: 0.25rem;
+    --nexten-space-2: 0.5rem;
+    --nexten-space-3: 0.75rem;
+    --nexten-space-4: 1rem;
+    --nexten-space-6: 1.5rem;
+    --nexten-space-8: 2rem;
+    --nexten-space-12: 3rem;
+    --nexten-space-16: 4rem;
+    
+    /* Animations */
+    --nexten-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --nexten-transition-fast: all 0.15s ease-out;
+    --nexten-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --nexten-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --nexten-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --nexten-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* ========================================
+   CONTAINER PRINCIPAL DU FORMULAIRE
+   ======================================== */
+
+.form-container {
+    background: var(--nexten-white);
+    border-radius: 24px;
+    box-shadow: var(--nexten-shadow-xl);
+    padding: var(--nexten-space-12);
+    margin: var(--nexten-space-8) auto;
+    max-width: 1000px;
+    position: relative;
+    overflow: hidden;
+}
+
+.form-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--nexten-primary), var(--nexten-primary-light), var(--nexten-secondary));
+    border-radius: 24px 24px 0 0;
+}
+
+/* ========================================
+   STEPPER MODERNE - NAVIGATION VISUELLE
+   ======================================== */
+
+.stepper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--nexten-space-12);
+    position: relative;
+    padding: var(--nexten-space-6) 0;
+}
+
+.stepper-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--nexten-gray-200);
+    border-radius: 2px;
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+.stepper-progress {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--nexten-primary), var(--nexten-primary-light));
+    border-radius: 2px;
+    z-index: 2;
+    transform: translateY(-50%);
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 3;
+    flex: 1;
+    min-width: 0;
+}
+
+.step-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--nexten-white);
+    border: 3px solid var(--nexten-gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--nexten-gray-500);
+    transition: var(--nexten-transition);
+    box-shadow: var(--nexten-shadow);
+    margin-bottom: var(--nexten-space-3);
+}
+
+.step-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--nexten-gray-500);
+    text-align: center;
+    max-width: 140px;
+    line-height: 1.3;
+    transition: var(--nexten-transition);
+}
+
+/* États du stepper */
+.step.active .step-circle {
+    background: var(--nexten-primary);
+    border-color: var(--nexten-primary);
+    color: var(--nexten-white);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2), var(--nexten-shadow-lg);
+}
+
+.step.active .step-label {
+    color: var(--nexten-primary);
+    font-weight: 600;
+}
+
+.step.completed .step-circle {
+    background: var(--nexten-success);
+    border-color: var(--nexten-success);
+    color: var(--nexten-white);
+}
+
+.step.completed .step-circle::before {
+    content: '✓';
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.step.completed .step-label {
+    color: var(--nexten-success);
+}
+
+/* ========================================
+   ÉTAPES DU FORMULAIRE
+   ======================================== */
+
+.form-step {
+    display: none;
+    animation: slideIn 0.4s ease-out;
+}
+
+.form-step.active {
+    display: block;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.form-section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--nexten-gray-900);
+    margin-bottom: var(--nexten-space-8);
+    text-align: center;
+    position: relative;
+}
+
+.form-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--nexten-primary), var(--nexten-primary-light));
+    border-radius: 2px;
+}
+
+/* ========================================
+   DESCRIPTION DES ÉTAPES (NOUVEAU)
+   ======================================== */
+
+.step-description {
+    font-size: 1.1rem;
+    color: #6b7280;
+    text-align: center;
+    margin-bottom: 40px;
+    line-height: 1.6;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ========================================
+   GROUPES DE CHAMPS
+   ======================================== */
+
+.form-group {
+    margin-bottom: var(--nexten-space-8);
+    position: relative;
+}
+
+.form-label {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--nexten-gray-700);
+    margin-bottom: var(--nexten-space-3);
+    line-height: 1.4;
+}
+
+.form-label.required::after {
+    content: ' *';
+    color: var(--nexten-error);
+    font-weight: 700;
+}
+
+.form-control {
+    width: 100%;
+    padding: var(--nexten-space-4) var(--nexten-space-6);
+    border: 2px solid var(--nexten-gray-200);
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: inherit;
+    background: var(--nexten-white);
+    transition: var(--nexten-transition);
+    box-shadow: var(--nexten-shadow-sm);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--nexten-primary);
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1), var(--nexten-shadow);
+    transform: translateY(-1px);
+}
+
+.form-control::placeholder {
+    color: var(--nexten-gray-500);
+}
+
+.text-muted {
+    font-size: 0.875rem;
+    color: var(--nexten-gray-500);
+    margin-top: var(--nexten-space-2);
+    line-height: 1.4;
+}
+
+/* ========================================
+   NOUVEAUX CHAMPS POUR ÉTAPES 3 & 4
+   ======================================== */
+
+.form-input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: #f9fafb;
+    font-family: inherit;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--nexten-primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* ========================================
+   NOUVEAUX GROUPES CHECKBOX/RADIO (ÉTAPES 3 & 4)
+   ======================================== */
+
+.checkbox-group, .radio-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.checkbox-item, .radio-item {
+    position: relative;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.checkbox-item:hover, .radio-item:hover {
+    border-color: var(--nexten-primary);
+    background: #f0f4ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+.checkbox-item.selected, .radio-item.selected {
+    border-color: var(--nexten-primary);
+    background: #f0f4ff;
+    box-shadow: 0 5px 20px rgba(124, 58, 237, 0.2);
+}
+
+.checkbox-item input, .radio-item input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.checkbox-label, .radio-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 5px;
+    display: block;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.checkbox-description, .radio-description {
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+/* ========================================
+   SLIDER DE SALAIRE (ÉTAPE 3)
+   ======================================== */
+
+.salary-slider {
+    margin: 30px 0;
+}
+
+.slider-container {
+    position: relative;
+    margin: 20px 0;
+}
+
+.slider {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: #e5e7eb;
+    outline: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--nexten-primary) 0%, #a855f7 100%);
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(124, 58, 237, 0.3);
+    transition: transform 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--nexten-primary) 0%, #a855f7 100%);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 10px rgba(124, 58, 237, 0.3);
+}
+
+.slider-value {
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--nexten-primary);
+    margin-top: 10px;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 10px;
+}
+
+/* ========================================
+   GROUPES DE CHECKBOXES ET RADIOS (ANCIENS)
+   ======================================== */
+
+.checkbox-group.legacy,
+.radio-group.legacy {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--nexten-space-4);
+    margin-top: var(--nexten-space-4);
+}
+
+.checkbox-option,
+.radio-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: var(--nexten-space-4);
+    border: 2px solid var(--nexten-gray-200);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: var(--nexten-transition);
+    background: var(--nexten-white);
+    font-weight: 500;
+}
+
+.checkbox-option:hover,
+.radio-option:hover {
+    border-color: var(--nexten-primary-light);
+    background: rgba(124, 58, 237, 0.02);
+    transform: translateY(-2px);
+    box-shadow: var(--nexten-shadow);
+}
+
+.checkbox-option input,
+.radio-option input {
+    opacity: 0;
+    position: absolute;
+}
+
+.checkbox-checkmark,
+.radio-checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--nexten-gray-300);
+    border-radius: 4px;
+    margin-right: var(--nexten-space-3);
+    position: relative;
+    transition: var(--nexten-transition);
+    flex-shrink: 0;
+}
+
+.radio-checkmark {
+    border-radius: 50%;
+}
+
+.checkbox-option input:checked ~ .checkbox-checkmark,
+.radio-option input:checked ~ .radio-checkmark {
+    background: var(--nexten-primary);
+    border-color: var(--nexten-primary);
+}
+
+.checkbox-option input:checked ~ .checkbox-checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--nexten-white);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.radio-option input:checked ~ .radio-checkmark::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background: var(--nexten-white);
+    border-radius: 50%;
+}
+
+.checkbox-option input:checked,
+.radio-option input:checked {
+    & + .checkbox-checkmark,
+    & + .radio-checkmark {
+        & + * {
+            color: var(--nexten-primary);
+        }
+    }
+}
+
+/* ========================================
+   SYSTÈME DE CONTRATS NEXTEN V2.0
+   ======================================== */
+
+.contract-ultra-container {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(16, 185, 129, 0.03));
+    border-radius: 20px;
+    padding: var(--nexten-space-8);
+    margin: var(--nexten-space-8) 0;
+    border: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+.contract-ultra-header {
+    display: flex;
+    align-items: center;
+    gap: var(--nexten-space-4);
+    margin-bottom: var(--nexten-space-6);
+}
+
+.contract-ultra-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--nexten-primary), var(--nexten-primary-light));
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nexten-white);
+    font-size: 1.5rem;
+    box-shadow: var(--nexten-shadow-lg);
+}
+
+.contract-ultra-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--nexten-gray-900);
+    margin: 0;
+    line-height: 1.3;
+}
+
+.contract-ultra-subtitle {
+    color: var(--nexten-gray-600);
+    margin: var(--nexten-space-2) 0 0 0;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.ranking-instructions {
+    background: var(--nexten-white);
+    border-radius: 16px;
+    padding: var(--nexten-space-6);
+    margin-bottom: var(--nexten-space-6);
+    border: 2px solid var(--nexten-warning);
+    display: flex;
+    align-items: start;
+    gap: var(--nexten-space-4);
+}
+
+.instructions-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--nexten-warning);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nexten-white);
+    flex-shrink: 0;
+}
+
+.instructions-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--nexten-gray-900);
+    margin: 0 0 var(--nexten-space-2) 0;
+}
+
+.instructions-text {
+    color: var(--nexten-gray-700);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.contract-selection-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nexten-space-8);
+    margin-bottom: var(--nexten-space-8);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--nexten-space-3);
+    margin-bottom: var(--nexten-space-6);
+}
+
+.section-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--nexten-gray-700);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nexten-white);
+    font-size: 0.875rem;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--nexten-gray-900);
+    margin: 0;
+}
+
+/* Cartes de contrats */
+.contract-card {
+    background: var(--nexten-white);
+    border-radius: 16px;
+    padding: var(--nexten-space-6);
+    border: 2px solid var(--nexten-gray-200);
+    transition: var(--nexten-transition);
+    margin-bottom: var(--nexten-space-4);
+    position: relative;
+    overflow: hidden;
+}
+
+.contract-card:hover {
+    border-color: var(--nexten-primary-light);
+    transform: translateY(-4px);
+    box-shadow: var(--nexten-shadow-lg);
+}
+
+.contract-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--nexten-primary-light), transparent);
+    opacity: 0;
+    transition: var(--nexten-transition);
+}
+
+.contract-card:hover::before {
+    opacity: 1;
+}
+
+.contract-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nexten-white);
+    font-size: 1.2rem;
+    margin-bottom: var(--nexten-space-4);
+    box-shadow: var(--nexten-shadow);
+}
+
+.contract-card-icon.cdi {
+    background: linear-gradient(135deg, #2563EB, #3B82F6);
+}
+
+.contract-card-icon.cdd {
+    background: linear-gradient(135deg, #DC2626, #EF4444);
+}
+
+.contract-card-icon.freelance {
+    background: linear-gradient(135deg, #7C2D12, #EA580C);
+}
+
+.contract-card-icon.interim {
+    background: linear-gradient(135deg, #059669, #10B981);
+}
+
+.contract-card-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--nexten-gray-900);
+    margin: 0 0 var(--nexten-space-2) 0;
+    line-height: 1.3;
+}
+
+.contract-card-description {
+    color: var(--nexten-gray-600);
+    font-size: 0.9rem;
+    margin: 0 0 var(--nexten-space-4) 0;
+    line-height: 1.4;
+}
+
+.add-contract-button {
+    background: linear-gradient(135deg, var(--nexten-primary), var(--nexten-primary-light));
+    color: var(--nexten-white);
+    border: none;
+    border-radius: 10px;
+    padding: var(--nexten-space-2) var(--nexten-space-4);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--nexten-transition);
+    display: flex;
+    align-items: center;
+    gap: var(--nexten-space-2);
+}
+
+.add-contract-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--nexten-shadow);
+}
+
+/* Zone de classement */
+.ranking-section {
+    background: var(--nexten-gray-50);
+    border-radius: 16px;
+    padding: var(--nexten-space-6);
+    border: 2px dashed var(--nexten-gray-300);
+    min-height: 300px;
+}
+
+.ranking-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--nexten-gray-500);
+    min-height: 200px;
+}
+
+.ranking-empty-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--nexten-gray-200);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: var(--nexten-space-4);
+}
+
+.ranking-empty-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 var(--nexten-space-2) 0;
+}
+
+.ranking-empty-text {
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Résumé des contrats */
+.contract-ultra-summary {
+    background: var(--nexten-white);
+    border-radius: 16px;
+    padding: var(--nexten-space-6);
+    border: 2px solid var(--nexten-success);
+    margin-top: var(--nexten-space-6);
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    gap: var(--nexten-space-3);
+    margin-bottom: var(--nexten-space-4);
+}
+
+.summary-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--nexten-success);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nexten-white);
+}
+
+.summary-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--nexten-gray-900);
+    margin: 0;
+}
+
+/* ========================================
+   BOUTONS D'ACTION
+   ======================================== */
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--nexten-space-12);
+    padding-top: var(--nexten-space-8);
+    border-top: 1px solid var(--nexten-gray-200);
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nexten-space-2);
+    padding: var(--nexten-space-4) var(--nexten-space-8);
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--nexten-transition);
+    border: 2px solid transparent;
+    min-width: 140px;
+    justify-content: center;
+}
+
+.btn-back {
+    background: var(--nexten-gray-100);
+    color: var(--nexten-gray-700);
+    border-color: var(--nexten-gray-200);
+}
+
+.btn-back:hover:not(:disabled) {
+    background: var(--nexten-gray-200);
+    transform: translateX(-4px);
+    box-shadow: var(--nexten-shadow);
+}
+
+.btn-back:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-next,
+.btn-submit {
+    background: linear-gradient(135deg, var(--nexten-primary), var(--nexten-primary-light));
+    color: var(--nexten-white);
+    border-color: var(--nexten-primary);
+    box-shadow: var(--nexten-shadow);
+}
+
+.btn-next:hover,
+.btn-submit:hover {
+    background: linear-gradient(135deg, var(--nexten-primary-dark), var(--nexten-primary));
+    transform: translateX(4px);
+    box-shadow: var(--nexten-shadow-lg);
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, var(--nexten-success), #059669);
+    border-color: var(--nexten-success);
+}
+
+.btn-submit:hover {
+    background: linear-gradient(135deg, #059669, var(--nexten-success));
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   NOTIFICATIONS
+   ======================================== */
+
+.notification {
+    position: fixed;
+    top: var(--nexten-space-6);
+    right: var(--nexten-space-6);
+    background: var(--nexten-white);
+    border-radius: 12px;
+    padding: var(--nexten-space-4) var(--nexten-space-6);
+    box-shadow: var(--nexten-shadow-xl);
+    border: 2px solid var(--nexten-gray-200);
+    display: flex;
+    align-items: center;
+    gap: var(--nexten-space-3);
+    max-width: 400px;
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: var(--nexten-transition);
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    border-color: var(--nexten-success);
+    background: linear-gradient(135deg, #ECFDF5, var(--nexten-white));
+}
+
+.notification.success i {
+    color: var(--nexten-success);
+}
+
+.notification.error {
+    border-color: var(--nexten-error);
+    background: linear-gradient(135deg, #FEF2F2, var(--nexten-white));
+}
+
+.notification.error i {
+    color: var(--nexten-error);
+}
+
+.notification.info {
+    border-color: var(--nexten-primary);
+    background: linear-gradient(135deg, #F5F3FF, var(--nexten-white));
+}
+
+.notification.info i {
+    color: var(--nexten-primary);
+}
+
+.notification-message {
+    flex: 1;
+    font-weight: 500;
+    color: var(--nexten-gray-900);
+}
+
+.notification-close {
+    cursor: pointer;
+    color: var(--nexten-gray-500);
+    transition: var(--nexten-transition);
+}
+
+.notification-close:hover {
+    color: var(--nexten-gray-700);
+    transform: scale(1.1);
+}
+
+/* ========================================
+   OVERLAY DE CHARGEMENT
+   ======================================== */
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--nexten-transition);
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.loading-spinner {
+    width: 64px;
+    height: 64px;
+    border: 4px solid rgba(124, 58, 237, 0.2);
+    border-top: 4px solid var(--nexten-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--nexten-space-4);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: var(--nexten-white);
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+    .form-container {
+        margin: var(--nexten-space-4);
+        padding: var(--nexten-space-6);
+        border-radius: 16px;
+    }
+    
+    .stepper {
+        flex-direction: column;
+        gap: var(--nexten-space-4);
+    }
+    
+    .stepper-line,
+    .stepper-progress {
+        display: none;
+    }
+    
+    .step {
+        flex-direction: row;
+        justify-content: flex-start;
+        width: 100%;
+        padding: var(--nexten-space-3);
+        background: var(--nexten-gray-50);
+        border-radius: 12px;
+    }
+    
+    .step-circle {
+        margin-bottom: 0;
+        margin-right: var(--nexten-space-3);
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .step-label {
+        text-align: left;
+        max-width: none;
+        font-size: 1rem;
+    }
+    
+    .form-section-title {
+        font-size: 1.5rem;
+    }
+    
+    .contract-selection-grid {
+        grid-template-columns: 1fr;
+        gap: var(--nexten-space-6);
+    }
+    
+    .checkbox-group,
+    .radio-group {
+        grid-template-columns: 1fr;
+    }
+    
+    .checkbox-item, .radio-item {
+        padding: 15px;
+    }
+    
+    .slider-container {
+        margin: 15px 0;
+    }
+    
+    .step-description {
+        font-size: 1rem;
+        margin-bottom: 30px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: var(--nexten-space-4);
+        align-items: stretch;
+    }
+    
+    .btn-action {
+        width: 100%;
+    }
+    
+    .contract-ultra-container {
+        padding: var(--nexten-space-6);
+    }
+    
+    .contract-ultra-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .ranking-instructions {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-container {
+        margin: var(--nexten-space-2);
+        padding: var(--nexten-space-4);
+    }
+    
+    .form-section-title {
+        font-size: 1.25rem;
+    }
+    
+    .contract-ultra-title {
+        font-size: 1.2rem;
+    }
+    
+    .notification {
+        left: var(--nexten-space-4);
+        right: var(--nexten-space-4);
+        max-width: none;
+    }
+}
+
+/* ========================================
+   ANIMATIONS ET MICRO-INTERACTIONS
+   ======================================== */
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Effet de glassmorphisme pour certains éléments */
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* États de focus améliorés */
+.form-control:focus,
+.btn-action:focus,
+.checkbox-option:focus-within,
+.radio-option:focus-within {
+    outline: 2px solid var(--nexten-primary);
+    outline-offset: 2px;
+}
+
+/* Indicateurs de validation */
+.form-control.valid {
+    border-color: var(--nexten-success);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.form-control.invalid {
+    border-color: var(--nexten-error);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+/* Améliorations accessibilité */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Mode sombre (optionnel) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --nexten-white: #1F2937;
+        --nexten-cream: #111827;
+        --nexten-gray-50: #374151;
+        --nexten-gray-100: #4B5563;
+        --nexten-gray-900: #F9FAFB;
+    }
+}

@@ -1,0 +1,7 @@
+Force rebuild GitHub Pages at 2025-01-01 13:30
+Deploy new sector dropdown functionality:
+- 26 secteurs au lieu de 6 cartes
+- Liste déroulante moderne multichoix  
+- Question secteurs rédhibitoires
+- Validation intelligente des conflits
+- Design NEXTEN V3.0 cohérent

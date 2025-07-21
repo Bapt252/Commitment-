@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexten - Questionnaire Client</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="../static/css/job-parser-styles.css">
+    <link rel="stylesheet" href="../static/css/client-questionnaire.css">
+    <link rel="stylesheet" href="../static/css/questionnaire-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bibliothèques externes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    
+    <!-- Style supplémentaire pour les améliorations -->
+    <style>
+        /* Variables CSS essentielles */
+        :root {
+            --primary: #7c3aed;
+            --primary-light: #a855f7;
+            --primary-dark: #6d28d9;
+            --gray: #6b7280;
+            --gray-dark: #374151;
+            --gray-light: #d1d5db;
+            --gray-lightest: #f9fafb;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --border-radius: 8px;
+            --border-radius-lg: 12px;
+            --transition: all 0.3s ease;
+            --transition-sm: all 0.2s ease;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--gray-dark);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+
+        /* Container principal */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            position: relative;
+            padding: 2.5rem 0;
+            margin-bottom: 3rem;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(124, 58, 237, 0.1));
+            text-align: center;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+
+        .header h1 {
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+            color: var(--gray-dark);
+            font-size: 2.5rem;
+        }
+
+        .header .subtitle {
+            max-width: 700px;
+            font-size: 1.1rem;
+            color: var(--gray);
+            line-height: 1.6;
+            margin: 0 auto;
+        }
+
+        /* Progress container */
+        .progress-container {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .progress-bar {
+            background-color: var(--gray-lightest);
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--gray-light);
+            z-index: 1;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .step-bubble {
+            width: 36px;
+            height: 36px;
+            background-color: white;
+            border: 2px solid var(--gray-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+            max-width: 120px;
+        }
+
+        .step.active .step-bubble, 
+        .step.completed .step-bubble {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 3px 10px rgba(124, 58, 237, 0.3);
+        }
+
+        .step.active .step-label, 
+        .step.completed .step-label {
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .step.completed .step-bubble::after {
+            content: '✓';
+            font-size: 1rem;
+        }
+
+        /* Form sections */
+        .form-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border-top: 5px solid transparent;
+            border-image: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-image-slice: 1;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-section h2 {
+            color: var(--gray-dark);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .form-section p {
+            color: var(--gray);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        /* Navigation buttons */
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 10px rgba(124, 58, 237, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--gray-dark);
+            border: 1px solid var(--gray-light);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: rgba(124, 58, 237, 0.05);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        /* ChatGPT Configuration */
+        .chatgpt-config {
+            background: linear-gradient(135deg, #E3F2FD, #F3E5F5);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .chatgpt-config h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .config-input {
+            flex: 1;
+        }
+
+        .save-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .save-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Upload container */
+        .upload-container {
+            border: 2px dashed var(--gray-light);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            background-color: var(--gray-lightest);
+            transition: var(--transition);
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .upload-container:hover,
+        .upload-container.drag-active {
+            border-color: var(--primary);
+            background-color: rgba(124, 58, 237, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-container:hover .upload-icon {
+            transform: translateY(-5px);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Auto-fill indicator */
+        .auto-fill-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: none;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .form-control.auto-filled {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .form-group.auto-filled {
+            position: relative;
+        }
+
+        .form-group.auto-filled .auto-fill-indicator {
+            display: block;
+        }
+
+        /* === STYLES ÉTAPE 5 AMÉLIORÉE === */
+
+        /* En-tête de confirmation */
+        .confirmation-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .confirmation-header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 2px;
+        }
+
+        .confirmation-header h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .confirmation-subtitle {
+            font-size: 1.1rem;
+            color: var(--gray);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* Grille des cartes de résumé */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUpNew 0.6s ease forwards;
+        }
+
+        .summary-card:nth-child(1) { animation-delay: 0.1s; }
+        .summary-card:nth-child(2) { animation-delay: 0.2s; }
+        .summary-card:nth-child(3) { animation-delay: 0.3s; }
+        .summary-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* En-têtes des cards */
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .card-icon i {
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--gray-dark);
+            margin: 0;
+        }
+
+        /* Contenu des cards */
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: var(--border-radius);
+            transition: var(--transition-sm);
+        }
+
+        .info-item:hover {
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--primary-dark);
+            min-width: 120px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-value {
+            color: var(--gray-dark);
+            font-weight: 500;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .empty-value {
+            color: var(--gray);
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        /* Card spéciale pour les détails du poste */
+        .job-details-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.02), rgba(168, 85, 247, 0.02));
+        }
+
+        .job-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .job-section {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .job-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Compétences et tags */
+        .skill-tag {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: var(--transition-sm);
+            display: inline-block;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .skill-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Section commentaires */
+        .additional-comments {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: slideInUpNew 0.6s ease 0.6s forwards;
+        }
+
+        .additional-comments h3 {
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .comments-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.5;
+            resize: vertical;
+            transition: var(--transition);
+        }
+
+        .comments-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInUpNew {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Notification système */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 10px;
+            padding: 15px 20px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            max-width: 350px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: var(--transition);
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .notification.success .notification-icon {
+            color: var(--success);
+        }
+
+        .notification.error .notification-icon {
+            color: var(--error);
+        }
+
+        .notification.info .notification-icon {
+            color: var(--info);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 1.5rem 1rem;
+                margin-bottom: 2rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-section {
+                padding: 1.5rem;
+            }
+            
+            .config-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .job-details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .card-icon i {
+                font-size: 1.2rem;
+            }
+            
+            .info-label {
+                min-width: 100px;
+                font-size: 0.85rem;
+            }
+
+            .form-navigation {
+                flex-direction: column-reverse;
+                gap: 1rem;
+            }
+            
+            .form-navigation .btn {
+                width: 100%;
+            }
+        }
+
+        /* Style pour les questions de l'étape 4 */
+        .question-section {
+            background: #f8fafc;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .question-section h3 {
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radio-group, .checkbox-group {
+            margin-bottom: 1rem;
+        }
+
+        .radio-option, .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            margin-bottom: 0.5rem;
+        }
+
+        .radio-option:hover, .checkbox-option:hover {
+            background-color: rgba(124, 58, 237, 0.05);
+        }
+
+        .radio-option input, .checkbox-option input {
+            margin-right: 0.5rem;
+        }
+
+        .conditional-section {
+            display: none;
+        }
+        
+        .conditional-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .sub-options {
+            margin-left: 2rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Loader */
+        .loader-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .loader {
+            border: 3px solid var(--gray-lightest);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1.5s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .required-field::after {
+            content: " *";
+            color: var(--error);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Questionnaire Client</h1>
+            <p class="subtitle">Aidez-nous à mieux comprendre votre structure et vos besoins en recrutement</p>
+        </header>
+
+        <main>
+            <!-- Étapes de progression (5 étapes) -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" id="progress-fill" style="width: 20%"></div>
+                </div>
+                <div class="progress-steps">
+                    <div class="step active" data-step="1">
+                        <div class="step-bubble"><span>1</span></div>
+                        <div class="step-label">Structure</div>
+                    </div>
+                    <div class="step" data-step="2">
+                        <div class="step-bubble"><span>2</span></div>
+                        <div class="step-label">Contact</div>
+                    </div>
+                    <div class="step" data-step="3">
+                        <div class="step-bubble"><span>3</span></div>
+                        <div class="step-label">Recrutement</div>
+                    </div>
+                    <div class="step" data-step="4">
+                        <div class="step-bubble"><span>4</span></div>
+                        <div class="step-label">Détails du poste</div>
+                    </div>
+                    <div class="step" data-step="5">
+                        <div class="step-bubble"><span>5</span></div>
+                        <div class="step-label">Confirmation</div>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="client-questionnaire-form">
+                <!-- Étape 1: Informations sur la structure -->
+                <section class="form-section active" data-step="1">
+                    <h2>Informations sur votre structure</h2>
+                    <p>Renseignez les informations de base sur votre structure.</p>
+                    
+                    <div class="form-group">
+                        <label for="company-name" class="required-field">Nom de la structure</label>
+                        <input type="text" id="company-name" class="form-control" placeholder="Nom de votre structure" required>
+                        <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-address" class="required-field">Adresse complète</label>
+                        <input type="text" id="company-address" class="form-control" placeholder="Adresse complète de votre structure" required>
+                        <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-website">Site internet</label>
+                        <input type="url" id="company-website" class="form-control" placeholder="https://www.votresite.com">
+                        <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-description">Présentation rapide</label>
+                        <textarea id="company-description" class="form-control" placeholder="Présentez brièvement votre structure..." rows="4"></textarea>
+                        <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-size">Taille de structure</label>
+                        <select id="company-size" class="form-control">
+                            <option value="">Sélectionnez</option>
+                            <option value="tpe">TPE</option>
+                            <option value="pme">PME</option>
+                            <option value="eti">ETI</option>
+                            <option value="groupe">Groupe</option>
+                            <option value="startup">Startup</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <div></div>
+                        <button type="button" class="btn btn-primary next-step" data-step="2">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 2: Contact -->
+                <section class="form-section" data-step="2">
+                    <h2>Informations de contact</h2>
+                    <p>Comment pouvons-nous vous contacter?</p>
+                    
+                    <div class="form-group">
+                        <label for="contact-name">Nom complet</label>
+                        <input type="text" id="contact-name" class="form-control" placeholder="Votre nom et prénom">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-title">Fonction</label>
+                        <input type="text" id="contact-title" class="form-control" placeholder="Votre fonction dans l'entreprise">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-email">Email</label>
+                        <input type="email" id="contact-email" class="form-control" placeholder="Votre adresse email professionnelle">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-phone">Téléphone</label>
+                        <input type="tel" id="contact-phone" class="form-control" placeholder="Votre numéro de téléphone">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-preferred">Méthode de contact préférée</label>
+                        <select id="contact-preferred" class="form-control">
+                            <option value="">Sélectionnez</option>
+                            <option value="email">Email</option>
+                            <option value="phone">Téléphone</option>
+                            <option value="video">Visioconférence</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="1">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="3">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 3: Recrutement -->
+                <section class="form-section" data-step="3">
+                    <h2>Besoin en recrutement</h2>
+                    <p>Avez-vous un poste sur lequel vous souhaitez recruter?</p>
+                    
+                    <div class="form-group">
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="recruitment-yes" name="recruitment-need" value="yes">
+                                <label for="recruitment-yes">Oui</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="recruitment-no" name="recruitment-need" value="no">
+                                <label for="recruitment-no">Non</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section conditionnelle pour le parser de fiche de poste -->
+                    <div id="job-parsing-section" class="conditional-section">
+                        <h3>Fiche de poste</h3>
+                        
+                        <!-- Configuration ChatGPT -->
+                        <div class="chatgpt-config">
+                            <h4><i class="fas fa-robot"></i> Configuration ChatGPT</h4>
+                            <div class="config-row">
+                                <div class="config-input">
+                                    <label for="api-key">Clé API OpenAI :</label>
+                                    <input type="password" id="api-key" class="form-control" placeholder="sk-..." />
+                                </div>
+                                <button type="button" id="save-api-key" class="save-btn">
+                                    <i class="fas fa-save"></i> Sauvegarder
+                                </button>
+                            </div>
+                            <small>Votre clé API OpenAI pour l'analyse intelligente. <a href="https://platform.openai.com/api-keys" target="_blank">Obtenir une clé API</a></small>
+                        </div>
+                        
+                        <p>Notre système utilise ChatGPT pour extraire intelligemment les informations clés de votre fiche de poste et pré-remplir automatiquement le questionnaire.</p>
+                        
+                        <div class="upload-container" id="job-drop-zone">
+                            <i class="fas fa-file-upload upload-icon"></i>
+                            <h3>Glissez-déposez votre fiche de poste ici</h3>
+                            <p>Formats acceptés: PDF, DOCX, TXT (max 5MB) - Extraction et analyse automatiques !</p>
+                            <input type="file" id="job-file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
+                        </div>
+                        
+                        <div style="text-align: center; margin: 1rem 0; color: var(--gray);">
+                            <span>OU</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="job-description-text">Texte de la fiche de poste</label>
+                            <textarea id="job-description-text" class="form-control" rows="8" 
+                                placeholder="Collez le texte de votre fiche de poste ici - L'analyse ChatGPT se lance automatiquement !"></textarea>
+                        </div>
+                        
+                        <!-- Indicateur de chargement -->
+                        <div id="analysis-loader" class="loader-container">
+                            <div class="loader"></div>
+                            <span>Extraction et analyse ChatGPT en cours...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="2">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="4">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 4: Détails du poste -->
+                <section class="form-section" data-step="4">
+                    <h2><i class="fas fa-clipboard-list"></i> Détails du poste</h2>
+                    <p>Précisez les détails spécifiques concernant le poste à pourvoir.</p>
+                    
+                    <!-- Section 1: Délais et timing -->
+                    <div class="question-section">
+                        <h3><i class="fas fa-clock"></i> Délais et timing</h3>
+                        
+                        <div class="form-group">
+                            <label><strong>Délai de recrutement souhaité :</strong></label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-immediate" name="recruitment-delay" value="immediate">
+                                    <label for="delay-immediate">Immédiat</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-2weeks" name="recruitment-delay" value="2weeks">
+                                    <label for="delay-2weeks">2 semaines</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-1month" name="recruitment-delay" value="1month">
+                                    <label for="delay-1month">1 mois</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-2months" name="recruitment-delay" value="2months">
+                                    <label for="delay-2months">2 mois</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="delay-3months" name="recruitment-delay" value="3months">
+                                    <label for="delay-3months">3 mois</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><strong>Pouvez-vous gérer un préavis ?</strong></label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="notice-yes" name="notice-management" value="yes">
+                                    <label for="notice-yes">Oui</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="notice-no" name="notice-management" value="no">
+                                    <label for="notice-no">Non</label>
+                                </div>
+                            </div>
+                            
+                            <div id="notice-options" class="sub-options" style="display: none;">
+                                <label><strong>Durée de préavis acceptable :</strong></label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="notice-1month" name="notice-duration" value="1month">
+                                        <label for="notice-1month">1 mois</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="notice-2months" name="notice-duration" value="2months">
+                                        <label for="notice-2months">2 mois</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="notice-3months" name="notice-duration" value="3months">
+                                        <label for="notice-3months">3 mois</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 2: Contexte et profil -->
+                    <div class="question-section">
+                        <h3><i class="fas fa-users"></i> Contexte et profil</h3>
+                        
+                        <div class="form-group">
+                            <label><strong>Contexte de recrutement :</strong></label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="context-creation" name="recruitment-context" value="creation">
+                                    <label for="context-creation">Création de poste</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="context-replacement" name="recruitment-context" value="replacement">
+                                    <label for="context-replacement">Remplacement</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="context-growth" name="recruitment-context" value="growth">
+                                    <label for="context-growth">Accroissement d'activité/Renfort</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="experience-required"><strong>Années d'expérience requises :</strong></label>
+                            <select id="experience-required" class="form-control">
+                                <option value="">Sélectionnez</option>
+                                <option value="junior">Profil Junior</option>
+                                <option value="2-3years">2 ans - 3 ans</option>
+                                <option value="5-10years">5 ans - 10 ans</option>
+                                <option value="10plus">10 ans et plus</option>
+                            </select>
+                            <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 3: Rémunération et contrat -->
+                    <div class="question-section">
+                        <h3><i class="fas fa-euro-sign"></i> Rémunération et contrat</h3>
+                        
+                        <div class="form-group">
+                            <label><strong>Nature du contrat :</strong></label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="contract-cdi" name="contract-nature" value="cdi">
+                                    <label for="contract-cdi">CDI</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="contract-cdd" name="contract-nature" value="cdd">
+                                    <label for="contract-cdd">CDD</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="contract-interim" name="contract-nature" value="interim">
+                                    <label for="contract-interim">INTERIM</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="contract-freelance" name="contract-nature" value="freelance">
+                                    <label for="contract-freelance">FREELANCE</label>
+                                </div>
+                            </div>
+                            <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="salary-range"><strong>Rémunération :</strong></label>
+                            <input type="text" id="salary-range" class="form-control" 
+                                placeholder="Ex: 35-40K€, 45K€ fixe + variable, selon profil...">
+                            <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="job-benefits"><strong>Avantages :</strong></label>
+                            <textarea id="job-benefits" class="form-control" rows="3" 
+                                placeholder="Ex: Télétravail 2j/semaine, RTT, 13e mois, mutuelle, tickets restaurant..."></textarea>
+                            <div class="auto-fill-indicator"><i class="fas fa-magic"></i> Auto-rempli</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="3">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-step="5">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Étape 5: Confirmation AMÉLIORÉE -->
+                <section class="form-section" data-step="5">
+                    <!-- En-tête de confirmation amélioré -->
+                    <div class="confirmation-header">
+                        <h2><i class="fas fa-check-circle" style="margin-right: 0.5rem; color: var(--success);"></i>Récapitulatif de votre demande</h2>
+                        <p class="confirmation-subtitle">Merci pour vos informations ! Voici une synthèse complète de votre demande de recrutement.</p>
+                    </div>
+
+                    <!-- Grille des cartes de résumé -->
+                    <div class="summary-grid" id="summaryGrid">
+                        <!-- Card Structure -->
+                        <div class="summary-card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <h3 class="card-title">Structure</h3>
+                            </div>
+                            <div class="card-content" id="structureContent">
+                                <!-- Contenu généré dynamiquement -->
+                            </div>
+                        </div>
+
+                        <!-- Card Contact -->
+                        <div class="summary-card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <h3 class="card-title">Contact</h3>
+                            </div>
+                            <div class="card-content" id="contactContent">
+                                <!-- Contenu généré dynamiquement -->
+                            </div>
+                        </div>
+
+                        <!-- Card Recrutement -->
+                        <div class="summary-card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <h3 class="card-title">Besoin de recrutement</h3>
+                            </div>
+                            <div class="card-content" id="recruitmentContent">
+                                <!-- Contenu généré dynamiquement -->
+                            </div>
+                        </div>
+
+                        <!-- Card Détails du poste (conditionnelle) -->
+                        <div class="summary-card job-details-card" id="jobDetailsCard" style="display: none;">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </div>
+                                <h3 class="card-title">Détails du poste</h3>
+                            </div>
+                            <div class="job-details-grid" id="jobDetailsContent">
+                                <!-- Contenu généré dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section commentaires supplémentaires -->
+                    <div class="additional-comments">
+                        <h3><i class="fas fa-comment-dots"></i> Commentaires supplémentaires</h3>
+                        <textarea 
+                            class="comments-textarea" 
+                            id="additional-comments"
+                            placeholder="Avez-vous des commentaires ou des précisions à apporter à votre demande ?"
+                        ></textarea>
+                    </div>
+                    
+                    <!-- Navigation améliorée -->
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-step" data-step="4">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="submit" class="btn btn-success" id="submit-form">
+                            <i class="fas fa-paper-plane"></i> Soumettre la demande
+                        </button>
+                    </div>
+                </section>
+            </form>
+        </main>
+    </div>
+    
+    <!-- Notification template -->
+    <div class="notification" id="notification">
+        <div class="notification-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">Succès</div>
+            <div class="notification-message">Opération réussie</div>
+        </div>
+    </div>
+    
+    <!-- Scripts intégrés et améliorés -->
+    <script>
+        // Variables globales
+        let currentStep = 1;
+        let extractedJobInfo = null; // Stockage des infos extraites par ChatGPT
+
+        // ===== NAVIGATION =====
+        function showStep(stepNumber) {
+            console.log(`🔄 Navigation vers l'étape ${stepNumber}`);
+            
+            // Masquer toutes les sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Afficher la section demandée
+            const targetSection = document.querySelector(`.form-section[data-step="${stepNumber}"]`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                currentStep = stepNumber;
+                
+                // Mettre à jour la progression
+                updateProgress();
+                updateStepIndicators();
+                
+                // Initialiser les fonctionnalités spécifiques à l'étape
+                if (stepNumber === 3) {
+                    initializeChatGPTFeatures();
+                }
+                
+                if (stepNumber === 4) {
+                    initializeJobDetailsFeatures();
+                }
+                
+                if (stepNumber === 5) {
+                    generateSummary();
+                }
+            }
+        }
+
+        function updateProgress() {
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercentage = (currentStep / 5) * 100;
+            progressFill.style.width = progressPercentage + '%';
+        }
+
+        function updateStepIndicators() {
+            document.querySelectorAll('.step').forEach((step, index) => {
+                const stepNumber = index + 1;
+                step.classList.remove('active', 'completed');
+                
+                if (stepNumber < currentStep) {
+                    step.classList.add('completed');
+                } else if (stepNumber === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        // ===== NOTIFICATION SYSTÈME =====
+        function showNotification(message, type = 'success', title = '') {
+            const notification = document.getElementById('notification');
+            const icon = notification.querySelector('.notification-icon i');
+            const titleEl = notification.querySelector('.notification-title');
+            const messageEl = notification.querySelector('.notification-message');
+            
+            // Configuration du type
+            notification.className = `notification ${type}`;
+            
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+                titleEl.textContent = title || 'Succès';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+                titleEl.textContent = title || 'Erreur';
+            } else if (type === 'info') {
+                icon.className = 'fas fa-info-circle';
+                titleEl.textContent = title || 'Information';
+            }
+            
+            messageEl.textContent = message;
+            
+            // Afficher
+            notification.classList.add('show');
+            
+            // Masquer après 4 secondes
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // ===== CONFIGURATION API CHATGPT =====
+        function initializeAPIConfig() {
+            const apiKeyInput = document.getElementById('api-key');
+            const saveBtn = document.getElementById('save-api-key');
+            
+            // Charger la clé API sauvegardée
+            const savedKey = localStorage.getItem('openai_api_key');
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+            }
+            
+            // Sauvegarder la clé API
+            saveBtn.addEventListener('click', function() {
+                const apiKey = apiKeyInput.value.trim();
+                if (apiKey) {
+                    localStorage.setItem('openai_api_key', apiKey);
+                    showNotification('Clé API sauvegardée avec succès !', 'success');
+                } else {
+                    showNotification('Veuillez saisir une clé API valide', 'error');
+                }
+            });
+        }
+
+        // ===== FONCTIONNALITÉS CHATGPT POUR L'ÉTAPE 3 =====
+        function initializeChatGPTFeatures() {
+            console.log('🔧 Initialisation des fonctionnalités ChatGPT');
+            
+            initializeAPIConfig();
+            
+            const fileInput = document.getElementById('job-file-input');
+            const dropZone = document.getElementById('job-drop-zone');
+            const textarea = document.getElementById('job-description-text');
+            
+            // Gestion du drag & drop
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropZone.classList.add('drag-active');
+            });
+            
+            dropZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                dropZone.classList.remove('drag-active');
+            });
+            
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropZone.classList.remove('drag-active');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+            
+            // Clic sur la zone d'upload
+            dropZone.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    handleFileUpload(this.files[0]);
+                }
+            });
+            
+            // Analyse automatique du texte
+            let analyzeTimeout;
+            textarea.addEventListener('input', function() {
+                clearTimeout(analyzeTimeout);
+                if (this.value.trim().length > 50) {
+                    analyzeTimeout = setTimeout(() => {
+                        analyzeJobDescription(this.value.trim());
+                    }, 2000); // Délai de 2 secondes
+                }
+            });
+        }
+
+        // ===== GESTION DES FICHIERS =====
+        function handleFileUpload(file) {
+            console.log('📁 Fichier uploadé:', file.name, file.type);
+            
+            const allowedTypes = [
+                'application/pdf', 
+                'application/msword', 
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                'text/plain'
+            ];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            if (!allowedTypes.includes(file.type)) {
+                showNotification('Format de fichier non supporté. Utilisez PDF, DOCX ou TXT.', 'error');
+                return;
+            }
+            
+            if (file.size > maxSize) {
+                showNotification('Le fichier est trop volumineux. Maximum 5MB.', 'error');
+                return;
+            }
+            
+            extractTextFromFile(file);
+        }
+
+        // ===== EXTRACTION DE TEXTE =====
+        async function extractTextFromFile(file) {
+            console.log('🔍 Début extraction texte:', file.type);
+            showLoader(true);
+            
+            try {
+                let extractedText = '';
+                
+                if (file.type === 'text/plain') {
+                    extractedText = await extractTextFromTXT(file);
+                } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    extractedText = await extractTextFromDOCX(file);
+                } else if (file.type === 'application/pdf') {
+                    extractedText = await extractTextFromPDF(file);
+                }
+                
+                if (extractedText.trim()) {
+                    console.log('✅ Texte extrait:', extractedText.substring(0, 100) + '...');
+                    document.getElementById('job-description-text').value = extractedText;
+                    showNotification('Texte extrait avec succès !', 'success');
+                    
+                    // Lancer l'analyse automatiquement
+                    setTimeout(() => analyzeJobDescription(extractedText), 500);
+                } else {
+                    throw new Error('Aucun texte extrait du fichier');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erreur extraction:', error);
+                showNotification('Erreur lors de l\'extraction du texte. Essayez de coller le texte manuellement.', 'error');
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function extractTextFromTXT(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                reader.onerror = function() {
+                    reject(new Error('Erreur lecture fichier TXT'));
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        // ===== ANALYSE CHATGPT =====
+        async function analyzeJobDescription(text) {
+            const apiKey = localStorage.getItem('openai_api_key');
+            if (!apiKey) {
+                showNotification('Veuillez configurer votre clé API OpenAI d\'abord.', 'error');
+                return;
+            }
+            
+            console.log('🤖 Début analyse ChatGPT...');
+            showLoader(true);
+            
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [{
+                            role: 'user',
+                            content: `Analysez cette fiche de poste et extrayez les informations suivantes au format JSON strict :
+                            {
+                                "titre": "titre du poste",
+                                "contrat": "type de contrat (CDI/CDD/INTERIM/FREELANCE)",
+                                "lieu": "lieu de travail",
+                                "experience": "expérience requise (junior/2-3years/5-10years/10plus)",
+                                "formation": "formation requise",
+                                "remuneration": "rémunération",
+                                "competences": ["compétence1", "compétence2"],
+                                "responsabilites": "responsabilités principales",
+                                "avantages": "avantages proposés",
+                                "entreprise": "nom de l'entreprise",
+                                "secteur": "secteur d'activité",
+                                "taille_entreprise": "taille (tpe/pme/eti/groupe/startup)"
+                            }
+
+                            Fiche de poste :
+                            ${text}`
+                        }],
+                        max_tokens: 1000,
+                        temperature: 0.1
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    const content = data.choices[0].message.content;
+                    console.log('🤖 Réponse ChatGPT:', content);
+                    
+                    try {
+                        // Nettoyer la réponse pour extraire le JSON
+                        let jsonContent = content;
+                        if (content.includes('```json')) {
+                            jsonContent = content.split('```json')[1].split('```')[0];
+                        } else if (content.includes('```')) {
+                            jsonContent = content.split('```')[1].split('```')[0];
+                        }
+                        
+                        const jobInfo = JSON.parse(jsonContent.trim());
+                        extractedJobInfo = jobInfo; // Stocker pour le pré-remplissage
+                        
+                        // Pré-remplir automatiquement les champs
+                        autoFillFormFields(jobInfo);
+                        
+                        showNotification('Analyse réussie ! Les champs ont été pré-remplis automatiquement.', 'success');
+                        console.log('✅ Analyse terminée avec succès');
+                    } catch (e) {
+                        console.error('❌ Erreur parsing JSON:', e);
+                        showNotification('Erreur lors de l\'analyse. Format de réponse inattendu.', 'error');
+                    }
+                } else {
+                    throw new Error('Réponse API invalide');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erreur ChatGPT:', error);
+                if (error.message.includes('API Error: 401')) {
+                    showNotification('Clé API invalide. Vérifiez votre clé OpenAI.', 'error');
+                } else if (error.message.includes('API Error: 429')) {
+                    showNotification('Limite de taux atteinte. Attendez un moment.', 'error');
+                } else {
+                    showNotification('Erreur lors de l\'analyse: ' + error.message, 'error');
+                }
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        // ===== PRÉ-REMPLISSAGE AUTOMATIQUE DES CHAMPS =====
+        function autoFillFormFields(jobInfo) {
+            console.log('🤖 Pré-remplissage automatique des champs...');
+            
+            // Structure (étape 1)
+            if (jobInfo.entreprise) {
+                setFieldValue('company-name', jobInfo.entreprise, true);
+            }
+            
+            if (jobInfo.taille_entreprise) {
+                setFieldValue('company-size', jobInfo.taille_entreprise, true);
+            }
+            
+            // Détails du poste (étape 4)
+            if (jobInfo.experience) {
+                setFieldValue('experience-required', jobInfo.experience, true);
+            }
+            
+            if (jobInfo.contrat) {
+                const contractMap = {
+                    'CDI': 'cdi',
+                    'CDD': 'cdd',
+                    'INTERIM': 'interim',
+                    'FREELANCE': 'freelance'
+                };
+                const contractValue = contractMap[jobInfo.contrat.toUpperCase()];
+                if (contractValue) {
+                    setRadioValue('contract-nature', contractValue, true);
+                }
+            }
+            
+            if (jobInfo.remuneration) {
+                setFieldValue('salary-range', jobInfo.remuneration, true);
+            }
+            
+            if (jobInfo.avantages) {
+                setFieldValue('job-benefits', jobInfo.avantages, true);
+            }
+            
+            console.log('✅ Pré-remplissage terminé');
+        }
+
+        // Fonction helper pour définir la valeur d'un champ avec indicateur auto-fill
+        function setFieldValue(fieldId, value, isAutoFilled = false) {
+            const field = document.getElementById(fieldId);
+            if (field && value) {
+                field.value = value;
+                
+                if (isAutoFilled) {
+                    const group = field.closest('.form-group');
+                    if (group) {
+                        group.classList.add('auto-filled');
+                        field.classList.add('auto-filled');
+                    }
+                }
+            }
+        }
+
+        // Fonction helper pour définir la valeur d'un radio button
+        function setRadioValue(name, value, isAutoFilled = false) {
+            const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+            if (radio) {
+                radio.checked = true;
+                
+                if (isAutoFilled) {
+                    const group = radio.closest('.form-group');
+                    if (group) {
+                        group.classList.add('auto-filled');
+                    }
+                }
+            }
+        }
+
+        // ===== FONCTIONNALITÉS ÉTAPE 4 =====
+        function initializeJobDetailsFeatures() {
+            console.log('🔧 Initialisation étape 4 - Détails du poste');
+            
+            // Gestion du préavis conditionnel
+            const noticeYes = document.getElementById('notice-yes');
+            const noticeNo = document.getElementById('notice-no');
+            const noticeOptions = document.getElementById('notice-options');
+            
+            function toggleNoticeOptions() {
+                if (noticeYes.checked) {
+                    noticeOptions.style.display = 'block';
+                } else {
+                    noticeOptions.style.display = 'none';
+                }
+            }
+            
+            if (noticeYes && noticeNo) {
+                noticeYes.addEventListener('change', toggleNoticeOptions);
+                noticeNo.addEventListener('change', toggleNoticeOptions);
+            }
+        }
+
+        // ===== GÉNÉRATION DU RÉCAPITULATIF ÉTAPE 5 =====
+        function generateSummary() {
+            console.log('🎨 Génération du récapitulatif amélioré...');
+            
+            generateStructureCard();
+            generateContactCard();
+            generateRecruitmentCard();
+            
+            // Vérifier si il y a un besoin de recrutement pour afficher les détails
+            const hasRecruitment = document.querySelector('input[name="recruitment-need"]:checked');
+            if (hasRecruitment && hasRecruitment.value === 'yes') {
+                generateJobDetailsCard();
+                document.getElementById('jobDetailsCard').style.display = 'block';
+            } else {
+                document.getElementById('jobDetailsCard').style.display = 'none';
+            }
+        }
+
+        function generateStructureCard() {
+            const content = document.getElementById('structureContent');
+            const items = [
+                { label: 'Nom', icon: 'fas fa-building', field: 'company-name' },
+                { label: 'Adresse', icon: 'fas fa-map-marker-alt', field: 'company-address' },
+                { label: 'Site web', icon: 'fas fa-globe', field: 'company-website' },
+                { label: 'Taille', icon: 'fas fa-users', field: 'company-size' },
+            ];
+            
+            content.innerHTML = items.map(item => {
+                const value = getFieldValue(item.field) || 'Non renseigné';
+                const isEmpty = !getFieldValue(item.field);
+                return `
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="${item.icon}"></i>
+                            ${item.label}:
+                        </div>
+                        <div class="info-value ${isEmpty ? 'empty-value' : ''}">${value}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Description
+            const description = getFieldValue('company-description');
+            if (description) {
+                content.innerHTML += `
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-file-text"></i>
+                            Description:
+                        </div>
+                        <div class="info-value">${description}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function generateContactCard() {
+            const content = document.getElementById('contactContent');
+            const items = [
+                { label: 'Nom', icon: 'fas fa-user', field: 'contact-name' },
+                { label: 'Fonction', icon: 'fas fa-briefcase', field: 'contact-title' },
+                { label: 'Email', icon: 'fas fa-envelope', field: 'contact-email' },
+                { label: 'Téléphone', icon: 'fas fa-phone', field: 'contact-phone' },
+                { label: 'Contact préféré', icon: 'fas fa-star', field: 'contact-preferred' },
+            ];
+            
+            content.innerHTML = items.map(item => {
+                const value = getFieldValue(item.field) || 'Non renseigné';
+                const isEmpty = !getFieldValue(item.field);
+                return `
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="${item.icon}"></i>
+                            ${item.label}:
+                        </div>
+                        <div class="info-value ${isEmpty ? 'empty-value' : ''}">${value}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function generateRecruitmentCard() {
+            const content = document.getElementById('recruitmentContent');
+            const hasRecruitment = document.querySelector('input[name="recruitment-need"]:checked');
+            
+            if (!hasRecruitment) {
+                content.innerHTML = `
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-question-circle"></i>
+                            Statut:
+                        </div>
+                        <div class="info-value empty-value">Non renseigné</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const hasNeed = hasRecruitment.value === 'yes';
+            content.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-${hasNeed ? 'check-circle' : 'times-circle'}"></i>
+                        Besoin de recrutement:
+                    </div>
+                    <div class="info-value">
+                        ${hasNeed ? '✅ Oui, nous recrutons' : '❌ Pas de besoin immédiat'}
+                    </div>
+                </div>
+            `;
+            
+            if (hasNeed && extractedJobInfo) {
+                content.innerHTML += `
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-magic"></i>
+                            Analyse ChatGPT:
+                        </div>
+                        <div class="info-value">✅ Fiche de poste analysée automatiquement</div>
+                    </div>
+                `;
+            }
+        }
+
+        function generateJobDetailsCard() {
+            const content = document.getElementById('jobDetailsContent');
+            
+            // Section timing
+            const delays = getCheckedValues('recruitment-delay');
+            const noticeManagement = getRadioValue('notice-management');
+            const noticeDuration = getRadioValue('notice-duration');
+            
+            // Section profil
+            const context = getRadioValue('recruitment-context');
+            const experience = getFieldValue('experience-required');
+            
+            // Section contrat
+            const contractNature = getRadioValue('contract-nature');
+            const salary = getFieldValue('salary-range');
+            const benefits = getFieldValue('job-benefits');
+            
+            content.innerHTML = `
+                <div class="job-section">
+                    <div class="job-section-title">
+                        <i class="fas fa-clock"></i>
+                        Délais et timing
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Délais souhaités:</div>
+                        <div class="info-value">${delays.length ? delays.join(', ') : 'Non renseigné'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Gestion préavis:</div>
+                        <div class="info-value">${noticeManagement || 'Non renseigné'}</div>
+                    </div>
+                    ${noticeDuration ? `
+                        <div class="info-item">
+                            <div class="info-label">Durée préavis:</div>
+                            <div class="info-value">${noticeDuration}</div>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="job-section">
+                    <div class="job-section-title">
+                        <i class="fas fa-users"></i>
+                        Contexte et profil
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Contexte:</div>
+                        <div class="info-value">${context || 'Non renseigné'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Expérience:</div>
+                        <div class="info-value">${experience || 'Non renseigné'}</div>
+                    </div>
+                </div>
+                
+                <div class="job-section">
+                    <div class="job-section-title">
+                        <i class="fas fa-euro-sign"></i>
+                        Rémunération et contrat
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Nature contrat:</div>
+                        <div class="info-value">${contractNature ? contractNature.toUpperCase() : 'Non renseigné'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Rémunération:</div>
+                        <div class="info-value">${salary || 'Non renseigné'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Avantages:</div>
+                        <div class="info-value">${benefits || 'Non renseigné'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== FONCTIONS UTILITAIRES =====
+        function getFieldValue(fieldId) {
+            const field = document.getElementById(fieldId);
+            return field ? field.value.trim() : '';
+        }
+
+        function getRadioValue(name) {
+            const radio = document.querySelector(`input[name="${name}"]:checked`);
+            return radio ? radio.value : '';
+        }
+
+        function getCheckedValues(name) {
+            const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+            return Array.from(checkboxes).map(cb => cb.nextElementSibling.textContent);
+        }
+
+        function showLoader(show) {
+            const loader = document.getElementById('analysis-loader');
+            if (loader) {
+                loader.style.display = show ? 'flex' : 'none';
+            }
+        }
+
+        // ===== GESTION DES SECTIONS CONDITIONNELLES =====
+        function handleRecruitmentNeedChange() {
+            const recruitmentSection = document.getElementById('job-parsing-section');
+            const recruitmentYes = document.getElementById('recruitment-yes');
+            
+            if (recruitmentYes && recruitmentYes.checked) {
+                recruitmentSection.classList.add('active');
+            } else {
+                recruitmentSection.classList.remove('active');
+            }
+        }
+
+        // ===== INITIALISATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Initialisation du questionnaire Nexten');
+            
+            // Navigation entre étapes
+            document.addEventListener('click', function(e) {
+                if (e.target.matches('.next-step')) {
+                    const nextStep = parseInt(e.target.dataset.step);
+                    showStep(nextStep);
+                }
+                
+                if (e.target.matches('.prev-step')) {
+                    const prevStep = parseInt(e.target.dataset.step);
+                    showStep(prevStep);
+                }
+            });
+            
+            // Gestion des sections conditionnelles
+            document.addEventListener('change', function(e) {
+                if (e.target.name === 'recruitment-need') {
+                    handleRecruitmentNeedChange();
+                }
+            });
+            
+            // Soumission du formulaire
+            document.getElementById('submit-form').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Demande soumise avec succès ! Vous serez contacté prochainement.', 'success', 'Merci !');
+                
+                // Ici vous pouvez ajouter la logique de soumission réelle
+                console.log('📤 Soumission du formulaire');
+                console.log('Données extraites:', extractedJobInfo);
+            });
+            
+            // Navigation par clic sur les étapes
+            document.querySelectorAll('.step').forEach(step => {
+                step.addEventListener('click', function() {
+                    const stepNumber = parseInt(this.dataset.step);
+                    if (stepNumber <= currentStep + 1) { // Permettre seulement l'étape suivante
+                        showStep(stepNumber);
+                    }
+                });
+            });
+            
+            console.log('✅ Questionnaire initialisé avec succès');
+        });
+    </script>
+</body>
+</html>
