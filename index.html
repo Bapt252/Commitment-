@@ -3,28 +3,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Commitment- Platform</title>
+    <meta name="description" content="Nexten - Plateforme de recrutement innovante basée sur 10 connexions stratégiques entre candidats et recruteurs">
+    <title>Nexten - 10 connexions stratégiques pour votre recrutement</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://raw.githack.com/Bapt252/Commitment-/main/static/styles/nexten-modern-interactive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="https://raw.githack.com/Bapt252/Commitment-/main/static/images/favicon.ico" type="image/x-icon">
+    
     <style>
-        body { font-family: Arial; margin: 0; padding: 2rem; background: #7c4dff; color: white; }
-        .container { max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 10px; }
-        .status { background: rgba(76, 175, 80, 0.3); border-left: 4px solid #4CAF50; padding: 1rem; margin: 1rem 0; border-radius: 5px; }
-        a { color: #ffeb3b; text-decoration: none; display: block; margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 3px; }
+        .logo img {
+            height: 60px;
+            width: auto;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 Commitment- Platform - ONLINE!</h1>
-        
-        <div class="status">
-            <h3>✅ GitHub Pages ACTIVE!</h3>
-            <p>Déployé avec succès - 2025-06-23</p>
+    <!-- Notification bar -->
+    <div class="notification-bar">
+        Votre recrutement change, votre approche aussi : découvrez notre diagnostic
+    </div>
+
+    <!-- Lien d'accessibilité pour sauter au contenu principal -->
+    <a href="#main-content" class="skip-to-content">Aller au contenu principal</a>
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://raw.githack.com/Bapt252/Commitment-/main/static/images/nexten-logo.svg" alt="Nexten Logo" class="site-logo">
+                </a>
+            </div>
+            
+            <button class="menu-toggle" aria-label="Menu principal">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav>
+                <ul>
+                    <li><a href="index.html" class="active">Accueil</a></li>
+                    <li><a href="candidate-login.html">Espace candidat</a></li>
+                    <li><a href="company-login.html">Espace entreprise</a></li>
+                    <li><a href="job-form.html"><i class="fas fa-briefcase"></i> Analyser une offre</a></li>
+                    <li><a href="tarifs.html">Tarifs</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="chat.html"><i class="fas fa-comment-dots"></i> Assistant</a></li>
+                    <li><a href="parsing-chat.html"><i class="fas fa-file-import"></i> Analyse CV/Offres</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero" id="main-content">
+        <div class="hero-particles">
+            <!-- Les particules seront ajoutées dynamiquement via JavaScript -->
         </div>
         
-        <h3>🔗 Pages disponibles :</h3>
-        <a href="templates/candidate-upload.html">📄 CV Upload Page (Système automatisé)</a>
-        <a href="templates/candidate-upload-automated.html">📄 Version automatisée alternative</a>
-        
-        <p><strong>Votre système de parsing CV est maintenant en ligne !</strong></p>
-    </div>
+        <div class="container">
+            <div class="hero-content">
+                <h1>L'intelligence artificielle au service de <span class="ten-accent">10</span> connexions stratégiques</h1>
+                <p class="hero-subtitle">
+                    Notre approche unique : 10 offres ciblées pour les candidats, 10 candidats qualifiés pour les recruteurs.
+                    Un recrutement plus rapide, plus précis et plus humain.
+                </p>
+                
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" id="search-input" placeholder="Rechercher par titre, entreprise ou compétence..." aria-label="Champ de recherche">
+                        <select id="category-filter" aria-label="Filtrer par catégorie">
+                            <option value="">Toutes catégories</option>
+                            <option value="tech">Technologie</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="design">Design</option>
+                            <option value="sales">Ventes</option>
+                            <option value="other">Autre</option>
+                        </select>
+                        <button id="search-button"><i class="fas fa-search"></i> Rechercher</button>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <a href="candidate-login.html" class="btn btn-primary">Je suis candidat</a>
+                    <a href="company-login.html" class="btn">Je suis une entreprise</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="user-types">
+        <div class="container">
+            <h2 class="section-title">Une approche inédite</h2>
+            <p class="section-subtitle">
+                Notre plateforme change complètement la façon dont vous cherchez un emploi ou recrutez des talents.
+                Découvrez comment notre solution TOP <span class="ten-accent">10</span> révolutionne le recrutement.
+            </p>
+            
+            <div class="user-types-container">
+                <div class="user-type-card animate-on-scroll">
+                    <div class="top-10-badge">TOP 10</div>
+                    <h3>Je suis candidat</h3>
+                    <p class="user-type-description">
+                        Téléchargez votre CV et laissez notre IA vous recommander les 10 meilleures offres d'emploi
+                        correspondant parfaitement à votre profil et à vos aspirations.
+                    </p>
+                    <a href="new-candidate-questionnaire.html" class="user-type-btn">Créer un compte <i class="fas fa-arrow-right"></i></a>
+                </div>
+                
+                <div class="user-type-card animate-on-scroll">
+                    <div class="top-10-badge">TOP 10</div>
+                    <h3>Je suis une entreprise</h3>
+                    <p class="user-type-description">
+                        Définissez votre profil d'entreprise, vos besoins en recrutement et laissez notre IA
+                        vous proposer les meilleurs talents du marché.
+                    </p>
+                    <a href="company-login.html" class="user-type-btn">Créer un compte <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <h2 class="section-title">Les connexions stratégiques</h2>
+            <p class="section-subtitle">
+                Nexten analyse en profondeur vos besoins et données pour créer des connexions parfaites.
+                Voici comment notre technologie vous aide à trouver les correspondances idéales.
+            </p>
+            
+            <div class="ten-connections">
+                <div class="connection-item animate-on-scroll">
+                    <h3>Analyse de compétences</h3>
+                    <p>Notre IA identifie les compétences explicites et implicites dans les CV et les offres d'emploi.</p>
+                </div>
+                
+                <div class="connection-item animate-on-scroll">
+                    <h3>Correspondance de valeurs</h3>
+                    <p>Nous alignons les valeurs des candidats avec la culture des entreprises pour une adéquation parfaite.</p>
+                </div>
+                
+                <div class="connection-item animate-on-scroll">
+                    <h3>Parcours professionnel</h3>
+                    <p>Nous analysons les trajectoires de carrière pour identifier les correspondances pertinentes.</p>
+                </div>
+                
+                <div class="connection-item animate-on-scroll">
+                    <h3>Aspirations futures</h3>
+                    <p>Les objectifs de carrière sont pris en compte pour assurer un engagement à long terme.</p>
+                </div>
+                
+                <div class="connection-item animate-on-scroll">
+                    <h3>Environnement de travail</h3>
+                    <p>Nous identifions les préférences de travail et les mettons en relation avec les offres adaptées.</p>
+                </div>
+                
+                <div class="connection-item animate-on-scroll">
+                    <h3>Compétences transférables</h3>
+                    <p>Notre système reconnaît les compétences applicables à différents contextes professionnels.</p>
+                </div>
+                
+                <div class="connection-item animate-on-scroll">
+                    <h3>Niveaux d'expérience</h3>
+                    <p>Correspondance précise entre le niveau d'expérience requis et celui du candidat.</p>
+                </div>
+                
+                <div class="connection-item animate-on-scroll">
+                    <h3>Compétences techniques</h3>
+                    <p>Analyse détaillée des compétences techniques spécifiques à chaque secteur.</p>
+                </div>
+                
+                <div class="connection-item animate-on-scroll">
+                    <h3>Compétences humaines</h3>
+                    <p>Évaluation des soft skills essentielles à la réussite dans chaque poste.</p>
+                </div>
+                
+                <div class="connection-item animate-on-scroll">
+                    <h3>Suivi personnalisé</h3>
+                    <p>Accompagnement sur mesure tout au long du processus de recrutement.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Pourquoi choisir Nexten</h2>
+            <p class="section-subtitle">
+                Notre approche innovante vous permet de gagner du temps et d'améliorer la qualité de vos recrutements.
+            </p>
+            
+            <div class="features-grid">
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>Intelligence Artificielle</h3>
+                    <p>Notre algorithme avancé analyse les CV et les offres d'emploi pour identifier les correspondances pertinentes.</p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <i class="fas fa-filter"></i>
+                    </div>
+                    <h3>Matching ciblé</h3>
+                    <p>Fini les centaines de résultats à trier. Nous vous proposons uniquement les 10 meilleures correspondances.</p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Gain de temps</h3>
+                    <p>Notre système de parsing automatique extrait toutes les informations pertinentes de votre CV ou de votre offre.</p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>Précision</h3>
+                    <p>Notre technologie va au-delà des mots-clés pour comprendre le contexte et les compétences transférables.</p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>Confidentialité</h3>
+                    <p>Vos données sont sécurisées et ne sont utilisées que pour améliorer la qualité de nos matchings.</p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>Support personnalisé</h3>
+                    <p>Notre équipe est disponible pour vous accompagner dans votre recherche d'emploi ou de candidats.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="process">
+        <div class="container">
+            <h2 class="section-title">Comment ça marche</h2>
+            <p class="section-subtitle">Un processus simple et efficace pour révolutionner votre recrutement.</p>
+            
+            <div class="steps-container">
+                <div class="step animate-on-scroll">
+                    <div class="step-number">01</div>
+                    <h3>Téléchargez votre CV ou publiez votre offre</h3>
+                    <p>En quelques clics, importez votre CV ou créez votre offre d'emploi sur notre plateforme.</p>
+                </div>
+                
+                <div class="step animate-on-scroll">
+                    <div class="step-number">02</div>
+                    <h3>Notre IA analyse votre contenu</h3>
+                    <p>Notre intelligence artificielle parcourt en détail votre profil ou votre annonce.</p>
+                </div>
+                
+                <div class="step animate-on-scroll">
+                    <div class="step-number">03</div>
+                    <h3>Découvrez vos 10 matchings personnalisés</h3>
+                    <p>Consultez la liste de vos 10 meilleures correspondances qualifiées.</p>
+                </div>
+                
+                <div class="step animate-on-scroll">
+                    <div class="step-number">04</div>
+                    <h3>Entrez en contact directement</h3>
+                    <p>Engagez la conversation avec les candidats ou recruteurs qui vous intéressent.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">Ce que nos utilisateurs disent</h2>
+            <p class="section-subtitle">Des professionnels qui ont transformé leur recrutement grâce à Nexten.</p>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card animate-on-scroll">
+                    <p class="testimonial-text">
+                        "Les 10 offres que Nexten m'a recommandées correspondaient parfaitement à mon profil. J'ai trouvé un emploi dans une entreprise qui partage réellement mes valeurs."
+                    </p>
+                    <div class="testimonial-author">
+                        <img src="https://raw.githack.com/Bapt252/Commitment-/main/static/images/testimonial-1.jpg" alt="Marie L." class="testimonial-avatar" onerror="this.src='https://randomuser.me/api/portraits/women/1.jpg'">
+                        <div>
+                            <strong>Marie L.</strong>
+                            <span>Développeuse Full-Stack</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card animate-on-scroll">
+                    <p class="testimonial-text">
+                        "Grâce à Nexten, j'ai reçu 10 profils parfaitement qualifiés en seulement quelques heures. Le candidat que nous avons embauché s'est intégré immédiatement à l'équipe."
+                    </p>
+                    <div class="testimonial-author">
+                        <img src="https://raw.githack.com/Bapt252/Commitment-/main/static/images/testimonial-2.jpg" alt="Thomas D." class="testimonial-avatar" onerror="this.src='https://randomuser.me/api/portraits/men/1.jpg'">
+                        <div>
+                            <strong>Thomas D.</strong>
+                            <span>Fondateur & CEO</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Prêt à découvrir vos <span class="ten-accent">10</span> meilleures connexions ?</h2>
+            <p>Rejoignez Nexten aujourd'hui et révolutionnez votre expérience de recrutement.</p>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <div class="footer-logo">
+                        <img src="https://raw.githack.com/Bapt252/Commitment-/main/static/images/nexten-logo-white.svg" alt="Nexten Logo" style="height: 60px; width: auto; margin-bottom: 20px;">
+                    </div>
+                    <p class="footer-description">Notre plateforme utilise l'intelligence artificielle pour révolutionner le processus de recrutement, offrant 10 correspondances personnalisées pour les candidats et les recruteurs.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Accueil</a></li>
+                        <li><a href="candidate-login.html"><i class="fas fa-chevron-right"></i> Espace candidat</a></li>
+                        <li><a href="company-login.html"><i class="fas fa-chevron-right"></i> Espace entreprise</a></li>
+                        <li><a href="job-form.html"><i class="fas fa-chevron-right"></i> Analyser une offre</a></li>
+                        <li><a href="tarifs.html"><i class="fas fa-chevron-right"></i> Tarifs</a></li>
+                        <li><a href="about.html"><i class="fas fa-chevron-right"></i> À propos</a></li>
+                        <li><a href="chat.html"><i class="fas fa-chevron-right"></i> Assistant</a></li>
+                        <li><a href="parsing-chat.html"><i class="fas fa-chevron-right"></i> Analyse CV/Offres</a></li>
+                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-heading">Contact</h4>
+                    <div class="footer-contact">
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Avenue de l'Innovation, 75001 Paris</p>
+                        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+                        <p><i class="fas fa-envelope"></i> contact@nexten.fr</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Nexten - Tous droits réservés | <a href="privacy.html">Politique de confidentialité</a> | <a href="terms.html">Conditions d'utilisation</a></p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bouton de retour en haut -->
+    <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script src="https://raw.githack.com/Bapt252/Commitment-/main/static/services/interactions.js"></script>
 </body>
 </html>
