@@ -46,29 +46,103 @@ except redis.ConnectionError as e:
 CACHE_PREFIX = "cv_parse:"
 SUPPORTED_EXTENSIONS = {'.pdf', '.docx', '.doc'}
 
-# Prompt système optimisé avec plus de contexte
+# Prompt système optimisé avec focus sur les expériences professionnelles
 SYSTEM_PROMPT = """
-Tu es un assistant spécialisé dans l'extraction d'informations à partir de CV.
-Analyse méticuleusement le texte du CV et extrait les informations suivantes dans un format JSON:
+Tu es un assistant spécialisé dans l'extraction précise d'informations de CV pour le projet Commitment. Ta tâche principale est d'analyser le CV fourni et d'en extraire les informations structurées selon un format JSON spécifique.
 
-1. nom: Nom de famille du candidat
-2. prenom: Prénom du candidat  
-3. poste: Intitulé du poste actuel ou recherché
-4. adresse: Adresse postale complète si présente
-5. competences: Liste des compétences techniques (langages, frameworks, méthodologies)
-6. logiciels: Liste des logiciels, outils ou plateformes maîtrisés
-7. soft_skills: Liste des compétences non techniques (communication, travail d'équipe, etc.)
-8. email: Adresse email du candidat (respecte le format standard)
-9. telephone: Numéro de téléphone du candidat (conserve le format présent dans le CV)
+## RÈGLES GÉNÉRALES
+- Extrais UNIQUEMENT les informations explicitement présentes dans le CV.
+- N'invente JAMAIS d'informations.
+- Utilise une chaîne vide ou liste vide pour tout champ sans information explicite.
+- Respecte scrupuleusement le format JSON demandé.
 
-Règles importantes:
-- Réponds UNIQUEMENT avec un objet JSON valide sans aucun texte avant ou après.
-- Si une information est absente, utilise une chaîne vide ou liste vide.
-- Pour les listes, extrais tous les éléments pertinents.
-- Normalise les numéros de téléphone au format standard français si possible.
-- Ignore les en-têtes, pieds de page et autres éléments non pertinents.
-- Différencie bien les compétences techniques des soft skills.
-- Sois précis et exhaustif dans l'extraction.
+## FORMAT DE SORTIE JSON
+{
+  "nom": string,
+  "prenom": string,
+  "poste": string,
+  "adresse": string,
+  "email": string,
+  "telephone": string,
+  "competences": [string],
+  "logiciels": [string],
+  "soft_skills": [string],
+  "experiences": [
+    {
+      "titre": string,
+      "entreprise": string,
+      "lieu": string,
+      "date_debut": string,  // Format ISO "YYYY-MM"
+      "date_fin": string | "Present",  // Format ISO "YYYY-MM" ou "Present"
+      "description": string,
+      "responsabilites": [string],  // Liste des responsabilités spécifiques
+      "realisations": [string],  // Liste des réalisations quantifiables
+      "technologies": [string],  // Technologies mentionnées dans cette expérience
+      "taille_equipe": number | "",
+      "type_contrat": string | ""  // CDI, CDD, Freelance, Stage, etc.
+    }
+  ],
+  "formation": [
+    {
+      "diplome": string,
+      "etablissement": string,
+      "lieu": string,
+      "date_debut": string,  // Format ISO "YYYY-MM"
+      "date_fin": string,    // Format ISO "YYYY-MM"
+      "description": string,
+      "distinctions": [string]
+    }
+  ],
+  "certifications": [
+    {
+      "nom": string,
+      "organisme": string,
+      "date_obtention": string,
+      "date_expiration": string | "No Expiration"
+    }
+  ]
+}
+
+## INSTRUCTIONS SPÉCIALES POUR LES EXPÉRIENCES PROFESSIONNELLES
+1. PRÉCISION TEMPORELLE:
+   - Convertis toutes les dates au format "YYYY-MM"
+   - Ex: "Janvier 2022" → "2022-01", "Mars 2020" → "2020-03"
+   - Si seule l'année est mentionnée, utilise le mois de janvier: "2019" → "2019-01"
+   - Pour les expériences en cours, utilise exactement "Present" pour le champ date_fin
+
+2. DÉCOMPOSITION STRUCTURÉE:
+   - Distingue clairement entre:
+     * "description": résumé général du poste ou de la mission
+     * "responsabilites": tâches et activités régulières (utilise des verbes d'action)
+     * "realisations": résultats concrets et mesurables (avec des métriques si possible)
+
+3. EXTRACTION TECHNOLOGIQUE:
+   - Identifie toutes les technologies, frameworks, outils, méthodologies mentionnés dans chaque expérience
+   - Standardise les noms (ex: "React.js" → "React", "Tensorflow" → "TensorFlow")
+
+4. ANALYSE CONTEXTUELLE:
+   - Détecte le type de contrat (CDI, CDD, Freelance, Stage) à partir du contexte
+   - Identifie la taille d'équipe lorsqu'elle est mentionnée, même indirectement
+   - Extrais le lieu précis de l'expérience (ville et pays si disponible)
+
+5. ORDRE CHRONOLOGIQUE:
+   - Place les expériences dans l'ordre chronologique inversé (la plus récente en premier)
+
+Réponds UNIQUEMENT avec un objet JSON valide correspondant au format demandé, sans aucun texte avant ou après.
+"""
+
+# Prompt de raffinement pour les expériences professionnelles
+EXPERIENCE_REFINEMENT_PROMPT = """
+Tu es un expert en analyse d'expériences professionnelles issues de CV.
+
+Analyse et améliore les expériences extraites selon ces critères:
+1. Sépare clairement les responsabilités des réalisations concrètes
+2. Extrait toutes les technologies mentionnées dans chaque expérience
+3. Identifie les métriques et résultats quantifiables pour les réalisations
+4. Normalise les dates au format YYYY-MM
+5. Identifie la taille d'équipe et le type de contrat si indiqués
+
+Réponds UNIQUEMENT avec un tableau JSON des expériences améliorées selon le format initial.
 """
 
 class CVParserError(Exception):
@@ -217,24 +291,40 @@ def parse_cv_with_openai(cv_text: str) -> Dict[str, Any]:
     # Appeler l'API OpenAI
     try:
         start_time = time.time()
-        response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": cv_text}
-            ],
-            temperature=0.1,  # Température basse pour plus de cohérence
-            max_tokens=2000,  # Suffisant pour un JSON détaillé
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0
-        )
+        # Détection de la version d'OpenAI et appel adapté
+        if hasattr(openai, 'ChatCompletion'):
+            # Version plus ancienne (<=3.x)
+            response = openai.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": cv_text}
+                ],
+                temperature=0.1,  # Température basse pour plus de cohérence
+                max_tokens=3000,  # Augmenté pour traiter plus de détails
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0
+            )
+            content = response.choices[0].message.content
+        else:
+            # Version plus récente (>=4.x)
+            response = openai.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": cv_text}
+                ],
+                temperature=0.1,
+                max_tokens=3000,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0
+            )
+            content = response.choices[0].message.content
         
         execution_time = time.time() - start_time
         logger.info(f"OpenAI API request completed in {execution_time:.2f} seconds")
-        
-        # Extraire le contenu de la réponse
-        content = response.choices[0].message.content
         
         # Nettoyer le contenu au cas où GPT aurait ajouté des backticks ou commentaires
         content = content.strip()
@@ -257,11 +347,21 @@ def parse_cv_with_openai(cv_text: str) -> Dict[str, Any]:
             # Parser le JSON
             data = json.loads(content)
             
-            # Vérifier que toutes les clés nécessaires sont présentes
-            required_keys = ["nom", "prenom", "poste", "competences", "logiciels", "soft_skills", "email", "telephone", "adresse"]
-            for key in required_keys:
-                if key not in data:
-                    data[key] = [] if key in ["competences", "logiciels", "soft_skills"] else ""
+            # Vérifier et initialiser les listes si nécessaire
+            list_keys = ["competences", "logiciels", "soft_skills", "experiences", "formation", "certifications"]
+            for key in list_keys:
+                if key not in data or not isinstance(data[key], list):
+                    data[key] = []
+            
+            # S'assurer que les champs texte obligatoires existent
+            text_keys = ["nom", "prenom", "poste", "adresse", "email", "telephone"]
+            for key in text_keys:
+                if key not in data or not isinstance(data[key], str):
+                    data[key] = ""
+            
+            # Si des expériences sont présentes, effectuer un deuxième appel pour les raffiner
+            if data.get("experiences") and len(data["experiences"]) > 0:
+                data["experiences"] = refine_experiences(cv_text, data["experiences"])
             
             return data
             
@@ -269,12 +369,171 @@ def parse_cv_with_openai(cv_text: str) -> Dict[str, Any]:
             logger.error(f"Failed to parse JSON from OpenAI response: {content}")
             raise JSONParsingError(f"Invalid JSON format: {str(e)}")
             
-    except openai.error.OpenAIError as e:
+    except Exception as e:
         logger.error(f"OpenAI API error: {str(e)}")
         raise OpenAIError(f"OpenAI API error: {str(e)}")
+
+@retry(
+    stop=stop_after_attempt(2),
+    wait=wait_exponential(multiplier=1, min=1, max=3),
+    retry=retry_if_exception_type(OpenAIError),
+    reraise=True
+)
+def refine_experiences(cv_text: str, initial_experiences: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Raffine les expériences professionnelles avec un second appel à l'API."""
+    if not initial_experiences:
+        return []
+    
+    try:
+        # Limiter le contexte pour ne pas surcharger l'API
+        cv_excerpt = cv_text[:8000] if len(cv_text) > 8000 else cv_text
+        
+        start_time = time.time()
+        # Détection de la version d'OpenAI et appel adapté
+        if hasattr(openai, 'ChatCompletion'):
+            # Version plus ancienne (<=3.x)
+            response = openai.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": EXPERIENCE_REFINEMENT_PROMPT},
+                    {"role": "user", "content": f"CV EXCERPT:\n{cv_excerpt}\n\nINITIAL EXPERIENCES:\n{json.dumps(initial_experiences, ensure_ascii=False, indent=2)}"}
+                ],
+                temperature=0.1,
+                max_tokens=2000
+            )
+            content = response.choices[0].message.content
+        else:
+            # Version plus récente (>=4.x)
+            response = openai.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": EXPERIENCE_REFINEMENT_PROMPT},
+                    {"role": "user", "content": f"CV EXCERPT:\n{cv_excerpt}\n\nINITIAL EXPERIENCES:\n{json.dumps(initial_experiences, ensure_ascii=False, indent=2)}"}
+                ],
+                temperature=0.1,
+                max_tokens=2000
+            )
+            content = response.choices[0].message.content
+        
+        execution_time = time.time() - start_time
+        logger.info(f"Experience refinement completed in {execution_time:.2f} seconds")
+        
+        # Extraire et nettoyer la réponse
+        content = content.strip()
+        
+        # Nettoyer le contenu
+        if content.startswith("```json"):
+            content = content[7:]
+        if content.startswith("```"):
+            content = content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+        content = content.strip()
+        
+        # Extraire la partie JSON si nécessaire
+        json_start = content.find('[')
+        json_end = content.rfind(']')
+        
+        if json_start >= 0 and json_end > json_start:
+            content = content[json_start:json_end+1]
+        
+        try:
+            refined_experiences = json.loads(content)
+            
+            # Valider et normaliser les expériences raffinées
+            if isinstance(refined_experiences, list):
+                # Valider chaque expérience
+                for exp in refined_experiences:
+                    # Assurer que les clés requises sont présentes
+                    required_keys = ["titre", "entreprise", "date_debut", "date_fin", "description"]
+                    for key in required_keys:
+                        if key not in exp:
+                            exp[key] = ""
+                    
+                    # Assurer que les listes sont présentes
+                    list_keys = ["responsabilites", "realisations", "technologies"]
+                    for key in list_keys:
+                        if key not in exp or not isinstance(exp[key], list):
+                            exp[key] = []
+                
+                return refined_experiences
+            else:
+                logger.warning("Refined experiences is not a list, returning original")
+                return initial_experiences
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON from refinement response: {content}")
+            return initial_experiences
+            
     except Exception as e:
-        logger.error(f"Unexpected error in OpenAI call: {str(e)}")
-        raise OpenAIError(f"Unexpected error: {str(e)}")
+        logger.error(f"Error in experience refinement: {str(e)}")
+        return initial_experiences
+
+def normalize_date(date_str: str) -> str:
+    """Normalise une date au format YYYY-MM."""
+    if not date_str or date_str.lower() == "present":
+        return date_str
+        
+    import re
+    from datetime import datetime
+    
+    # Si déjà au format YYYY-MM
+    if re.match(r'^\d{4}-\d{2}$', date_str):
+        return date_str
+        
+    # Dictionnaire de correspondance des mois
+    months_map = {
+        'janvier': '01', 'january': '01', 'jan': '01',
+        'février': '02', 'february': '02', 'feb': '02', 'fev': '02',
+        'mars': '03', 'march': '03', 'mar': '03',
+        'avril': '04', 'april': '04', 'apr': '04', 'avr': '04',
+        'mai': '05', 'may': '05',
+        'juin': '06', 'june': '06', 'jun': '06',
+        'juillet': '07', 'july': '07', 'jul': '07', 'juil': '07',
+        'août': '08', 'august': '08', 'aug': '08', 'aout': '08',
+        'septembre': '09', 'september': '09', 'sep': '09', 'sept': '09',
+        'octobre': '10', 'october': '10', 'oct': '10',
+        'novembre': '11', 'november': '11', 'nov': '11',
+        'décembre': '12', 'december': '12', 'dec': '12', 'déc': '12'
+    }
+    
+    # Patterns pour différents formats de date
+    patterns = [
+        # YYYY-MM-DD
+        (r'(\d{4})-(\d{1,2})-\d{1,2}', lambda m: f"{m.group(1)}-{int(m.group(2)):02d}"),
+        # MM/YYYY or MM.YYYY
+        (r'(\d{1,2})[/.] *(\d{4})', lambda m: f"{m.group(2)}-{int(m.group(1)):02d}"),
+        # YYYY/MM or YYYY.MM
+        (r'(\d{4})[/.] *(\d{1,2})', lambda m: f"{m.group(1)}-{int(m.group(2)):02d}"),
+        # Month YYYY (ex: "Janvier 2020")
+        (r'([a-zéû]+) +(\d{4})', lambda m: f"{m.group(2)}-{months_map.get(m.group(1).lower(), '01')}"),
+        # YYYY Month (ex: "2020 Janvier")
+        (r'(\d{4}) +([a-zéû]+)', lambda m: f"{m.group(1)}-{months_map.get(m.group(2).lower(), '01')}"),
+        # Just YYYY
+        (r'^(\d{4})$', lambda m: f"{m.group(1)}-01")
+    ]
+    
+    for pattern, formatter in patterns:
+        match = re.search(pattern, date_str, re.IGNORECASE)
+        if match:
+            try:
+                return formatter(match)
+            except (KeyError, IndexError):
+                continue
+    
+    # Essai avec datetime
+    try:
+        for fmt in ['%d/%m/%Y', '%m/%d/%Y', '%Y-%m-%d', '%d-%m-%Y', '%m-%d-%Y', '%d.%m.%Y', '%m.%d.%Y', '%Y.%m.%d']:
+            try:
+                dt = datetime.strptime(date_str, fmt)
+                return f"{dt.year}-{dt.month:02d}"
+            except ValueError:
+                continue
+    except Exception:
+        pass
+        
+    # Si rien ne fonctionne, retourner une valeur par défaut
+    return ""
 
 def fallback_extraction(text: str) -> Dict[str, Any]:
     """
@@ -299,7 +558,10 @@ def fallback_extraction(text: str) -> Dict[str, Any]:
         "logiciels": [],
         "soft_skills": [],
         "email": "",
-        "telephone": ""
+        "telephone": "",
+        "experiences": [],
+        "formation": [],
+        "certifications": []
     }
     
     # Extraction d'email (recherche basique)
@@ -336,6 +598,52 @@ def fallback_extraction(text: str) -> Dict[str, Any]:
     for keyword in soft_skills_keywords:
         if keyword in text.lower():
             result["soft_skills"].append(keyword)
+    
+    # Extraction basique d'expériences
+    experience_sections = re.split(r'\n(?:expériences?|expériences? professionnelles?|parcours professionnel|professional experience|work experience)', text, flags=re.IGNORECASE)
+    if len(experience_sections) > 1:
+        exp_section = experience_sections[1].split('\n\n')[0]
+        
+        # Chercher des patterns d'emploi
+        job_patterns = re.findall(r'(\d{4}[-/.]?\d{0,4})\s*[-–à]\s*(\d{4}[-/.]?\d{0,4}|[Aa]ctuel|[Pp]résent|[Pp]resent|[Cc]urrent)\s*[:\n]?\s*([^\n]*)', exp_section)
+        
+        for i, (start_date, end_date, job_desc) in enumerate(job_patterns):
+            if i >= 3:  # Limiter à 3 expériences
+                break
+                
+            # Essayer d'extraire l'entreprise et le poste
+            job_parts = job_desc.split('|')
+            title = ""
+            company = ""
+            
+            if len(job_parts) >= 2:
+                title = job_parts[0].strip()
+                company = job_parts[1].strip()
+            elif len(job_parts) == 1:
+                title_company = job_parts[0].split('-', 1)
+                if len(title_company) >= 2:
+                    title = title_company[0].strip()
+                    company = title_company[1].strip()
+                else:
+                    title = job_desc.strip()
+            
+            # Normaliser les dates
+            start_date_normalized = normalize_date(start_date)
+            end_date_normalized = "Present" if any(x in end_date.lower() for x in ['actuel', 'présent', 'present', 'current']) else normalize_date(end_date)
+            
+            result["experiences"].append({
+                "titre": title,
+                "entreprise": company,
+                "lieu": "",
+                "date_debut": start_date_normalized,
+                "date_fin": end_date_normalized,
+                "description": job_desc,
+                "responsabilites": [],
+                "realisations": [],
+                "technologies": [],
+                "taille_equipe": "",
+                "type_contrat": ""
+            })
     
     return result
 
