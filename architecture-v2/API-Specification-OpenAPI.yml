@@ -1,0 +1,1206 @@
+openapi: 3.0.3
+info:
+  title: SuperSmartMatch V2 API
+  description: |
+    # SuperSmartMatch V2 - API de Matching Intelligent CV/Emploi
+    
+    ## 🎯 Vue d'ensemble
+    SuperSmartMatch V2 est une API de matching avancée qui utilise l'IA pour connecter candidats et emplois avec une précision exceptionnelle.
+    
+    ## 🚀 Fonctionnalités principales
+    - **Matching bidirectionnel**: Candidat → Emplois et Emploi → Candidats
+    - **Géolocalisation temps réel**: Calcul de trajets et compatibilité géographique
+    - **Analyse comportementale**: Profiling utilisateur et personnalisation
+    - **Parsing temporel**: Gestion des disponibilités et contraintes horaires
+    - **Explicabilité**: Génération d'explications en langage naturel
+    - **Analytics prédictifs**: ML pour optimisation continue
+    
+    ## 📊 Performance
+    - **Latence**: <200ms pour matching simple, <2s pour 100+ offres
+    - **Débit**: 1000+ matchings/minute
+    - **Disponibilité**: 99.9% uptime
+    
+    ## 🔐 Authentification
+    Cette API utilise OAuth 2.0 avec JWT tokens. Incluez votre token dans le header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    ## 📈 Rate Limiting
+    - **Utilisateurs standards**: 100 requêtes/minute
+    - **Comptes premium**: 1000 requêtes/minute
+    - **Comptes entreprise**: 10,000 requêtes/minute
+    
+    ## 🌍 Environnements
+    - **Production**: https://api.supersmartmatch.com/v2
+    - **Staging**: https://staging-api.supersmartmatch.com/v2
+    - **Développement**: https://dev-api.supersmartmatch.com/v2
+    
+  version: 2.0.0
+  contact:
+    name: SuperSmartMatch Support
+    url: https://supersmartmatch.com/support
+    email: support@supersmartmatch.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.supersmartmatch.com/v2
+    description: Production server
+  - url: https://staging-api.supersmartmatch.com/v2
+    description: Staging server
+  - url: http://localhost:5000/v2
+    description: Local development server
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+paths:
+  # Health & System Info
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check de l'API
+      description: Vérifie l'état de santé de tous les services
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Service en bonne santé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: healthy
+                version: "2.0.0"
+                timestamp: "2025-05-27T14:30:00Z"
+                services:
+                  geolocation: healthy
+                  scoring: healthy
+                  temporal: healthy
+                  behavior: healthy
+                  explainer: healthy
+                  analytics: healthy
+                uptime_seconds: 86400
+                
+  /metrics:
+    get:
+      tags:
+        - System
+      summary: Métriques de performance
+      description: Statistiques détaillées de performance et usage
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Métriques de performance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+  # Authentication
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Connexion utilisateur
+      description: Authentifie un utilisateur et retourne un JWT token
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Renouvellement du token
+      description: Renouvelle un JWT token expiré
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  description: Token de renouvellement
+      responses:
+        '200':
+          description: Token renouvelé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  # Matching Core API
+  /matching/jobs:
+    post:
+      tags:
+        - Matching
+      summary: Matching Candidat → Emplois
+      description: |
+        Trouve les meilleurs emplois pour un candidat donné.
+        
+        ### Algorithmes disponibles:
+        - `supersmartmatch`: Algorithme principal avec IA (recommandé)
+        - `semantic`: Matching sémantique basé sur NLP
+        - `collaborative`: Recommandations collaboratives
+        - `hybrid`: Combinaison de plusieurs algorithmes
+        
+        ### Critères de matching:
+        - **Compétences**: Matching technique et soft skills
+        - **Expérience**: Analyse de niveau et progression
+        - **Localisation**: Distance et temps de trajet
+        - **Rémunération**: Compatibilité salariale
+        - **Préférences**: Critères personnalisés utilisateur
+      operationId: matchCandidateToJobs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateMatchingRequest'
+            examples:
+              basic_request:
+                summary: Requête basique
+                value:
+                  candidate_id: "cand_123"
+                  algorithm: "supersmartmatch"
+                  limit: 10
+                  filters:
+                    min_score: 0.7
+                    location_radius_km: 50
+              advanced_request:
+                summary: Requête avancée avec préférences
+                value:
+                  candidate_id: "cand_123"
+                  algorithm: "supersmartmatch"
+                  limit: 20
+                  filters:
+                    min_score: 0.8
+                    location_radius_km: 30
+                    salary_range:
+                      min: 50000
+                      max: 80000
+                    contract_types: ["CDI", "CDD"]
+                    remote_work: true
+                  preferences:
+                    career_growth: 0.9
+                    work_life_balance: 0.8
+                    company_culture: 0.7
+      responses:
+        '200':
+          description: Résultats de matching trouvés
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobMatchingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /matching/candidates:
+    post:
+      tags:
+        - Matching
+      summary: Matching Emploi → Candidats
+      description: |
+        Trouve les meilleurs candidats pour une offre d'emploi.
+        
+        ### Fonctionnalités côté recruteur:
+        - **Scoring détaillé**: Pourcentages par critère
+        - **Analyse des risques**: Points d'attention
+        - **Profiling candidat**: Type et niveau du profil
+        - **Explications métier**: Justifications compréhensibles
+        - **Recommandations**: Actions suggérées
+      operationId: matchJobToCandidates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobMatchingRequest'
+      responses:
+        '200':
+          description: Candidats trouvés avec scores détaillés
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateMatchingResponse'
+
+  /matching/bulk:
+    post:
+      tags:
+        - Matching
+      summary: Matching en lot (Bulk)
+      description: |
+        Traite plusieurs requêtes de matching en parallèle.
+        Optimisé pour les gros volumes avec traitement asynchrone.
+      operationId: bulkMatching
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkMatchingRequest'
+      responses:
+        '202':
+          description: Traitement en cours, utiliser job_id pour suivre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: string
+                    description: ID du job pour suivi
+                  estimated_completion:
+                    type: string
+                    format: date-time
+                    description: Temps estimé de completion
+
+  /matching/jobs/{job_id}/status:
+    get:
+      tags:
+        - Matching
+      summary: Statut d'un job de matching
+      description: Suit l'avancement d'un traitement de matching en lot
+      operationId: getMatchingJobStatus
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du job de matching
+      responses:
+        '200':
+          description: Statut du job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatusResponse'
+
+  # Profile Management
+  /profiles/candidates/{candidate_id}:
+    get:
+      tags:
+        - Profiles
+      summary: Récupérer un profil candidat
+      operationId: getCandidateProfile
+      parameters:
+        - name: candidate_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Profil candidat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateProfile'
+    
+    put:
+      tags:
+        - Profiles
+      summary: Mettre à jour un profil candidat
+      operationId: updateCandidateProfile
+      parameters:
+        - name: candidate_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateProfileUpdate'
+      responses:
+        '200':
+          description: Profil mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateProfile'
+
+  /profiles/jobs/{job_id}:
+    get:
+      tags:
+        - Profiles
+      summary: Récupérer une offre d'emploi
+      operationId: getJobProfile
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Offre d'emploi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobProfile'
+
+  # Analytics & Insights
+  /analytics/matching-trends:
+    get:
+      tags:
+        - Analytics
+      summary: Tendances de matching
+      description: Analyse des tendances de matching par période
+      operationId: getMatchingTrends
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, quarter]
+            default: week
+        - name: granularity
+          in: query
+          schema:
+            type: string
+            enum: [hour, day, week]
+            default: day
+      responses:
+        '200':
+          description: Données de tendances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendsResponse'
+
+  /analytics/performance:
+    get:
+      tags:
+        - Analytics
+      summary: Métriques de performance
+      description: KPIs et métriques de performance détaillées
+      operationId: getPerformanceMetrics
+      responses:
+        '200':
+          description: Métriques de performance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceMetrics'
+
+  # Geolocation Services
+  /geolocation/distance:
+    post:
+      tags:
+        - Geolocation
+      summary: Calcul de distance et temps de trajet
+      description: Calcule la distance et le temps de trajet entre deux points
+      operationId: calculateDistance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistanceRequest'
+      responses:
+        '200':
+          description: Informations de distance calculées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistanceResponse'
+
+  /geolocation/geocode:
+    post:
+      tags:
+        - Geolocation
+      summary: Géocodage d'adresse
+      description: Convertit une adresse en coordonnées GPS
+      operationId: geocodeAddress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  description: Adresse à géocoder
+                country:
+                  type: string
+                  description: Code pays (ISO 3166-1 alpha-2)
+      responses:
+        '200':
+          description: Coordonnées trouvées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeocodeResponse'
+
+  # Temporal Services
+  /temporal/availability:
+    post:
+      tags:
+        - Temporal
+      summary: Analyse de disponibilité
+      description: Parse et analyse les disponibilités temporelles
+      operationId: parseAvailability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailabilityRequest'
+      responses:
+        '200':
+          description: Disponibilités parsées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityResponse'
+
+  # Behavior Analysis
+  /behavior/profile/{user_id}:
+    get:
+      tags:
+        - Behavior
+      summary: Profil comportemental utilisateur
+      description: Analyse comportementale et préférences inférées
+      operationId: getBehaviorProfile
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Profil comportemental
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BehaviorProfile'
+
+  /behavior/interactions:
+    post:
+      tags:
+        - Behavior
+      summary: Enregistrer une interaction utilisateur
+      description: Enregistre une interaction pour l'analyse comportementale
+      operationId: recordInteraction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionEvent'
+      responses:
+        '201':
+          description: Interaction enregistrée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: recorded
+                  interaction_id:
+                    type: string
+
+  # Explanation Services
+  /explanations/generate:
+    post:
+      tags:
+        - Explanations
+      summary: Générer des explications
+      description: Génère des explications en langage naturel pour un matching
+      operationId: generateExplanations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExplanationRequest'
+      responses:
+        '200':
+          description: Explications générées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplanationResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    # Core Matching Schemas
+    CandidateMatchingRequest:
+      type: object
+      required:
+        - candidate_id
+        - algorithm
+      properties:
+        candidate_id:
+          type: string
+          description: ID unique du candidat
+          example: "cand_123456"
+        algorithm:
+          type: string
+          enum: [supersmartmatch, semantic, collaborative, hybrid]
+          default: supersmartmatch
+          description: Algorithme de matching à utiliser
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+          description: Nombre maximum de résultats
+        filters:
+          $ref: '#/components/schemas/MatchingFilters'
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+        context:
+          type: object
+          description: Contexte additionnel pour le matching
+          properties:
+            urgency:
+              type: string
+              enum: [low, medium, high, urgent]
+            source:
+              type: string
+              description: Source de la requête
+            user_agent:
+              type: string
+
+    JobMatchingRequest:
+      type: object
+      required:
+        - job_id
+        - algorithm
+      properties:
+        job_id:
+          type: string
+          description: ID unique de l'offre d'emploi
+        algorithm:
+          type: string
+          enum: [supersmartmatch, semantic, collaborative, hybrid]
+          default: supersmartmatch
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+        filters:
+          $ref: '#/components/schemas/MatchingFilters'
+        recruiter_preferences:
+          $ref: '#/components/schemas/RecruiterPreferences'
+
+    MatchingFilters:
+      type: object
+      properties:
+        min_score:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Score minimum requis (0-1)
+        location_radius_km:
+          type: integer
+          minimum: 1
+          maximum: 500
+          description: Rayon de recherche en kilomètres
+        salary_range:
+          type: object
+          properties:
+            min:
+              type: integer
+              description: Salaire minimum
+            max:
+              type: integer
+              description: Salaire maximum
+            currency:
+              type: string
+              default: EUR
+        contract_types:
+          type: array
+          items:
+            type: string
+            enum: [CDI, CDD, Stage, Freelance, Interim]
+        remote_work:
+          type: boolean
+          description: Accepte le télétravail
+        experience_level:
+          type: array
+          items:
+            type: string
+            enum: [entry, junior, mid, senior, executive]
+        industries:
+          type: array
+          items:
+            type: string
+          description: Secteurs d'activité ciblés
+
+    JobMatchingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        matching_mode:
+          type: string
+          example: "candidate_to_jobs"
+        algorithm_used:
+          type: string
+        query_time_ms:
+          type: integer
+          description: Temps de traitement en millisecondes
+        total_results:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobMatch'
+        metadata:
+          $ref: '#/components/schemas/MatchingMetadata'
+
+    CandidateMatchingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        matching_mode:
+          type: string
+          example: "job_to_candidates"
+        algorithm_used:
+          type: string
+        query_time_ms:
+          type: integer
+        total_results:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidateMatch'
+        metadata:
+          $ref: '#/components/schemas/MatchingMetadata'
+
+    JobMatch:
+      type: object
+      properties:
+        job_id:
+          type: string
+        matching_score:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Score global de matching
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Niveau de confiance du score
+        detailed_scores:
+          $ref: '#/components/schemas/DetailedScores'
+        job_details:
+          $ref: '#/components/schemas/JobSummary'
+        explanations:
+          $ref: '#/components/schemas/MatchExplanation'
+        recommendations:
+          type: array
+          items:
+            type: string
+          description: Recommandations pour améliorer le match
+
+    CandidateMatch:
+      type: object
+      properties:
+        candidate_id:
+          type: string
+        matching_score_entreprise:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Score côté entreprise (0-100%)
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        detailed_scores:
+          $ref: '#/components/schemas/DetailedScores'
+        candidate_summary:
+          $ref: '#/components/schemas/CandidateSummary'
+        intelligence:
+          $ref: '#/components/schemas/IntelligenceBonus'
+        risk_analysis:
+          $ref: '#/components/schemas/RiskAnalysis'
+        profile_analysis:
+          $ref: '#/components/schemas/ProfileAnalysis'
+        explanations_entreprise:
+          $ref: '#/components/schemas/EnterpriseExplanations'
+
+    DetailedScores:
+      type: object
+      properties:
+        skills:
+          $ref: '#/components/schemas/ScoreDetail'
+        experience:
+          $ref: '#/components/schemas/ScoreDetail'
+        location:
+          $ref: '#/components/schemas/ScoreDetail'
+        salary:
+          $ref: '#/components/schemas/ScoreDetail'
+        education:
+          $ref: '#/components/schemas/ScoreDetail'
+        languages:
+          $ref: '#/components/schemas/ScoreDetail'
+        certifications:
+          $ref: '#/components/schemas/ScoreDetail'
+
+    ScoreDetail:
+      type: object
+      properties:
+        percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        weight:
+          type: number
+          minimum: 0
+          maximum: 1
+        details:
+          type: array
+          items:
+            type: string
+        contributing_factors:
+          type: array
+          items:
+            type: object
+            properties:
+              factor:
+                type: string
+              impact:
+                type: number
+              description:
+                type: string
+
+    # Profile Schemas
+    CandidateProfile:
+      type: object
+      properties:
+        candidate_id:
+          type: string
+        personal_info:
+          $ref: '#/components/schemas/PersonalInfo'
+        professional_info:
+          $ref: '#/components/schemas/ProfessionalInfo'
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+        availability:
+          $ref: '#/components/schemas/Availability'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    JobProfile:
+      type: object
+      properties:
+        job_id:
+          type: string
+        title:
+          type: string
+        company:
+          $ref: '#/components/schemas/Company'
+        description:
+          type: string
+        requirements:
+          $ref: '#/components/schemas/JobRequirements'
+        benefits:
+          type: array
+          items:
+            type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        salary_range:
+          $ref: '#/components/schemas/SalaryRange'
+        contract_type:
+          type: string
+          enum: [CDI, CDD, Stage, Freelance, Interim]
+        remote_work:
+          type: boolean
+        posted_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+
+    PersonalInfo:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        nationality:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+
+    ProfessionalInfo:
+      type: object
+      properties:
+        current_title:
+          type: string
+        experience_years:
+          type: integer
+          minimum: 0
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skill'
+        experiences:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkExperience'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+        certifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Certification'
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Language'
+
+    # Common Schemas
+    Location:
+      type: object
+      properties:
+        address:
+          type: string
+        city:
+          type: string
+        region:
+          type: string
+        country:
+          type: string
+        postal_code:
+          type: string
+        coordinates:
+          type: object
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+
+    Skill:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: [technical, soft, language, tool, framework]
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced, expert]
+        years_experience:
+          type: integer
+        verified:
+          type: boolean
+        last_used:
+          type: string
+          format: date
+
+    # System Schemas
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+          additionalProperties:
+            type: string
+            enum: [healthy, degraded, unhealthy]
+        uptime_seconds:
+          type: integer
+        response_time_ms:
+          type: integer
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT token d'accès
+        refresh_token:
+          type: string
+          description: Token de renouvellement
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Durée de validité en secondes
+        scope:
+          type: string
+          description: Portée des permissions
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        remember_me:
+          type: boolean
+          default: false
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Code d'erreur unique
+            message:
+              type: string
+              description: Message d'erreur lisible
+            details:
+              type: string
+              description: Détails techniques
+            timestamp:
+              type: string
+              format: date-time
+            request_id:
+              type: string
+              description: ID de la requête pour le support
+
+  responses:
+    BadRequestError:
+      description: Requête invalide
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "INVALID_REQUEST"
+              message: "Les paramètres de la requête sont invalides"
+              details: "Le champ 'candidate_id' est requis"
+              timestamp: "2025-05-27T14:30:00Z"
+              request_id: "req_abc123"
+
+    UnauthorizedError:
+      description: Non autorisé - Token manquant ou invalide
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Token d'authentification invalide ou expiré"
+              timestamp: "2025-05-27T14:30:00Z"
+
+    ForbiddenError:
+      description: Accès interdit - Permissions insuffisantes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundError:
+      description: Ressource non trouvée
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    RateLimitError:
+      description: Limite de taux dépassée
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "RATE_LIMIT_EXCEEDED"
+              message: "Trop de requêtes, réessayez dans 60 secondes"
+              timestamp: "2025-05-27T14:30:00Z"
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Limite de requêtes par fenêtre
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Requêtes restantes dans la fenêtre
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Timestamp de reset de la fenêtre
+        Retry-After:
+          schema:
+            type: integer
+          description: Secondes à attendre avant retry
+
+    InternalServerError:
+      description: Erreur interne du serveur
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  parameters:
+    ApiVersionHeader:
+      name: API-Version
+      in: header
+      required: false
+      schema:
+        type: string
+        default: "v2"
+      description: Version de l'API à utiliser
+
+    CorrelationIdHeader:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      schema:
+        type: string
+      description: ID de corrélation pour le tracing
+
+# Webhooks pour notifications temps réel
+webhooks:
+  matchingCompleted:
+    post:
+      requestBody:
+        description: Notification de matching terminé
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_type:
+                  type: string
+                  example: "matching.completed"
+                timestamp:
+                  type: string
+                  format: date-time
+                data:
+                  type: object
+                  properties:
+                    job_id:
+                      type: string
+                    results_count:
+                      type: integer
+                    processing_time_ms:
+                      type: integer
+      responses:
+        '200':
+          description: Webhook reçu avec succès
+
+tags:
+  - name: System
+    description: Endpoints système (santé, métriques)
+  - name: Authentication
+    description: Authentification et autorisation
+  - name: Matching
+    description: API de matching principal
+  - name: Profiles
+    description: Gestion des profils candidats et emplois
+  - name: Analytics
+    description: Analytics et insights
+  - name: Geolocation
+    description: Services de géolocalisation
+  - name: Temporal
+    description: Parsing et analyse temporelle
+  - name: Behavior
+    description: Analyse comportementale
+  - name: Explanations
+    description: Génération d'explications
+
+# Extensions OpenAPI pour documentation
+x-logo:
+  url: "https://supersmartmatch.com/logo.png"
+  altText: "SuperSmartMatch Logo"
+
+x-tagGroups:
+  - name: Core API
+    tags:
+      - Matching
+      - Profiles
+  - name: Intelligence Services
+    tags:
+      - Geolocation
+      - Temporal
+      - Behavior
+      - Explanations
+  - name: Platform
+    tags:
+      - System
+      - Authentication
+      - Analytics
