@@ -1,0 +1,55 @@
+# 🚀 CV Parser Ultra v2.0 - Requirements Python
+# PROMPT 2 - SuperSmartMatch V2 - Dépendances optimisées
+
+# FastAPI et serveur ASGI
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# WebSocket support
+websockets==12.0
+
+# Base de données et cache
+aioredis==2.0.1
+asyncpg==0.29.0
+
+# OpenAI API
+openai==1.3.0
+
+# Traitement de documents
+PyMuPDF==1.23.8          # PDF (plus rapide que PyPDF2)
+python-docx==1.1.0       # DOCX
+python-docx2txt==0.8     # DOC
+python-magic==0.4.27     # Détection type MIME
+
+# OCR et traitement d'images  
+pytesseract==0.3.10
+Pillow==10.1.0
+opencv-python==4.8.1.78
+
+# Traitement HTML
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# Validation et modèles
+pydantic==2.5.0
+
+# Métriques et monitoring
+prometheus-client==0.19.0
+
+# Utilitaires
+hashlib==1.2.0
+uuid==1.30
+tenacity==8.2.3          # Retry mechanism
+python-multipart==0.0.6  # Upload de fichiers
+
+# Logs structurés
+structlog==23.2.0
+
+# Tests et développement
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2            # Client HTTP async pour tests
+
+# Optimisation performance
+ujson==5.8.0            # JSON plus rapide
+orjson==3.9.10          # JSON encore plus rapide
