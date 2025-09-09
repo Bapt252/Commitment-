@@ -15,7 +15,7 @@ const config = {
 
   // OpenAI configuration for AI-powered extraction
   openai: {
-    apiKey: process.env.OPENAI_API_KEY || 'your-openai-api-key',
+    apiKey: process.env.OPENAI_API_KEY || '',
     model: process.env.OPENAI_MODEL || 'gpt-4',
     maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS) || 2000,
     temperature: parseFloat(process.env.OPENAI_TEMPERATURE) || 0.1,
@@ -226,7 +226,7 @@ function validateConfig() {
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    console.warn(`Missing environment variables: ${missing.join(', ')}. Please configure them for full functionality.`);
   }
 
   // Validate numeric ranges
