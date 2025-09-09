@@ -6,7 +6,7 @@ Script simplifié pour parser une fiche de poste 'fdp.pdf' avec GPT
 
 Ce script est spécifiquement conçu pour analyser le fichier fdp.pdf
 sur le bureau et extraire les informations structurées à l'aide de GPT.
-Aucune configuration n'est nécessaire - il fonctionne directement.
+Configuration requise: OPENAI_API_KEY en variable d'environnement.
 """
 
 import os
@@ -16,18 +16,18 @@ import PyPDF2
 import requests
 from datetime import datetime
 
-print("\n=== JOB PARSER GPT - VERSION SIMPLIFIÉE ===\n")
+print("\n=== JOB PARSER GPT - VERSION SÉCURISÉE ===\n")
 
-# Fonction pour encoder la clé API de manière plus sécurisée
 def get_api_key():
-    # Cette fonction reconstitue la clé API à partir de segments pour éviter
-    # une détection directe dans le code source
-    segments = [
-        "sk-svcacct-",
-        "xirkqM0lorBNrlphPEH3WbuQL-9BYy3H8QUlJjE5wby1FrPvX91P6e4qvTY3bQnvbbltkqAcGUT3B",
-        "lbkFJT-fAaOxfrclRmFqFLPA5E6n0_OC3YW4eIiBZR-2fh-ZOquA4X_Y1KyliAv5cv_thp_WCU51EAA"
-    ]
-    return "".join(segments)
+    """Récupère la clé API OpenAI depuis les variables d'environnement."""
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
+        print("ERREUR: Variable d'environnement OPENAI_API_KEY non définie.")
+        print("Veuillez configurer votre clé API OpenAI :")
+        print("   export OPENAI_API_KEY='sk-votre-cle-ici'")
+        print("   ou créer un fichier .env avec : OPENAI_API_KEY=sk-votre-cle-ici")
+        sys.exit(1)
+    return api_key
 
 def extract_text_from_pdf(pdf_path):
     """Extrait le texte d'un fichier PDF."""
