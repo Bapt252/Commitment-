@@ -1,80 +1,16 @@
-// JobParserGPT - Version ChatGPT pour analyse intelligente de fiches de poste
-// Remplace les algorithmes locaux par une vraie analyse IA
+// JobParserGPT - Version sécurisée pour analyse intelligente de fiches de poste
+// Les clés API doivent être configurées côté serveur uniquement
 
 class JobParserGPT {
     constructor(options = {}) {
-        this.apiKey = options.apiKey || this.getStoredApiKey();
         this.debug = options.debug || false;
-        this.version = '1.0-GPT-' + Date.now();
-        
-        // Configuration ChatGPT
-        this.gptModel = 'gpt-4o-mini';
-        this.maxTokens = 2000;
+        this.version = '1.0-SECURE-' + Date.now();
+        this.serverEndpoint = options.serverEndpoint || '/api/job-parser-gpt';
         
         if (this.debug) {
-            console.log('🤖 JobParserGPT v1.0 initialisé');
-            console.log('🔑 API Key:', this.apiKey ? 'Configurée' : 'Non configurée');
+            console.log('🤖 JobParserGPT v1.0 initialisé (Mode sécurisé)');
+            console.log('🔒 Les clés API sont gérées côté serveur');
         }
-    }
-    
-    // ===== GESTION DE LA CLÉ API =====
-    
-    setApiKey(apiKey) {
-        this.apiKey = apiKey;
-        this.storeApiKey(apiKey);
-        console.log('✅ Clé API ChatGPT configurée');
-    }
-    
-    getStoredApiKey() {
-        try {
-            return localStorage.getItem('openai_api_key_jobparser');
-        } catch (e) {
-            return null;
-        }
-    }
-    
-    storeApiKey(apiKey) {
-        try {
-            localStorage.setItem('openai_api_key_jobparser', apiKey);
-        } catch (e) {
-            console.warn('Impossible de sauvegarder la clé API');
-        }
-    }
-    
-    hasApiKey() {
-        return this.apiKey && this.apiKey.trim().length > 0;
-    }
-    
-    // ===== PROMPT OPTIMISÉ POUR L'EXTRACTION =====
-    
-    getJobAnalysisPrompt(jobText) {
-        return `Tu es un expert en analyse de fiches de poste. Analyse ce texte et extrais exactement ces 10 informations sous format JSON :
-
-TEXTE À ANALYSER :
-${jobText}
-
-INSTRUCTIONS :
-- Extrais uniquement les informations présentes dans le texte
-- Si une information n'est pas trouvée, utilise une chaîne vide ""
-- Sois précis et concis
-- Pour les compétences, retourne un tableau de maximum 8 éléments
-- Pour les responsabilités, retourne un texte descriptif en français
-
-FORMAT DE RÉPONSE OBLIGATOIRE (JSON valide uniquement) :
-{
-  "title": "titre exact du poste",
-  "company": "nom de l'entreprise",
-  "location": "ville/région",
-  "contract_type": "type de contrat (CDI/CDD/Stage/etc)",
-  "experience": "expérience requise",
-  "education": "formation demandée", 
-  "salary": "rémunération mentionnée",
-  "skills": ["compétence1", "compétence2", "compétence3"],
-  "responsibilities": "description des missions et responsabilités",
-  "benefits": "avantages proposés"
-}
-
-Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire.`;
     }
     
     // ===== EXTRACTION DES FICHIERS =====
@@ -160,59 +96,41 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire.`;
             .trim();
     }
     
-    // ===== ANALYSE AVEC CHATGPT =====
+    // ===== ANALYSE VIA SERVEUR SÉCURISÉ =====
     
-    async analyzeJobWithGPT(text) {
-        if (!this.hasApiKey()) {
-            throw new Error('Clé API ChatGPT non configurée');
-        }
-        
+    async analyzeJobWithServer(text) {
         if (!text || text.trim().length < 50) {
             throw new Error('Texte trop court pour analyse');
         }
         
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            const response = await fetch(this.serverEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.apiKey}`
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: this.gptModel,
-                    messages: [
-                        {
-                            role: 'system',
-                            content: 'Tu es un expert en analyse de fiches de poste. Tu dois extraire des informations précises et retourner uniquement du JSON valide.'
-                        },
-                        {
-                            role: 'user',
-                            content: this.getJobAnalysisPrompt(text)
-                        }
-                    ],
-                    max_tokens: this.maxTokens,
-                    temperature: 0.1,
-                    response_format: { type: "json_object" }
+                    text: text,
+                    action: 'parse-job'
                 })
             });
             
             if (!response.ok) {
                 const errorData = await response.text();
-                throw new Error(`Erreur API OpenAI (${response.status}): ${errorData}`);
+                throw new Error(`Erreur serveur (${response.status}): ${errorData}`);
             }
             
             const data = await response.json();
             
-            if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                throw new Error('Réponse API invalide');
+            if (!data.success) {
+                throw new Error(data.error || 'Erreur inconnue du serveur');
             }
             
-            const result = JSON.parse(data.choices[0].message.content);
-            
-            return this.validateAndCleanResult(result);
+            return this.validateAndCleanResult(data.result);
             
         } catch (error) {
-            console.error('Erreur analyse GPT:', error);
+            console.error('Erreur analyse serveur:', error);
             throw error;
         }
     }
@@ -239,7 +157,7 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire.`;
     
     async parseJobFile(file) {
         if (this.debug) {
-            console.log('📄 Analyse fichier avec ChatGPT:', file.name);
+            console.log('📄 Analyse fichier via serveur sécurisé:', file.name);
         }
         
         try {
@@ -251,8 +169,8 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire.`;
                 console.log('📝 Aperçu:', text.substring(0, 200) + '...');
             }
             
-            // Étape 2: Analyser avec GPT
-            return await this.analyzeJobWithGPT(text);
+            // Étape 2: Analyser via serveur sécurisé
+            return await this.analyzeJobWithServer(text);
             
         } catch (error) {
             console.error('Erreur parsing fichier:', error);
@@ -262,13 +180,48 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire.`;
     
     async parseJobText(text) {
         if (this.debug) {
-            console.log('📝 Analyse texte avec ChatGPT, longueur:', text.length);
+            console.log('📝 Analyse texte via serveur sécurisé, longueur:', text.length);
         }
         
         try {
-            return await this.analyzeJobWithGPT(text);
+            return await this.analyzeJobWithServer(text);
         } catch (error) {
             console.error('Erreur parsing texte:', error);
+            throw error;
+        }
+    }
+    
+    // ===== ALTERNATIVE POUR FICHIERS =====
+    
+    async parseJobFileUpload(file) {
+        if (this.debug) {
+            console.log('📤 Upload fichier pour analyse:', file.name);
+        }
+        
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch(this.serverEndpoint + '/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.text();
+                throw new Error(`Erreur upload (${response.status}): ${errorData}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Erreur upload inconnue');
+            }
+            
+            return this.validateAndCleanResult(data.result);
+            
+        } catch (error) {
+            console.error('Erreur upload fichier:', error);
             throw error;
         }
     }
@@ -276,34 +229,41 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire.`;
     // ===== MÉTHODES UTILITAIRES =====
     
     async testConnection() {
-        if (!this.hasApiKey()) {
-            throw new Error('Clé API non configurée');
-        }
-        
         try {
-            const testText = `Intitulé du poste : Développeur Web
-Entreprise : TechCorp
-Localisation : Paris
-Type de contrat : CDI
-Expérience : 3 ans minimum
-Formation : Bac+3 en informatique
-Compétences : JavaScript, React, Node.js
-Missions : Développement d'applications web
-Salaire : 45k€
-Avantages : Télétravail, mutuelle`;
+            const response = await fetch(this.serverEndpoint + '/health', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
             
-            const result = await this.analyzeJobWithGPT(testText);
-            
-            if (this.debug) {
-                console.log('✅ Test de connexion réussi:', result);
+            if (!response.ok) {
+                throw new Error(`Serveur non disponible (${response.status})`);
             }
             
-            return result;
+            const data = await response.json();
+            
+            if (this.debug) {
+                console.log('✅ Test de connexion serveur réussi:', data);
+            }
+            
+            return data;
             
         } catch (error) {
-            console.error('❌ Test de connexion échoué:', error);
+            console.error('❌ Test de connexion serveur échoué:', error);
             throw error;
         }
+    }
+    
+    // ===== MÉTHODES DE STATUT =====
+    
+    getStatus() {
+        return {
+            version: this.version,
+            mode: 'secure',
+            serverEndpoint: this.serverEndpoint,
+            debug: this.debug
+        };
     }
 }
 
@@ -316,12 +276,13 @@ if (typeof window !== 'undefined') {
     // Créer une instance globale
     window.jobParserGPTInstance = new JobParserGPT({ debug: true });
     
-    console.log('🤖 JobParserGPT chargé et prêt !');
+    console.log('🤖 JobParserGPT chargé et prêt (Mode sécurisé) !');
     console.log('📋 Fonctionnalités:');
     console.log('  - Analyse fichiers PDF/DOCX/TXT');
-    console.log('  - Extraction texte + ChatGPT');
+    console.log('  - Extraction texte locale');
+    console.log('  - Analyse IA via serveur sécurisé');
     console.log('  - 10 champs extraits automatiquement');
-    console.log('  - Configuration clé API');
+    console.log('  🔒 Sécurité: Aucune clé API exposée côté client');
 }
 
 // Export pour modules
